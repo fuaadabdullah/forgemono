@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "Forge Lite",
+    "slug": "forge-lite",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fuaadabdullah.forgelite",
+      "associatedDomains": ["applinks:forgelite.app"]
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.fuaadabdullah.forgelite",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": {
+            "scheme": "https",
+            "host": "forgelite.app",
+            "pathPrefix": "/auth"
+          },
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "forge-lite",
+          "organization": "your-sentry-org"
+        }
+      ]
+    ],
+    "scheme": "forge-lite",
+    "extra": {
+      "supportEmail": "goblinosrep@gmail.com",
+      "eas": {
+        "projectId": "your-eas-project-id"
+      }
+    }
+  }
+}

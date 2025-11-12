@@ -1,0 +1,40 @@
+name: DeepSeek Env Validation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'GoblinOS/goblins.yaml'
+      - 'GoblinOS/.env'
+      - 'GoblinOS/scripts/validate-deepseek-env.js'
+      - '.github/workflows/deepseek-env-validate.yml'
+  pull_request:
+    paths:
+      - 'GoblinOS/goblins.yaml'
+      - 'GoblinOS/.env'
+      - 'GoblinOS/scripts/validate-deepseek-env.js'
+      - '.github/workflows/deepseek-env-validate.yml'
+
+jobs:
+  validate-deepseek:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate DeepSeek configuration (permissive)
+        run: node GoblinOS/scripts/validate-deepseek-env.js
+
+      # To enforce secrets on protected branches, uncomment the step below and
+      # ensure repository/environment secrets are configured.
+      # - name: Validate DeepSeek configuration (strict)
+      #   env:
+      #     CI_DEEPSEEK_REQUIRED: 'true'
+      #     DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      #   run: node GoblinOS/scripts/validate-deepseek-env.js
+

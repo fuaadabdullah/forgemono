@@ -1,0 +1,10 @@
+{
+  "symbol": "QQQ",
+  "price": 611.67,
+  "change": -11.61,
+  "change_percent": "-1.8627%",
+  "volume": 72115128,
+  "last_updated": "2025-11-06",
+  "source": "alpha_vantage",
+  "timestamp": 1762525356
+}

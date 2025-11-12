@@ -1,0 +1,63 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: overmind-bridge-scaler
+  namespace: overmind-dev
+  labels:
+    app: overmind-bridge
+    component: bridge
+spec:
+  scaleTargetRef:
+    name: overmind-bridge
+    kind: Deployment
+
+  # Scale-to-zero configuration for dev
+  minReplicaCount: 0  # Scale to zero when idle
+  maxReplicaCount: 5
+  pollingInterval: 30
+  cooldownPeriod: 600  # Wait 10 minutes before scaling to 0
+
+  # Advanced HPA configuration
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 600  # Longer window for scale-to-zero
+          policies:
+          - type: Percent
+            value: 100
+            periodSeconds: 60
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          policies:
+          - type: Percent
+            value: 100
+            periodSeconds: 15  # Fast scale-up from zero
+          - type: Pods
+            value: 2
+            periodSeconds: 15
+
+  # Fallback
+  fallback:
+    failureThreshold: 3
+    replicas: 1
+
+  # Triggers
+  triggers:
+  # Primary: HTTP requests (scale from 0 if any traffic)
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus:9090
+      metricName: http_requests_per_minute
+      query: sum(rate(http_requests_total{service="bridge"}[1m])) * 60
+      threshold: "5"  # Scale up if > 5 req/min
+      activationThreshold: "1"  # Wake from 0 if > 1 req/min
+
+  # Secondary: WebSocket connections
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus:9090
+      metricName: websocket_connections
+      query: sum(websocket_connections_active{service="bridge"})
+      threshold: "2"
+      activationThreshold: "1"

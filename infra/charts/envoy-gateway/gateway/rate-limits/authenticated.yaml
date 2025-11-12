@@ -1,0 +1,23 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: RateLimitPolicy
+metadata:
+  name: authenticated-rate-limit
+  namespace: overmind-prod
+  labels:
+    app: overmind
+    tier: authenticated
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: api
+
+  rateLimits:
+  # Rate limit by Authorization header (user token)
+  - clientSelectors:
+    - headers:
+      - name: Authorization
+        type: Distinct
+    limits:
+      requests: 100
+      unit: Second

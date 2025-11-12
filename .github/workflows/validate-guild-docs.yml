@@ -1,0 +1,56 @@
+name: Validate Guild Docs
+
+on:
+  pull_request:
+    paths:
+      - 'GoblinOS/goblins.yaml'
+      - 'GoblinOS/scripts/generate-roles.js'
+      - 'GoblinOS/docs/ROLES.md'
+      - 'GoblinOS/SOURCE_OF_TRUTH.md'
+      - '.github/copilot-instructions.md'
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'GoblinOS/goblins.yaml'
+      - 'GoblinOS/scripts/generate-roles.js'
+      - 'GoblinOS/docs/ROLES.md'
+      - 'GoblinOS/SOURCE_OF_TRUTH.md'
+      - '.github/copilot-instructions.md'
+  workflow_dispatch:
+
+jobs:
+  validate-guild-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: |
+          cd GoblinOS
+          pnpm install --frozen-lockfile
+
+      - name: Verify guild docs are current
+        run: |
+          cd GoblinOS
+          pnpm run generate:roles:check
+
+      - name: Ensure working tree is clean
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "Repository is dirty after guild doc verification. Please run 'pnpm --filter goblinos run generate:roles' locally and commit the results."
+            git status --short
+            exit 1
+          fi

@@ -1,0 +1,16 @@
+paths:
+  - infra/observability
+
+checks:
+  - name: container-resources
+    enabled: true
+  - name: host-network
+    enabled: true
+  - name: host-path
+    enabled: true
+  - name: privileged-containers
+    enabled: true
+  - name: pod-liveness-probe
+    enabled: true
+  - name: pod-readiness-probe
+    enabled: true

@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: otel-collector
+  namespace: observability
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: observability-read
+  namespace: observability
+rules:
+  - apiGroups: [""]
+    resources: ["pods","services","endpoints","configmaps","secrets"]
+    verbs: ["get","list","watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: observability-read-binding
+  namespace: observability
+subjects:
+  - kind: ServiceAccount
+    name: otel-collector
+    namespace: observability
+roleRef:
+  kind: Role
+  name: observability-read
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Prometheus needs broader, cluster-level read permissions to discover targets
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-scrape
+rules:
+  - apiGroups: [""]
+    resources: ["nodes","nodes/proxy","services","endpoints","pods"]
+    verbs: ["get","list","watch"]
+  - apiGroups: ["apps"]
+    resources: ["statefulsets","deployments"]
+    verbs: ["get","list","watch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get","list","watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-scrape-binding
+subjects:
+  - kind: ServiceAccount
+    name: prometheus
+    namespace: observability
+roleRef:
+  kind: ClusterRole
+  name: prometheus-scrape
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Loki and Tempo typically only need access to their own secrets/configmaps and S3 credentials
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: storage-access
+  namespace: observability
+rules:
+  - apiGroups: [""]
+    resources: ["secrets","configmaps"]
+    verbs: ["get","list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: loki-storage-binding
+  namespace: observability
+subjects:
+  - kind: ServiceAccount
+    name: loki
+    namespace: observability
+roleRef:
+  kind: Role
+  name: storage-access
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tempo-storage-binding
+  namespace: observability
+subjects:
+  - kind: ServiceAccount
+    name: tempo
+    namespace: observability
+roleRef:
+  kind: Role
+  name: storage-access
+  apiGroup: rbac.authorization.k8s.io

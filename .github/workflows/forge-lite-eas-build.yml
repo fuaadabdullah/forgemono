@@ -1,0 +1,69 @@
+name: Forge Lite EAS Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Build platform'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+      profile:
+        description: 'EAS build profile'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - development
+          - preview
+          - production
+
+jobs:
+  eas-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/forge-lite
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Enable Corepack (pnpm)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Show EAS account
+        run: pnpm exec eas whoami || true
+
+      - name: Build (EAS)
+        run: |
+          set -euxo pipefail
+          PLATFORM=${{ inputs.platform }}
+          PROFILE=${{ inputs.profile }}
+          if [ "$PLATFORM" = "all" ]; then
+            pnpm exec eas build --non-interactive --platform ios --profile "$PROFILE"
+            pnpm exec eas build --non-interactive --platform android --profile "$PROFILE"
+          else
+            pnpm exec eas build --non-interactive --platform "$PLATFORM" --profile "$PROFILE"
+          fi
+
+      - name: Hint (missing token)
+        if: failure()
+        run: |
+          echo "If authentication failed, set EXPO_TOKEN in repo secrets."
+          echo "Create a token via: https://expo.dev/accounts/[account]/settings/access-tokens"
+

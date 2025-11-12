@@ -1,0 +1,13 @@
+{
+  "symbol": "AMZN",
+  "price": 240.01,
+  "change": -3.03,
+  "change_percent": "-1.25%",
+  "high": 243.78,
+  "low": 239.75,
+  "open": 243.78,
+  "previous_close": 243.04,
+  "last_updated": "2025-11-07",
+  "source": "finnhub",
+  "timestamp": 1762526427
+}

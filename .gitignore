@@ -1,0 +1,26 @@
+# Node/pnpm
+node_modules/
+.pnpm-store/
+dist/
+coverage/
+.turbo/
+
+# Python
+__pycache__/
+.pytest_cache/
+.venv/
+
+# OS/Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Env/Secrets
+.env
+.env.*
+.secrets/
+
+# Artifacts
+artifacts/
+*.log
+

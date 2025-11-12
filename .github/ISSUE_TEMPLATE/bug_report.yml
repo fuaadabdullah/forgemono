@@ -1,0 +1,33 @@
+name: Bug Report
+description: Report a bug in the workspace
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Provide exact steps and commands
+      placeholder: |
+        1. …
+        2. …
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs/Stack Trace
+  - type: input
+    id: area
+    attributes:
+      label: Affected Area
+      placeholder: GoblinOS / infra / tools / portfolio
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: macOS 15, Node 22, pnpm 9, Python 3.11

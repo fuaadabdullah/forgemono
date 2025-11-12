@@ -1,0 +1,45 @@
+name: Overmind CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'GoblinOS/packages/goblins/overmind/**'
+      - '.github/workflows/overmind-ci.yml'
+  pull_request:
+    paths:
+      - 'GoblinOS/packages/goblins/overmind/**'
+      - '.github/workflows/overmind-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: GoblinOS/packages/goblins/overmind
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Enable Corepack (pnpm)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type Check
+        run: npx tsc --noEmit
+
+      - name: Run Overmind Tests
+        run: pnpm test
+
+      - name: Run Bridge Tests
+        run: |
+          cd bridge
+          OVERMIND_MOCK=1 NODE_ENV=test pnpm test --silent

@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nats-stream-routing-decisions
+  namespace: overmind-prod
+  labels:
+    app: nats
+    stream: routing-decisions
+data:
+  stream.json: |
+    {
+      "name": "routing-decisions",
+      "subjects": [
+        "routing.model.selected",
+        "routing.fallback.triggered",
+        "routing.cost.calculated"
+      ],
+      "retention": "limits",
+      "max_age": 604800000000000,
+      "max_bytes": 1073741824,
+      "max_msgs": 1000000,
+      "max_msg_size": 1048576,
+      "storage": "file",
+      "replicas": 3,
+      "discard": "old",
+      "duplicate_window": 120000000000,
+      "allow_rollup_hdrs": false,
+      "deny_delete": false,
+      "deny_purge": false
+    }

@@ -1,0 +1,23 @@
+{{- if .Values.deployment.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "otelCollector.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{ include "otelCollector.name" . }}
+    app.kubernetes.io/component: collector
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+    - name: otlp-upstream
+      port: 55680
+      targetPort: otlp-upstream
+{{- end }}

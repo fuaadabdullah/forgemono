@@ -1,0 +1,172 @@
+# NATS JetStream Configuration for Overmind
+
+# NATS server configuration
+nats:
+  # JetStream configuration
+  jetstream:
+    enabled: true
+    memStorage:
+      enabled: true
+      size: 2Gi
+    fileStorage:
+      enabled: true
+      size: 10Gi
+      storageClassName: standard
+
+  # Resources
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+  # High availability
+  replicas: 3
+
+  # Monitoring
+  exporter:
+    enabled: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+    serviceMonitor:
+      enabled: true
+      namespace: overmind-prod
+      labels:
+        prometheus: kube-prometheus
+
+  # Authentication
+  auth:
+    enabled: true
+    # Use existing secret or create inline
+    # token: "your-token-here"
+    secretName: nats-auth
+
+  # TLS
+  tls:
+    enabled: false
+    # Configure when ready for mTLS
+    # secretName: nats-tls
+    # cert: tls.crt
+    # key: tls.key
+    # ca: ca.crt
+
+  # Ports
+  ports:
+    client: 4222
+    cluster: 6222
+    monitor: 8222
+    metrics: 7777
+    leafnodes: 7422
+    websocket: 9222
+
+# Stream configurations
+streams:
+  - name: routing-decisions
+    subjects:
+      - "routing.model.selected"
+      - "routing.fallback.triggered"
+      - "routing.cost.calculated"
+    retention: limits
+    maxAge: 168h  # 7 days
+    maxBytes: 1GB
+    maxMsgs: 1000000
+    storage: file
+    replicas: 3
+    discard: old
+
+  - name: memory-events
+    subjects:
+      - "memory.added"
+      - "memory.consolidated"
+      - "memory.retrieved"
+      - "memory.expired"
+    retention: limits
+    maxAge: 720h  # 30 days
+    maxBytes: 5GB
+    maxMsgs: 5000000
+    storage: file
+    replicas: 3
+    discard: old
+
+  - name: llm-requests
+    subjects:
+      - "llm.request.started"
+      - "llm.request.completed"
+      - "llm.request.failed"
+    retention: limits
+    maxAge: 24h  # 1 day
+    maxBytes: 500MB
+    maxMsgs: 500000
+    storage: file
+    replicas: 3
+    discard: old
+
+# Consumer configurations
+consumers:
+  # API server consumes routing decisions
+  - name: api-consumer
+    stream: routing-decisions
+    durable: true
+    ackPolicy: explicit
+    ackWait: 30s
+    maxDeliver: 3
+    filterSubject: "routing.>"
+    replayPolicy: instant
+
+  # Analytics service consumes all events
+  - name: analytics-consumer
+    stream: routing-decisions
+    durable: true
+    ackPolicy: explicit
+    ackWait: 60s
+    maxDeliver: 5
+    filterSubject: "routing.>"
+    replayPolicy: instant
+    # Batch processing
+    maxAckPending: 1000
+    maxWaiting: 5000
+
+  # Memory consolidation worker
+  - name: consolidation-consumer
+    stream: memory-events
+    durable: true
+    ackPolicy: explicit
+    ackWait: 120s
+    maxDeliver: 3
+    filterSubject: "memory.consolidated"
+    replayPolicy: instant
+
+  # LLM metrics collector
+  - name: metrics-consumer
+    stream: llm-requests
+    durable: true
+    ackPolicy: explicit
+    ackWait: 30s
+    maxDeliver: 3
+    filterSubject: "llm.>"
+    replayPolicy: instant
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  capabilities:
+    drop:
+      - ALL
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# Autoscaling (disabled - use KEDA instead)
+autoscaling:
+  enabled: false

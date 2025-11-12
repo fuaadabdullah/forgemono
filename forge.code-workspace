@@ -1,0 +1,66 @@
+{
+  "folders": [
+    { "path": ".", "name": "ForgeMonorepo" },
+    { "path": "GoblinOS", "name": "GoblinOS Core" },
+    { "path": "GoblinOS/packages/goblins/overmind/dashboard", "name": "Overmind Dashboard" },
+    { "path": "GoblinOS/packages/goblins/forge-master", "name": "Forge Master Toolkit" },
+    { "path": "ForgeTM/apps/frontend", "name": "Forge Frontend" },
+    { "path": "ForgeTM/apps/backend", "name": "Forge Backend" },
+    { "path": "Obsidian/📋 Projects/GoblinOS", "name": "GoblinOS Obsidian" }
+  ],
+  "settings": {
+    "files.exclude": { "**/.turbo": true, "**/dist": true },
+    "typescript.tsdk": "ForgeTM/apps/frontend/node_modules/typescript/lib",
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "python.analysis.typeCheckingMode": "standard",
+    "chatgpt.commentCodeLensEnabled": true,
+    "chat.edits2.enabled": true,
+    "chat.emptyState.history.enabled": true,
+    "inlineChat.notebookAgent": true,
+    "inlineChat.lineEmptyHint": true,
+    "inlineChat.hideOnRequest": true,
+    "inlineChat.finishOnType": true,
+    "inlineChat.enableV2": true,
+    "chat.useNestedAgentsMdFiles": true,
+    "chat.useCloudButtonV2": true,
+    "chat.tools.terminal.autoReplyToPrompts": true,
+    "chat.todoListTool.writeOnly": true,
+    "chat.renderRelatedFiles": true,
+    "chat.mcp.gallery.enabled": true,
+    "chat.mcp.discovery.enabled": {
+      "cursor-workspace": true,
+      "cursor-global": true,
+      "windsurf": true,
+      "claude-desktop": true
+    },
+    "chat.mcp.assisted.nuget.enabled": true,
+    "chat.mcp.autostart": "newAndOutdated",
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "editor.codeActions.triggerOnFocusChange": true,
+    "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+    "editor.experimentalGpuAcceleration": "on",
+    "editor.inlayHints.padding": true,
+    "editor.linkedEditing": true,
+    "editor.formatOnType": true,
+    "chat.agent.maxRequests": 100000,
+    "chat.agent.thinkingStyle": "collapsed",
+    "chat.agentSessionsViewLocation": "view",
+    "chat.allowAnonymousAccess": true,
+    "chat.checkpoints.showFileChanges": true,
+    "chat.editor.wordWrap": "on",
+    "chat.setup.signInDialogVariant": "apple",
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/.pnpm/**": true,
+      "**/dist/**": true,
+      "**/.obsidian/**": true
+    },
+    "search.exclude": {
+      "**/node_modules/**": true,
+      "**/.pnpm/**": true,
+      "**/dist/**": true,
+      "**/.obsidian/**": true
+    },
+    "chat.overmind.goblinsConfig": "${workspaceFolder:ForgeMonorepo}/goblins.yaml"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "symbol": "TSLA",
+  "price": 445.91,
+  "change": -16.16,
+  "change_percent": "-3.4973%",
+  "volume": 109622907,
+  "last_updated": "2025-11-06",
+  "source": "alpha_vantage",
+  "timestamp": 1762525356
+}

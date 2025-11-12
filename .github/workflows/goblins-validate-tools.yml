@@ -1,0 +1,30 @@
+name: Goblins Tool Ownership Validation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'GoblinOS/goblins.yaml'
+      - '.github/workflows/goblins-validate-tools.yml'
+      - 'GoblinOS/scripts/validate-tools-owned.js'
+  pull_request:
+    paths:
+      - 'GoblinOS/goblins.yaml'
+      - '.github/workflows/goblins-validate-tools.yml'
+      - 'GoblinOS/scripts/validate-tools-owned.js'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate tool ownership
+        run: node GoblinOS/scripts/validate-tools-owned.js
+

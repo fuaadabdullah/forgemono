@@ -1,0 +1,64 @@
+name: Forge Lite CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/forge-lite/**'
+      - '.github/workflows/forge-lite-ci.yml'
+  pull_request:
+    paths:
+      - 'apps/forge-lite/**'
+      - '.github/workflows/forge-lite-ci.yml'
+
+jobs:
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/forge-lite
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Enable Corepack (pnpm)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type Check
+        run: pnpm exec tsc --noEmit
+
+  api-pytest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/forge-lite/api
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: apps/forge-lite/api/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        run: pytest -q

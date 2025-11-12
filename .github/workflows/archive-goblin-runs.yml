@@ -1,0 +1,26 @@
+name: Archive Goblin run logs
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  archive-runs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: List runs directory
+        run: |
+          echo "Runs dir: GoblinOS/.runs"
+          ls -la GoblinOS || true
+          ls -la GoblinOS/.runs || true
+
+      - name: Upload run logs as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: goblin-runs-${{ github.run_id }}
+          path: GoblinOS/.runs/**
+          retention-days: 7

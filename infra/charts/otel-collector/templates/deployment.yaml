@@ -1,0 +1,76 @@
+{{- if .Values.deployment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-otel-collector
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "otelCollector.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "otelCollector.name" . }}
+      app.kubernetes.io/component: collector
+  template:
+    metadata:
+      labels:
+        {{- include "otelCollector.labels" . | nindent 8 }}
+        app.kubernetes.io/component: collector
+    spec:
+      serviceAccountName: {{ .Values.deployment.serviceAccount }}
+      {{- with .Values.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: otel-collector
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/otelcol-contrib"]
+          args:
+            - "--config=/conf/collector.yaml"
+          ports:
+            - containerPort: 4317
+              name: otlp-grpc
+            - containerPort: 4318
+              name: otlp-http
+            - containerPort: 55680
+              name: otlp-upstream
+          env:
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.namespace=goblinos,service.name=otel-central"
+            {{- if .Values.security.apiKey.enabled }}
+            - name: OTEL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.security.apiKey.secretName }}
+                  key: {{ .Values.security.apiKey.secretKey }}
+            {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /conf
+            {{- if .Values.security.mtls.enabled }}
+            - name: tls
+              mountPath: /certs
+            {{- end }}
+            - name: audit
+              mountPath: /var/lib/otel
+          resources:
+            {{- toYaml .Values.resources.deployment | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-otel-collector-config
+        {{- if .Values.security.mtls.enabled }}
+        - name: tls
+          secret:
+            secretName: {{ .Values.security.mtls.secretName }}
+        {{- end }}
+        - name: audit
+          emptyDir: {}
+{{- end }}

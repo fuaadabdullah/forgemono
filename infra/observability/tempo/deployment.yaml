@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo
+  namespace: observability
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tempo
+  template:
+    metadata:
+      labels:
+        app: tempo
+    spec:
+      containers:
+        - name: tempo
+          image: grafana/tempo:1.6.0
+          args:
+            - "--config.file=/etc/tempo/config.yaml"
+          ports:
+            - containerPort: 9411
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/tempo
+          env:
+            - name: AWS_REGION
+              value: "us-east-1"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: tempo-s3-credentials
+                  key: aws_access_key_id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tempo-s3-credentials
+                  key: aws_secret_access_key
+      volumes:
+        - name: config
+          configMap:
+            name: tempo-config
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tempo-config
+  namespace: observability
+data:
+  config.yaml: |
+    server:
+      http_listen_port: 9411
+    storage:
+      backend: s3
+      s3:
+        bucket: BUCKET_NAME
+        endpoint: s3.amazonaws.com
+        access_key: ""
+        secret_key: ""
+        region: us-east-1
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tempo
+  namespace: observability
+spec:
+  selector:
+    app: tempo
+  ports:
+    - port: 9411
+      targetPort: 9411

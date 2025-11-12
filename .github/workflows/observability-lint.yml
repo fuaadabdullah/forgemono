@@ -1,0 +1,41 @@
+name: Observability Lint
+
+on:
+  push:
+    paths:
+      - 'infra/observability/**'
+  pull_request:
+    paths:
+      - 'infra/observability/**'
+
+jobs:
+  lint-manifests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install kustomize
+        run: |
+          curl -sSLO https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.0.1/kustomize_v5.0.1_linux_amd64.tar.gz
+          tar xzf kustomize_v5.0.1_linux_amd64.tar.gz
+          sudo mv kustomize /usr/local/bin/
+      - name: Install kubeval
+        run: |
+          curl -sSL https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz | tar xz
+          sudo mv kubeval /usr/local/bin/
+      - name: Build manifests
+        run: |
+          kustomize build infra/observability > /tmp/observability.yaml
+      - name: Lint Helm values (optional)
+        run: |
+          if command -v helm >/dev/null 2>&1; then
+            helm lint infra/observability/helm --values infra/observability/helm/values.yaml || true
+          else
+            echo "helm not available, skipping helm lint"
+          fi
+      - name: Run kubeval
+        run: |
+          kubeval /tmp/observability.yaml --kubernetes-version='1.27.0'
+      - name: Run kube-linter
+        uses: stackrox/kube-linter-action@v0.3.0
+        with:
+          args: lint --config-file=infra/observability/kube-linter.yaml infra/observability

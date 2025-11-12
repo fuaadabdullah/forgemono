@@ -1,0 +1,13 @@
+{
+  "name": "forgemonorepo",
+  "private": true,
+  "pnpm": {
+    "overrides": {
+      "expo": "54.0.23"
+    }
+  },
+  "scripts": {
+    "goblin:list": "node GoblinOS/tools/goblin-cli/index.js list",
+    "goblin": "node GoblinOS/tools/goblin-cli/index.js"
+  }
+}

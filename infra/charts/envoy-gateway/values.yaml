@@ -1,0 +1,204 @@
+# Envoy Gateway Configuration for Overmind
+
+# Gateway configuration
+gateway:
+  name: overmind-gateway
+  namespace: overmind-prod
+
+  # Gateway class
+  gatewayClassName: eg
+
+  # Listeners
+  listeners:
+    # HTTP listener (redirects to HTTPS)
+    - name: http
+      port: 80
+      protocol: HTTP
+      hostname: "*.overmind.example.com"
+
+    # HTTPS listener
+    - name: https
+      port: 443
+      protocol: HTTPS
+      hostname: "*.overmind.example.com"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: overmind-tls
+            kind: Secret
+
+# HTTPRoute configurations
+routes:
+  # Dashboard route
+  dashboard:
+    enabled: true
+    hostname: dashboard.overmind.example.com
+    pathPrefix: /
+    service: overmind-dashboard
+    port: 80
+
+  # API route
+  api:
+    enabled: true
+    hostname: api.overmind.example.com
+    pathPrefix: /
+    service: overmind-api
+    port: 8000
+
+  # Bridge route
+  bridge:
+    enabled: true
+    hostname: api.overmind.example.com
+    pathPrefix: /bridge
+    service: overmind-bridge
+    port: 3030
+
+# Rate limiting configuration
+rateLimiting:
+  enabled: true
+
+  # Global rate limits
+  global:
+    requests: 1000
+    unit: Second
+
+  # Per-route rate limits
+  routes:
+    # Anonymous users (no auth header)
+    anonymous:
+      requests: 10
+      unit: Second
+
+    # Authenticated users
+    authenticated:
+      requests: 100
+      unit: Second
+
+    # Premium users (custom header)
+    premium:
+      requests: 500
+      unit: Second
+
+# Backend TLS (mTLS between gateway and services)
+backendTLS:
+  enabled: false  # Enable when services have TLS
+
+  # API backend
+  api:
+    hostname: overmind-api.overmind-prod.svc.cluster.local
+    caCertificateRefs:
+      - name: overmind-ca
+        kind: Secret
+
+  # Bridge backend
+  bridge:
+    hostname: overmind-bridge.overmind-prod.svc.cluster.local
+    caCertificateRefs:
+      - name: overmind-ca
+        kind: Secret
+
+# CORS configuration
+cors:
+  enabled: true
+  allowOrigins:
+    - https://dashboard.overmind.example.com
+    - https://*.overmind.example.com
+  allowMethods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowHeaders:
+    - Content-Type
+    - Authorization
+    - X-Request-ID
+  exposeHeaders:
+    - X-Request-ID
+    - X-RateLimit-Limit
+    - X-RateLimit-Remaining
+  maxAge: 86400
+  allowCredentials: true
+
+# Request/Response transformation
+transformations:
+  # Add security headers
+  responseHeaders:
+    add:
+      - name: X-Frame-Options
+        value: DENY
+      - name: X-Content-Type-Options
+        value: nosniff
+      - name: X-XSS-Protection
+        value: "1; mode=block"
+      - name: Strict-Transport-Security
+        value: max-age=31536000; includeSubDomains
+    remove:
+      - Server
+      - X-Powered-By
+
+  # Add request headers
+  requestHeaders:
+    add:
+      - name: X-Forwarded-Proto
+        value: https
+
+# Timeout configuration
+timeouts:
+  request: 30s
+  idle: 300s
+
+# Retry policy
+retry:
+  numRetries: 3
+  perRetryTimeout: 10s
+  retryOn:
+    - 5xx
+    - reset
+    - connect-failure
+
+# Circuit breaking
+circuitBreaker:
+  maxConnections: 1024
+  maxPendingRequests: 1024
+  maxRequests: 1024
+  maxRetries: 3
+
+# Observability
+observability:
+  accessLog:
+    enabled: true
+    format: json
+
+  metrics:
+    enabled: true
+    port: 19001
+
+  tracing:
+    enabled: true
+    provider: opentelemetry
+    endpoint: jaeger-collector.observability.svc.cluster.local:4317
+    samplingRate: 0.1
+
+# Security
+security:
+  # JWT authentication
+  jwt:
+    enabled: false
+    issuer: https://auth.overmind.example.com
+    audiences:
+      - overmind-api
+    jwksUri: https://auth.overmind.example.com/.well-known/jwks.json
+
+  # OIDC authentication
+  oidc:
+    enabled: false
+    provider: https://auth.overmind.example.com
+    clientID: overmind-client
+    clientSecretRef:
+      name: oidc-client-secret
+      key: secret
+    scopes:
+      - openid
+      - profile
+      - email

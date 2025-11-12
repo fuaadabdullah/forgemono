@@ -1,0 +1,47 @@
+id: metrics_api
+display_name: Metrics API
+description: Query performance and health metrics
+functions:
+  - name: query_gauge
+    description: Retrieve gauge metrics with time window
+    input_schema:
+      type: object
+      properties:
+        metric_name:
+          type: string
+        window:
+          enum: [5m, 1h, 24h]
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+      required: [metric_name, window]
+    output_schema:
+      type: object
+      properties:
+        points:
+          type: array
+          items:
+            type: object
+            properties:
+              ts:
+                type: integer
+              value:
+                type: number
+        summary:
+          type: object
+          properties:
+            min:
+              type: number
+            max:
+              type: number
+            p50:
+              type: number
+            p95:
+              type: number
+            p99:
+              type: number
+    timeout_seconds: 10
+    audit_level: low
+required_permissions:
+  - metrics:read

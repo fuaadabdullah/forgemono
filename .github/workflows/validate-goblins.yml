@@ -1,0 +1,30 @@
+name: Validate goblins.yaml
+
+on:
+  pull_request:
+    paths:
+      - 'GoblinOS/goblins.yaml'
+      - 'GoblinOS/goblins.schema.json'
+      - 'GoblinOS/tools/goblin-cli/**'
+
+jobs:
+  validate-goblins:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for validator
+        run: |
+          cd GoblinOS/tools/goblin-cli
+          npm ci
+
+      - name: Run goblins validator
+        working-directory: GoblinOS/tools/goblin-cli
+        run: |
+          node validate.js

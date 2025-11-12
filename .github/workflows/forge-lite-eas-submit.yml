@@ -1,0 +1,88 @@
+name: Forge Lite EAS Submit
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Submit platform'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+      profile:
+        description: 'EAS profile used for the build to submit'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - development
+          - preview
+          - production
+      useLatest:
+        description: 'Submit latest build for the platform(s)'
+        required: true
+        default: true
+        type: boolean
+      buildId:
+        description: 'Specific EAS build ID to submit (overrides latest when provided)'
+        required: false
+        type: string
+
+jobs:
+  eas-submit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/forge-lite
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Enable Corepack (pnpm)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Submit to stores (EAS submit)
+        run: |
+          set -euxo pipefail
+          PLATFORM=${{ inputs.platform }}
+          BUILD_ID=${{ inputs.buildId }}
+          PROFILE=${{ inputs.profile }}
+          BASE_CMD="pnpm exec eas submit --non-interactive"
+          if [ -n "$BUILD_ID" ]; then
+            # Submit specific build id
+            if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "ios" ]; then
+              $BASE_CMD -p ios --id "$BUILD_ID"
+            fi
+            if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "android" ]; then
+              $BASE_CMD -p android --id "$BUILD_ID"
+            fi
+          else
+            # Submit latest build for profile/platform
+            if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "ios" ]; then
+              $BASE_CMD -p ios --latest --profile "$PROFILE"
+            fi
+            if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "android" ]; then
+              $BASE_CMD -p android --latest --profile "$PROFILE"
+            fi
+          fi
+
+      - name: Hint (missing token)
+        if: failure()
+        run: |
+          echo "If authentication failed, set EXPO_TOKEN in repo secrets."
+          echo "Create a token via: https://expo.dev/accounts/[account]/settings/access-tokens"
+

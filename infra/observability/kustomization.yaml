@@ -1,0 +1,23 @@
+resources:
+  - otel-collector/deployment.yaml
+  - loki/deployment.yaml
+  - tempo/deployment.yaml
+  - grafana/deployment.yaml
+  # Prometheus & Alertmanager are managed via Helm. Rendered manifests are placed under helm/rendered
+  - helm/rendered
+  - kube-state-metrics/deployment.yaml
+  - node-exporter/daemonset.yaml
+  - network-policies.yaml
+  - rbac.yaml
+  - external-secrets/secretstore.yaml
+  - external-secrets/grafana-external-secret.yaml
+  - loki/s3-secret-example.yaml
+  - tempo/s3-secret-example.yaml
+
+configMapGenerator:
+  - name: observability-common
+    files:
+      - README.md
+
+generatorOptions:
+  disableNameSuffixHash: true

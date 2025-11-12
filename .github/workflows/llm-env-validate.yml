@@ -1,0 +1,43 @@
+name: LLM Env Validation (Matrix)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'GoblinOS/goblins.yaml'
+      - 'GoblinOS/.env'
+      - 'GoblinOS/scripts/validate-*.js'
+      - '.github/workflows/llm-env-validate.yml'
+  pull_request:
+    paths:
+      - 'GoblinOS/goblins.yaml'
+      - 'GoblinOS/.env'
+      - 'GoblinOS/scripts/validate-*.js'
+      - '.github/workflows/llm-env-validate.yml'
+
+jobs:
+  validate-llm-env:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [ollama, deepseek]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate ${{ matrix.target }} configuration
+        shell: bash
+        run: |
+          if [ "${{ matrix.target }}" = "deepseek" ]; then
+            if [ "${{ github.ref }}" = "refs/heads/main" ]; then export CI_DEEPSEEK_REQUIRED=true; fi
+            node GoblinOS/scripts/validate-deepseek-env.js
+          else
+            if [ "${{ github.ref }}" = "refs/heads/main" ]; then export CI_OLLAMA_REQUIRED=true; fi
+            node GoblinOS/scripts/validate-ollama-env.js
+          fi
+

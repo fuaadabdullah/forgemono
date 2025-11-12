@@ -1,0 +1,38 @@
+id: monorepo_cli
+display_name: Monorepo CLI
+description: Execute whitelisted scripts in the ForgeMonorepo
+functions:
+  - name: run_script
+    description: Run a registered script with arguments
+    input_schema:
+      type: object
+      properties:
+        script_name:
+          type: string
+          enum: [forge:benchmark, pnpm:lint, pnpm:test, pnpm:build]
+        args:
+          type: array
+          items:
+            type: string
+        env:
+          type: object
+          additionalProperties:
+            type: string
+        working_dir:
+          type: string
+      required: [script_name]
+    output_schema:
+      type: object
+      properties:
+        exit_code:
+          type: integer
+        stdout:
+          type: string
+        stderr:
+          type: string
+        duration_ms:
+          type: integer
+    timeout_seconds: 300
+    audit_level: medium
+required_permissions:
+  - exec:scripts

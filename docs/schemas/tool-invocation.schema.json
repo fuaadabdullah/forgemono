@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tool-invocation",
+  "title": "Tool Invocation Schema",
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the request"
+    },
+    "caller_id": {
+      "type": "string",
+      "description": "ID of the calling agent or user"
+    },
+    "capability_token": {
+      "type": "string",
+      "description": "JWT token granting capabilities"
+    },
+    "tool_id": {
+      "type": "string",
+      "description": "ID of the tool to invoke"
+    },
+    "function_name": {
+      "type": "string",
+      "description": "Name of the function to call"
+    },
+    "args": {
+      "type": "object",
+      "description": "Arguments for the function"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "trace_id": {
+          "type": "string",
+          "description": "Optional trace ID for distributed tracing"
+        },
+        "pr_id": {
+          "type": "integer",
+          "description": "Optional PR ID for context"
+        },
+        "dry_run": {
+          "type": "boolean",
+          "description": "Whether to perform a dry run"
+        }
+      }
+    }
+  },
+  "required": ["request_id", "caller_id", "capability_token", "tool_id", "function_name", "args"]
+}

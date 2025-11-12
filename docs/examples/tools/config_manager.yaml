@@ -1,0 +1,35 @@
+id: config_manager
+display_name: Config Manager
+description: Safely update configuration files
+functions:
+  - name: update_yaml
+    description: Apply changes to YAML/JSON config files
+    input_schema:
+      type: object
+      properties:
+        path:
+          type: string
+          enum: [biome.json, tsconfig.json, package.json, .eslintrc.js]
+        operation:
+          enum: [patch, set]
+        patch:
+          type: object
+        key:
+          type: string
+        value: {}
+      required: [path, operation]
+    output_schema:
+      type: object
+      properties:
+        success:
+          type: boolean
+        change_id:
+          type: string
+        before:
+          type: object
+        after:
+          type: object
+    timeout_seconds: 30
+    audit_level: high
+required_permissions:
+  - edit:config

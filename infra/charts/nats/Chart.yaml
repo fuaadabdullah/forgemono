@@ -1,0 +1,22 @@
+apiVersion: v2
+name: nats-jetstream
+description: NATS JetStream messaging for Overmind event-driven architecture
+type: application
+version: 1.0.0
+appVersion: "2.10.7"
+
+keywords:
+  - nats
+  - jetstream
+  - messaging
+  - event-driven
+  - overmind
+
+maintainers:
+  - name: GoblinOS Team
+    email: goblins@example.com
+
+dependencies:
+  - name: nats
+    version: 1.1.5
+    repository: https://nats-io.github.io/k8s/helm/charts/

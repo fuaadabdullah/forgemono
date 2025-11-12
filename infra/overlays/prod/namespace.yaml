@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: overmind-prod
+  labels:
+    environment: production
+    project: overmind
