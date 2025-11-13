@@ -1,0 +1,44 @@
+jobs:
+  build-and-deploy:
+    env:
+      GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+      GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
+      GKE_ZONE: ${{ secrets.GKE_ZONE }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Build and push image
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: gcr.io/${{ secrets.GCP_PROJECT }}/forge-lite:${{ github.sha }}
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure Docker for GCR
+        run: |
+          gcloud auth configure-docker --quiet
+      - name: Deploy to GKE
+        run: |
+          kubectl set image -f infra/deployments/gke/manifests/deployment.yaml forge-lite=gcr.io/${{ secrets.GCP_PROJECT }}/forge-lite:${{ github.sha }} || true
+          kubectl apply -f infra/deployments/gke/manifests/service.yaml
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: ${{ secrets.GKE_CLUSTER }}
+          location: ${{ secrets.GKE_ZONE }}
+          project_id: ${{ secrets.GCP_PROJECT }}
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT }}
+name: Build and Deploy to GKE
+on:
+  push:
+    branches: [ main ]
+
+# Notes:
+# - Replace gcr.io/... with your Artifact Registry host if necessary.
+# - Ensure the service account has permissions to push images and access GKE.
