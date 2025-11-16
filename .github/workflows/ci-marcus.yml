@@ -1,0 +1,301 @@
+name: CI — Marcus Website Build, E2E & Lighthouse
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Install & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: "apps/Customer projects/Marcus's Website/marcus-website/package-lock.json"
+
+      - name: Install dependencies
+        run: |
+          cd "apps/Customer projects/Marcus's Website/marcus-website"
+          npm ci
+
+      - name: Build
+        run: |
+          cd "apps/Customer projects/Marcus's Website/marcus-website"
+          npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: "apps/Customer projects/Marcus's Website/marcus-website/.next"
+          retention-days: 1
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+      NEXT_PUBLIC_GA_ID: ${{ secrets.NEXT_PUBLIC_GA_ID }}
+      NEXT_PUBLIC_FB_PIXEL_ID: ${{ secrets.NEXT_PUBLIC_FB_PIXEL_ID }}
+    defaults:
+      run:
+        working-directory: "apps/Customer projects/Marcus's Website/marcus-website"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: "apps/Customer projects/Marcus's Website/marcus-website/package-lock.json"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+          path: "apps/Customer projects/Marcus's Website/marcus-website/.next"
+
+      - name: Start Production Server
+        run: nohup npm run start &
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright E2E tests
+        run: npx wait-on http://127.0.0.1:3000 -t 60000 && npm run test:e2e -- --reporter=html
+
+      - name: Generate Lighthouse Report
+        run: npx lighthouse http://127.0.0.1:3000 --output html --output-path ./lighthouse/report.html --chrome-flags="--no-sandbox"
+
+      - name: Run Lighthouse CI (lhci)
+        run: npm run lighthouse:ci
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+
+      - name: Upload Lighthouse Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: lighthouse/report.html
+
+      - name: Upload LHCI Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lhci-reports
+          path: lighthouse-ci
+
+      - name: Stop server
+        if: always()
+        run: kill $(lsof -t -i:3000) || true
+
+  preview:
+    name: Deploy Preview (PR)
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    if: ${{ github.event_name == 'pull_request' }}
+    env:
+      NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+      NEXT_PUBLIC_GA_ID: ${{ secrets.NEXT_PUBLIC_GA_ID }}
+      NEXT_PUBLIC_FB_PIXEL_ID: ${{ secrets.NEXT_PUBLIC_FB_PIXEL_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: "apps/Customer projects/Marcus's Website/marcus-website/package-lock.json"
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+          path: "apps/Customer projects/Marcus's Website/marcus-website/.next"
+
+      - name: Check required Vercel token
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "::error::Missing required secret: VERCEL_TOKEN. Add it in repo Settings → Secrets → Actions.";
+            exit 1;
+          fi
+          echo "VERCEL_TOKEN provided; proceeding with preview deployment."
+
+      - name: Deploy to Vercel Preview
+        id: vercel-preview
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          zeit-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-args: '--confirm --yes'
+          working-directory: "apps/Customer projects/Marcus's Website/marcus-website"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Get Preview URL
+        id: get-preview-url
+        run: |
+          # Try common output names from the Vercel Action
+          if [ -n "${{ steps.vercel-preview.outputs.url }}" ]; then
+            echo "preview_url=${{ steps.vercel-preview.outputs.url }}" >> $GITHUB_OUTPUT
+            echo "PREVIEW_URL=${{ steps.vercel-preview.outputs.url }}" >> $GITHUB_ENV
+            echo "${{ steps.vercel-preview.outputs.url }}" > preview-url.txt
+            exit 0
+          fi
+          if [ -n "${{ steps.vercel-preview.outputs.preview_url }}" ]; then
+            echo "preview_url=${{ steps.vercel-preview.outputs.preview_url }}" >> $GITHUB_OUTPUT
+            echo "PREVIEW_URL=${{ steps.vercel-preview.outputs.preview_url }}" >> $GITHUB_ENV
+            echo "${{ steps.vercel-preview.outputs.preview_url }}" > preview-url.txt
+            exit 0
+          fi
+          if [ -n "${{ steps.vercel-preview.outputs.vercel_url }}" ]; then
+            echo "preview_url=${{ steps.vercel-preview.outputs.vercel_url }}" >> $GITHUB_OUTPUT
+            echo "PREVIEW_URL=${{ steps.vercel-preview.outputs.vercel_url }}" >> $GITHUB_ENV
+            echo "${{ steps.vercel-preview.outputs.vercel_url }}" > preview-url.txt
+            exit 0
+          fi
+          # Fallback: use the CLI to list latest preview deployments
+          echo "No known output from vercel-action; falling back to CLI list"
+          DEPLOY_JSON=$(cd "apps/Customer projects/Marcus's Website/marcus-website" && npx vercel ls --token $VERCEL_TOKEN --limit 1 --json || echo "[]")
+          DEPLOY_URL=$(echo "$DEPLOY_JSON" | node -e 'try{const d=JSON.parse(require("fs").readFileSync(0,"utf8")); if(Array.isArray(d)&&d[0]){console.log(d[0].url);} }catch(e){}')
+          echo "preview_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+          echo "PREVIEW_URL=$DEPLOY_URL" >> $GITHUB_ENV
+          echo "$DEPLOY_URL" > preview-url.txt
+
+      - name: Upload preview URL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-url
+          path: preview-url.txt
+
+      - name: Comment preview URL on PR
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            🚀 Vercel preview deployment: ${{ steps.vercel-preview.outputs.preview_url }}
+
+      - name: Post preview URL to Slack (optional)
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        run: |
+          curl -s -X POST -H 'Content-type: application/json' --data "{\"text\": \"Vercel preview: ${{ steps.vercel-preview.outputs.preview_url }}\"}" ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    env:
+      NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+      NEXT_PUBLIC_GA_ID: ${{ secrets.NEXT_PUBLIC_GA_ID }}
+      NEXT_PUBLIC_FB_PIXEL_ID: ${{ secrets.NEXT_PUBLIC_FB_PIXEL_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: "apps/Customer projects/Marcus's Website/marcus-website/package-lock.json"
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+          path: "apps/Customer projects/Marcus's Website/marcus-website/.next"
+
+      - name: Check required secrets
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "::error::Missing required secret: VERCEL_TOKEN. Add it in repo Settings → Secrets → Actions.";
+            exit 1;
+          fi
+          echo "VERCEL_TOKEN provided; proceeding with deployment."
+
+      - name: Check required Production Site URL
+        run: |
+          if [ -z "${NEXT_PUBLIC_SITE_URL}" ]; then
+            echo "::error::Missing required secret: NEXT_PUBLIC_SITE_URL. Add it in repo Settings → Secrets → Actions or update env vars.";
+            exit 1;
+          fi
+          echo "NEXT_PUBLIC_SITE_URL provided; proceeding with production deployment."
+
+      - name: Deploy to Vercel (Action)
+        id: vercel-prod
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          zeit-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-args: '--prod --confirm'
+          working-directory: "apps/Customer projects/Marcus's Website/marcus-website"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Get Production URL
+        id: get-prod-url
+        run: |
+          if [ -n "${{ steps.vercel-prod.outputs.url }}" ]; then
+            echo "prod_url=${{ steps.vercel-prod.outputs.url }}" >> $GITHUB_OUTPUT
+            echo "DEPLOY_URL=${{ steps.vercel-prod.outputs.url }}" >> $GITHUB_ENV
+            echo "${{ steps.vercel-prod.outputs.url }}" > deploy-url.txt
+            exit 0
+          fi
+          if [ -n "${{ steps.vercel-prod.outputs.preview_url }}" ]; then
+            echo "prod_url=${{ steps.vercel-prod.outputs.preview_url }}" >> $GITHUB_OUTPUT
+            echo "DEPLOY_URL=${{ steps.vercel-prod.outputs.preview_url }}" >> $GITHUB_ENV
+            echo "${{ steps.vercel-prod.outputs.preview_url }}" > deploy-url.txt
+            exit 0
+          fi
+          if [ -n "${{ steps.vercel-prod.outputs.vercel_url }}" ]; then
+            echo "prod_url=${{ steps.vercel-prod.outputs.vercel_url }}" >> $GITHUB_OUTPUT
+            echo "DEPLOY_URL=${{ steps.vercel-prod.outputs.vercel_url }}" >> $GITHUB_ENV
+            echo "${{ steps.vercel-prod.outputs.vercel_url }}" > deploy-url.txt
+            exit 0
+          fi
+          # Fallback: check with CLI for the most recent production deployment
+          echo "No known output from vercel-action; falling back to CLI list for production"
+          DEPLOY_JSON=$(cd "apps/Customer projects/Marcus's Website/marcus-website" && npx vercel ls --token $VERCEL_TOKEN --limit 1 --json || echo "[]")
+          DEPLOY_URL=$(echo "$DEPLOY_JSON" | node -e 'try{const d=JSON.parse(require("fs").readFileSync(0,"utf8")); if(Array.isArray(d)&&d[0]){console.log(d[0].url);} }catch(e){}')
+          echo "prod_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+          echo "DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
+          echo "$DEPLOY_URL" > deploy-url.txt
+
+      - name: Upload deployment URL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-url
+          path: deploy-url.txt
+
+      - name: Post production deployment URL to Slack (optional)
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        run: |
+          curl -s -X POST -H 'Content-type: application/json' --data "{\"text\": \"Production deploy: $DEPLOY_URL\"}" ${{ secrets.SLACK_WEBHOOK_URL }}

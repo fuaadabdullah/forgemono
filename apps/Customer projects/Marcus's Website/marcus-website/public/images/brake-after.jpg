@@ -1,0 +1,7 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#333"/>
+  <text x="200" y="140" text-anchor="middle" fill="#c62828" font-size="20" font-family="Arial">BRAKE REPAIR</text>
+  <text x="200" y="170" text-anchor="middle" fill="#fff" font-size="16" font-family="Arial">After</text>
+  <circle cx="200" cy="220" r="30" fill="#c62828"/>
+  <text x="200" y="230" text-anchor="middle" fill="#fff" font-size="12">New Brake</text>
+</svg>

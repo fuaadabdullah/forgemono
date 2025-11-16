@@ -1,0 +1,66 @@
+name: CI — Build, E2E & Lighthouse
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+      NEXT_PUBLIC_GA_ID: ${{ secrets.NEXT_PUBLIC_GA_ID }}
+      NEXT_PUBLIC_FB_PIXEL_ID: ${{ secrets.NEXT_PUBLIC_FB_PIXEL_ID }}
+    defaults:
+      run:
+        working-directory: "apps/Customer projects/Marcus's Website/marcus-website"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build & Test (project)
+        run: |
+          npm ci
+          npm run build
+
+      - name: Start Production Server
+        run: |
+          nohup npm run start &
+          npx wait-on http://127.0.0.1:3000 -t 60000
+
+      - name: Install Playwright browsers
+        run: |
+          npx playwright install --with-deps
+
+      - name: Run Playwright E2E tests
+        run: |
+          npm run test:e2e -- --reporter=html
+
+      - name: Generate Lighthouse Report
+        run: |
+          npm i -D lighthouse@latest
+          npx lighthouse http://127.0.0.1:3000 --output html --output-path ./lighthouse/report.html --chrome-flags="--no-sandbox"
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+
+      - name: Upload Lighthouse Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: lighthouse/report.html
+
+      - name: Stop server
+        run: |
+          kill $(lsof -t -i:3000) || true
