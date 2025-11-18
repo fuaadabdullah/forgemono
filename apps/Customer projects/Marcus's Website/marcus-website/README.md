@@ -136,29 +136,35 @@ This repo includes a comprehensive GitHub Actions workflow that runs the build, 
 Before the workflow runs successfully, set the following repository `Secrets` in GitHub (Settings → Secrets → Actions):
 
 **Required for all deployments:**
+
 - `VERCEL_TOKEN` — Vercel deployment token (get from Vercel dashboard → Account Settings → Tokens)
 - `VERCEL_ORG_ID` — Vercel organization ID (get from Vercel dashboard → Settings → General)
 - `VERCEL_PROJECT_ID` — Vercel project ID (get from Vercel project dashboard)
 
 **Required for production deployments:**
+
 - `NEXT_PUBLIC_SITE_URL` — Your production site URL (e.g., `https://elbey-projects.com`)
 
 **Optional analytics:**
+
 - `NEXT_PUBLIC_GA_ID` — Google Analytics Measurement ID (G-XXXX)
 - `NEXT_PUBLIC_FB_PIXEL_ID` — Facebook Pixel ID
 
 **Optional notifications:**
+
 - `SLACK_WEBHOOK_URL` — Slack webhook URL for deployment notifications
 
 ### Workflow Behavior
 
 **On Pull Requests:**
+
 - Runs build, tests, and Lighthouse
 - Deploys preview to Vercel
 - Posts preview URL as PR comment
 - Optionally posts to Slack
 
 **On Push to Main:**
+
 - Runs build, tests, and Lighthouse
 - Deploys production to Vercel
 - Validates `NEXT_PUBLIC_SITE_URL` is set
