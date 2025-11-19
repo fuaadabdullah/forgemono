@@ -1,0 +1,31 @@
+name: Goblin Email Purge CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ '*' ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - name: Install script dependencies and run smoke test
+        working-directory: tools/goblin-email-purge
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip setuptools wheel
+          # Install non-yaml deps first
+          grep -v -i pyyaml requirements.txt > requirements_no_yaml.txt || true
+          pip install -r requirements_no_yaml.txt
+          pip install pytest
+          # Try to install PyYAML but continue even if it fails (optional)
+          pip install PyYAML || true
+          ./run.sh audit --config config.example.yaml
+          pytest -q

@@ -1,0 +1,37 @@
+{
+  "root": true,
+  "overrides": [
+    {
+      "files": ["apps/forge-lite/**/*"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "../backend",
+                "message": "Do not import backend logic into the UI."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["backend/**/*"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "../apps/forge-lite",
+                "message": "Do not import UI logic into the backend."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

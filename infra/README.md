@@ -34,6 +34,45 @@ See `../docs/WORKSPACE_OVERVIEW.md` and `../docs/API_KEYS_MANAGEMENT.md` for arc
 - `k8s/` - Kubernetes manifests
 - `nginx/` - Reverse proxy configuration
 
+## Kubernetes Deployments
+
+This directory contains Kubernetes manifests for deploying GoblinOS components, including AI-driven services.
+
+### AI Model Integration
+
+For decentralized processing with orchestration:
+
+1. **Ollama Inference Layer**: Local AI model inference integrated with Azure/GCP-hosted models.
+   - Deployment: `deployments/ollama-k8s.yaml`
+   - Namespace: `goblinos-ai`
+   - Replicas: 3 for distributed processing
+
+2. **Telemetry Monitoring**:
+   - Prometheus: `deployments/prometheus.yaml` - Metrics collection
+   - Grafana: `deployments/grafana.yaml` - Visualization dashboards
+   - AI Router: `deployments/ai-router.yaml` - Routing policies with embedded telemetry
+
+### Setup Instructions
+
+1. Ensure Kubernetes cluster is running (e.g., via Minikube, AKS, GKE).
+2. Apply the manifests:
+   ```bash
+   kubectl apply -f deployments/
+   ```
+3. Configure endpoints:
+   - Replace `<azure-endpoint-url>` and `<gcp-endpoint-url>` in `ollama-k8s.yaml` with actual URLs.
+4. Access services:
+   - Prometheus: `kubectl port-forward svc/prometheus-service 9090:9090`
+   - Grafana: `kubectl port-forward svc/grafana-service 3000:3000` (default login: admin/admin)
+   - AI Router: Via Ingress at `ai.goblinos.local`
+
+### Routing Policies
+
+The AI Router handles request distribution:
+- Routes to Ollama for local inference
+- Fallback to Azure/GCP for cloud-based models
+- Telemetry embedded via Prometheus annotations and Pushgateway integration
+
 ## Usage
 
 Start the development stack:

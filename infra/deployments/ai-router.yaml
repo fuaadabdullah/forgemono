@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-router
+  namespace: goblinos-ai
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-router
+  template:
+    metadata:
+      labels:
+        app: ai-router
+    spec:
+      containers:
+      - name: router
+        image: nginx:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PROMETHEUS_PUSHGATEWAY_URL
+          value: "http://prometheus-service.goblinos-ai.svc.cluster.local:9091"
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-router-service
+  namespace: goblinos-ai
+spec:
+  selector:
+    app: ai-router
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-router-ingress
+  namespace: goblinos-ai
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+spec:
+  rules:
+  - host: ai.goblinos.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ai-router-service
+            port:
+              number: 8080

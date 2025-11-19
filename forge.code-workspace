@@ -3,10 +3,7 @@
     { "path": ".", "name": "ForgeMonorepo" },
     { "path": "GoblinOS", "name": "GoblinOS Core" },
     { "path": "GoblinOS/packages/goblins/overmind/dashboard", "name": "Overmind Dashboard" },
-    { "path": "GoblinOS/packages/goblins/forge-master", "name": "Forge Master Toolkit" },
-    { "path": "ForgeTM/apps/frontend", "name": "Forge Frontend" },
-    { "path": "ForgeTM/apps/backend", "name": "Forge Backend" },
-    { "path": "Obsidian/📋 Projects/GoblinOS", "name": "GoblinOS Obsidian" }
+    { "path": "GoblinOS/packages/goblins/forge-master", "name": "Forge Master Toolkit" }
   ],
   "settings": {
     "files.exclude": { "**/.turbo": true, "**/dist": true },

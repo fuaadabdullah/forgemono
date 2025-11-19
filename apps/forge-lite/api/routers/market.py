@@ -1,8 +1,7 @@
-from datetime import datetime, timedelta
-from typing import Literal, List, Optional
+from typing import Literal, List
 
 import os
-import requests
+from goblinos_ingestion_market_data import create_market_data_provider
 from fastapi import APIRouter, HTTPException, Query
 
 router = APIRouter()
@@ -18,58 +17,27 @@ def get_ohlc(
 ) -> List[dict]:
     """Return OHLCV candles for a symbol and timeframe.
 
-    Uses Polygon aggregates if POLYGON_API_KEY is available.
+    Uses the GoblinOS ingestion package with Polygon API.
     - 1D: 5-minute candles for the last market day window (~1 day lookback)
     - 1W: 1-day candles for 7 days
     - 1M: 1-day candles for 30 days
     """
 
-    api_key = os.getenv("POLYGON_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=400, detail="Missing POLYGON_API_KEY on the server")
-
-    now = datetime(2024, 11, 8)  # Use a date we know has market data
-    if timeframe == "1D":
-        frm = (now - timedelta(days=1)).strftime("%Y-%m-%d")
-        to = now.strftime("%Y-%m-%d")
-        multiplier, timespan = 5, "minute"
-    elif timeframe == "1W":
-        frm = (now - timedelta(days=7)).strftime("%Y-%m-%d")
-        to = now.strftime("%Y-%m-%d")
-        multiplier, timespan = 1, "day"
-    else:  # 1M
-        frm = (now - timedelta(days=30)).strftime("%Y-%m-%d")
-        to = now.strftime("%Y-%m-%d")
-        multiplier, timespan = 1, "day"
-
-    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol.upper()}/range/{multiplier}/{timespan}/{frm}/{to}"
-    params = {
-        "adjusted": "true",
-        "sort": "asc",
-        "limit": 50000,
-        "apiKey": api_key,
+    # Create market data provider with API keys from environment
+    config = {
+        "polygon_key": os.getenv("POLYGON_API_KEY"),
     }
 
+    provider = create_market_data_provider(config)
+
+    # Map timeframe to limit for ingestion package
+    limit_map = {"1D": 100, "1W": 7, "1M": 30}
+    limit = limit_map.get(timeframe, 100)
+
     try:
-        resp = requests.get(url, params=params, timeout=10)
-        resp.raise_for_status()
-        data = resp.json()
+        candles = provider.get_ohlc(symbol, timeframe, limit)
+        if not candles:
+            raise HTTPException(status_code=404, detail="No data available")
+        return candles
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Upstream error: {exc}") from exc
-
-    if data.get("status") != "OK" or not data.get("results"):
-        raise HTTPException(status_code=404, detail="No data")
-
-    candles = [
-        {
-            "t": r["t"],
-            "o": r["o"],
-            "h": r["h"],
-            "l": r["l"],
-            "c": r["c"],
-            "v": r.get("v", 0),
-        }
-        for r in data["results"]
-    ]
-    return candles
-
+        raise HTTPException(status_code=502, detail=f"Data fetch error: {exc}") from exc

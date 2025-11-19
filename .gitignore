@@ -20,7 +20,25 @@ __pycache__/
 .env.*
 .secrets/
 
+# Local env / decrypted files
+.env.local
+.env.*.local
+
+# Virtualenvs and environment folders
+.venv/
+venv/
+
+# Local DB files and app runtime DBs
+*.sqlite
+*.sqlite3
+*.db
+*.db3
+.goblin-memory.db
+forgetm.db
+
+# Sensitive infra/key files (store in vault instead of repo)
+/infra/charts/age-key.txt
+
 # Artifacts
 artifacts/
 *.log
-

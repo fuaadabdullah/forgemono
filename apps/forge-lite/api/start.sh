@@ -10,6 +10,9 @@ if [ ! -d "venv" ]; then
     exit 1
 fi
 
+# Set Python path for ingestion packages
+export PYTHONPATH=/Users/fuaadabdullah/ForgeMonorepo/GoblinOS/packages/ingestion-market-data-python/src:$PYTHONPATH
+
 # Start the server
 echo "Starting Forge Lite FastAPI backend on http://localhost:8000..."
 nohup ./venv/bin/python3 -m uvicorn main:app --host 127.0.0.1 --port 8000 --log-level info > server.log 2>&1 &

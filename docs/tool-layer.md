@@ -138,7 +138,7 @@ forge-lite-build:
 ## Development
 
 ```bash
-cd apps/tool-layer
+cd GoblinOS/packages/tool-layer
 pnpm install
 pnpm test
 pnpm build

@@ -14,6 +14,10 @@ This monorepo contains GoblinOS (primary platform), infra tooling, utilities, an
 - `tools/` — Dev scripts, release helpers, TUIs.
 - `portfolio/` — Personal docs/assets (resume, project notes).
 - `artifacts/` — Generated files (reports, SARIF, etc.).
+- `apps/forge-lite/` — Contains the UI logic for Forge Lite.
+- `backend/` — Centralized backend scripts and configurations.
+- `docs/backend/` — Documentation related to backend architecture and API keys.
+- `shared/` — Shared utilities and TypeScript types used across the repository.
 
 ## Conventions
 
@@ -53,3 +57,77 @@ Key helpers (available in the bridge test harness):
 - `kpiStore.clear()` — clear recorded events (useful in `beforeEach`).
 
 See `packages/goblins/overmind/bridge/README.md` for a short example test snippet showing usage.
+
+## Actionable Guides
+
+### How to Deploy Locally
+
+See `docs/backend/API_KEYS_STATUS.md` for step-by-step instructions. Troubleshooting tips:
+
+- If you see a `virtualenv` error, ensure Python and virtualenv are installed.
+- For missing environment variables, copy `.env.example` to `.env` and fill in secrets.
+- For permission errors, try `chmod +x scripts/*`.
+
+### How to Add a New Goblin
+
+See `docs/backend/API_KEYS_STATUS.md`. Checklist:
+
+- [ ] Add goblin to `GoblinOS/goblins.yaml`
+- [ ] Run `cd GoblinOS && node scripts/generate-roles.js`
+- [ ] Confirm in `docs/ROLES.md`
+- [ ] Add tests and update docs
+- [ ] Request code review
+
+### How to Run Tests
+
+- **Unit tests:**
+  - Node: `cd GoblinOS && pnpm test`
+  - Python: `pytest` in the relevant app directory
+- **E2E tests:**
+  - See `tools/forge-lite-e2e-test` or project-specific scripts
+- **Coverage:**
+  - Node: `pnpm test -- --coverage`
+  - Python: `pytest --cov`
+
+### How to Contribute Documentation
+
+- Write in Markdown (`.md`)
+- Place docs in the relevant `docs/` subfolder
+- Follow the style in `CONTRIBUTING.md`
+- Submit a PR for review
+
+### Support / Contact
+
+- For help, open an issue or email `goblinosrep@gmail.com`
+- See `CONTRIBUTING.md` for more support channels
+
+### Error Handling Strategy (Example)
+
+- **Bash:**
+
+  ```bash
+  set -e
+  trap 'echo "Error on line $LINENO"' ERR
+  ```
+
+- **Python:**
+
+  ```python
+  try:
+      # code
+  except Exception as e:
+      print(f"Error: {e}")
+      exit(1)
+  ```
+
+### Data Flow Diagram
+
+See `docs/backend/DATA_FLOW_DIAGRAM.md` for the latest diagram. Example (Mermaid):
+
+```mermaid
+graph TD;
+  User-->Frontend;
+  Frontend-->API;
+  API-->Database;
+  API-->ExternalServices;
+```

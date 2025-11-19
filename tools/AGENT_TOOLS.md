@@ -18,9 +18,9 @@ All guilds report to **Overmind**. Guild masters are the first line of escalatio
 | `pnpm -C GoblinOS keepers-guild <command>` | Secrets, compliance, and storage hygiene playbooks | Keepers | Sentenial Ledgerwarden |
 | `pnpm -C GoblinOS mages-guild <command>` | Quality gate + vault validation automation | Mages | Launcey Gauge / Hex Oracle |
 | `tools/scripts/kill-port.sh <port>` | Break-glass: clear hung dev servers fast | Forge | Dregg Embercode |
-| `tools/config_backend.sh` | Update/manage ForgeTM backend `.env` values | Crafters | Volt Furnace |
-| `tools/deploy_backend.sh [local|docker]` | Deploy ForgeTM backend with env checks & migrations | Crafters | Volt Furnace |
-| `tools/maintain_backend.sh <task>` | Backups, migrations, cache/log cleanup for backend | Crafters | Volt Furnace |
+| `backend/scripts/config_backend.sh` | Update/manage ForgeTM backend `.env` values | Crafters | Volt Furnace |
+| `backend/scripts/deploy_backend.sh [local|docker]` | Deploy ForgeTM backend with env checks & migrations | Crafters | Volt Furnace |
+| `backend/scripts/maintain_backend.sh <task>` | Backups, migrations, cache/log cleanup for backend | Crafters | Volt Furnace |
 | `tools/scripts/ensure-pnpm.sh` | Frontend guard: verify pnpm present before builds | Crafters | Vanta Lumin |
 | `tools/smoke.sh` | Kubecost / platform smoke probe | Huntress | Magnolia Nightbloom |
 | `tools/lint_all.sh` | Monorepo lint umbrella (Biome, mypy, security) | Mages | Launcey Gauge |
@@ -53,9 +53,9 @@ Environment
 - **CLI**: `pnpm -C GoblinOS crafters-guild --help`
 - **Vanta Lumin (frontend)**: `tools/scripts/ensure-pnpm.sh` guards UI builds; pair with Biome commands above for styling.
 - **Volt Furnace (backend sockets/schemas)**:
-  - `tools/config_backend.sh` — edit & validate ForgeTM backend configuration
-  - `tools/deploy_backend.sh [local|docker]` — provision app, migrations, Docker workflow refresh
-  - `tools/maintain_backend.sh <db_backup|db_migrate|cleanup_cache|...>` — lifecycle/backup utilities
+  - `backend/scripts/config_backend.sh` — edit & validate ForgeTM backend configuration
+  - `backend/scripts/deploy_backend.sh [local|docker]` — provision app, migrations, Docker workflow refresh
+  - `backend/scripts/maintain_backend.sh <db_backup|db_migrate|cleanup_cache|...>` — lifecycle/backup utilities
 
 ## Huntress Guild – Magnolia Nightbloom
 
