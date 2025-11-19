@@ -8,7 +8,7 @@ Unified workspace for GoblinOS and related projects. This repo houses the Goblin
 
 ## Project Map
 
-- `apps/` — Polyglot applications (e.g., `python/rizzk-calculator`).
+- `apps/` — Polyglot applications (Python apps moved to dedicated repositories).
 - `GoblinOS/` — Primary platform (pnpm workspace: packages, docs, CI). See `GoblinOS/README.md`.
 - `infra/` — Devcontainer, docker-compose, and deployment scaffolding.
 - `tools/` — Utility scripts, TUI helpers, release tools.

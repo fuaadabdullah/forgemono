@@ -74,7 +74,7 @@ pnpm -C GoblinOS build
 
 ## 7) Notes on Portfolio Projects
 
-Polyglot apps live under `apps/` (for example `apps/python/rizzk-calculator`). Run them in isolated venvs. If you need to modernize or integrate with GoblinOS, propose a refactor first.
+Polyglot apps live under `apps/` (Python apps moved to dedicated repositories). Run them in isolated venvs. If you need to modernize or integrate with GoblinOS, propose a refactor first.
 
 ## 8) First Tickets
 

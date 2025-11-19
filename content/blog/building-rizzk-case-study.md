@@ -37,4 +37,4 @@ I built RIZZK because I needed it myself. Most trading calculators are either to
 
 ---
 
-*Want more? Check out the [RIZZK Calculator](/apps/python/rizzk-calculator/). If you have feedback, or want to build something together, let me know. I’m always learning, and I’d rather build with real users than guess what matters.*
+*Want more? Check out the [RIZZK Calculator](https://rizzk-calculator-demo-eus2-f1.azurewebsites.net/). If you have feedback, or want to build something together, let me know. I'm always learning, and I'd rather build with real users than guess what matters.*

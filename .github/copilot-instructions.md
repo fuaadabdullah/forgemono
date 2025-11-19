@@ -11,7 +11,7 @@ applyTo: "**"
 
 1. **ForgeTM Lite** (`apps/forge-lite/`) - Cross-platform trading cockpit for retail traders
 2. **Fuaad Portfolio** (external) - Personal portfolio website managed via GoblinOS
-3. **RizzK Calculator** (`apps/python/rizzk-calculator/`) - Trading risk calculator
+3. **RizzK Calculator** (external) - Trading risk calculator (moved to dedicated repository)
 4. **GoblinOS** (`GoblinOS/`) - Development automation and tooling framework
 
 ## Current Focus: ForgeTM Lite
