@@ -1,0 +1,31 @@
+# Unity typical artifacts (keep this file in the Unity project root)
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/UserSettings/
+/*.csproj
+/*.unityproj
+/*.sln
+/*.tmp
+/*.user
+/*.userprefs
+/*.pidb
+/*.booproj
+/*.svd
+/*.pdb
+/sysid
+*.user
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+env/
+/.env
+
+# macOS
+.DS_Store
