@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from debugger.router import router as debugger_router
+from backend.debugger.router import router as debugger_router
 
 app = FastAPI(
     title="GoblinOS Assistant Backend",
