@@ -1,4 +1,8 @@
 packages:
-  - "apps/*"
-  - "GoblinOS/**"
-  - "packages/*"
+  - 'apps/*'
+#   # - 'apps/forge-lite'  # archived: moved out of workspace
+  - 'packages/*'
+  - 'tools/*'
+  - 'GoblinOS/*'
+  - 'docs/*'
+# updated: archived forge-lite

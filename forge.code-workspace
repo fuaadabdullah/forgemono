@@ -20,7 +20,7 @@
     "inlineChat.enableV2": true,
     "chat.useNestedAgentsMdFiles": true,
     "chat.useCloudButtonV2": true,
-    "chat.tools.terminal.autoReplyToPrompts": true,
+  "chat.tools.terminal.autoReplyToPrompts": false,
     "chat.todoListTool.writeOnly": true,
     "chat.renderRelatedFiles": true,
     "chat.mcp.gallery.enabled": true,

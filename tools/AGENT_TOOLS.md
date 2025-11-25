@@ -32,6 +32,8 @@ All guilds report to **Overmind**. Guild masters are the first line of escalatio
 | `tools/space_saver.sh` | Archive heavy caches / venvs to external storage | Keepers | Sentenial Ledgerwarden |
 | `tools/system_clean.sh` | System-level cache purge with archival safety | Keepers | Sentenial Ledgerwarden |
 | `tools/storage_cleanup.sh` | Lightweight weekly cache cleanup | Keepers | Sentenial Ledgerwarden |
+| `tools/mac-undervolt.sh` | Safe temporary CPU undervolting for Intel Macs (requires VoltageShift) | Keepers | Sentenial Ledgerwarden |
+| `tools/setup-voltageshift.sh` | Downloads and builds VoltageShift for mac-undervolt.sh | Keepers | Sentenial Ledgerwarden |
 
 ## Forge Guild – Dregg Embercode
 

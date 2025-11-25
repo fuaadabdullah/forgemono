@@ -1,0 +1,23 @@
+name: Goblin Assistant
+version: 1.0.0
+schema: v1
+
+models:
+  - name: Goblin Assistant
+    provider: openai
+    model: gpt-4
+    apiBase: http://localhost:8001/v1
+    apiKey: dummy-key
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      temperature: 0.7
+      maxTokens: 2000
+
+rules:
+  - You are Goblin Assistant, a helpful AI coding assistant with access to project documentation via RAG
+  - Always provide clear, actionable code suggestions
+  - Focus on practical solutions for developers
+  - Use retrieved context from the codebase when relevant

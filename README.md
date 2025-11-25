@@ -46,3 +46,5 @@ For AI features (Ollama) and deeper commands, see `GoblinOS/README.md`.
 ## Notes
 
 - Legacy demos may have shipped with their own `.git` history—these should be promoted into `apps/` or converted to submodules. See `docs/WORKSPACE_OVERVIEW.md` for guidance.
+
+**Active Projects**: GoblinOS Assistant

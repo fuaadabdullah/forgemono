@@ -1,13 +1,21 @@
 {
   "name": "forgemonorepo",
   "private": true,
-  "pnpm": {
-    "overrides": {
-      "expo": "54.0.23"
-    }
-  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tools/*",
+    "GoblinOS/*",
+    "docs/*"
+  ],
   "scripts": {
-    "goblin:list": "node GoblinOS/tools/goblin-cli/index.js list",
-    "goblin": "node GoblinOS/tools/goblin-cli/index.js"
+    "dev": "pnpm -w dev",
+    "build": "pnpm -w build",
+    "test": "pnpm -w test",
+    "archive:forge-lite": "bash tools/archive-forge-lite.sh",
+    "workspace:refresh": "bash tools/refresh-workspace.sh",
+    "tools:find-forge-lite": "bash tools/find-forge-lite-references.sh",
+    "tools:ci-comment-forge-lite": "bash tools/comment-out-forge-lite-in-workflows.sh",
+    "tools:safe-remove-forge-lite": "bash tools/safe-remove-forge-lite-references.sh"
   }
 }

@@ -131,3 +131,7 @@ graph TD;
   API-->Database;
   API-->ExternalServices;
 ```
+
+## Active Projects
+
+- GoblinOS Assistant
