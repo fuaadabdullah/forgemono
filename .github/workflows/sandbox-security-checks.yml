@@ -1,0 +1,61 @@
+name: Sandbox Security Checks
+
+on:
+  push:
+    branches: [ main, feat/raptor-debug-router ]
+    paths:
+      - 'goblin-assistant/api/fastapi/sandbox_runner.py'
+      - 'goblin-assistant/api/fastapi/test_sandbox_runner.py'
+      - 'tools/sanity_checks.sh'
+      - '.github/workflows/sandbox-security-checks.yml'
+  pull_request:
+    paths:
+      - 'goblin-assistant/api/fastapi/sandbox_runner.py'
+      - 'goblin-assistant/api/fastapi/test_sandbox_runner.py'
+      - 'tools/sanity_checks.sh'
+      - '.github/workflows/sandbox-security-checks.yml'
+
+env:
+  SANDBOX_VERIFY_SIGNATURES: cosign
+
+jobs:
+  sandbox-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: goblin-assistant/api/fastapi/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r goblin-assistant/api/fastapi/requirements.txt
+
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io jq
+
+      - name: Install cosign
+        run: |
+          curl -L https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -o cosign
+          chmod +x cosign
+          sudo mv cosign /usr/local/bin/
+
+      - name: Start Docker daemon
+        run: |
+          sudo systemctl start docker
+          sudo usermod -aG docker $USER
+
+      - name: Run sanity checks
+        run: bash tools/sanity_checks.sh
+
+      - name: Run sandbox tests
+        working-directory: goblin-assistant/api/fastapi
+        run: python -m pytest test_sandbox_runner.py -v

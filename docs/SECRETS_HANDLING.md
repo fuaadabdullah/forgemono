@@ -12,6 +12,17 @@ Key rules
 - Store the decryption private keys in a secure vault (1Password, HashiCorp Vault, AWS Secrets Manager, or similar) and only grant access to required persons.
 - Use a machine-level keyring (OS protected store) or the vault to mount the key at runtime; do not store in plaintext in the repo.
 
+## HashiCorp Vault
+
+We recommend storing secrets in HashiCorp Vault for both dev and production. See `docs/vault_integration.md` for detailed integration and rotation steps.
+
+Typical pattern:
+
+- Store provider keys under `secret/goblin-assistant/providers/<provider>`.
+- Create a `secret/goblin-assistant/backups/<provider>` path to persist rotated keys temporarily, if needed.
+- Use a `VaultClient` wrapper (included in repo at `vault_client.py`) to read secrets into the app's environment.
+
+
 Quick verification
 1. Search the repo for likely private key markers:
 

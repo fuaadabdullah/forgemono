@@ -135,3 +135,11 @@ graph TD;
 ## Active Projects
 
 - GoblinOS Assistant
+
+## Operations & Security Docs
+
+- Vault Integration: `docs/vault_integration.md` (dev/prod setup, rotation, API examples)
+- Secrets handling: `docs/SECRETS_HANDLING.md`
+- Observability & SLOs: `docs/observability/DATADOG_SLOS.md`
+- Runbook: `docs/observability/runbook.md`
+- Release checklist: `docs/RELEASE_CHECKLIST.md`

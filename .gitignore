@@ -42,3 +42,6 @@ forgetm.db
 # Artifacts
 artifacts/
 *.log
+
+# Local Netlify folder
+.netlify
