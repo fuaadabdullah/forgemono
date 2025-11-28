@@ -1,0 +1,100 @@
+# Temporal Worker Helm Chart Values
+
+# Number of worker replicas
+replicaCount: 2
+
+image:
+  repository: overmind-temporal-worker
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Temporal connection configuration
+temporal:
+  address: temporal:7233
+  namespace: overmind
+  taskQueue: overmind-memory
+  tls:
+    enabled: false
+    # When enabled, reference secret with tls.crt and tls.key
+    secretName: temporal-tls
+
+# Memory API configuration
+memoryApi:
+  url: http://overmind-api:8000
+
+# Worker concurrency limits
+worker:
+  maxConcurrentActivityExecutions: 10
+  maxConcurrentWorkflowExecutions: 100
+  debugMode: false
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9090"
+  prometheus.io/path: "/metrics"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+    - ALL
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - overmind-temporal-worker
+        topologyKey: kubernetes.io/hostname
+
+# Environment variables
+env:
+  - name: NODE_ENV
+    value: production
+  - name: LOG_LEVEL
+    value: info
+
+# Additional volumes
+volumes: []
+
+# Additional volume mounts
+volumeMounts: []

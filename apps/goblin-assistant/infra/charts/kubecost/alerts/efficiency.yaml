@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubecost-efficiency-alert
+  namespace: kubecost
+  labels:
+    app: kubecost
+    alert-type: efficiency
+data:
+  alert.json: |
+    {
+      "name": "overmind-efficiency",
+      "type": "efficiency",
+      "enabled": true,
+      "cpuEfficiencyThreshold": 0.5,
+      "ramEfficiencyThreshold": 0.5,
+      "window": "7d",
+      "aggregation": "deployment",
+      "filter": {
+        "namespace": ["overmind-prod"]
+      },
+      "notifications": {
+        "slack": {
+          "enabled": true,
+          "webhookUrl": "${SLACK_WEBHOOK_URL}",
+          "channel": "#overmind-finops",
+          "username": "Kubecost",
+          "icon_emoji": ":chart_with_downwards_trend:",
+          "message": "📉 Low efficiency detected in {{deployment}}: CPU {{cpuEfficiency}}%, RAM {{ramEfficiency}}%"
+        }
+      }
+    }

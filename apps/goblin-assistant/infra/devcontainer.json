@@ -1,0 +1,26 @@
+{
+  "name": "ForgeMonorepo Dev Container",
+  "dockerComposeFile": [
+    "../ForgeTM/docker-compose.yml"
+  ],
+  "service": "backend",
+  "workspaceFolder": "/workspace/ForgeMonorepo",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "python.defaultInterpreterPath": "/usr/local/bin/python3",
+        "editor.formatOnSave": true
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "GitHub.copilot"
+      ]
+    }
+  },
+  "postCreateCommand": "bash tools/lint_all.sh && pnpm install --recursive && pip install -r ForgeTM/apps/backend/requirements.txt",
+  "remoteUser": "vscode"
+}

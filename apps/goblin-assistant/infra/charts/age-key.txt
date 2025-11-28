@@ -1,0 +1,5 @@
+# created: 2025-10-25T14:33:05-04:00
+# public key: age1p8wm9xuvhz5amjwe6kwr89nv6ad996vqjh83mwhnnqnk0yrpqs4qy36k3m
+# NOTE: Private AGE secret has been removed from the repository for security reasons.
+# Generate a new AGE key and store it in a secret manager or local dev env. Example:
+#  - age-keygen -o ./age-key.txt && chmod 600 ./age-key.txt && store securely

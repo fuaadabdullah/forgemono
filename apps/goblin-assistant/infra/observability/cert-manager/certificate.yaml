@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: observability-tls
+  namespace: observability
+spec:
+  secretName: observability-tls-secret
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  subject:
+    organizations:
+      - GoblinOS
+  dnsNames:
+    - grafana.example.com
+    - loki.example.com
+    - tempo.example.com
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer

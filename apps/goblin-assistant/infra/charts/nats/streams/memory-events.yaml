@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nats-stream-memory-events
+  namespace: overmind-prod
+  labels:
+    app: nats
+    stream: memory-events
+data:
+  stream.json: |
+    {
+      "name": "memory-events",
+      "subjects": [
+        "memory.added",
+        "memory.consolidated",
+        "memory.retrieved",
+        "memory.expired"
+      ],
+      "retention": "limits",
+      "max_age": 2592000000000000,
+      "max_bytes": 5368709120,
+      "max_msgs": 5000000,
+      "max_msg_size": 1048576,
+      "storage": "file",
+      "replicas": 3,
+      "discard": "old",
+      "duplicate_window": 120000000000,
+      "allow_rollup_hdrs": false,
+      "deny_delete": false,
+      "deny_purge": false
+    }

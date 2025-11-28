@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubecost-monthly-alert
+  namespace: kubecost
+  labels:
+    app: kubecost
+    alert-type: budget
+data:
+  alert.json: |
+    {
+      "name": "overmind-monthly-budget",
+      "type": "budget",
+      "enabled": true,
+      "threshold": 2000,
+      "window": "30d",
+      "aggregation": "namespace",
+      "filter": {
+        "namespace": ["overmind-prod", "overmind-dev"]
+      },
+      "notifications": {
+        "slack": {
+          "enabled": true,
+          "webhookUrl": "${SLACK_WEBHOOK_URL}",
+          "channel": "#overmind-finops",
+          "username": "Kubecost",
+          "icon_emoji": ":chart_with_upwards_trend:",
+          "message": "💰 Monthly budget exceeded for {{namespace}}: ${{cost}} (threshold: $2000)"
+        },
+        "email": {
+          "enabled": true,
+          "recipients": ["team@example.com"],
+          "subject": "Overmind Monthly Budget Alert"
+        }
+      }
+    }

@@ -1,0 +1,76 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: overmind-prod
+  namespace: argocd
+  labels:
+    app: overmind
+    env: prod
+  annotations:
+    argocd.argoproj.io/manifest-generate-paths: .
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: overmind-deployments
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: overmind-alerts
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  # Source repository
+  source:
+    repoURL: https://github.com/your-org/ForgeMonorepo.git
+    # Use release branch for production
+    targetRevision: release/v1.0
+    path: infra/overlays/prod
+
+    # Kustomize configuration
+    kustomize:
+      version: v5.0.0
+      # KSOPS plugin for SOPS secrets
+      buildOptions: "--enable-alpha-plugins --enable-exec"
+
+  # Destination cluster and namespace
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: overmind-prod
+
+  # Sync policy (more conservative for production)
+  syncPolicy:
+    # Automated sync (can disable for manual approval)
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+
+    # Sync options
+    syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - RespectIgnoreDifferences=true
+
+    # Retry policy
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m
+
+  # Ignore differences
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+    - /spec/replicas  # HPA manages this
+  - group: autoscaling
+    kind: HorizontalPodAutoscaler
+    jsonPointers:
+    - /spec/minReplicas
+    - /spec/maxReplicas
+  - group: monitoring.coreos.com
+    kind: ServiceMonitor
+    jsonPointers:
+    - /metadata/labels  # Prometheus operator adds labels
+
+  # Resource tracking
+  revisionHistoryLimit: 20

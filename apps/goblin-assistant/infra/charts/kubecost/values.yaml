@@ -1,0 +1,223 @@
+# Kubecost Configuration for Overmind
+
+# Global settings
+global:
+  # Cluster identifier
+  clusterId: overmind-prod
+
+  # Prometheus configuration
+  prometheus:
+    enabled: true
+    fqdn: http://prometheus-server.observability.svc.cluster.local:9090
+
+# Cost Analyzer configuration
+cost-analyzer:
+  # Image
+  imageVersion: prod-2.0.0
+
+  # Resources
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+  # Persistence
+  persistentVolume:
+    enabled: true
+    size: 10Gi
+    storageClass: standard
+
+  # Prometheus integration
+  prometheus:
+    server:
+      global:
+        external_labels:
+          cluster_id: overmind-prod
+
+  # Grafana integration
+  grafana:
+    enabled: true
+    sidecar:
+      dashboards:
+        enabled: true
+      datasources:
+        enabled: true
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 9090
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9003"
+
+  # Ingress
+  ingress:
+    enabled: false  # Use Envoy Gateway instead
+
+  # Network costs
+  networkCosts:
+    enabled: true
+    podMonitor:
+      enabled: true
+
+# Cost allocation configuration
+allocation:
+  # Default allocation strategy
+  defaultIdle: false
+
+  # Namespace labels for cost allocation
+  labels:
+    - app
+    - component
+    - environment
+    - owner
+    - team
+
+  # Shared cost allocation
+  sharedNamespaces:
+    - kube-system
+    - observability
+    - envoy-gateway-system
+
+  # Cost allocation rules
+  rules:
+    - name: overmind-dev
+      namespace: overmind-dev
+      labels:
+        environment: development
+        project: overmind
+        team: goblinos
+
+    - name: overmind-prod
+      namespace: overmind-prod
+      labels:
+        environment: production
+        project: overmind
+        team: goblinos
+
+# Alerts configuration
+alerts:
+  enabled: true
+
+  # Cost threshold alerts
+  thresholds:
+    # Daily cost threshold
+    daily:
+      enabled: true
+      threshold: 100  # USD
+      namespaces:
+        - overmind-prod
+        - overmind-dev
+
+    # Monthly cost threshold
+    monthly:
+      enabled: true
+      threshold: 2000  # USD
+      namespaces:
+        - overmind-prod
+        - overmind-dev
+
+    # Cost spike detection
+    spike:
+      enabled: true
+      percentage: 50  # 50% increase triggers alert
+      window: 1h
+
+  # Slack notifications
+  slack:
+    enabled: false
+    webhook: ""  # Set via secret
+
+# Savings recommendations
+savings:
+  enabled: true
+
+  # Rightsizing recommendations
+  rightsizing:
+    enabled: true
+    cpuEfficiencyThreshold: 0.5  # 50%
+    memoryEfficiencyThreshold: 0.5
+
+  # Abandoned workloads
+  abandonment:
+    enabled: true
+    threshold: 0.05  # CPU usage < 5%
+
+  # Cluster optimization
+  clusterOptimization:
+    enabled: true
+    nodePoolRecommendations: true
+
+# Reports configuration
+reports:
+  enabled: true
+
+  # Scheduled reports
+  schedule:
+    - name: weekly-overmind-costs
+      frequency: weekly
+      day: monday
+      time: "09:00"
+      namespaces:
+        - overmind-prod
+        - overmind-dev
+      format: pdf
+
+  # Export to external systems
+  export:
+    enabled: false
+    # BigQuery export
+    bigquery:
+      enabled: false
+      projectId: ""
+      datasetId: ""
+
+    # S3 export
+    s3:
+      enabled: false
+      bucket: ""
+      region: us-east-1
+
+# UI configuration
+ui:
+  enabled: true
+
+  # Authentication
+  auth:
+    enabled: false  # Use Envoy Gateway auth instead
+
+  # Theme
+  theme: light
+
+# Observability
+observability:
+  # Metrics
+  metrics:
+    enabled: true
+    port: 9003
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+
+  # Logging
+  logging:
+    level: info
+    format: json
+
+# Resource quotas and limits
+quotas:
+  # Overmind development
+  overmind-dev:
+    cpu: "4"
+    memory: 8Gi
+    costLimit: 50  # USD/day
+
+  # Overmind production
+  overmind-prod:
+    cpu: "16"
+    memory: 32Gi
+    costLimit: 100  # USD/day

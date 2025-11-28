@@ -1,0 +1,50 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: security-headers
+  namespace: overmind-prod
+  labels:
+    app: overmind
+    policy: security
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: overmind-gateway
+
+  headers:
+    # Response headers
+    response:
+      add:
+      # Prevent clickjacking
+      - name: X-Frame-Options
+        value: DENY
+
+      # Prevent MIME sniffing
+      - name: X-Content-Type-Options
+        value: nosniff
+
+      # XSS protection
+      - name: X-XSS-Protection
+        value: "1; mode=block"
+
+      # HSTS (force HTTPS)
+      - name: Strict-Transport-Security
+        value: max-age=31536000; includeSubDomains; preload
+
+      # Referrer policy
+      - name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+
+      # Permissions policy
+      - name: Permissions-Policy
+        value: geolocation=(), microphone=(), camera=()
+
+      # Content Security Policy
+      - name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.overmind.example.com"
+
+      remove:
+      - Server
+      - X-Powered-By
+      - X-AspNet-Version

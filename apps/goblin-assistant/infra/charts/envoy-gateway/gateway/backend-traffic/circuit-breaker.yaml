@@ -1,0 +1,52 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: circuit-breaker
+  namespace: overmind-prod
+  labels:
+    app: overmind
+    policy: resilience
+spec:
+  targetRef:
+    group: ""
+    kind: Service
+    name: overmind-api
+
+  # Circuit breaker configuration
+  circuitBreaker:
+    maxConnections: 1024
+    maxPendingRequests: 1024
+    maxRequests: 1024
+    maxRetries: 3
+
+  # Timeout configuration
+  timeout:
+    request: 30s
+    backendRequest: 25s
+
+  # Retry configuration
+  retry:
+    numRetries: 3
+    perRetryTimeout: 10s
+    retryOn:
+      httpStatusCodes:
+      - 500
+      - 502
+      - 503
+      - 504
+      triggers:
+      - connect-failure
+      - retriable-4xx
+      - reset
+
+  # Health check
+  healthCheck:
+    active:
+      timeout: 1s
+      interval: 10s
+      unhealthyThreshold: 3
+      healthyThreshold: 1
+      http:
+        path: /health
+        expectedStatuses:
+        - 200

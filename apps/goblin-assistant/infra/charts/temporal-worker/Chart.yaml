@@ -1,0 +1,17 @@
+apiVersion: v2
+name: overmind-temporal-worker
+description: Temporal worker for Overmind memory consolidation workflows
+type: application
+version: 1.0.0
+appVersion: 1.0.0
+keywords:
+  - temporal
+  - workflow
+  - overmind
+  - memory
+home: https://github.com/your-org/overmind
+sources:
+  - https://github.com/your-org/overmind
+maintainers:
+  - name: GoblinOS Team
+    email: team@goblinos.io

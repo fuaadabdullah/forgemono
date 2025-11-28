@@ -1,0 +1,12 @@
+{{- if .Values.daemonset.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-otel-agent-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "otelCollector.labels" . | nindent 4 }}
+data:
+  collector.yaml: |
+{{ tpl .Values.daemonset.config . | indent 4 }}
+{{- end }}

@@ -1,0 +1,258 @@
+## @section Global parameters
+## Global Docker image parameters
+
+## @param global.imageRegistry Global Docker image registry
+## @param global.imagePullSecrets Global Docker registry secret names as an array
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+## @section Common parameters
+
+## @param nameOverride String to partially override litellm.fullname
+nameOverride: ""
+
+## @param fullnameOverride String to fully override litellm.fullname
+fullnameOverride: ""
+
+## @section LiteLLM parameters
+
+image:
+  ## @param image.registry LiteLLM image registry
+  registry: docker.io
+  ## @param image.repository LiteLLM image repository
+  repository: ghcr.io/berriai/litellm
+  ## @param image.tag LiteLLM image tag (immutable tags are recommended)
+  tag: "main-latest"
+  ## @param image.pullPolicy LiteLLM image pull policy
+  pullPolicy: IfNotPresent
+  ## @param image.pullSecrets LiteLLM image pull secrets
+  pullSecrets: []
+
+## @param replicaCount Number of LiteLLM replicas to deploy
+replicaCount: 2
+
+## LiteLLM container ports
+containerPorts:
+  ## @param containerPorts.http LiteLLM HTTP container port
+  http: 4000
+
+## Configure extra options for LiteLLM containers' liveness and readiness probes
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+  successThreshold: 1
+
+## LiteLLM resource requests and limits
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+## @param nodeSelector Node labels for pod assignment
+nodeSelector: {}
+
+## @param tolerations Tolerations for pod assignment
+tolerations: []
+
+## @param affinity Affinity for pod assignment
+affinity: {}
+
+## @section Service parameters
+
+service:
+  ## @param service.type LiteLLM service type
+  type: ClusterIP
+  ## @param service.ports.http LiteLLM service HTTP port
+  ports:
+    http: 4000
+  ## @param service.nodePorts.http Node port for HTTP
+  nodePorts:
+    http: ""
+  ## @param service.sessionAffinity Control where client requests go, to the same pod or round-robin
+  sessionAffinity: None
+  ## @param service.annotations Additional custom annotations for LiteLLM service
+  annotations: {}
+
+## @section HPA parameters
+
+autoscaling:
+  ## @param autoscaling.enabled Enable Horizontal POD autoscaling for LiteLLM
+  enabled: true
+  ## @param autoscaling.minReplicas Minimum number of LiteLLM replicas
+  minReplicas: 2
+  ## @param autoscaling.maxReplicas Maximum number of LiteLLM replicas
+  maxReplicas: 20
+  ## @param autoscaling.targetCPU Target CPU utilization percentage
+  targetCPU: 70
+  ## @param autoscaling.targetMemory Target Memory utilization percentage
+  targetMemory: 80
+
+## @section Metrics parameters
+
+metrics:
+  ## @param metrics.enabled Enable Prometheus metrics
+  enabled: true
+  ## @param metrics.port Prometheus metrics port
+  port: 4000
+  ## @param metrics.path Prometheus metrics path
+  path: /metrics
+  serviceMonitor:
+    ## @param metrics.serviceMonitor.enabled Create ServiceMonitor resource for scraping metrics
+    enabled: true
+    ## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor resource
+    namespace: ""
+    ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped
+    interval: 30s
+    ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+    scrapeTimeout: 10s
+
+## @section LiteLLM Configuration
+
+config:
+  ## @param config.masterKey Master key for admin operations (leave empty to auto-generate)
+  masterKey: ""
+  ## @param config.database Database URL for storing model configs and usage
+  database: ""
+  ## @param config.logLevel Log level (DEBUG, INFO, WARNING, ERROR)
+  logLevel: "INFO"
+  ## @param config.dropParams Drop specific parameters to avoid provider errors
+  dropParams: true
+  ## @param config.setVerbose Enable verbose logging
+  setVerbose: false
+  ## @param config.requestTimeout Default timeout for requests to providers (seconds)
+  requestTimeout: 600
+  ## @param config.maxParallelRequests Max parallel requests to handle
+  maxParallelRequests: 100
+  ## @param config.telemetry.enabled Enable OpenTelemetry
+  telemetry:
+    enabled: true
+    ## @param config.telemetry.endpoint OTLP endpoint
+    endpoint: "http://jaeger-collector:4318/v1/traces"
+
+  ## Model configurations - define your models here
+  ## Example:
+  models:
+    - model_name: gpt-4-turbo
+      litellm_params:
+        model: openai/gpt-4-turbo-preview
+        api_key: "os.environ/OPENAI_API_KEY"
+    - model_name: gemini-pro
+      litellm_params:
+        model: gemini/gemini-1.5-pro-latest
+        api_key: "os.environ/GEMINI_API_KEY"
+    - model_name: deepseek-chat
+      litellm_params:
+        model: deepseek/deepseek-chat
+        api_key: "os.environ/DEEPSEEK_API_KEY"
+    - model_name: ollama-local
+      litellm_params:
+        model: ollama/llama3.2
+        api_base: "http://ollama:11434"
+
+  ## Router settings for load balancing and fallbacks
+  router:
+    ## @param config.router.enabled Enable intelligent routing
+    enabled: true
+    ## @param config.router.routingStrategy Routing strategy (simple-shuffle, latency-based-routing, cost-based-routing)
+    routingStrategy: "latency-based-routing"
+    ## @param config.router.fallbacks Enable automatic fallbacks
+    fallbacks:
+      - ["gpt-4-turbo", "gemini-pro"]
+      - ["gemini-pro", "deepseek-chat"]
+      - ["deepseek-chat", "ollama-local"]
+
+## @param existingSecret Name of existing secret containing API keys
+existingSecret: ""
+
+## Environment variables from secrets
+envFromSecrets:
+  ## @param envFromSecrets.OPENAI_API_KEY OpenAI API key secret
+  OPENAI_API_KEY:
+    secretName: litellm-secrets
+    secretKey: openai-api-key
+  ## @param envFromSecrets.GEMINI_API_KEY Gemini API key secret
+  GEMINI_API_KEY:
+    secretName: litellm-secrets
+    secretKey: gemini-api-key
+  ## @param envFromSecrets.DEEPSEEK_API_KEY DeepSeek API key secret
+  DEEPSEEK_API_KEY:
+    secretName: litellm-secrets
+    secretKey: deepseek-api-key
+
+## @section Security parameters
+
+podSecurityContext:
+  enabled: true
+  fsGroup: 1000
+
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1000
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+## @param serviceAccount.name The name of the ServiceAccount to use
+## @param serviceAccount.annotations Additional Service Account annotations
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+## @section NetworkPolicy parameters
+
+networkPolicy:
+  ## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+  enabled: false
+  ## @param networkPolicy.allowExternal Don't require client label for connections
+  allowExternal: true
+  ## @param networkPolicy.ingress Additional ingress rules
+  ingress: []
+  ## @param networkPolicy.egress Additional egress rules
+  egress: []
+
+## @section PodDisruptionBudget parameters
+
+podDisruptionBudget:
+  ## @param podDisruptionBudget.enabled Enable PodDisruptionBudget
+  enabled: true
+  ## @param podDisruptionBudget.minAvailable Minimum available pods
+  minAvailable: 1
+
+## @section Persistence
+
+persistence:
+  ## @param persistence.enabled Enable persistence for logs and cache
+  enabled: true
+  ## @param persistence.storageClass PVC Storage Class
+  storageClass: ""
+  ## @param persistence.size PVC Storage Request
+  size: 10Gi
+  ## @param persistence.accessModes PVC Access Mode
+  accessModes:
+    - ReadWriteOnce

@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nats-stream-llm-requests
+  namespace: overmind-prod
+  labels:
+    app: nats
+    stream: llm-requests
+data:
+  stream.json: |
+    {
+      "name": "llm-requests",
+      "subjects": [
+        "llm.request.started",
+        "llm.request.completed",
+        "llm.request.failed"
+      ],
+      "retention": "limits",
+      "max_age": 86400000000000,
+      "max_bytes": 524288000,
+      "max_msgs": 500000,
+      "max_msg_size": 1048576,
+      "storage": "file",
+      "replicas": 3,
+      "discard": "old",
+      "duplicate_window": 60000000000,
+      "allow_rollup_hdrs": false,
+      "deny_delete": false,
+      "deny_purge": false
+    }

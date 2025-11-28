@@ -1,0 +1,18 @@
+apiVersion: v2
+name: envoy-gateway
+description: Envoy Gateway ingress for Overmind with mTLS, rate limiting, and advanced routing
+type: application
+version: 1.0.0
+appVersion: "v1.0.0"
+
+keywords:
+  - envoy
+  - gateway
+  - ingress
+  - mtls
+  - rate-limiting
+  - overmind
+
+maintainers:
+  - name: GoblinOS Team
+    email: goblins@example.com

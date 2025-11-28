@@ -1,0 +1,76 @@
+# Unified Multi-Cloud Deployment Template
+# Copy this to .github/workflows/deploy-multi-cloud.yml and customize the matrix values.
+#
+# Required Secrets by Target:
+# ECS: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, ECR_REPOSITORY
+# AKS: AZURE_CREDENTIALS, ACR_REGISTRY, AKS_RESOURCE_GROUP, AKS_CLUSTER_NAME
+# GKE: GCP_SA_KEY, GCP_PROJECT, GKE_CLUSTER, GKE_ZONE
+#
+# Trigger Examples:
+# - Deploy to ECS on main branch: push branches: [main]
+# - Deploy to AKS on tags: push tags: ['v*']
+# - Manual trigger: workflow_dispatch with target input
+
+name: Deploy to Multi-Cloud
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Deployment target'
+        required: true
+        default: 'ecs'
+        type: choice
+        options:
+        - ecs
+        - aks
+        - gke
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: ecs
+            aws-region: us-east-1
+            ecr-repo: myapp/forge-lite
+            cluster: forge-lite-cluster
+            service: forge-lite-service
+          - target: aks
+            acr-registry: myregistry.azurecr.io
+            resource-group: my-rg
+            cluster: forge-lite-aks
+          - target: gke
+            gcp-project: my-gcp-project
+            cluster: forge-lite-gke
+            zone: us-central1-a
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to ECS
+        if: matrix.target == 'ecs'
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: infra/deployments/ecs/task-definition.json
+          service: ${{ matrix.service }}
+          cluster: ${{ matrix.cluster }}
+          wait-for-service-stability: true
+
+      - name: Deploy to AKS
+        if: matrix.target == 'aks'
+        run: |
+          echo "AKS deployment steps here"
+          # kubectl apply -f infra/deployments/aks/manifests/
+
+      - name: Deploy to GKE
+        if: matrix.target == 'gke'
+        run: |
+          echo "GKE deployment steps here"
+          # kubectl apply -f infra/deployments/gke/manifests/
+
+# Notes:
+# - This is a template - customize matrix values for your actual infrastructure
+# - Add build/push steps before deployment for each target
+# - Use conditional steps or separate jobs for complex multi-target deployments

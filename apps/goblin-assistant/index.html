@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoblinOS Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-blue-400 mb-4">GoblinOS Assistant</h1>
+            <p class="text-gray-400">AI-powered development assistant with intelligent model routing</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Health Status -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">System Health</h2>
+                <div id="health-status" class="text-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                    <p>Checking...</p>
+                </div>
+            </div>
+
+            <!-- Available Goblins -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Available Goblins</h2>
+                <div id="goblins-list">
+                    <div class="animate-pulse">
+                        <div class="h-4 bg-gray-700 rounded mb-2"></div>
+                        <div class="h-4 bg-gray-700 rounded mb-2"></div>
+                        <div class="h-4 bg-gray-700 rounded"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
+                <div class="space-y-2">
+                    <button onclick="testRouteTask()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+                        Test Route Task
+                    </button>
+                    <button onclick="testOrchestration()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded">
+                        Test Orchestration
+                    </button>
+                    <button onclick="testStreaming()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">
+                        Test Streaming
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Area -->
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+            <div id="results" class="bg-gray-900 rounded p-4 min-h-32 font-mono text-sm">
+                Click a test button above to see results...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8003';
+
+        async function apiRequest(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                return { error: error.message };
+            }
+        }
+
+        async function checkHealth() {
+            const result = await apiRequest('/health');
+            const healthDiv = document.getElementById('health-status');
+
+            if (result.error) {
+                healthDiv.innerHTML = `
+                    <div class="text-red-400 text-2xl mb-2">❌</div>
+                    <p class="text-red-300">Backend not available</p>
+                    <p class="text-xs text-gray-500 mt-1">${result.error}</p>
+                `;
+            } else {
+                healthDiv.innerHTML = `
+                    <div class="text-green-400 text-2xl mb-2">✅</div>
+                    <p class="text-green-300">Backend healthy</p>
+                    <p class="text-xs text-gray-500 mt-1">Status: ${result.status}</p>
+                `;
+            }
+        }
+
+        async function loadGoblins() {
+            const result = await apiRequest('/api/goblins');
+            const goblinsDiv = document.getElementById('goblins-list');
+
+            if (result.error) {
+                goblinsDiv.innerHTML = `<p class="text-red-400">Failed to load goblins: ${result.error}</p>`;
+            } else {
+                goblinsDiv.innerHTML = result.map(goblin => `
+                    <div class="flex items-center justify-between py-2 border-b border-gray-700">
+                        <div>
+                            <div class="font-semibold">${goblin.title}</div>
+                            <div class="text-sm text-gray-400">${goblin.guild}</div>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs ${
+                            goblin.status === 'available' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'
+                        }">${goblin.status}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function testRouteTask() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="text-blue-400">Testing route task...</div>';
+
+            const result = await apiRequest('/api/route_task', {
+                method: 'POST',
+                body: JSON.stringify({
+                    task_type: 'test',
+                    payload: { message: 'Hello from frontend!' }
+                })
+            });
+
+            resultsDiv.innerHTML = `
+                <div class="text-green-400 font-semibold mb-2">Route Task Test Result:</div>
+                <pre class="text-gray-300">${JSON.stringify(result, null, 2)}</pre>
+            `;
+        }
+
+        async function testOrchestration() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="text-purple-400">Testing orchestration...</div>';
+
+            const result = await apiRequest('/api/orchestrate/parse', {
+                method: 'POST',
+                body: JSON.stringify({
+                    text: 'Write a function to calculate fibonacci numbers',
+                    default_goblin: 'code-writer'
+                })
+            });
+
+            resultsDiv.innerHTML = `
+                <div class="text-green-400 font-semibold mb-2">Orchestration Parse Test Result:</div>
+                <pre class="text-gray-300">${JSON.stringify(result, null, 2)}</pre>
+            `;
+        }
+
+        async function testStreaming() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="text-green-400">Testing streaming task...</div>';
+
+            // Start streaming task
+            const startResult = await apiRequest('/api/route_task_stream_start', {
+                method: 'POST',
+                body: JSON.stringify({
+                    goblin: 'docs-writer',
+                    task: 'Write documentation for a simple API'
+                })
+            });
+
+            if (startResult.error) {
+                resultsDiv.innerHTML = `
+                    <div class="text-red-400 font-semibold mb-2">Streaming Test Failed:</div>
+                    <pre class="text-red-300">${JSON.stringify(startResult, null, 2)}</pre>
+                `;
+                return;
+            }
+
+            resultsDiv.innerHTML = `
+                <div class="text-blue-400 font-semibold mb-2">Started streaming task: ${startResult.stream_id}</div>
+                <div class="text-gray-400">Polling for updates...</div>
+            `;
+
+            // Poll for updates
+            const streamId = startResult.stream_id;
+            let attempts = 0;
+            const maxAttempts = 10;
+
+            const pollInterval = setInterval(async () => {
+                attempts++;
+                const pollResult = await apiRequest(`/api/route_task_stream_poll/${streamId}`);
+
+                if (pollResult.error) {
+                    clearInterval(pollInterval);
+                    resultsDiv.innerHTML += `
+                        <div class="text-red-400 font-semibold mt-2">Polling failed:</div>
+                        <pre class="text-red-300">${JSON.stringify(pollResult, null, 2)}</pre>
+                    `;
+                    return;
+                }
+
+                if (pollResult.chunks && pollResult.chunks.length > 0) {
+                    const chunksHtml = pollResult.chunks.map(chunk =>
+                        `<div class="mb-1">${chunk.content || ''}</div>`
+                    ).join('');
+
+                    resultsDiv.innerHTML += chunksHtml;
+                }
+
+                if (pollResult.done || attempts >= maxAttempts) {
+                    clearInterval(pollInterval);
+                    resultsDiv.innerHTML += `
+                        <div class="text-green-400 font-semibold mt-2">Streaming completed!</div>
+                    `;
+                }
+            }, 1000);
+        }
+
+        // Initialize
+        window.onload = function() {
+            checkHealth();
+            loadGoblins();
+        };
+    </script>
+</body>
+</html>

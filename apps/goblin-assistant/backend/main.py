@@ -1,7 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.debugger.router import router as debugger_router
+# from debugger.router import router as debugger_router
+from auth.router import router as auth_router
+from search_router import router as search_router
+from settings_router import router as settings_router
+from execute_router import router as execute_router
+from api_keys_router import router as api_keys_router
+from parse_router import router as parse_router
+from routing_router import router as routing_router
+from api_router import router as api_router
+from stream_router import router as stream_router
 
 app = FastAPI(
     title="GoblinOS Assistant Backend",
@@ -19,7 +28,16 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(debugger_router)
+# app.include_router(debugger_router)
+app.include_router(auth_router)
+app.include_router(search_router)
+app.include_router(settings_router)
+app.include_router(execute_router)
+app.include_router(api_keys_router)
+app.include_router(parse_router)
+app.include_router(routing_router)
+app.include_router(api_router)
+app.include_router(stream_router)
 
 
 @app.get("/")

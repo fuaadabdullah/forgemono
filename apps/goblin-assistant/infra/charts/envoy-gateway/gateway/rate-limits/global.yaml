@@ -1,0 +1,19 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: RateLimitPolicy
+metadata:
+  name: global-rate-limit
+  namespace: overmind-prod
+  labels:
+    app: overmind
+    tier: global
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: overmind-gateway
+
+  rateLimits:
+  # Global rate limit (protect backend from overload)
+  - limits:
+      requests: 1000
+      unit: Second
