@@ -43,10 +43,38 @@ Open this notebook in Google Colab:
 - Use this URL in your Goblin Assistant config
 - API endpoint: `https://your-ngrok-url.ngrok.io/v1/chat/completions`
 
+## 🔧 Integration with Goblin Assistant
+
+After getting your public URL from Colab, update your Goblin Assistant backend:
+
+### For Ollama Colab Setup
+
+```bash
+# Automatic setup
+python3 setup_colab_integration.py --provider ollama --colab-url https://your-ngrok-url.ngrok.io --auto-test
+
+# Or check current status
+python3 setup_colab_integration.py --provider ollama
+```
+
+### For llama.cpp Colab Setup
+
+```bash
+# Automatic setup
+python3 setup_colab_integration.py --provider llamacpp --colab-url https://your-ngrok-url.ngrok.io --auto-test
+
+# Or check current status
+python3 setup_colab_integration.py --provider llamacpp
+```
+
+Both setups will:
+
+- Update the appropriate provider endpoint in `goblin-assistant/config/providers.toml`
+- Test the connection to your Colab server
+- Run integration tests to ensure everything works
+
 ## 💡 Pro Tips
 
-- Use Colab Pro for longer sessions and more resources
 - Start with small models (3B parameters or less)
 - Keep the Colab tab active to prevent timeouts
-- Models download to Drive, so they're reusable!</content>
-<parameter name="filePath">/Users/fuaadabdullah/ForgeMonorepo/colab_ollama_README.md
+- Models download to Drive, so they're reusable!
