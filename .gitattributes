@@ -12,6 +12,28 @@
 *.ttf binary
 *.eot binary
 
+# LLM and AI Model files (treat as binary, mark as LFS candidates)
+*.gguf binary linguist-generated=true
+*.ggml binary linguist-generated=true
+*.bin binary linguist-generated=true
+*.safetensors binary linguist-generated=true
+*.pt binary linguist-generated=true
+*.pth binary linguist-generated=true
+*.ckpt binary linguist-generated=true
+*.h5 binary linguist-generated=true
+*.pb binary linguist-generated=true
+*.onnx binary linguist-generated=true
+*.tflite binary linguist-generated=true
+*.mlmodel binary linguist-generated=true
+*.mar binary linguist-generated=true
+*.params binary linguist-generated=true
+*.weights binary linguist-generated=true
+*.model binary linguist-generated=true
+*.msgpack binary linguist-generated=true
+*.pkl binary linguist-generated=true
+*.pickle binary linguist-generated=true
+*.joblib binary linguist-generated=true
+
 # Language detection - Enable all languages
 *.py linguist-detectable=true linguist-language=Python
 *.ts linguist-detectable=true linguist-language=TypeScript
@@ -29,6 +51,16 @@
 *.scss linguist-detectable=true linguist-language=SCSS
 *.dockerfile linguist-detectable=true linguist-language=Dockerfile
 Dockerfile linguist-detectable=true linguist-language=Dockerfile
+
+# LLM Configuration and Prompt Files
+*.prompt linguist-detectable=true linguist-language=Text
+*.template linguist-detectable=true linguist-language=Text
+Modelfile linguist-detectable=true linguist-language=Dockerfile
+*.llamafile linguist-detectable=true linguist-language=Text
+*.gguf.json linguist-detectable=true linguist-language=JSON
+*.model.json linguist-detectable=true linguist-language=JSON
+*.config.json linguist-detectable=true linguist-language=JSON
+*tokenizer*.json linguist-detectable=true linguist-language=JSON
 
 # Documentation - count as documentation but still detect language
 docs/** linguist-documentation=true
@@ -52,3 +84,13 @@ yarn.lock linguist-generated=true
 **/vendor/** linguist-vendored=true
 **/vendors/** linguist-vendored=true
 **/third_party/** linguist-vendored=true
+
+# LLM Model directories (exclude from language stats)
+**/models/** linguist-vendored=true
+**/weights/** linguist-vendored=true
+**/checkpoints/** linguist-vendored=true
+**/pretrained/** linguist-vendored=true
+**/.ollama/** linguist-vendored=true
+**/llama.cpp/** linguist-vendored=true
+**/chroma_db/** linguist-vendored=true
+**/vector_db/** linguist-vendored=true
