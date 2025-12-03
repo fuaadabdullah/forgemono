@@ -3,7 +3,7 @@
 ## 🚀 One-Click Setup
 
 Open this notebook in Google Colab:
-[https://colab.research.google.com/github/fuaadabdullah/ForgeMonorepo/blob/main/colab_ollama_setup.ipynb](https://colab.research.google.com/github/fuaadabdullah/ForgeMonorepo/blob/main/colab_ollama_setup.ipynb)
+[https://colab.research.google.com/github/fuaadabdullah/forgemono/blob/main/colab_ollama_setup.ipynb](https://colab.research.google.com/github/fuaadabdullah/forgemono/blob/main/colab_ollama_setup.ipynb)
 
 ## 📋 What It Does
 

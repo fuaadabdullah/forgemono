@@ -1,0 +1,150 @@
+global:
+  namespace: observability
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+  tag: 0.96.0
+  pullPolicy: IfNotPresent
+
+security:
+  mtls:
+    enabled: true
+    secretName: otel-collector-tls
+    caFile: ca.crt
+    certFile: tls.crt
+    keyFile: tls.key
+  apiKey:
+    enabled: true
+    secretName: otel-collector-api-key
+    secretKey: api-key
+
+resources:
+  daemonset:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  deployment:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+
+daemonset:
+  enabled: true
+  serviceAccount: otel-agent
+  nodeSelector: {}
+  tolerations: []
+  config: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+            tls:
+              ca_file: /certs/{{ .Values.security.mtls.caFile }}
+              cert_file: /certs/{{ .Values.security.mtls.certFile }}
+              key_file: /certs/{{ .Values.security.mtls.keyFile }}
+              require_client_cert: true
+          http:
+            endpoint: 0.0.0.0:4318
+            tls:
+              ca_file: /certs/{{ .Values.security.mtls.caFile }}
+              cert_file: /certs/{{ .Values.security.mtls.certFile }}
+              key_file: /certs/{{ .Values.security.mtls.keyFile }}
+    processors:
+      batch:
+        send_batch_size: 1024
+        timeout: 10s
+    exporters:
+      otlp/upstream:
+        endpoint: otel-collector.observability.svc.cluster.local:55680
+        tls:
+          insecure: false
+        headers:
+          {{- if .Values.security.apiKey.enabled }}
+          "x-otel-api-key": "${OTEL_API_KEY}"
+          {{- end }}
+    service:
+      extensions: []
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp/upstream]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp/upstream]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp/upstream]
+
+deployment:
+  enabled: true
+  replicas: 2
+  serviceAccount: otel-collector
+  nodeSelector: {}
+  tolerations: []
+  config: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+            tls:
+              ca_file: /certs/{{ .Values.security.mtls.caFile }}
+              cert_file: /certs/{{ .Values.security.mtls.certFile }}
+              key_file: /certs/{{ .Values.security.mtls.keyFile }}
+              require_client_cert: true
+          http:
+            endpoint: 0.0.0.0:4318
+            tls:
+              ca_file: /certs/{{ .Values.security.mtls.caFile }}
+              cert_file: /certs/{{ .Values.security.mtls.certFile }}
+              key_file: /certs/{{ .Values.security.mtls.keyFile }}
+    processors:
+      batch:
+        send_batch_size: 2048
+        timeout: 5s
+      tail_sampling:
+        decision_wait: 5s
+        num_traces: 10000
+        policies:
+          - name: errors
+            type: status_code
+            status_code:
+              status_codes: [ERROR]
+          - name: always_sample
+            type: always_sample
+    exporters:
+      tempo:
+        endpoint: http://tempo.observability.svc.cluster.local:4318
+        tls:
+          insecure: true
+      loki:
+        endpoint: http://loki-write.observability.svc.cluster.local:3100/loki/api/v1/push
+      prometheusremotewrite:
+        endpoint: http://kube-prometheus-stack-prometheus.observability.svc.cluster.local:9090/api/v1/write
+      file/audit:
+        path: /var/lib/otel/audit.log
+    service:
+      extensions: []
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch, tail_sampling]
+          exporters: [tempo]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [prometheusremotewrite]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [loki, file/audit]

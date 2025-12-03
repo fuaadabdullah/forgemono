@@ -1,0 +1,28 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: RateLimitPolicy
+metadata:
+  name: anonymous-rate-limit
+  namespace: overmind-prod
+  labels:
+    app: overmind
+    tier: anonymous
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: api
+
+  rateLimits:
+  # Rate limit by IP address
+  - clientSelectors:
+    - headers:
+      - name: X-Forwarded-For
+        type: Distinct
+    limits:
+      requests: 10
+      unit: Second
+
+  # Fallback: limit by connection
+  - limits:
+      requests: 20
+      unit: Second

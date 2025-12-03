@@ -1,0 +1,74 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: overmind-prod
+
+helmCharts:
+  - name: litellm
+    releaseName: litellm
+    namespace: overmind-prod
+    valuesInline:
+      replicaCount: 3
+
+      autoscaling:
+        enabled: true
+        minReplicas: 3
+        maxReplicas: 50
+        targetCPU: 70
+        targetMemory: 80
+
+      config:
+        logLevel: INFO
+        setVerbose: false
+        database: "postgresql://litellm:${DB_PASSWORD}@postgres:5432/litellm"
+        models:
+          - model_name: gpt-4-turbo
+            litellm_params:
+              model: openai/gpt-4-turbo-preview
+              api_key: "os.environ/OPENAI_API_KEY"
+          - model_name: gemini-pro
+            litellm_params:
+              model: gemini/gemini-1.5-pro-latest
+              api_key: "os.environ/GEMINI_API_KEY"
+          - model_name: deepseek-chat
+            litellm_params:
+              model: deepseek/deepseek-chat
+              api_key: "os.environ/DEEPSEEK_API_KEY"
+        router:
+          enabled: true
+          routingStrategy: "latency-based-routing"
+          fallbacks:
+            - ["gpt-4-turbo", "gemini-pro"]
+            - ["gemini-pro", "deepseek-chat"]
+
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 2Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+
+      persistence:
+        enabled: true
+        size: 50Gi
+        storageClass: "fast-ssd"
+
+      podDisruptionBudget:
+        enabled: true
+        minAvailable: 2
+
+      metrics:
+        enabled: true
+        serviceMonitor:
+          enabled: true
+          interval: 30s
+
+resources:
+  - namespace.yaml
+
+configMapGenerator:
+  - name: litellm-env
+    literals:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO

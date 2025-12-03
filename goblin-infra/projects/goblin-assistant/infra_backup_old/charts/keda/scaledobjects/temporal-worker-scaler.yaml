@@ -1,0 +1,74 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: temporal-worker-scaler
+  namespace: overmind-prod
+  labels:
+    app: temporal-worker
+    component: workflow
+spec:
+  scaleTargetRef:
+    name: temporal-worker
+    kind: Deployment
+
+  # Scaling configuration
+  minReplicaCount: 2
+  maxReplicaCount: 10
+  pollingInterval: 30
+  cooldownPeriod: 300
+
+  # Advanced HPA configuration
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+          - type: Percent
+            value: 50
+            periodSeconds: 60
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          policies:
+          - type: Percent
+            value: 100
+            periodSeconds: 30
+          - type: Pods
+            value: 2
+            periodSeconds: 30
+
+  # Fallback
+  fallback:
+    failureThreshold: 3
+    replicas: 3
+
+  # Triggers
+  triggers:
+  # Primary: Temporal task queue depth
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus:9090
+      metricName: temporal_queue_depth
+      query: sum(temporal_task_queue_depth{task_queue="overmind-memory"})
+      threshold: "5"  # Scale if > 5 tasks pending
+      activationThreshold: "1"
+
+  # Secondary: Memory consolidation backlog
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus:9090
+      metricName: memory_consolidation_backlog
+      query: sum(memory_consolidation_queue_depth)
+      threshold: "10"  # Scale if > 10 memories waiting
+
+  # Tertiary: CPU utilization
+  - type: cpu
+    metricType: Utilization
+    metadata:
+      value: "70"
+
+  # Quaternary: Memory utilization
+  - type: memory
+    metricType: Utilization
+    metadata:
+      value: "80"

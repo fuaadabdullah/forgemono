@@ -1,0 +1,33 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: bridge
+  namespace: overmind-prod
+  labels:
+    app: overmind
+    component: bridge
+spec:
+  parentRefs:
+  - name: overmind-gateway
+    sectionName: https
+
+  hostnames:
+  - api.overmind.example.com
+
+  rules:
+  # Bridge endpoints (WebSocket support)
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /bridge
+    filters:
+    # Path rewrite (remove /bridge prefix)
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    backendRefs:
+    - name: overmind-bridge
+      port: 3030
+      weight: 100

@@ -1,0 +1,56 @@
+# Note: copy this into .github/workflows/deploy-ecs.yml at the repo root. It's placed here as a template.
+name: Build and Deploy to Amazon ECS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Arn --output text | awk -F: '{print $5"."$4"/" }')${ECR_REPOSITORY}
+
+      - name: Build, tag, and push image
+        id: build-image
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      - name: Register ECS task definition
+        id: register-task
+        uses: aws-actions/amazon-ecs-register-task-definition@v1
+        with:
+          task-definition: infra/deployments/ecs/task-definition.json
+          container-name: forge-lite
+          image: ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      - name: Deploy to ECS service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.register-task.outputs.task-definition-arn }}
+          service: forge-lite-service
+          cluster: forge-lite-cluster
+          wait-for-service-stability: true
+
+# Notes:
+# - Replace the ECR login and repo logic above with your preferred ECR repo URI.
+# - Ensure `forge-lite-cluster` and `forge-lite-service` exist in the target AWS account.
+# - For multi-account CI, use OIDC or per-account AWS credentials stored in secrets.

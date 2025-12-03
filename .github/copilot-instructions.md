@@ -11,6 +11,91 @@ applyTo: "**"
 
 1. **GoblinOS Assistant** (goblin-assistant demo) - AI assistant for development automation
 
+### Infrastructure
+
+#### Cloudflare Edge (goblin-assistant)
+
+All Goblin Assistant services are protected and accelerated by Cloudflare:
+
+**Location**: `apps/goblin-assistant/infra/cloudflare/`
+
+**Production URLs**:
+
+- **Frontend**: <https://goblin.fuaad.ai>
+- **Backend API**: <https://api.goblin.fuaad.ai>
+- **Brain (LLM Gateway)**: <https://brain.goblin.fuaad.ai>
+- **Ops (Admin)**: <https://ops.goblin.fuaad.ai> (Zero Trust protected)
+- **Worker (dev)**: <https://goblin-assistant-edge.fuaadabdullah.workers.dev>
+
+**Components**:
+
+- **Edge Workers**: Serverless logic with intelligent LLM routing
+  - **Turnstile Bot Protection** - Blocks bot spam, saves ~$70/day
+  - **Model Gateway** - Local-first routing (Ollama/llama.cpp → Groq → OpenAI/Anthropic)
+  - Rate limiting (100 req/60s per IP)
+  - Prompt sanitization (blocks jailbreaks)
+  - Session validation (edge-level auth)
+  - Response caching (5min TTL)
+  - Analytics logging
+  - Feature flags
+- **KV Storage**: Distributed memory (namespace: `9e1c27d3eda84c759383cb2ac0b15e4c`)
+  - Rate limit buckets, sessions, conversation context, cache
+- **D1 Database**: SQLite at edge (db: `goblin-assistant-db`)
+  - User preferences, audit logs, feature flags, API usage
+  - Inference logs (provider, model, cost, latency tracking)
+  - Provider health monitoring
+- **Cloudflare Tunnel**: Secure backend access (tunnel: `9c780bd1-ac63-4d6c-afb1-787a2867e5dd`)
+- **Zero Trust Access**: Identity-based protection (group: `1eac441b-55ad-4be9-9259-573675e2d993`)
+  - Goblin Admins group: `Fuaadabdullah@gmail.com`
+  - Protects `ops.goblin.fuaad.ai` admin panel
+- **Turnstile**: Bot verification for API protection
+  - Managed widget: `0x4AAAAAACEUKA3R8flZ2Ig0` (login/signup forms)
+  - Invisible widget: `0x4AAAAAACEUKak3TnCntrFv` (API calls)
+  - Protected endpoints: `/api/chat`, `/api/inference`, `/api/auth/*`
+- **R2 Storage**: Cheap object storage (86% cheaper than S3!)
+  - `goblin-audio` - Audio files (TTS, recordings) - 100GB
+  - `goblin-logs` - Application logs - 50GB
+  - `goblin-uploads` - User files - 500GB
+  - `goblin-training` - Model artifacts - 2TB
+  - `goblin-cache` - LLM response cache - 200GB
+  - **Free egress** (S3 charges $90/TB!)
+  - **Cost savings**: $279/month vs S3 ($42.75 vs $322)
+- **Analytics Engine**: Free observability (fallback for Datadog)
+  - Latency insights (p50, p95, p99 by endpoint)
+  - Error maps (4xx/5xx rates, failure patterns)
+  - Geographic heatmaps (user distribution, datacenter performance)
+  - Cache hit ratios (KV, R2, edge cache effectiveness)
+  - LLM performance (provider latency, token usage, model comparison)
+  - **Free tier**: 10M data points/month (then $0.25 per 1M)
+  - **Cost savings**: $50-200/month vs Datadog
+
+**Documentation**: See `apps/goblin-assistant/infra/cloudflare/README.md` for complete setup and operations guide.
+
+**Key Commands**:
+
+```bash
+# Deploy Worker
+cd apps/goblin-assistant/infra/cloudflare && wrangler deploy
+
+# Query D1
+wrangler d1 execute goblin-assistant-db --remote --command "SELECT * FROM feature_flags"
+
+# Start Tunnel
+cloudflared tunnel --config tunnel-config.yml run
+
+# Setup Turnstile
+./setup_turnstile.sh
+
+# View Turnstile Dashboard
+open https://dash.cloudflare.com/a9c52e892f7361bab3bfd084c6ffaccb/turnstile
+
+# Setup R2 Buckets
+./setup_r2_buckets.sh
+
+# Deploy with R2
+wrangler deploy
+```
+
 ## Development Guidelines
 
 ### General ForgeMonorepo Standards
@@ -97,6 +182,26 @@ PORTFOLIO_DIR=/path/to/project bash tools/portfolio_env.sh dev
 
 ## AI Assistant Workflow
 
+### Tool Selection Preferences
+
+**Use Continue Extension for:**
+
+- ✅ Multi-repo operations (bulk workflow management, cross-repo cleanup)
+- ✅ Complex GitHub API operations (disabling workflows, bulk repo management)
+- ✅ Long-running terminal commands and scripts
+- ✅ Bulk file operations across multiple projects
+- ✅ Tasks requiring persistent state and extensive context
+- ✅ Operations needing more control and transparency
+
+**Use GitHub Copilot Chat for:**
+
+- ✅ Code review and explanation
+- ✅ Single-file edits and refactoring
+- ✅ Documentation generation
+- ✅ Quick architecture questions
+- ✅ Debugging specific issues
+- ✅ Writing tests for existing code
+
 ### When Adding Features
 
 1. **Check product definition** for alignment with goals
@@ -177,6 +282,6 @@ Note: A lightweight `goblin-cli` scaffold will be added to `GoblinOS/` to valida
 
 ---
 
-**Last Updated**: November 9, 2025
+**Last Updated**: December 1, 2025
 **Active Projects**: GoblinOS Assistant
 **AI Assistant**: Follow these guidelines for all ForgeMonorepo work

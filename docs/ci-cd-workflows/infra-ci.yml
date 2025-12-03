@@ -1,0 +1,129 @@
+# Infrastructure CI Workflow
+# Path: goblin-assistant-infra/.github/workflows/ci.yml
+
+name: Infrastructure CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  terraform-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [backend, frontend, shared]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        working-directory: terraform/${{ matrix.environment }}
+
+      - name: Terraform Init
+        run: terraform init -backend=false
+        working-directory: terraform/${{ matrix.environment }}
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/${{ matrix.environment }}
+
+  terraform-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: terraform/
+          format: sarif
+          soft_fail: false
+
+      - name: Upload tfsec results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: tfsec.sarif
+
+  kubernetes-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubeval
+        run: |
+          wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+          tar xf kubeval-linux-amd64.tar.gz
+          sudo mv kubeval /usr/local/bin
+
+      - name: Validate Kubernetes manifests
+        run: |
+          find k8s/ -name '*.yaml' -type f | xargs kubeval --strict
+
+      - name: Install kubescore
+        run: |
+          wget https://github.com/zegl/kube-score/releases/download/v1.17.0/kube-score_1.17.0_linux_amd64 -O kube-score
+          chmod +x kube-score
+          sudo mv kube-score /usr/local/bin
+
+      - name: Run kube-score
+        run: |
+          find k8s/ -name '*.yaml' -type f | xargs kube-score score
+
+  docker-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run hadolint (Dockerfile linter)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: docker/Dockerfile.*
+          failure-threshold: warning
+
+  scripts-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run shellcheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+
+      - name: Test scripts syntax
+        run: |
+          for script in scripts/*.sh; do
+            bash -n "$script"
+            echo "✅ $script syntax OK"
+          done
+
+  cost-estimate:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v2
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Generate cost estimate
+        run: |
+          infracost breakdown --path terraform/ \
+            --format json \
+            --out-file /tmp/infracost.json
+
+      - name: Post cost comment
+        uses: infracost/actions/comment@v1
+        with:
+          path: /tmp/infracost.json
+          behavior: update

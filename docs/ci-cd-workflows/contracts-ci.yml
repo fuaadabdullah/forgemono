@@ -1,0 +1,147 @@
+# Contracts Package CI Workflow
+# Path: goblin-assistant-contracts/.github/workflows/ci.yml
+
+name: Contracts CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Type check TypeScript
+        run: npm run type-check
+
+  lint-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run Black
+        run: black --check python/
+
+      - name: Run Ruff
+        run: ruff check python/
+
+      - name: Run MyPy
+        run: mypy python/ --ignore-missing-imports
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          pip install -r requirements-dev.txt
+
+      - name: Run TypeScript tests
+        run: npm run test
+
+      - name: Run Python tests
+        run: pytest python/tests/ -v --cov=python/
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          flags: contracts
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint-typescript, lint-python, test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Verify build
+        run: |
+          [ -f "dist/index.js" ] || exit 1
+          [ -f "dist/index.d.ts" ] || exit 1
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  schema-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate TypeScript matches Python
+        run: npm run validate-schemas
+
+      - name: Generate JSON schemas
+        run: npm run generate-schemas
+
+      - name: Check for schema drift
+        run: |
+          if [ -n "$(git status --porcelain schemas/)" ]; then
+            echo "❌ Schema files have changed! Please run 'npm run generate-schemas' and commit the changes."
+            git diff schemas/
+            exit 1
+          fi
+          echo "✅ Schemas are in sync"

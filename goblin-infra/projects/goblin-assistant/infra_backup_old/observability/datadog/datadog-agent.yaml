@@ -1,0 +1,101 @@
+# Datadog Agent Configuration for Goblin Assistant
+# Location: /etc/datadog-agent/datadog.yaml
+
+# API Key (use environment variable or secret management)
+api_key: ${DD_API_KEY}
+
+# Site configuration (US1, EU, etc.)
+site: datadoghq.com
+
+# Hostname configuration
+hostname: ${DD_HOSTNAME}
+
+# Tags for filtering and grouping
+tags:
+  - env:${DD_ENV:-production}
+  - service:goblin-assistant
+  - project:forge-monorepo
+  - stack:fastapi
+  - component:backend
+
+# Logging configuration
+log_level: info
+log_file: /var/log/datadog/agent.log
+
+# Process collection configuration
+process_config:
+  # Enable process collection
+  enabled: true
+
+  # Run in core agent (requires v7.53.0+, default in v7.65.0+)
+  # This reduces footprint by running in main agent instead of separate process-agent
+  run_in_core_agent: true
+
+  # Process arguments scrubbing (hide sensitive data)
+  scrub_args: true
+
+  # Custom sensitive words to scrub from process arguments
+  custom_sensitive_words:
+    - 'api_key'
+    - 'apikey'
+    - 'api-key'
+    - 'secret'
+    - 'password'
+    - 'passwd'
+    - 'token'
+    - 'auth_token'
+    - 'access_token'
+    - 'bearer'
+    - 'jwt'
+    - 'credential'
+    - 'key'
+    - '*_key'
+    - '*_token'
+    - '*_secret'
+    - 'dd_api_key'
+    - 'openai_api_key'
+    - 'anthropic_api_key'
+    - 'groq_api_key'
+
+  # Strip all process arguments (set to true for maximum security)
+  strip_proc_arguments: false
+
+  # Process discovery configuration
+  process_discovery:
+    enabled: true
+    interval: 60  # seconds
+
+# Container collection (if running in Docker/K8s)
+container_collect_all: true
+docker_labels_as_tags:
+  env: true
+  service: true
+  version: true
+
+# APM (Application Performance Monitoring) configuration
+apm_config:
+  enabled: true
+  env: ${DD_ENV:-production}
+
+# DogStatsD configuration (for custom metrics)
+dogstatsd_port: 8125
+dogstatsd_non_local_traffic: true
+
+# Enable integrations
+integrations:
+  - python
+  - gunicorn
+  - nginx  # if using nginx reverse proxy
+  - postgresql  # if using postgres
+  - redis  # if using redis
+
+# Autodiscovery for containers
+listeners:
+  - name: docker
+  - name: kubelet
+
+config_providers:
+  - name: docker
+    polling: true
+  - name: kubelet
+    polling: true

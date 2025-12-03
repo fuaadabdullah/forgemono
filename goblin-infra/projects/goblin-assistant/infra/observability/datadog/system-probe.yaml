@@ -1,0 +1,31 @@
+# Datadog System Probe Configuration
+# Location: /etc/datadog-agent/system-probe.yaml
+# Requires elevated privileges for I/O and open files stats
+
+# System probe main configuration
+system_probe_config:
+  # Enable the system probe
+  enabled: true
+
+  # Process configuration (enables I/O and open files collection)
+  process_config:
+    enabled: true
+
+  # Network configuration (optional - for Network Performance Monitoring)
+  network_config:
+    enabled: false  # Enable if you want NPM
+
+  # Log configuration
+  log_file: /var/log/datadog/system-probe.log
+  log_level: info
+
+  # Socket configuration
+  sysprobe_socket: /opt/datadog-agent/run/sysprobe.sock
+
+# Security configuration
+runtime_security_config:
+  enabled: false  # Enable for runtime security monitoring
+
+# Service monitoring
+service_monitoring_config:
+  enabled: false  # Enable for Universal Service Monitoring

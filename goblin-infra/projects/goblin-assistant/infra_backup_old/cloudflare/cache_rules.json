@@ -1,0 +1,110 @@
+{
+  "cache_rules": [
+    {
+      "description": "Static Assets - Immutable (1 year)",
+      "expression": "(http.request.uri.path matches \".*\\.(js|css|woff2?|ttf|eot|ico|svg|png|jpg|jpeg|webp|gif|mp4|webm)$\")",
+      "action": "cache",
+      "cache_settings": {
+        "cache_ttl": 31536000,
+        "edge_ttl": 31536000,
+        "browser_ttl": 31536000,
+        "cache_key": {
+          "query_string": {
+            "ignore": false
+          }
+        },
+        "respect_strong_etags": true
+      },
+      "priority": 1,
+      "enabled": true
+    },
+    {
+      "description": "Versioned Bundles - Immutable (1 year)",
+      "expression": "(http.request.uri.path matches \".*\\.[a-f0-9]{8,}\\.(js|css)$\")",
+      "action": "cache",
+      "cache_settings": {
+        "cache_ttl": 31536000,
+        "edge_ttl": 31536000,
+        "browser_ttl": 31536000,
+        "serve_stale": {
+          "disable_stale_while_updating": false
+        }
+      },
+      "priority": 2,
+      "enabled": true
+    },
+    {
+      "description": "Build Chunks - Immutable (1 year)",
+      "expression": "(http.request.uri.path contains \"/assets/\" or http.request.uri.path contains \"/chunks/\" or http.request.uri.path contains \"/_next/static/\")",
+      "action": "cache",
+      "cache_settings": {
+        "cache_ttl": 31536000,
+        "edge_ttl": 31536000,
+        "browser_ttl": 31536000
+      },
+      "priority": 3,
+      "enabled": true
+    },
+    {
+      "description": "Fonts - Immutable (1 year)",
+      "expression": "(http.request.uri.path contains \"/fonts/\")",
+      "action": "cache",
+      "cache_settings": {
+        "cache_ttl": 31536000,
+        "edge_ttl": 31536000,
+        "browser_ttl": 31536000
+      },
+      "priority": 4,
+      "enabled": true
+    },
+    {
+      "description": "Goblin Animations & Effects - 24h cache, 7d stale",
+      "expression": "(http.request.uri.path contains \"/animations/\" or http.request.uri.path contains \"/effects/\" or http.request.uri.path contains \"/lottie/\")",
+      "action": "cache",
+      "cache_settings": {
+        "cache_ttl": 86400,
+        "edge_ttl": 86400,
+        "browser_ttl": 86400,
+        "serve_stale": {
+          "disable_stale_while_updating": false
+        }
+      },
+      "priority": 5,
+      "enabled": true
+    },
+    {
+      "description": "HTML Pages - 5min cache with revalidation",
+      "expression": "(http.request.uri.path eq \"/\" or http.request.uri.path matches \".*\\.html$\" or not http.request.uri.path contains \".\")",
+      "action": "cache",
+      "cache_settings": {
+        "cache_ttl": 300,
+        "edge_ttl": 300,
+        "browser_ttl": 300,
+        "serve_stale": {
+          "disable_stale_while_updating": false
+        },
+        "respect_strong_etags": true
+      },
+      "priority": 6,
+      "enabled": true
+    },
+    {
+      "description": "API Responses - No cache (handled by API worker)",
+      "expression": "(http.request.uri.path starts_with \"/api/\")",
+      "action": "bypass",
+      "priority": 7,
+      "enabled": true
+    }
+  ],
+  "notes": [
+    "These cache rules make your frontend feel instant:",
+    "- Static assets: 1 year cache (they're versioned)",
+    "- HTML: 5 min cache (lets you deploy updates quickly)",
+    "- Animations: 24h cache (smooth goblin typing effects)",
+    "- API: No cache (handled by brain worker with smart caching)",
+    "",
+    "Deploy via Cloudflare Dashboard or API:",
+    "Dashboard: Zone → Caching → Cache Rules → Create Rule",
+    "API: PUT /zones/{zone_id}/rulesets/phases/http_request_cache_settings/entrypoint"
+  ]
+}

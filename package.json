@@ -9,13 +9,26 @@
     "docs/*"
   ],
   "scripts": {
-    "dev": "pnpm -w dev",
-    "build": "pnpm -w build",
-    "test": "pnpm -w test",
+    "dev": "pnpm --filter goblin-assistant-frontend dev",
+    "build": "pnpm --filter goblin-assistant-frontend build",
+    "test": "pnpm --filter goblin-assistant-frontend test",
     "archive:forge-lite": "bash tools/archive-forge-lite.sh",
     "workspace:refresh": "bash tools/refresh-workspace.sh",
     "tools:find-forge-lite": "bash tools/find-forge-lite-references.sh",
     "tools:ci-comment-forge-lite": "bash tools/comment-out-forge-lite-in-workflows.sh",
     "tools:safe-remove-forge-lite": "bash tools/safe-remove-forge-lite-references.sh"
+  },
+  "devDependencies": {
+    "@axe-core/puppeteer": "^4.11.0",
+    "axe-core": "^4.11.0",
+    "chrome-launcher": "^1.2.1",
+    "lighthouse": "^13.0.1",
+    "puppeteer-core": "^24.31.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "18.3.1",
+      "react-dom": "18.3.1"
+    }
   }
 }

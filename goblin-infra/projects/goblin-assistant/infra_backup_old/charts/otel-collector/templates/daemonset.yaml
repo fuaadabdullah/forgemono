@@ -1,0 +1,66 @@
+{{- if .Values.daemonset.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Release.Name }}-otel-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "otelCollector.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "otelCollector.name" . }}
+      app.kubernetes.io/component: agent
+  template:
+    metadata:
+      labels:
+        {{- include "otelCollector.labels" . | nindent 8 }}
+        app.kubernetes.io/component: agent
+    spec:
+      serviceAccountName: {{ .Values.daemonset.serviceAccount }}
+      {{- with .Values.daemonset.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.daemonset.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: otel-agent
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/otelcol-contrib"]
+          args:
+            - "--config=/conf/collector.yaml"
+          env:
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.namespace=goblinos,service.name=otel-agent"
+            {{- if .Values.security.apiKey.enabled }}
+            - name: OTEL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.security.apiKey.secretName }}
+                  key: {{ .Values.security.apiKey.secretKey }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources.daemonset | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /conf
+            {{- if .Values.security.mtls.enabled }}
+            - name: tls
+              mountPath: /certs
+            {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-otel-agent-config
+        {{- if .Values.security.mtls.enabled }}
+        - name: tls
+          secret:
+            secretName: {{ .Values.security.mtls.secretName }}
+        {{- end }}
+{{- end }}

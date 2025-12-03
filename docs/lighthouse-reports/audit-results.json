@@ -1,0 +1,65 @@
+[
+  {
+    "name": "dashboard",
+    "url": "http://localhost:3000/",
+    "score": 100,
+    "passed": 73,
+    "warnings": [],
+    "failed": [],
+    "timestamp": "2025-12-02T08:59:45.805Z"
+  },
+  {
+    "name": "chat",
+    "url": "http://localhost:3000/chat",
+    "score": 100,
+    "passed": 73,
+    "warnings": [],
+    "failed": [],
+    "timestamp": "2025-12-02T08:59:55.590Z"
+  },
+  {
+    "name": "search",
+    "url": "http://localhost:3000/search",
+    "score": 100,
+    "passed": 73,
+    "warnings": [],
+    "failed": [],
+    "timestamp": "2025-12-02T09:00:03.536Z"
+  },
+  {
+    "name": "settings",
+    "url": "http://localhost:3000/settings",
+    "score": 100,
+    "passed": 73,
+    "warnings": [],
+    "failed": [],
+    "timestamp": "2025-12-02T09:00:11.748Z"
+  },
+  {
+    "name": "providers",
+    "url": "http://localhost:3000/providers",
+    "score": 100,
+    "passed": 73,
+    "warnings": [],
+    "failed": [],
+    "timestamp": "2025-12-02T09:00:19.760Z"
+  },
+  {
+    "name": "logs",
+    "url": "http://localhost:3000/logs",
+    "score": 100,
+    "passed": 73,
+    "warnings": [],
+    "failed": [],
+    "timestamp": "2025-12-02T09:00:29.319Z"
+  },
+  {
+    "name": "sandbox",
+    "url": "http://localhost:3000/sandbox",
+    "score": 100,
+    "passed": 73,
+    "warnings": [],
+    "failed": [],
+    "timestamp": "2025-12-02T09:00:37.376Z"
+  }
+]

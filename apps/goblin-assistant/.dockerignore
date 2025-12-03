@@ -1,0 +1,36 @@
+# flyctl launch added from .gitignore
+**/.vercel
+
+# flyctl launch added from .pytest_cache/.gitignore
+# Created by pytest automatically.
+.pytest_cache/**/*
+
+# flyctl launch added from backend/.pytest_cache/.gitignore
+# Created by pytest automatically.
+backend/.pytest_cache/**/*
+
+# flyctl launch added from infra/secrets/.gitignore
+# Ignore all decrypted files
+infra/secrets/**/*.dec.yaml
+infra/secrets/**/*.dec.yml
+infra/secrets/**/*.dec.json
+
+# Ignore age keys (should be in ~/.config/sops/age/)
+infra/secrets/**/keys.txt
+infra/secrets/**/*.agekey
+
+# Ignore backup files
+infra/secrets/**/*.bak
+infra/secrets/**/*~
+
+# Ignore editor temp files
+infra/secrets/**/.*.swp
+infra/secrets/**/.*.swo
+
+# flyctl launch added from tools/goblin-email-purge/.gitignore
+tools/goblin-email-purge/**/venv
+tools/goblin-email-purge/**/__pycache__
+tools/goblin-email-purge/**/reports
+tools/goblin-email-purge/**/*.pyc
+tools/goblin-email-purge/**/.env
+fly.toml

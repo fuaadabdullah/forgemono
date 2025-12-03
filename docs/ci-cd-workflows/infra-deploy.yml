@@ -1,0 +1,245 @@
+# Infrastructure Deploy Workflow
+# Path: goblin-assistant-infra/.github/workflows/deploy.yml
+
+name: Infrastructure Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+      - 'k8s/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      component:
+        description: 'Component to deploy'
+        required: true
+        type: choice
+        options:
+          - all
+          - backend
+          - frontend
+          - shared
+
+jobs:
+  terraform-plan:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [staging, production]
+        component: [backend, frontend, shared]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/${{ matrix.component }}
+        env:
+          TF_WORKSPACE: ${{ matrix.environment }}
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -out=tfplan -no-color
+        working-directory: terraform/${{ matrix.component }}
+        env:
+          TF_WORKSPACE: ${{ matrix.environment }}
+          TF_VAR_environment: ${{ matrix.environment }}
+
+      - name: Upload plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ matrix.environment }}-${{ matrix.component }}
+          path: terraform/${{ matrix.component }}/tfplan
+
+  terraform-apply-staging:
+    needs: terraform-plan
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging-infra
+    strategy:
+      matrix:
+        component: [shared, backend, frontend]
+      max-parallel: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Download plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-staging-${{ matrix.component }}
+          path: terraform/${{ matrix.component }}
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/${{ matrix.component }}
+        env:
+          TF_WORKSPACE: staging
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: terraform/${{ matrix.component }}
+        env:
+          TF_WORKSPACE: staging
+
+  kubernetes-deploy-staging:
+    needs: terraform-apply-staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging-k8s
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_STAGING }}
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/secrets.yaml
+          kubectl apply -f k8s/backend/
+          kubectl apply -f k8s/frontend/
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/backend -n goblin-assistant
+          kubectl rollout status deployment/frontend -n goblin-assistant
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n goblin-assistant
+          kubectl get services -n goblin-assistant
+
+  terraform-apply-production:
+    needs: terraform-plan
+    if: github.event.inputs.environment == 'production' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment:
+      name: production-infra
+    strategy:
+      matrix:
+        component: [shared, backend, frontend]
+      max-parallel: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Download plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-production-${{ matrix.component }}
+          path: terraform/${{ matrix.component }}
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/${{ matrix.component }}
+        env:
+          TF_WORKSPACE: production
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: terraform/${{ matrix.component }}
+        env:
+          TF_WORKSPACE: production
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "Infrastructure deployment: ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Infrastructure Deployment*\nEnvironment: Production\nComponent: ${{ matrix.component }}\nStatus: ${{ job.status }}"
+                  }
+                }
+              ]
+            }
+
+  kubernetes-deploy-production:
+    needs: terraform-apply-production
+    runs-on: ubuntu-latest
+    environment:
+      name: production-k8s
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/secrets.yaml
+          kubectl apply -f k8s/backend/
+          kubectl apply -f k8s/frontend/
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/backend -n goblin-assistant
+          kubectl rollout status deployment/frontend -n goblin-assistant
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n goblin-assistant
+          kubectl get services -n goblin-assistant
+
+      - name: Run smoke tests
+        run: |
+          bash scripts/smoke-test-production.sh

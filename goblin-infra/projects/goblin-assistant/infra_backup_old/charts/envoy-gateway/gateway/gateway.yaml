@@ -1,0 +1,45 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: overmind-gateway
+  namespace: overmind-prod
+  labels:
+    app: overmind
+    component: gateway
+spec:
+  gatewayClassName: eg
+
+  listeners:
+  # HTTP listener (redirects to HTTPS)
+  - name: http
+    protocol: HTTP
+    port: 80
+    hostname: "*.overmind.example.com"
+    allowedRoutes:
+      namespaces:
+        from: Same
+
+  # HTTPS listener
+  - name: https
+    protocol: HTTPS
+    port: 443
+    hostname: "*.overmind.example.com"
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: overmind-tls
+        kind: Secret
+    allowedRoutes:
+      namespaces:
+        from: Same
+
+  # Admin listener (metrics, health)
+  - name: admin
+    protocol: HTTP
+    port: 19000
+    hostname: admin.overmind.internal
+    allowedRoutes:
+      namespaces:
+        from: Same
+      kinds:
+      - kind: HTTPRoute

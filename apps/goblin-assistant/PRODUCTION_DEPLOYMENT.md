@@ -1,13 +1,13 @@
 # Goblin Assistant Production Deployment Guide
 
-This guide covers deploying the Goblin Assistant application to production using Render.com (backend) and Netlify (frontend).
+This guide covers deploying the Goblin Assistant application to production using Fly.io (backend) and Netlify (frontend).
 
 ## 🚀 Quick Start
 
 1. **Prerequisites**
    - Node.js 18+ and npm
    - Python 3.11+
-   - Accounts: Render.com, Netlify, Supabase
+      - Accounts: Fly.io, Netlify, Supabase
    - API keys for AI providers (Anthropic, DeepSeek, Google Gemini, xAI Grok)
 
 2. **Environment Setup**
@@ -21,8 +21,8 @@ This guide covers deploying the Goblin Assistant application to production using
 3. **Deploy Backend**
 
    ```bash
-   ./deploy-backend.sh render
-   # Or: ./deploy-backend.sh fly
+   ./deploy-backend.sh fly
+   # Or: ./deploy-backend.sh render (deprecated)
    ```
 
 4. **Deploy Frontend**
@@ -66,15 +66,15 @@ cp .env.production.example .env.production
 
 ### Step 3: Backend Deployment
 
-#### Option A: Render.com (Recommended)
+#### Option A: Fly.io (Recommended)
 
 ```bash
-./deploy-backend.sh render
+./deploy-backend.sh fly
 ```
 
 **Manual Setup (if CLI fails):**
 
-1. Go to <https://render.com>
+1. Go to <https://fly.io>
 2. Connect your GitHub repo: `fuaadabdullah/ForgeMonorepo`
 3. Create Web Service:
    - **Name**: goblin-assistant-backend
@@ -190,13 +190,13 @@ npm run build
 
 ### Logs
 
-- **Render**: View in dashboard or use CLI: `render logs`
+- **Fly.io**: View in dashboard or use CLI: `fly logs`
 - **Fly.io**: `fly logs`
 - **Netlify**: View in dashboard or use CLI: `netlify logs`
 
 ### Scaling
 
-- **Render**: Automatic scaling based on load
+- **Fly.io**: Configure scaling via `flyctl scale` or fly.toml settings
 - **Fly.io**: Configure in `fly.toml`
 - **Netlify**: Automatic for static frontend
 
@@ -212,7 +212,7 @@ npm run build
 
 Set up automatic deployments on push to main branch:
 
-- **Render**: Enable auto-deploy in service settings
+- **Fly.io**: Configure auto-deploy with `flyctl`/CI (recommended) or dashboard
 - **Netlify**: Enable in site settings
 - **Fly.io**: Use GitHub Actions with flyctl
 
@@ -228,6 +228,6 @@ If you encounter issues:
 ---
 
 **Last Updated**: November 2025
-**Platforms**: Render.com (Backend), Netlify (Frontend)
+**Platforms**: Fly.io (Backend), Netlify (Frontend)
 **Database**: Supabase PostgreSQL
 

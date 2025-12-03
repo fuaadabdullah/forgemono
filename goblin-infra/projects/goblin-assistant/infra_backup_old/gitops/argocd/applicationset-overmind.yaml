@@ -1,0 +1,110 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: overmind-environments
+  namespace: argocd
+spec:
+  # Strategy for updating applications
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+      - matchExpressions:
+        - key: env
+          operator: In
+          values: [dev]
+      - matchExpressions:
+        - key: env
+          operator: In
+          values: [staging]
+      - matchExpressions:
+        - key: env
+          operator: In
+          values: [prod]
+
+  # Generators define which applications to create
+  generators:
+  - list:
+      elements:
+      # Development environment
+      - env: dev
+        revision: main
+        namespace: overmind-dev
+        autoSync: "true"
+        prune: "true"
+        selfHeal: "true"
+        replicas: "1"
+
+      # Staging environment
+      - env: staging
+        revision: main
+        namespace: overmind-staging
+        autoSync: "true"
+        prune: "true"
+        selfHeal: "true"
+        replicas: "2"
+
+      # Production environment
+      - env: prod
+        revision: release/v1.0
+        namespace: overmind-prod
+        autoSync: "false"  # Manual sync for production
+        prune: "true"
+        selfHeal: "true"
+        replicas: "3"
+
+  # Template for generating applications
+  template:
+    metadata:
+      name: 'overmind-{{env}}'
+      labels:
+        app: overmind
+        env: '{{env}}'
+      annotations:
+        argocd.argoproj.io/manifest-generate-paths: .
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: 'overmind-{{env}}'
+
+    spec:
+      project: default
+
+      source:
+        repoURL: https://github.com/your-org/ForgeMonorepo.git
+        targetRevision: '{{revision}}'
+        path: 'infra/overlays/{{env}}'
+        kustomize:
+          version: v5.0.0
+          buildOptions: "--enable-alpha-plugins --enable-exec"
+          # Override replicas per environment
+          replicas:
+          - name: overmind-api
+            count: '{{replicas}}'
+          - name: overmind-bridge
+            count: '{{replicas}}'
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+
+      syncPolicy:
+        automated:
+          prune: '{{prune}}'
+          selfHeal: '{{selfHeal}}'
+          allowEmpty: false
+        syncOptions:
+        - CreateNamespace=true
+        - PrunePropagationPolicy=foreground
+        - PruneLast=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+
+      ignoreDifferences:
+      - group: apps
+        kind: Deployment
+        jsonPointers:
+        - /spec/replicas
+
+      revisionHistoryLimit: 10

@@ -1,131 +1,59 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
-import os
-from dotenv import load_dotenv
+from typing import List, Optional, Dict, Any
+from sqlalchemy.orm import Session
+from services.settings import SettingsService
+from database import get_db
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
-# Load environment variables
-load_dotenv()
+
+class ProviderUpdate(BaseModel):
+    display_name: Optional[str] = None
+    capabilities: Optional[List[str]] = None
+    default_model: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 
-class ProviderSettings(BaseModel):
-    name: str
-    api_key: Optional[str] = None
-    base_url: Optional[str] = None
-    models: List[str] = []
-    enabled: bool = True
+class ModelUpdate(BaseModel):
+    provider_name: str
+    params: Dict[str, Any]
 
 
-class ModelSettings(BaseModel):
-    name: str
-    provider: str
-    model_id: str
-    temperature: Optional[float] = 0.7
-    max_tokens: Optional[int] = None
-    enabled: bool = True
+class TestConnectionRequest(BaseModel):
+    api_key: Optional[str] = None  # If not provided, use stored
 
 
 class SettingsResponse(BaseModel):
-    providers: List[ProviderSettings]
-    models: List[ModelSettings]
-    default_provider: Optional[str] = None
-    default_model: Optional[str] = None
-
-
-# Default provider configurations
-DEFAULT_PROVIDERS = [
-    {
-        "name": "OpenAI",
-        "api_key": os.getenv("OPENAI_API_KEY"),
-        "base_url": "https://api.openai.com/v1",
-        "models": ["gpt-4", "gpt-3.5-turbo", "gpt-4-turbo"],
-        "enabled": bool(os.getenv("OPENAI_API_KEY")),
-    },
-    {
-        "name": "Anthropic",
-        "api_key": os.getenv("ANTHROPIC_API_KEY"),
-        "base_url": "https://api.anthropic.com",
-        "models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
-        "enabled": bool(os.getenv("ANTHROPIC_API_KEY")),
-    },
-    {
-        "name": "Groq",
-        "api_key": os.getenv("GROQ_API_KEY"),
-        "base_url": "https://api.groq.com/openai/v1",
-        "models": ["llama2-70b-4096", "mixtral-8x7b-32768", "gemma-7b-it"],
-        "enabled": bool(os.getenv("GROQ_API_KEY")),
-    },
-    {
-        "name": "Local LLM",
-        "api_key": None,
-        "base_url": "http://localhost:8000/v1",
-        "models": ["local-model"],
-        "enabled": True,
-    },
-]
-
-DEFAULT_MODELS = [
-    {
-        "name": "GPT-4",
-        "provider": "OpenAI",
-        "model_id": "gpt-4",
-        "temperature": 0.7,
-        "max_tokens": 4096,
-        "enabled": True,
-    },
-    {
-        "name": "Claude 3 Sonnet",
-        "provider": "Anthropic",
-        "model_id": "claude-3-sonnet-20240229",
-        "temperature": 0.7,
-        "max_tokens": 4096,
-        "enabled": True,
-    },
-    {
-        "name": "Llama 2 70B (Groq)",
-        "provider": "Groq",
-        "model_id": "llama2-70b-4096",
-        "temperature": 0.7,
-        "max_tokens": 4096,
-        "enabled": True,
-    },
-]
+    providers: Dict[str, Any]
+    global_settings: Dict[str, Any]
 
 
 @router.get("/", response_model=SettingsResponse)
-async def get_settings():
+async def get_settings(db: Session = Depends(get_db)):
     """Get current provider and model settings"""
     try:
-        # In a real app, these would be stored in a database
-        # For now, we'll return the default configurations
-        return SettingsResponse(
-            providers=DEFAULT_PROVIDERS,
-            models=DEFAULT_MODELS,
-            default_provider="OpenAI",
-            default_model="GPT-4",
-        )
+        service = SettingsService(db)
+        return service.get_all_settings()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get settings: {str(e)}")
 
 
 @router.put("/providers/{provider_name}")
-async def update_provider_settings(provider_name: str, settings: ProviderSettings):
+async def update_provider_settings(
+    provider_name: str, data: ProviderUpdate, db: Session = Depends(get_db)
+):
     """Update settings for a specific provider"""
     try:
-        # In a real app, this would update the database
-        # For now, we'll just validate the input
-        if not settings.name:
-            raise HTTPException(status_code=400, detail="Provider name is required")
-
+        service = SettingsService(db)
+        provider = service.update_provider(provider_name, data.dict(exclude_unset=True))
         return {
             "status": "success",
             "message": f"Settings updated for provider: {provider_name}",
-            "settings": settings.dict(),
+            "provider": provider.name,
         }
-    except HTTPException:
-        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to update provider settings: {str(e)}"
@@ -133,24 +61,20 @@ async def update_provider_settings(provider_name: str, settings: ProviderSetting
 
 
 @router.put("/models/{model_name}")
-async def update_model_settings(model_name: str, settings: ModelSettings):
+async def update_model_settings(
+    model_name: str, data: ModelUpdate, db: Session = Depends(get_db)
+):
     """Update settings for a specific model"""
     try:
-        # In a real app, this would update the database
-        # For now, we'll just validate the input
-        if not settings.name or not settings.provider or not settings.model_id:
-            raise HTTPException(
-                status_code=400,
-                detail="Model name, provider, and model_id are required",
-            )
-
+        service = SettingsService(db)
+        model = service.update_model(model_name, data.dict())
         return {
             "status": "success",
             "message": f"Settings updated for model: {model_name}",
-            "settings": settings.dict(),
+            "model": model.name,
         }
-    except HTTPException:
-        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to update model settings: {str(e)}"
@@ -158,37 +82,239 @@ async def update_model_settings(model_name: str, settings: ModelSettings):
 
 
 @router.post("/test-connection")
-async def test_provider_connection(provider_name: str):
+async def test_provider_connection(
+    provider_name: str, request: TestConnectionRequest, db: Session = Depends(get_db)
+):
     """Test connection to a provider's API"""
     try:
-        # Find the provider
-        provider = None
-        for p in DEFAULT_PROVIDERS:
-            if p["name"].lower() == provider_name.lower():
-                provider = p
-                break
+        service = SettingsService(db)
+        result = service.test_connection(provider_name, request.api_key)
 
-        if not provider:
+        if not result["success"]:
             raise HTTPException(
-                status_code=404, detail=f"Provider {provider_name} not found"
+                status_code=400, detail=result.get("error", "Connection test failed")
             )
 
-        if not provider.get("api_key"):
-            return {
-                "status": "warning",
-                "message": f"No API key configured for {provider_name}",
-                "connected": False,
-            }
-
-        # In a real app, you would make a test API call here
-        # For now, we'll just check if the API key exists
-        return {
-            "status": "success",
-            "message": f"Connection test successful for {provider_name}",
-            "connected": True,
-        }
+        return result
 
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Connection test failed: {str(e)}")
+
+
+# ============================================================================
+# NEW ENDPOINTS FOR ENHANCED PROVIDER MANAGEMENT
+# ============================================================================
+
+
+class ProviderTestWithPromptRequest(BaseModel):
+    prompt: str = "Write a hello world program in Python"
+
+
+class ProviderTestWithPromptResponse(BaseModel):
+    success: bool
+    message: str
+    latency: float
+    response: Optional[str] = None
+    model_used: Optional[str] = None
+
+
+class ReorderProvidersRequest(BaseModel):
+    provider_ids: List[int]
+
+
+class SetProviderPriorityRequest(BaseModel):
+    priority: int
+    role: Optional[str] = None  # "primary" or "fallback"
+
+
+@router.post(
+    "/providers/{provider_id}/test-prompt",
+    response_model=ProviderTestWithPromptResponse,
+)
+async def test_provider_with_prompt(
+    provider_id: int,
+    request: ProviderTestWithPromptRequest,
+    db: Session = Depends(get_db),
+):
+    """Test a provider with a custom prompt and return the full response"""
+    try:
+        import time
+        import os
+        from models.routing import RoutingProvider
+        from providers import (
+            OpenAIAdapter,
+            AnthropicAdapter,
+            GrokAdapter,
+            DeepSeekAdapter,
+            OllamaAdapter,
+            LlamaCppAdapter,
+            SilliconflowAdapter,
+            MoonshotAdapter,
+        )
+        from services.encryption import EncryptionService
+
+        start_time = time.time()
+
+        # Get provider from database
+        provider = (
+            db.query(RoutingProvider).filter(RoutingProvider.id == provider_id).first()
+        )
+        if not provider:
+            raise HTTPException(status_code=404, detail="Provider not found")
+
+        if not provider.is_active:
+            return ProviderTestWithPromptResponse(
+                success=False,
+                message="Provider is not active",
+                latency=0,
+            )
+
+        # Get encryption key for decrypting API key
+        encryption_key = os.getenv("ROUTING_ENCRYPTION_KEY")
+        if not encryption_key:
+            raise HTTPException(status_code=500, detail="Encryption key not configured")
+
+        # Decrypt API key
+        encryption_service = EncryptionService(encryption_key)
+        api_key = encryption_service.decrypt(provider.api_key_encrypted)
+
+        # Get appropriate adapter based on provider name
+        adapters = {
+            "openai": OpenAIAdapter,
+            "anthropic": AnthropicAdapter,
+            "grok": GrokAdapter,
+            "deepseek": DeepSeekAdapter,
+            "ollama": OllamaAdapter,
+            "llamacpp": LlamaCppAdapter,
+            "silliconflow": SilliconflowAdapter,
+            "moonshot": MoonshotAdapter,
+        }
+
+        adapter_class = adapters.get(provider.name.lower())
+        if not adapter_class:
+            return ProviderTestWithPromptResponse(
+                success=False,
+                message=f"No adapter available for provider: {provider.name}",
+                latency=0,
+            )
+
+        # Get provider adapter and test with prompt
+        try:
+            adapter = adapter_class(api_key, provider.base_url)
+
+            # Use first available model
+            model = provider.models[0]["name"] if provider.models else "default"
+
+            # Make actual API call
+            response = await adapter.complete(
+                prompt=request.prompt,
+                model=model,
+                max_tokens=150,
+            )
+
+            latency = (time.time() - start_time) * 1000  # Convert to ms
+
+            # Extract response content based on adapter response format
+            content = ""
+            if isinstance(response, dict):
+                content = response.get("content", response.get("text", str(response)))
+            else:
+                content = str(response)
+
+            return ProviderTestWithPromptResponse(
+                success=True,
+                message="Test successful",
+                latency=round(latency, 2),
+                response=content,
+                model_used=model,
+            )
+
+        except Exception as e:
+            latency = (time.time() - start_time) * 1000
+            return ProviderTestWithPromptResponse(
+                success=False,
+                message=f"Provider API error: {str(e)}",
+                latency=round(latency, 2),
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to test provider with prompt: {str(e)}"
+        )
+
+
+@router.post("/providers/reorder")
+async def reorder_providers(
+    request: ReorderProvidersRequest, db: Session = Depends(get_db)
+):
+    """Reorder providers by updating their priority based on the provided list"""
+    try:
+        from models.routing import RoutingProvider
+
+        # Update priority for each provider based on position in list
+        for index, provider_id in enumerate(request.provider_ids):
+            provider = (
+                db.query(RoutingProvider)
+                .filter(RoutingProvider.id == provider_id)
+                .first()
+            )
+            if provider:
+                # Higher index = lower priority (inverted for UX)
+                provider.priority = len(request.provider_ids) - index
+
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Provider order updated successfully",
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Failed to reorder providers: {str(e)}"
+        )
+
+
+@router.post("/providers/{provider_id}/priority")
+async def set_provider_priority(
+    provider_id: int, request: SetProviderPriorityRequest, db: Session = Depends(get_db)
+):
+    """Set priority for a specific provider"""
+    try:
+        from models.routing import RoutingProvider
+
+        provider = (
+            db.query(RoutingProvider).filter(RoutingProvider.id == provider_id).first()
+        )
+        if not provider:
+            raise HTTPException(status_code=404, detail="Provider not found")
+
+        # Handle special roles
+        if request.role == "primary":
+            provider.priority = 100  # High priority for primary
+        elif request.role == "fallback":
+            provider.priority = 1  # Low priority for fallback
+        else:
+            provider.priority = request.priority
+
+        db.commit()
+
+        return {
+            "success": True,
+            "message": f"Priority set to {provider.priority} for {provider.display_name}",
+            "provider_id": provider_id,
+            "priority": provider.priority,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Failed to set provider priority: {str(e)}"
+        )

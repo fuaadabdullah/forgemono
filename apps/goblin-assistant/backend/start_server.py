@@ -1,11 +1,17 @@
 #!/usr/bin/env python
 import uvicorn
+import sys
 import os
+from pathlib import Path
 
-# Set PYTHONPATH
-os.environ["PYTHONPATH"] = (
-    "/Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend"
-)
+# Add the backend directory to Python path
+backend_dir = Path(__file__).parent
+sys.path.insert(0, str(backend_dir))
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8001, log_level="info")
+    # Get port from environment variable (required for Render, Fly.io, etc.)
+    port = int(os.getenv("PORT", 8001))
+
+    uvicorn.run(
+        "main:app", host="0.0.0.0", port=port, log_level="info", access_log=True
+    )

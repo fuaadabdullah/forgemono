@@ -1,0 +1,62 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: api
+  namespace: overmind-prod
+  labels:
+    app: overmind
+    component: api
+spec:
+  parentRefs:
+  - name: overmind-gateway
+    sectionName: https
+
+  hostnames:
+  - api.overmind.example.com
+
+  rules:
+  # Authenticated API endpoints (higher rate limit)
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api
+      headers:
+      - name: Authorization
+        value: .+
+        type: RegularExpression
+    filters:
+    # Add request ID
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        add:
+        - name: X-Request-ID
+          value: "%REQ(X-REQUEST-ID)%"
+    backendRefs:
+    - name: overmind-api
+      port: 8000
+      weight: 100
+
+  # Health check endpoint (no auth required)
+  - matches:
+    - path:
+        type: Exact
+        value: /health
+    backendRefs:
+    - name: overmind-api
+      port: 8000
+
+  # Metrics endpoint (internal only)
+  - matches:
+    - path:
+        type: Exact
+        value: /metrics
+    filters:
+    # Block external access
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        add:
+        - name: X-Internal-Request
+          value: "true"
+    backendRefs:
+    - name: overmind-api
+      port: 8000

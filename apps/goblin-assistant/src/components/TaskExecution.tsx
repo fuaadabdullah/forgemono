@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
+import { Button, Alert } from './ui';
 
 interface StreamChunk {
   content?: string;
@@ -112,21 +113,27 @@ const TaskExecution = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-white mb-2">Task Execution</h1>
-        <p className="text-gray-400">Execute tasks with real-time streaming output</p>
+        <h1 className="text-3xl font-bold text-text mb-2">Task Execution</h1>
+        <p className="text-muted">Execute tasks with real-time streaming output</p>
+      </div>
+
+      {/* Live region for streaming updates */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="false">
+        {isStreaming && streamOutput.length > 0 && `Received ${streamOutput.length} update${streamOutput.length !== 1 ? 's' : ''}`}
+        {!isStreaming && streamOutput.length > 0 && streamOutput[streamOutput.length - 1]?.done && 'Task completed'}
       </div>
 
       {/* Task Input Form */}
-      <div className="bg-gray-800 rounded-lg p-6">
+      <div className="bg-surface rounded-lg p-6 border border-border">
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-text mb-2">
               Select Goblin
             </label>
             <select
               value={selectedGoblin}
               onChange={(e) => setSelectedGoblin(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-surface-hover border border-border rounded-md text-text focus:outline-none focus:ring-2 focus:ring-primary"
               disabled={isStreaming}
             >
               {goblins.map((goblin) => (
@@ -138,73 +145,77 @@ const TaskExecution = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-text mb-2">
               Task Description
             </label>
             <textarea
               value={task}
               onChange={(e) => setTask(e.target.value)}
               placeholder="Describe the task you want to execute..."
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 resize-none"
+              className="w-full px-3 py-2 bg-surface-hover border border-border rounded-md text-text focus:outline-none focus:ring-2 focus:ring-primary h-32 resize-none placeholder-muted"
               disabled={isStreaming}
             />
           </div>
 
           <div className="flex space-x-4">
-            <button
+            <Button
+              variant="primary"
               onClick={startStreamingTask}
               disabled={isStreaming || loading || !selectedGoblin || !task.trim()}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
+              loading={loading}
             >
-              {loading ? 'Starting...' : 'Execute Task'}
-            </button>
+              Execute Task
+            </Button>
 
             {isStreaming && (
-              <button
+              <Button
+                variant="danger"
                 onClick={cancelTask}
-                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
               >
                 Cancel Task
-              </button>
+              </Button>
             )}
 
-            <button
+            <Button
+              variant="secondary"
               onClick={clearOutput}
-              className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
             >
               Clear Output
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-900 border border-red-700 rounded-lg p-4">
-          <h3 className="text-red-400 font-semibold">Error</h3>
-          <p className="text-red-300">{error}</p>
-        </div>
+        <Alert
+          variant="danger"
+          title="Error"
+          message={error}
+          dismissible
+          onDismiss={() => setError(null)}
+        />
       )}
 
       {/* Streaming Output */}
       {streamOutput.length > 0 && (
-        <div className="bg-gray-800 rounded-lg p-6">
+        <div className="bg-surface rounded-lg p-6 border border-border">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-white">Task Output</h2>
+            <h2 className="text-xl font-semibold text-text">Task Output</h2>
             {isStreaming && (
-              <div className="flex items-center text-blue-400">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 mr-2"></div>
+              <div className="flex items-center text-primary">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
                 Streaming...
               </div>
             )}
           </div>
 
-          <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm text-gray-300 max-h-96 overflow-y-auto">
+          <div className="bg-bg rounded-lg p-4 font-mono text-sm text-text max-h-96 overflow-y-auto border border-border">
             {streamOutput.map((chunk, index) => (
               <div key={index} className="whitespace-pre-wrap">
                 {chunk.content || ''}
                 {chunk.done && (
-                  <div className="mt-2 pt-2 border-t border-gray-700 text-gray-500">
+                  <div className="mt-2 pt-2 border-t border-border text-muted">
                     <div>Tokens: {chunk.tokens}</div>
                     <div>Cost: ${chunk.cost?.toFixed(4)}</div>
                   </div>

@@ -1,0 +1,79 @@
+[
+  {
+    "name": "dashboard",
+    "url": "http://localhost:3000/",
+    "score": 100,
+    "totalViolations": 0,
+    "violations": [],
+    "passes": 21,
+    "incomplete": 0,
+    "inapplicable": 68,
+    "timestamp": "2025-12-02T09:00:55.616Z"
+  },
+  {
+    "name": "chat",
+    "url": "http://localhost:3000/chat",
+    "score": 100,
+    "totalViolations": 0,
+    "violations": [],
+    "passes": 21,
+    "incomplete": 0,
+    "inapplicable": 68,
+    "timestamp": "2025-12-02T09:00:58.326Z"
+  },
+  {
+    "name": "search",
+    "url": "http://localhost:3000/search",
+    "score": 100,
+    "totalViolations": 0,
+    "violations": [],
+    "passes": 21,
+    "incomplete": 0,
+    "inapplicable": 68,
+    "timestamp": "2025-12-02T09:01:01.020Z"
+  },
+  {
+    "name": "settings",
+    "url": "http://localhost:3000/settings",
+    "score": 100,
+    "totalViolations": 0,
+    "violations": [],
+    "passes": 21,
+    "incomplete": 0,
+    "inapplicable": 68,
+    "timestamp": "2025-12-02T09:01:03.729Z"
+  },
+  {
+    "name": "providers",
+    "url": "http://localhost:3000/providers",
+    "score": 100,
+    "totalViolations": 0,
+    "violations": [],
+    "passes": 21,
+    "incomplete": 0,
+    "inapplicable": 68,
+    "timestamp": "2025-12-02T09:01:06.459Z"
+  },
+  {
+    "name": "logs",
+    "url": "http://localhost:3000/logs",
+    "score": 100,
+    "totalViolations": 0,
+    "violations": [],
+    "passes": 21,
+    "incomplete": 0,
+    "inapplicable": 68,
+    "timestamp": "2025-12-02T09:01:09.183Z"
+  },
+  {
+    "name": "sandbox",
+    "url": "http://localhost:3000/sandbox",
+    "score": 100,
+    "totalViolations": 0,
+    "violations": [],
+    "passes": 21,
+    "incomplete": 0,
+    "inapplicable": 68,
+    "timestamp": "2025-12-02T09:01:11.904Z"
+  }
+]

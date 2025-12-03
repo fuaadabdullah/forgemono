@@ -1,0 +1,52 @@
+# Render Blueprint (DEPRECATED)
+# This file is kept for historical reference only. Goblin Assistant now uses Fly.io for production deployments.
+# To migrate: see `FLY_DEPLOYMENT.md` and `deploy-backend.sh fly`.
+
+services:
+  # Backend API Service (example)
+  - type: web
+    name: goblin-assistant-backend
+    runtime: python
+    region: oregon
+    plan: starter
+    branch: main
+    rootDir: apps/goblin-assistant/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python start_server.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: APP_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: goblin-assistant-db
+          property: connectionString
+      # AI Provider Keys (example)
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROK_API_KEY
+        sync: false
+      # Auth Configuration (example)
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_STANDBY_KEY
+        generateValue: true
+      - key: JWT_CURRENT_KEY
+        generateValue: true
+    healthCheckPath: /health
+    autoDeploy: true
+
+databases:
+  - name: goblin-assistant-db
+    databaseName: goblin_assistant
+    plan: starter
+    region: oregon

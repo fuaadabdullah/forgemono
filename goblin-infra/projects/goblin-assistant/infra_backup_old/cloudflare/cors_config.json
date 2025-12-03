@@ -1,0 +1,24 @@
+{
+  "cors": [
+    {
+      "allowed_origins": [
+        "https://goblin.fuaad.ai",
+        "https://api.goblin.fuaad.ai"
+      ],
+      "allowed_methods": [
+        "GET",
+        "PUT",
+        "HEAD"
+      ],
+      "allowed_headers": [
+        "*"
+      ],
+      "expose_headers": [
+        "ETag",
+        "Content-Length",
+        "Content-Type"
+      ],
+      "max_age_seconds": 3600
+    }
+  ]
+}

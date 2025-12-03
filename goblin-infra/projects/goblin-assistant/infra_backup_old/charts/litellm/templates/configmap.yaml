@@ -1,0 +1,38 @@
+{{- $fullName := include "litellm.fullname" . -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullName }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "litellm.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    model_list:
+      {{- range .Values.config.models }}
+      - model_name: {{ .model_name }}
+        litellm_params:
+          {{- toYaml .litellm_params | nindent 10 }}
+      {{- end }}
+
+    {{- if .Values.config.router.enabled }}
+    router_settings:
+      routing_strategy: {{ .Values.config.router.routingStrategy }}
+      {{- if .Values.config.router.fallbacks }}
+      fallbacks:
+        {{- toYaml .Values.config.router.fallbacks | nindent 8 }}
+      {{- end }}
+    {{- end }}
+
+    general_settings:
+      drop_params: {{ .Values.config.dropParams }}
+      set_verbose: {{ .Values.config.setVerbose }}
+      request_timeout: {{ .Values.config.requestTimeout }}
+      max_parallel_requests: {{ .Values.config.maxParallelRequests }}
+
+    litellm_settings:
+      telemetry: {{ .Values.config.telemetry.enabled }}
+      {{- if .Values.config.telemetry.enabled }}
+      success_callback: ["otel"]
+      failure_callback: ["otel"]
+      {{- end }}

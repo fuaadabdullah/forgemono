@@ -1,79 +1,107 @@
-from fastapi import APIRouter, HTTPException
+"""
+Routing router with real provider discovery, health monitoring, and intelligent task routing.
+"""
+
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
-import sys
+from sqlalchemy.orm import Session
+
+from database import get_db
+from services.routing import RoutingService
+from tasks.provider_probe_worker import ProviderProbeWorker
 import os
 
-# Add the src directory to the path so we can import the routing module
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
+# Get encryption key from environment
+ROUTING_ENCRYPTION_KEY = os.getenv("ROUTING_ENCRYPTION_KEY")
+if not ROUTING_ENCRYPTION_KEY:
+    raise ValueError("ROUTING_ENCRYPTION_KEY environment variable must be set")
 
-try:
-    from routing.router import top_providers_for, route_task_sync
-except ImportError:
-    # Fallback if routing module is not available
-    def top_providers_for(capability: str, **kwargs) -> List[str]:
-        return ["openai", "anthropic", "gemini", "ollama"]
+# Initialize services
+routing_service = None
+probe_worker = None
 
-    def route_task_sync(*args, **kwargs) -> Dict[str, Any]:
-        return {"ok": False, "error": "Routing system not available"}
+
+def get_routing_service(db: Session = Depends(get_db)) -> RoutingService:
+    """Dependency to get routing service instance."""
+    global routing_service
+    if routing_service is None:
+        routing_service = RoutingService(db, ROUTING_ENCRYPTION_KEY)
+    return routing_service
+
+
+def get_probe_worker() -> ProviderProbeWorker:
+    """Dependency to get probe worker instance."""
+    global probe_worker
+    if probe_worker is None:
+        probe_worker = ProviderProbeWorker(ROUTING_ENCRYPTION_KEY)
+    return probe_worker
 
 
 router = APIRouter(prefix="/routing", tags=["routing"])
 
 
 class RouteRequest(BaseModel):
-    task_type: str
-    payload: Dict[str, Any]
-    prefer_local: Optional[bool] = False
+    capability: str
+    requirements: Optional[Dict[str, Any]] = None
     prefer_cost: Optional[bool] = False
     max_retries: Optional[int] = 2
-    stream: Optional[bool] = False
 
 
 class ProviderInfo(BaseModel):
+    id: int
     name: str
+    display_name: str
     capabilities: List[str]
-    models: List[str]
-    priority_tier: int
-    cost_score: float
-    bandwidth_score: float
+    models: List[Dict[str, Any]]
+    priority: int
+    is_active: bool
+    score: Optional[float] = None
 
 
-@router.get("/providers", response_model=List[str])
-async def get_available_providers():
-    """Get list of all configured providers"""
+@router.get("/providers", response_model=List[ProviderInfo])
+async def get_available_providers(
+    service: RoutingService = Depends(get_routing_service),
+):
+    """Get list of all configured providers with their capabilities and status"""
     try:
-        # Return providers that have valid API keys configured
-        providers = []
-        for capability in ["chat", "reasoning", "code"]:
-            candidates = top_providers_for(capability)
-            providers.extend(candidates)
-        return list(set(providers))  # Remove duplicates
+        providers = await service.discover_providers()
+        return [ProviderInfo(**provider) for provider in providers]
     except Exception as e:
-        # Fallback to basic providers if routing system fails
-        return ["openai", "anthropic", "gemini", "ollama", "groq", "deepseek"]
+        raise HTTPException(
+            status_code=500, detail=f"Failed to discover providers: {str(e)}"
+        )
 
 
-@router.get("/providers/{capability}", response_model=List[str])
-async def get_providers_for_capability(capability: str):
+@router.get("/providers/{capability}", response_model=List[ProviderInfo])
+async def get_providers_for_capability(
+    capability: str, service: RoutingService = Depends(get_routing_service)
+):
     """Get providers that support a specific capability"""
     try:
-        return top_providers_for(capability)
+        providers = await service.discover_providers()
+
+        # Filter providers that support the capability
+        suitable = []
+        for provider in providers:
+            if capability in provider["capabilities"]:
+                suitable.append(ProviderInfo(**provider))
+
+        return suitable
     except Exception as e:
-        return ["openai", "anthropic"]  # Fallback
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get providers for capability: {str(e)}"
+        )
 
 
 @router.post("/route")
-async def route_request(request: RouteRequest):
-    """Route a task to the best available provider"""
+async def route_request(
+    request: RouteRequest, service: RoutingService = Depends(get_routing_service)
+):
+    """Route a request to the best available provider"""
     try:
-        result = route_task_sync(
-            task_type=request.task_type,
-            payload=request.payload,
-            prefer_local=request.prefer_local,
-            prefer_cost=request.prefer_cost,
-            max_retries=request.max_retries,
-            stream=request.stream,
+        result = await service.route_request(
+            capability=request.capability, requirements=request.requirements
         )
         return result
     except Exception as e:
@@ -81,14 +109,17 @@ async def route_request(request: RouteRequest):
 
 
 @router.get("/health")
-async def routing_health():
+async def routing_health(service: RoutingService = Depends(get_routing_service)):
     """Check if the routing system is operational"""
     try:
-        providers = top_providers_for("chat")
+        providers = await service.discover_providers()
+        healthy_providers = [p for p in providers if p.get("is_active", False)]
+
         return {
-            "status": "healthy",
+            "status": "healthy" if healthy_providers else "degraded",
             "providers_available": len(providers),
+            "healthy_providers": len(healthy_providers),
             "routing_system": "active",
         }
     except Exception as e:
-        return {"status": "degraded", "error": str(e), "routing_system": "fallback"}
+        return {"status": "error", "error": str(e), "routing_system": "failed"}

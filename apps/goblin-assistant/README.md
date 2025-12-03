@@ -4,7 +4,41 @@ A comprehensive AI-powered development assistant built with FastAPI, featuring i
 
 ## Overview
 
-GoblinOS Assistant is a backend API service that provides AI-powered assistance for software development tasks. It features intelligent model routing that automatically selects the most appropriate AI model based on task complexity, ensuring optimal performance and cost efficiency.
+GoblinOS Assistant is a comprehensive AI-powered development assistant with multiple components working together to provide intelligent software development support. It features intelligent model routing that automatically selects the most appropriate AI model based on task complexity, ensuring optimal performance and cost efficiency.
+
+## Components
+
+### 🏗️ Backend API (`backend/`)
+
+- **Framework**: FastAPI (Python)
+- **Purpose**: Main API service handling AI processing and development assistance
+Note: Most backend-specific documentation has been consolidated under the canonical backend repository folder at `apps/goblin-assistant/backend/docs` (e.g. endpoint audits, monitoring, production quick-starts). See that folder for the canonical docs.
+
+- **Features**: Intelligent model routing, debugging tools, error analysis, code suggestions
+
+### 🎨 Frontend UI (`src/`)
+
+- **Framework**: React + Vite (TypeScript)
+- **Purpose**: User interface for interacting with the AI assistant
+- **Features**: Web-based interface for development tasks and AI interactions
+
+### 🛠️ Infrastructure (`infra/` + `goblin-infra/`)
+
+- **Tools**: Terraform, Cloudflare Workers, Docker
+- **Purpose**: Deployment, hosting, and scaling infrastructure
+- **Environments**: Dev, staging, production with automated CI/CD via CircleCI
+
+### 💾 Database & API Layer (`api/`, database files)
+
+- **Database**: SQLite (`goblin_assistant.db`)
+- **Purpose**: Data persistence, user sessions, and API routing
+- **Features**: SQLAlchemy integration, database migrations
+
+### 📊 Monitoring & Observability (`datadog/`)
+
+- **Tools**: Datadog integration
+- **Purpose**: Application monitoring, performance tracking, and alerting
+- **Features**: Real-time metrics, error tracking, and health monitoring
 
 ## Features
 
@@ -52,6 +86,27 @@ GoblinOS Assistant is a backend API service that provides AI-powered assistance 
    ```
 
 3. **Configure environment**:
+
+   **Option A: Bitwarden Vault (Recommended)**
+
+   ```bash
+   # Install Bitwarden CLI
+   npm install -g @bitwarden/cli
+
+   # Login and setup vault (one-time)
+   bw login YOUR_EMAIL
+   export BW_SESSION=$(bw unlock --raw)
+
+   # Load development secrets
+   source scripts/load_env.sh
+
+   # Verify secrets loaded
+   echo $FASTAPI_SECRET
+   ```
+
+   See [Bitwarden Vault Setup](./docs/BITWARDEN_VAULT_SETUP.md) for complete vault configuration.
+
+   **Option B: Manual .env (Development Only)**
 
    ```bash
    cp backend/.env.example backend/.env.local
@@ -126,8 +181,32 @@ FALLBACK_MODEL_KEY=your-llm-api-key
 
 - Never commit `.env.local` files to version control
 - Use strong, unique API keys for each service
+- **Recommended**: Use Bitwarden vault for secrets management (see [Bitwarden Vault Setup](./docs/BITWARDEN_VAULT_SETUP.md))
 - Consider using a secrets management service in production
 - Rotate API keys regularly
+
+### Production Hardening & Checklist
+
+The following items are recommended before deploying to production. The app is usable in development without them, but production deployments should follow these steps to ensure security and reliability.
+
+- Use a managed secrets store (Vault, AWS Secrets Manager, Azure KeyVault) for provider API keys instead of file-based storage (e.g., `backend/api_keys.json`). If you store API keys in your database, make sure they're encrypted (see `backend/services/encryption.py`) and access-controlled.
+- Enable `USE_REDIS_CHALLENGES=true` and configure Redis for passkey challenge storage (recommended in `backend/PRODUCTION_DEPLOYMENT_GUIDE.md`).
+- Use Redis (or similar) for rate limiting and task queues (RQ). The in-memory rate limiter is intended for local development and won't scale across instances.
+- Ensure `ROUTING_ENCRYPTION_KEY` is configured and protected — it's used for decrypting provider API keys stored in DB.
+- Run `ProviderProbeWorker` (or enable routing probe worker) in a background worker to continuously monitor provider health and gather metrics.
+- Disable any debug endpoints or routes (e.g., local-llm-proxy admin endpoints) in production and ensure proper API key validation for local proxies.
+- Configure Prometheus to scrape `/metrics` and set up alerts on provider health, error rates, and request latency.
+- Set up a log aggregation pipeline (Datadog/ELK/CloudWatch) and ensure logs do not capture raw secret values. Configure structured logging (`X-Correlation-ID`) for traceability.
+- Use a distributed session/store for `task_queue` (Redis) and ensure backups for persistent data (Postgres or backups of SQLite if used temporarily).
+- Implement a secrets rotation policy and an automated process for rotating encryption keys and API keys.
+
+### Frontend Security Checklist
+
+- Ensure no secrets are exposed via `VITE_` variables (client `VITE_` envs are public). Move secrets to the backend / secrets manager.
+- Use HttpOnly, Secure cookies for session/JWT tokens instead of localStorage to reduce XSS risks.
+- Authenticate streaming endpoints using cookies or short-lived signed stream tokens; do not put secrets into URL query strings.
+- Add a CSP and sanitize any HTML rendered from model output to prevent XSS.
+- Configure CORS to allow only the specific production frontend domains (do not use `*` in production).
 
 ## Development
 
@@ -210,7 +289,33 @@ graph TB
 
 ## Deployment
 
-### Local Development
+### Production Pipeline (Recommended)
+
+The **villain-level production pipeline** combines Bitwarden CLI, CircleCI, and Fly.io for automated, secure deployments:
+
+- **Bitwarden Vault**: All secrets stored securely
+- **CircleCI**: Automated CI/CD on every push to main
+- **Fly.io**: Production hosting with zero-downtime deploys
+
+**Setup**: See [Production Pipeline Guide](./docs/PRODUCTION_PIPELINE.md)
+
+**Quick Deploy**: Push to `main` branch → Automatic production deployment
+
+### Manual Deployment Options
+
+#### Fly.io Manual Deploy
+
+For testing or emergency deployments:
+
+```bash
+# Load production secrets from Bitwarden
+source scripts/load_env.sh
+
+# Deploy to Fly.io
+./deploy-fly.sh
+```
+
+#### Local Development
 
 ```bash
 # Install dependencies
@@ -220,7 +325,7 @@ pip install -r requirements.txt
 uvicorn backend.main:app --reload
 ```
 
-### Docker Deployment
+#### Docker Deployment
 
 ```dockerfile
 FROM python:3.11-slim

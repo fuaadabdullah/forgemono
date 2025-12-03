@@ -1,13 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import re
+from sqlalchemy.orm import Session
+from database import get_db
+from models import SearchCollection, SearchDocument
 
 router = APIRouter(prefix="/search", tags=["search"])
-
-# Simple in-memory document storage for now
-# In production, this would be replaced with ChromaDB or another vector database
-COLLECTIONS = {}
 
 
 class SearchQuery(BaseModel):
@@ -65,23 +64,41 @@ def simple_text_search(
 
 
 @router.post("/query", response_model=SearchResponse)
-async def search_documents(search_query: SearchQuery):
+async def search_documents(search_query: SearchQuery, db: Session = Depends(get_db)):
     """Search documents using simple text search"""
     try:
-        collection_name = search_query.collection_name
+        collection = (
+            db.query(SearchCollection)
+            .filter(SearchCollection.name == search_query.collection_name)
+            .first()
+        )
+        if not collection:
+            return SearchResponse(results=[], total_results=0)
 
         # Get documents from collection
-        if collection_name not in COLLECTIONS:
-            COLLECTIONS[collection_name] = []
-
-        documents = COLLECTIONS[collection_name]
+        documents = (
+            db.query(SearchDocument)
+            .filter(SearchDocument.collection_id == collection.id)
+            .all()
+        )
 
         if not documents:
             return SearchResponse(results=[], total_results=0)
 
+        # Convert to dict format for search function
+        docs_dict = []
+        for doc in documents:
+            docs_dict.append(
+                {
+                    "id": doc.document_id,
+                    "document": doc.document,
+                    "metadata": doc.metadata,
+                }
+            )
+
         # Perform search
         results = simple_text_search(
-            search_query.query, documents, search_query.n_results
+            search_query.query, docs_dict, search_query.n_results
         )
 
         # Format results
@@ -103,10 +120,11 @@ async def search_documents(search_query: SearchQuery):
 
 
 @router.get("/collections")
-async def list_collections():
+async def list_collections(db: Session = Depends(get_db)):
     """List all available collections"""
     try:
-        return {"collections": list(COLLECTIONS.keys())}
+        collections = db.query(SearchCollection).all()
+        return {"collections": [c.name for c in collections]}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to list collections: {str(e)}"
@@ -119,17 +137,38 @@ async def add_document(
     document: str,
     metadata: Optional[Dict[str, Any]] = None,
     id: Optional[str] = None,
+    db: Session = Depends(get_db),
 ):
     """Add a document to a collection"""
     try:
-        if collection_name not in COLLECTIONS:
-            COLLECTIONS[collection_name] = []
-
-        doc_id = id or f"doc_{len(COLLECTIONS[collection_name])}"
-
-        COLLECTIONS[collection_name].append(
-            {"id": doc_id, "document": document, "metadata": metadata or {}}
+        # Get or create collection
+        collection = (
+            db.query(SearchCollection)
+            .filter(SearchCollection.name == collection_name)
+            .first()
         )
+        if not collection:
+            collection = SearchCollection(name=collection_name)
+            db.add(collection)
+            db.commit()
+            db.refresh(collection)
+
+        # Generate document ID if not provided
+        doc_id = (
+            id
+            or f"doc_{db.query(SearchDocument).filter(SearchDocument.collection_id == collection.id).count()}"
+        )
+
+        # Create document
+        search_doc = SearchDocument(
+            document_id=doc_id,
+            document=document,
+            metadata=metadata or {},
+            collection_id=collection.id,
+        )
+        db.add(search_doc)
+        db.commit()
+        db.refresh(search_doc)
 
         return {"status": "success", "document_id": doc_id}
 
@@ -138,13 +177,35 @@ async def add_document(
 
 
 @router.get("/collections/{collection_name}/documents")
-async def get_collection_documents(collection_name: str):
+async def get_collection_documents(collection_name: str, db: Session = Depends(get_db)):
     """Get all documents in a collection"""
     try:
-        if collection_name not in COLLECTIONS:
+        collection = (
+            db.query(SearchCollection)
+            .filter(SearchCollection.name == collection_name)
+            .first()
+        )
+        if not collection:
             return {"documents": []}
 
-        return {"documents": COLLECTIONS[collection_name]}
+        documents = (
+            db.query(SearchDocument)
+            .filter(SearchDocument.collection_id == collection.id)
+            .all()
+        )
+
+        # Convert to dict format for API compatibility
+        docs_list = []
+        for doc in documents:
+            docs_list.append(
+                {
+                    "id": doc.document_id,
+                    "document": doc.document,
+                    "metadata": doc.metadata,
+                }
+            )
+
+        return {"documents": docs_list}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to get documents: {str(e)}"

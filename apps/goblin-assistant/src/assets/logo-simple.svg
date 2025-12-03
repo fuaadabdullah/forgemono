@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+    <title>Goblin Assistant Logo (Simple)</title>
+    <!-- Simplified version for favicons and small sizes -->
+    <circle cx="24" cy="24" r="22" fill="var(--color-brand-primary)" />
+
+    <!-- Eyes -->
+    <circle cx="16" cy="20" r="3" fill="var(--color-bg)" />
+    <circle cx="32" cy="20" r="3" fill="var(--color-bg)" />
+    <circle cx="17" cy="19.5" r="1.2" fill="var(--color-text)" />
+    <circle cx="33" cy="19.5" r="1.2" fill="var(--color-text)" />
+
+    <!-- Smile -->
+    <path d="M 14 28 Q 24 34 34 28" stroke="var(--color-bg)" stroke-width="2.5" fill="none" stroke-linecap="round" />
+
+    <!-- Tech accent -->
+    <circle cx="38" cy="38" r="4" fill="var(--color-brand-secondary)" />
+    <circle cx="38" cy="38" r="1.5" fill="var(--color-bg)" />
+</svg>

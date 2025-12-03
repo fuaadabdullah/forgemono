@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+data:
+  # Slack service configuration
+  service.slack: |
+    token: $slack-token
+    apiURL: https://slack.com/api
+
+  # Email service configuration (optional)
+  service.email.gmail: |
+    username: $email-username
+    password: $email-password
+    host: smtp.gmail.com
+    port: 587
+    from: $email-username
+
+  # Templates
+  template.app-deployed: |
+    message: |
+      ✅ *Application Deployed*
+
+      Application: {{.app.metadata.name}}
+      Environment: {{.app.metadata.labels.env}}
+      Namespace: {{.app.spec.destination.namespace}}
+      Revision: {{.app.status.sync.revision}}
+      Status: {{.app.status.health.status}}
+
+      {{if .app.status.operationState.syncResult}}
+      Resources synced: {{len .app.status.operationState.syncResult.resources}}
+      {{end}}
+
+      <{{.context.argocdUrl}}/applications/{{.app.metadata.name}}|View in Argo CD>
+    slack:
+      attachments: |
+        [{
+          "color": "good",
+          "title": "Deployment Successful",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "fields": [
+            {
+              "title": "Application",
+              "value": "{{.app.metadata.name}}",
+              "short": true
+            },
+            {
+              "title": "Environment",
+              "value": "{{.app.metadata.labels.env}}",
+              "short": true
+            },
+            {
+              "title": "Revision",
+              "value": "{{.app.status.sync.revision}}",
+              "short": true
+            },
+            {
+              "title": "Health",
+              "value": "{{.app.status.health.status}}",
+              "short": true
+            }
+          ]
+        }]
+
+  template.app-sync-failed: |
+    message: |
+      ❌ *Sync Failed*
+
+      Application: {{.app.metadata.name}}
+      Environment: {{.app.metadata.labels.env}}
+      Error: {{.app.status.operationState.message}}
+
+      <{{.context.argocdUrl}}/applications/{{.app.metadata.name}}|View in Argo CD>
+    slack:
+      attachments: |
+        [{
+          "color": "danger",
+          "title": "Sync Failed",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "fields": [
+            {
+              "title": "Application",
+              "value": "{{.app.metadata.name}}",
+              "short": true
+            },
+            {
+              "title": "Environment",
+              "value": "{{.app.metadata.labels.env}}",
+              "short": true
+            },
+            {
+              "title": "Error",
+              "value": "{{.app.status.operationState.message}}",
+              "short": false
+            }
+          ]
+        }]
+
+  template.app-health-degraded: |
+    message: |
+      ⚠️ *Application Health Degraded*
+
+      Application: {{.app.metadata.name}}
+      Environment: {{.app.metadata.labels.env}}
+      Status: {{.app.status.health.status}}
+
+      <{{.context.argocdUrl}}/applications/{{.app.metadata.name}}|View in Argo CD>
+    slack:
+      attachments: |
+        [{
+          "color": "warning",
+          "title": "Health Degraded",
+          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}"
+        }]
+
+  # Triggers
+  trigger.on-deployed: |
+    - when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+      send: [app-deployed]
+
+  trigger.on-sync-failed: |
+    - when: app.status.operationState.phase in ['Error', 'Failed']
+      send: [app-sync-failed]
+
+  trigger.on-health-degraded: |
+    - when: app.status.health.status == 'Degraded'
+      send: [app-health-degraded]
+
+  # Subscriptions (per-app)
+  subscriptions: |
+    - recipients:
+      - slack:overmind-deployments
+      triggers:
+      - on-deployed
+      - on-sync-failed
+      - on-health-degraded
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argocd-notifications-secret
+  namespace: argocd
+type: Opaque
+stringData:
+  # Add your Slack token here (or use SOPS to encrypt)
+  slack-token: "xoxb-your-slack-bot-token"
+  # Add email credentials if using email notifications
+  email-username: "notifications@example.com"
+  email-password: "your-app-password"

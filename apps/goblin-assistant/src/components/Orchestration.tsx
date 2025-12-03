@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { apiClient } from '../api/client';
+import { Button, Alert } from './ui';
 
 interface OrchestrationStep {
   id: string;
@@ -81,34 +82,40 @@ const Orchestration = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-white mb-2">Orchestration Planner</h1>
-        <p className="text-gray-400">Create and execute multi-step task orchestrations</p>
+        <h1 className="text-3xl font-bold text-text mb-2">Orchestration Planner</h1>
+        <p className="text-muted">Create and execute multi-step task orchestrations</p>
+      </div>
+
+      {/* Live region for orchestration updates */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {plan && `Orchestration plan created with ${plan.steps.length} step${plan.steps.length !== 1 ? 's' : ''} in ${plan.total_batches} batch${plan.total_batches !== 1 ? 'es' : ''}`}
+        {executionId && `Orchestration started with ID ${executionId}`}
       </div>
 
       {/* Input Form */}
-      <div className="bg-gray-800 rounded-lg p-6">
+      <div className="bg-surface rounded-lg p-6 border border-border">
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-muted mb-2">
               Orchestration Instructions
             </label>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Describe the orchestration workflow (e.g., 'First analyze the code, then write documentation, finally create tests')"
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 resize-none"
+              className="w-full px-3 py-2 bg-surface-hover border border-border rounded-md text-text placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary h-32 resize-none"
               disabled={loading}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-muted mb-2">
               Default Goblin
             </label>
             <select
               value={defaultGoblin}
               onChange={(e) => setDefaultGoblin(e.target.value)}
-              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 bg-surface-hover border border-border rounded-md text-text focus:outline-none focus:ring-2 focus:ring-primary"
               disabled={loading}
             >
               <option value="docs-writer">Documentation Writer</option>
@@ -119,80 +126,85 @@ const Orchestration = () => {
           </div>
 
           <div className="flex space-x-4">
-            <button
+            <Button
               onClick={parseOrchestration}
               disabled={loading || !input.trim()}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
+              loading={loading}
+              variant="primary"
             >
-              {loading ? 'Parsing...' : 'Parse Orchestration'}
-            </button>
+              Parse Orchestration
+            </Button>
 
-            <button
+            <Button
               onClick={clearAll}
-              className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+              variant="secondary"
             >
               Clear All
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-900 border border-red-700 rounded-lg p-4">
-          <h3 className="text-red-400 font-semibold">Error</h3>
-          <p className="text-red-300">{error}</p>
-        </div>
+        <Alert
+          variant="danger"
+          title="Error"
+          message={error}
+          dismissible
+          onDismiss={() => setError(null)}
+        />
       )}
 
       {/* Orchestration Plan */}
       {plan && (
-        <div className="bg-gray-800 rounded-lg p-6">
+        <div className="bg-surface rounded-lg p-6 border border-border">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-white">Orchestration Plan</h2>
-            <button
+            <h2 className="text-2xl font-semibold text-text">Orchestration Plan</h2>
+            <Button
               onClick={executePlan}
               disabled={executing}
-              className="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
+              loading={executing}
+              variant="success"
             >
-              {executing ? 'Executing...' : 'Execute Plan'}
-            </button>
+              Execute Plan
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-gray-700 rounded-lg p-4">
-              <div className="text-2xl font-bold text-blue-400">{plan.total_batches}</div>
-              <div className="text-sm text-gray-400">Total Batches</div>
+            <div className="bg-surface-hover rounded-lg p-4 border border-border">
+              <div className="text-2xl font-bold text-primary">{plan.total_batches}</div>
+              <div className="text-sm text-muted">Total Batches</div>
             </div>
-            <div className="bg-gray-700 rounded-lg p-4">
-              <div className="text-2xl font-bold text-purple-400">{plan.max_parallel}</div>
-              <div className="text-sm text-gray-400">Max Parallel</div>
+            <div className="bg-surface-hover rounded-lg p-4 border border-border">
+              <div className="text-2xl font-bold text-accent">{plan.max_parallel}</div>
+              <div className="text-sm text-muted">Max Parallel</div>
             </div>
-            <div className="bg-gray-700 rounded-lg p-4">
-              <div className="text-2xl font-bold text-green-400">${plan.estimated_cost.toFixed(4)}</div>
-              <div className="text-sm text-gray-400">Estimated Cost</div>
+            <div className="bg-surface-hover rounded-lg p-4 border border-border">
+              <div className="text-2xl font-bold text-success">${plan.estimated_cost.toFixed(4)}</div>
+              <div className="text-sm text-muted">Estimated Cost</div>
             </div>
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white">Execution Steps</h3>
+            <h3 className="text-lg font-semibold text-text">Execution Steps</h3>
             {plan.steps.map((step, index) => (
-              <div key={step.id} className="bg-gray-700 rounded-lg p-4">
+              <div key={step.id} className="bg-surface-hover rounded-lg p-4 border border-border">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-text-inverse font-semibold shadow-glow-primary">
                       {index + 1}
                     </div>
                     <div>
-                      <h4 className="text-white font-semibold">{step.goblin}</h4>
-                      <p className="text-gray-400 text-sm">Batch {step.batch}</p>
+                      <h4 className="text-text font-semibold">{step.goblin}</h4>
+                      <p className="text-muted text-sm">Batch {step.batch}</p>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-muted">
                     {step.dependencies.length > 0 && `Depends on: ${step.dependencies.join(', ')}`}
                   </div>
                 </div>
-                <p className="text-gray-300 ml-11">{step.task}</p>
+                <p className="text-text ml-11">{step.task}</p>
               </div>
             ))}
           </div>

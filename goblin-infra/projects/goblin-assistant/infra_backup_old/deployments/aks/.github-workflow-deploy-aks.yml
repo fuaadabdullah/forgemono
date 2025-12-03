@@ -1,0 +1,52 @@
+# Note: copy this into .github/workflows/deploy-aks.yml at the repo root. Template lives here.
+name: Build and Deploy to AKS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.ACR_REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: ${{ env.ACR_REGISTRY }}/forge-lite:${{ github.sha }}
+
+      - name: Get AKS credentials
+        uses: azure/aks-set-context@v2
+        with:
+          credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+
+      - name: Deploy to AKS
+        run: |
+          kubectl set image -f infra/deployments/aks/manifests/deployment.yaml forge-lite=${{ env.ACR_REGISTRY }}/forge-lite:${{ github.sha }} || true
+          kubectl apply -f infra/deployments/aks/manifests/service.yaml
+
+# Notes:
+# - Requires AZURE_CREDENTIALS secret generated via `az ad sp create-for-rbac --sdk-auth`.
+# - For ACR, you can use service principal credentials, or set up `az acr login` via the login action.

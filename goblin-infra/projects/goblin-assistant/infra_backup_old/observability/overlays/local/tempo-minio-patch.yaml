@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo
+  namespace: observability
+spec:
+  template:
+    spec:
+      containers:
+        - name: tempo
+          env:
+            - name: AWS_REGION
+              value: "us-east-1"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: minio-creds
+                  key: accesskey
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-creds
+                  key: secretkey

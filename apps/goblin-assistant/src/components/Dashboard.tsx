@@ -51,104 +51,102 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-900 border border-red-700 rounded-lg p-4">
-        <h3 className="text-red-400 font-semibold">Error</h3>
-        <p className="text-red-300">{error}</p>
+      <div className="bg-surface border-2 border-danger rounded-lg p-4">
+        <h3 className="text-danger font-semibold">Error</h3>
+        <p className="text-text">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 max-w-7xl mx-auto px-4 py-6">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-white mb-4">GoblinOS Assistant Dashboard</h1>
-        <p className="text-gray-400 text-lg">
-          AI-powered development assistant with intelligent model routing
-        </p>
+        <h1 className="text-4xl font-bold text-text mb-3">GoblinOS Assistant</h1>
+        <p className="text-muted text-lg">AI-powered development assistant with intelligent model routing</p>
       </div>
 
       {/* Health Status */}
       {health && (
-        <div className="bg-gray-800 rounded-lg p-6">
-          <h2 className="text-2xl font-semibold text-white mb-4">System Health</h2>
+        <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
+          <h2 className="text-xl font-semibold text-text mb-4">System Health</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className={`text-2xl mb-2 ${health.status === 'healthy' ? 'text-green-400' : 'text-red-400'}`}>
+              <div className={`text-2xl mb-2 ${health.status === 'healthy' ? 'text-success' : 'text-danger'}`}>
                 {health.status === 'healthy' ? '✅' : '❌'}
               </div>
-              <div className="text-sm text-gray-400">Overall Status</div>
+              <div className="text-sm text-muted">Overall Status</div>
             </div>
             <div className="text-center">
-              <div className={`text-2xl mb-2 ${health.services.routing === 'healthy' ? 'text-green-400' : 'text-red-400'}`}>
+              <div className={`text-2xl mb-2 ${health.services.routing === 'healthy' ? 'text-success' : 'text-danger'}`}>
                 {health.services.routing === 'healthy' ? '🚀' : '❌'}
               </div>
-              <div className="text-sm text-gray-400">Routing</div>
+              <div className="text-sm text-muted">Routing</div>
             </div>
             <div className="text-center">
-              <div className={`text-2xl mb-2 ${health.services.execution === 'healthy' ? 'text-green-400' : 'text-red-400'}`}>
+              <div className={`text-2xl mb-2 ${health.services.execution === 'healthy' ? 'text-success' : 'text-danger'}`}>
                 {health.services.execution === 'healthy' ? '⚡' : '❌'}
               </div>
-              <div className="text-sm text-gray-400">Execution</div>
+              <div className="text-sm text-muted">Execution</div>
             </div>
             <div className="text-center">
-              <div className={`text-2xl mb-2 ${health.services.auth === 'healthy' ? 'text-green-400' : 'text-red-400'}`}>
+              <div className={`text-2xl mb-2 ${health.services.auth === 'healthy' ? 'text-success' : 'text-danger'}`}>
                 {health.services.auth === 'healthy' ? '🔐' : '❌'}
               </div>
-              <div className="text-sm text-gray-400">Auth</div>
+              <div className="text-sm text-muted">Auth</div>
             </div>
           </div>
         </div>
       )}
 
       {/* Available Goblins */}
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h2 className="text-2xl font-semibold text-white mb-4">Available Goblins</h2>
+      <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
+        <h2 className="text-xl font-semibold text-text mb-4">Available Goblins</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {goblins.map((goblin) => (
-            <div key={goblin.id} className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors">
+            <div key={goblin.id} className="bg-surface-hover rounded-lg p-4 hover:bg-surface-active transition-colors border border-border">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-white">{goblin.title}</h3>
+                <h3 className="text-sm font-semibold text-text">{goblin.title}</h3>
                 <span className={`px-2 py-1 rounded-full text-xs ${
                   goblin.status === 'available'
-                    ? 'bg-green-900 text-green-300'
-                    : 'bg-red-900 text-red-300'
+                    ? 'bg-success/20 text-success'
+                    : 'bg-danger/20 text-danger'
                 }`}>
                   {goblin.status}
                 </span>
               </div>
-              <p className="text-gray-400 text-sm mb-2">{goblin.name}</p>
-              <div className="text-xs text-gray-500">Guild: {goblin.guild}</div>
+              <p className="text-muted text-xs mb-2">{goblin.name}</p>
+              <div className="text-xs text-muted">Guild: {goblin.guild}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h2 className="text-2xl font-semibold text-white mb-4">Quick Actions</h2>
+      <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
+        <h2 className="text-xl font-semibold text-text mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <a
             href="/execute"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center"
+            className="bg-primary hover:brightness-110 text-text-inverse font-medium py-3 px-4 rounded-lg shadow-glow-primary transition-all text-center"
           >
             Execute Task
           </a>
           <a
             href="/orchestrate"
-            className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center"
+            className="bg-accent hover:brightness-110 text-text-inverse font-medium py-3 px-4 rounded-lg shadow-glow-accent transition-all text-center"
           >
             Create Orchestration
           </a>
           <a
             href="/search"
-            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center"
+            className="bg-success hover:brightness-110 text-text-inverse font-medium py-3 px-4 rounded-lg transition-all text-center"
           >
             Search & Debug
           </a>

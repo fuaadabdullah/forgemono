@@ -1,0 +1,79 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: overmind-dev
+
+resources:
+  - ../../../GoblinOS/packages/goblins/overmind/k8s/api-rollout.yaml
+  - ../../../GoblinOS/packages/goblins/overmind/k8s/bridge-deployment.yaml
+  - ../../../GoblinOS/packages/goblins/overmind/k8s/configmap.yaml
+  - ../../../GoblinOS/packages/goblins/overmind/k8s/ingress.yaml
+  - ../../../GoblinOS/packages/goblins/overmind/k8s/istio-virtualservice.yaml
+  - ../../../GoblinOS/packages/goblins/overmind/k8s/secrets.yaml.example
+  - namespace.yaml
+
+patches:
+  - target:
+      kind: Rollout
+      name: overmind-api
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: OVERMIND_ROUTING_STRATEGY
+          value: "LOCAL_FIRST"
+
+helmCharts:
+  - name: argo-rollouts
+    releaseName: argo-rollouts
+    namespace: argo-rollouts
+    valuesInline:
+      controller:
+        replicas: 1
+      dashboard:
+        enabled: true
+      istio:
+        enabled: true
+  - name: litellm
+    releaseName: litellm
+    namespace: overmind-dev
+    valuesInline:
+      replicaCount: 1
+
+      autoscaling:
+        enabled: false
+
+      config:
+        logLevel: DEBUG
+        setVerbose: true
+        models:
+          - model_name: ollama-local
+            litellm_params:
+              model: ollama/llama3.2
+              api_base: "http://ollama:11434"
+          - model_name: gemini-pro
+            litellm_params:
+              model: gemini/gemini-1.5-pro-latest
+              api_key: "os.environ/GEMINI_API_KEY"
+        router:
+          enabled: true
+          routingStrategy: "simple-shuffle"
+          fallbacks:
+            - ["gemini-pro", "ollama-local"]
+
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+
+      persistence:
+        enabled: false
+
+configMapGenerator:
+  - name: litellm-env
+    literals:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
