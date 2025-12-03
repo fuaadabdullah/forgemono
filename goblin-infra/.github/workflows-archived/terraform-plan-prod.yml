@@ -1,0 +1,35 @@
+name: Terraform Plan (prod)
+on:
+  pull_request:
+    paths:
+      - 'envs/prod/**'
+      - 'modules/**'
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+      - name: Terraform Fmt
+        run: terraform -chdir=envs/prod fmt -check
+      - name: Terraform Init
+        run: terraform -chdir=envs/prod init -input=false
+      - name: Terraform Validate
+        run: terraform -chdir=envs/prod validate
+      - name: Terraform Plan
+        run: terraform -chdir=envs/prod plan -input=false -out=tfplan -no-color
+      - name: Save Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-tfplan
+          path: envs/prod/tfplan
+      - name: Cost Estimate
+        run: echo "Run cost estimation here (Infracost, terraforming-costs, or cloud provider cost API)."
+      - name: Post plan summary
+        run: echo "Plan created and uploaded for prod."

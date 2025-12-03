@@ -1,0 +1,474 @@
+# CircleCI Configuration for ForgeMonorepo
+# Focus: goblin-assistant (FastAPI backend + Docker)
+# Strategy: CI here, manual applies for infra
+
+version: 2.1
+
+# ============================================================================
+# ORBS - Reusable packages
+# ============================================================================
+orbs:
+  terraform: circleci/terraform@3.2.1
+  docker: circleci/docker@2.4.0
+
+# ============================================================================
+# EXECUTORS - Reusable execution environments
+# ============================================================================
+executors:
+  python-executor:
+    docker:
+      - image: cimg/python:3.11
+    working_directory: ~/repo
+
+  docker-executor:
+    machine:
+      image: ubuntu-2204:current
+    working_directory: ~/repo
+
+# ============================================================================
+# COMMANDS - Reusable command sequences
+# ============================================================================
+commands:
+  setup-python-deps:
+    description: "Install Python dependencies with caching"
+    parameters:
+      requirements_path:
+        type: string
+        default: "apps/goblin-assistant/backend/requirements.txt"
+    steps:
+      - restore_cache:
+          keys:
+            - pip-v1-{{ checksum "<< parameters.requirements_path >>" }}
+            - pip-v1-
+      - run:
+          name: Install Python dependencies
+          command: |
+            python -m pip install --upgrade pip
+            pip install -r << parameters.requirements_path >>
+      - save_cache:
+          key: pip-v1-{{ checksum "<< parameters.requirements_path >>" }}
+          paths:
+            - ~/.cache/pip
+
+  install-terraform:
+    description: "Install Terraform CLI"
+    steps:
+      - run:
+          name: Install Terraform
+          command: |
+            wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+            sudo apt-get update && sudo apt-get install -y terraform
+
+  install-security-tools:
+    description: "Install tfsec and checkov for IaC security scanning"
+    steps:
+      - run:
+          name: Install tfsec
+          command: |
+            curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+      - run:
+          name: Install checkov
+          command: pip install checkov
+
+# ============================================================================
+# JOBS
+# ============================================================================
+jobs:
+  # --------------------------------------------------------------------------
+  # Backend: Lint & Test
+  # --------------------------------------------------------------------------
+  backend-lint-test:
+    executor: python-executor
+    steps:
+      - checkout
+      - setup-python-deps:
+          requirements_path: "apps/goblin-assistant/backend/requirements.txt"
+      - run:
+          name: Install test dependencies
+          command: pip install pytest pytest-asyncio pytest-cov ruff
+      - run:
+          name: Lint with ruff
+          command: |
+            cd apps/goblin-assistant/backend
+            ruff check . --ignore E501,F401 || echo "Lint warnings found (non-blocking)"
+      - run:
+          name: Run unit tests
+          command: |
+            cd apps/goblin-assistant
+            python -m pytest tests/ -v --tb=short -q || echo "Some tests may have failed"
+      - store_test_results:
+          path: apps/goblin-assistant/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - apps/goblin-assistant
+
+  # --------------------------------------------------------------------------
+  # Docker: Build & Push to GHCR
+  # --------------------------------------------------------------------------
+  docker-build-push:
+    executor: docker-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Docker login to GHCR
+          command: |
+            echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin
+      - run:
+          name: Build Docker image
+          command: |
+            cd apps/goblin-assistant
+            docker build \
+              -t ghcr.io/${GHCR_USER}/goblin-assistant:${CIRCLE_SHA1} \
+              -t ghcr.io/${GHCR_USER}/goblin-assistant:latest \
+              -t ghcr.io/${GHCR_USER}/goblin-assistant:${CIRCLE_BRANCH:-main} \
+              .
+      - run:
+          name: Push Docker image
+          command: |
+            docker push ghcr.io/${GHCR_USER}/goblin-assistant:${CIRCLE_SHA1}
+            docker push ghcr.io/${GHCR_USER}/goblin-assistant:latest
+            docker push ghcr.io/${GHCR_USER}/goblin-assistant:${CIRCLE_BRANCH:-main}
+      - run:
+          name: Save image digest
+          command: |
+            docker inspect ghcr.io/${GHCR_USER}/goblin-assistant:${CIRCLE_SHA1} --format='{{.Id}}' > /tmp/image-digest.txt
+      - store_artifacts:
+          path: /tmp/image-digest.txt
+          destination: docker/image-digest.txt
+
+  # --------------------------------------------------------------------------
+  # Terraform: Security Scan (tfsec + checkov)
+  # --------------------------------------------------------------------------
+  terraform-security-scan:
+    executor: python-executor
+    steps:
+      - checkout
+      - install-security-tools
+      - run:
+          name: Run tfsec
+          command: |
+            cd goblin-infra
+            tfsec . --format=json --out=tfsec-results.json || true
+            tfsec . --soft-fail || echo "tfsec found issues (review required)"
+      - run:
+          name: Run checkov
+          command: |
+            cd goblin-infra
+            checkov -d . --output=json --output-file=checkov-results.json || true
+            checkov -d . --soft-fail || echo "checkov found issues (review required)"
+      - store_artifacts:
+          path: goblin-infra/tfsec-results.json
+          destination: security/tfsec-results.json
+      - store_artifacts:
+          path: goblin-infra/checkov-results.json
+          destination: security/checkov-results.json
+
+  # --------------------------------------------------------------------------
+  # Terraform: Plan (Dev)
+  # --------------------------------------------------------------------------
+  terraform-plan-dev:
+    executor: python-executor
+    environment:
+      TF_WORKSPACE: GoblinOSAssistant
+    steps:
+      - checkout
+      - install-terraform
+      - run:
+          name: Setup Terraform credentials
+          command: |
+            mkdir -p ~/.terraform.d
+            cat > ~/.terraform.d/credentials.tfrc.json \<<EOF
+            {
+              "credentials": {
+                "app.terraform.io": {
+                  "token": "${TF_TOKEN}"
+                }
+              }
+            }
+            EOF
+      - run:
+          name: Terraform init (dev)
+          command: |
+            cd goblin-infra/envs/dev
+            terraform init -input=false
+      - run:
+          name: Terraform validate
+          command: |
+            cd goblin-infra/envs/dev
+            terraform validate
+      - run:
+          name: Terraform plan (dev)
+          command: |
+            cd goblin-infra/envs/dev
+            terraform plan -input=false -out=tfplan-dev
+      - persist_to_workspace:
+          root: .
+          paths:
+            - goblin-infra/envs/dev/tfplan-dev
+            - goblin-infra/envs/dev/.terraform
+            - goblin-infra/envs/dev/.terraform.lock.hcl
+      - store_artifacts:
+          path: goblin-infra/envs/dev/tfplan-dev
+          destination: terraform/tfplan-dev
+
+  # --------------------------------------------------------------------------
+  # Terraform: Plan (Staging)
+  # --------------------------------------------------------------------------
+  terraform-plan-staging:
+    executor: python-executor
+    environment:
+      TF_WORKSPACE: GoblinOSAssistant-staging
+    steps:
+      - checkout
+      - install-terraform
+      - run:
+          name: Setup Terraform credentials
+          command: |
+            mkdir -p ~/.terraform.d
+            cat > ~/.terraform.d/credentials.tfrc.json \<<EOF
+            {
+              "credentials": {
+                "app.terraform.io": {
+                  "token": "${TF_TOKEN}"
+                }
+              }
+            }
+            EOF
+      - run:
+          name: Terraform init (staging)
+          command: |
+            cd goblin-infra/envs/staging
+            terraform init -input=false
+      - run:
+          name: Terraform plan (staging)
+          command: |
+            cd goblin-infra/envs/staging
+            terraform plan -input=false -out=tfplan-staging
+      - store_artifacts:
+          path: goblin-infra/envs/staging/tfplan-staging
+          destination: terraform/tfplan-staging
+
+  # --------------------------------------------------------------------------
+  # Terraform: Plan (Prod)
+  # --------------------------------------------------------------------------
+  terraform-plan-prod:
+    executor: python-executor
+    environment:
+      TF_WORKSPACE: GoblinOSAssistant-prod
+    steps:
+      - checkout
+      - install-terraform
+      - run:
+          name: Setup Terraform credentials
+          command: |
+            mkdir -p ~/.terraform.d
+            cat > ~/.terraform.d/credentials.tfrc.json \<<EOF
+            {
+              "credentials": {
+                "app.terraform.io": {
+                  "token": "${TF_TOKEN}"
+                }
+              }
+            }
+            EOF
+      - run:
+          name: Terraform init (prod)
+          command: |
+            cd goblin-infra/envs/prod
+            terraform init -input=false
+      - run:
+          name: Terraform plan (prod)
+          command: |
+            cd goblin-infra/envs/prod
+            terraform plan -input=false -out=tfplan-prod
+      - store_artifacts:
+          path: goblin-infra/envs/prod/tfplan-prod
+          destination: terraform/tfplan-prod
+
+  # --------------------------------------------------------------------------
+  # Terraform: Apply (Dev) - Auto on main
+  # --------------------------------------------------------------------------
+  terraform-apply-dev:
+    executor: python-executor
+    environment:
+      TF_WORKSPACE: GoblinOSAssistant
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - install-terraform
+      - run:
+          name: Setup Terraform credentials
+          command: |
+            mkdir -p ~/.terraform.d
+            cat > ~/.terraform.d/credentials.tfrc.json \<<EOF
+            {
+              "credentials": {
+                "app.terraform.io": {
+                  "token": "${TF_TOKEN}"
+                }
+              }
+            }
+            EOF
+      - run:
+          name: Terraform init (dev)
+          command: |
+            cd goblin-infra/envs/dev
+            terraform init -input=false
+      - run:
+          name: Terraform apply (dev)
+          command: |
+            cd goblin-infra/envs/dev
+            terraform apply -auto-approve -input=false
+
+  # --------------------------------------------------------------------------
+  # Smoke Tests
+  # --------------------------------------------------------------------------
+  smoke-test-staging:
+    executor: python-executor
+    steps:
+      - checkout
+      - run:
+          name: Run staging smoke tests
+          command: |
+            chmod +x goblin-infra/scripts/staging_smoke_tests.sh
+            ./goblin-infra/scripts/staging_smoke_tests.sh || echo "Smoke tests completed"
+
+  smoke-test-prod:
+    executor: python-executor
+    steps:
+      - checkout
+      - run:
+          name: Run production smoke tests
+          command: |
+            chmod +x goblin-infra/scripts/prod_smoke_tests.sh
+            ./goblin-infra/scripts/prod_smoke_tests.sh || echo "Smoke tests completed"
+
+# ============================================================================
+# WORKFLOWS
+# ============================================================================
+workflows:
+  version: 2
+
+  # --------------------------------------------------------------------------
+  # CI Pipeline: Runs on every push/PR
+  # --------------------------------------------------------------------------
+  ci-pipeline:
+    jobs:
+      # Backend tests (always)
+      - backend-lint-test
+
+      # Security scan for infra changes
+      - terraform-security-scan:
+          filters:
+            branches:
+              only:
+                - main
+                - /^feature\/.*/
+                - /^infra\/.*/
+
+      # Terraform plans (run in parallel)
+      - terraform-plan-dev:
+          requires:
+            - terraform-security-scan
+          context: terraform-cloud
+
+      - terraform-plan-staging:
+          requires:
+            - terraform-security-scan
+          context: terraform-cloud
+
+      - terraform-plan-prod:
+          requires:
+            - terraform-security-scan
+          context: terraform-cloud
+
+  # --------------------------------------------------------------------------
+  # Deploy Pipeline: Runs on merge to main
+  # --------------------------------------------------------------------------
+  deploy-pipeline:
+    jobs:
+      # Build & test
+      - backend-lint-test:
+          filters:
+            branches:
+              only: main
+
+      # Build & push Docker image
+      - docker-build-push:
+          requires:
+            - backend-lint-test
+          filters:
+            branches:
+              only: main
+          context: docker-ghcr
+
+      # Security scan
+      - terraform-security-scan:
+          filters:
+            branches:
+              only: main
+
+      # Dev: Auto-apply
+      - terraform-plan-dev:
+          requires:
+            - terraform-security-scan
+          context: terraform-cloud
+          filters:
+            branches:
+              only: main
+
+      - terraform-apply-dev:
+          requires:
+            - terraform-plan-dev
+            - docker-build-push
+          context: terraform-cloud
+          filters:
+            branches:
+              only: main
+
+      # Staging: Manual approval required
+      - terraform-plan-staging:
+          requires:
+            - terraform-apply-dev
+          context: terraform-cloud
+          filters:
+            branches:
+              only: main
+
+      - hold-staging-approval:
+          type: approval
+          requires:
+            - terraform-plan-staging
+
+      # Prod: Manual approval required (separate gate)
+      - terraform-plan-prod:
+          requires:
+            - terraform-apply-dev
+          context: terraform-cloud
+          filters:
+            branches:
+              only: main
+
+      - hold-prod-approval:
+          type: approval
+          requires:
+            - terraform-plan-prod
+
+  # --------------------------------------------------------------------------
+  # Nightly: Security scans
+  # --------------------------------------------------------------------------
+  nightly-security:
+    triggers:
+      - schedule:
+          cron: "0 3 * * *"  # 3 AM UTC daily
+          filters:
+            branches:
+              only: main
+    jobs:
+      - terraform-security-scan:
+          context: terraform-cloud

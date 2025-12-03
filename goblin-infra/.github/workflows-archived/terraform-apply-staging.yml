@@ -1,0 +1,24 @@
+name: Terraform Apply (staging)
+on:
+  workflow_dispatch:
+    inputs: {}
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+      - name: Terraform Init
+        run: terraform -chdir=envs/staging init -input=false
+      - name: Terraform Apply
+        run: terraform -chdir=envs/staging apply -auto-approve -input=false
+      - name: Post-apply smoke tests
+        run: |
+          ./scripts/staging_smoke_tests.sh || (echo "Smoke tests failed" && exit 1)

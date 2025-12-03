@@ -1,0 +1,26 @@
+name: Terraform Apply (prod)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+      - name: Terraform Init
+        run: terraform -chdir=envs/prod init -input=false
+      - name: Manual approval note
+        run: echo "This job requires environment approval in GitHub. Do not proceed without sign-off."
+      - name: Terraform Apply (production)
+        run: terraform -chdir=envs/prod apply -auto-approve -input=false
+      - name: Post-deploy smoke tests
+        run: |
+          ./scripts/prod_smoke_tests.sh || (echo "Smoke tests failed" && exit 1)
+
