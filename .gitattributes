@@ -1,11 +1,54 @@
 * text=auto eol=lf
-# Treat these as binary
+
+# Binary files
 *.png binary
 *.jpg binary
 *.jpeg binary
 *.gif binary
 *.ico binary
 *.pdf binary
-*.md linguist-detectable=true
-docs/** linguist-documentation=false
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# Language detection - Enable all languages
+*.py linguist-detectable=true linguist-language=Python
+*.ts linguist-detectable=true linguist-language=TypeScript
+*.tsx linguist-detectable=true linguist-language=TypeScript
+*.js linguist-detectable=true linguist-language=JavaScript
+*.jsx linguist-detectable=true linguist-language=JavaScript
+*.sh linguist-detectable=true linguist-language=Shell
+*.bash linguist-detectable=true linguist-language=Shell
+*.json linguist-detectable=true linguist-language=JSON
+*.yaml linguist-detectable=true linguist-language=YAML
+*.yml linguist-detectable=true linguist-language=YAML
+*.md linguist-detectable=true linguist-language=Markdown
+*.html linguist-detectable=true linguist-language=HTML
+*.css linguist-detectable=true linguist-language=CSS
+*.scss linguist-detectable=true linguist-language=SCSS
+*.dockerfile linguist-detectable=true linguist-language=Dockerfile
+Dockerfile linguist-detectable=true linguist-language=Dockerfile
+
+# Documentation - count as documentation but still detect language
+docs/** linguist-documentation=true
+*.md linguist-documentation=false
+
+# Generated files - exclude from stats
 *.template.md linguist-generated=true
+**/node_modules/** linguist-vendored=true
+**/dist/** linguist-generated=true
+**/build/** linguist-generated=true
+**/.next/** linguist-generated=true
+**/coverage/** linguist-generated=true
+**/__pycache__/** linguist-generated=true
+*.min.js linguist-generated=true
+*.min.css linguist-generated=true
+package-lock.json linguist-generated=true
+pnpm-lock.yaml linguist-generated=true
+yarn.lock linguist-generated=true
+
+# Vendored dependencies
+**/vendor/** linguist-vendored=true
+**/vendors/** linguist-vendored=true
+**/third_party/** linguist-vendored=true
