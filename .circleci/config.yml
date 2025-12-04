@@ -326,6 +326,32 @@ jobs:
             terraform apply -auto-approve -input=false
 
   # --------------------------------------------------------------------------
+  # Chromatic: Visual Regression Testing
+  # --------------------------------------------------------------------------
+  chromatic-visual-tests:
+    executor: python-executor
+    steps:
+      - checkout
+      - run:
+          name: Setup Node.js
+          command: |
+            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+      - run:
+          name: Install dependencies
+          command: |
+            cd apps/goblin-assistant
+            npm ci
+      - run:
+          name: Run Chromatic visual tests
+          command: |
+            cd apps/goblin-assistant
+            npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded
+      - store_artifacts:
+          path: apps/goblin-assistant/build-storybook.log
+          destination: chromatic/build-storybook.log
+
+  # --------------------------------------------------------------------------
   # Smoke Tests
   # --------------------------------------------------------------------------
   smoke-test-staging:
@@ -362,6 +388,15 @@ workflows:
       # Backend tests (always)
       - backend-lint-test
 
+      # Chromatic visual tests (frontend changes)
+      - chromatic-visual-tests:
+          filters:
+            branches:
+              only:
+                - main
+                - /^feature\/.*/
+                - /^frontend\/.*/
+
       # Security scan for infra changes
       - terraform-security-scan:
           filters:
@@ -394,6 +429,12 @@ workflows:
     jobs:
       # Build & test
       - backend-lint-test:
+          filters:
+            branches:
+              only: main
+
+      # Chromatic visual tests (main branch)
+      - chromatic-visual-tests:
           filters:
             branches:
               only: main
