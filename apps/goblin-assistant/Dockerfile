@@ -19,13 +19,16 @@ WORKDIR /app
 
 # Copy requirements first for better caching
 COPY backend/requirements.txt .
+COPY backend-api/requirements.txt ./backend-api-requirements.txt
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r backend-api-requirements.txt
 
 # Copy application code
 COPY backend/ .
+COPY backend-api/ ./backend-api/
 
 # Change ownership to non-root user
 RUN chown -R goblin:goblin /app
