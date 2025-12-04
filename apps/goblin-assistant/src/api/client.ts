@@ -1,5 +1,7 @@
 // API client for GoblinOS Assistant backend
-const API_BASE_URL = import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8001';
+// Use relative URLs in production (Vercel proxy) or full URLs in development
+const IS_VERCEL = import.meta.env.VITE_VERCEL === '1' || import.meta.env.VERCEL === '1';
+const API_BASE_URL = IS_VERCEL ? '' : (import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8001');
 
 class ApiClient {
   private baseUrl: string;

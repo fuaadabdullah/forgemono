@@ -1,16 +1,19 @@
 #!/bin/bash
-# Deploy GoblinOS Assistant to Vercel with Bitwarden Secret Loading
-# DEPRECATED: Use goblin-infra/projects/goblin-assistant/frontend/deploy-vercel.sh instead
+# Deploy GoblinOS Assistant Frontend to Vercel (Infrastructure Repository)
+# This script is managed in goblin-infra for centralized deployment control
 
 set -e  # Exit on error
 
-echo "⚠️  DEPRECATED: This script is deprecated."
-echo "📍 Use: goblin-infra/projects/goblin-assistant/frontend/deploy-vercel.sh"
-echo ""
-echo "🔮 Deploying GoblinOS Assistant Frontend to Vercel (Bitwarden Vault)..."
+echo "🚀 Deploying GoblinOS Assistant Frontend to Vercel (via goblin-infra)..."
 
-# Navigate to project directory
-cd "$(dirname "$0")"
+# Get the absolute path to the goblin-assistant app
+GOBLIN_APP_DIR="/Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant"
+
+# Check if we're in the right directory or navigate to goblin-assistant
+if [[ ! -f "package.json" ]] || [[ ! -d "src" ]]; then
+    echo "📁 Navigating to goblin-assistant app directory..."
+    cd "$GOBLIN_APP_DIR"
+fi
 
 # Check if Bitwarden CLI is installed
 if ! command -v bw &> /dev/null; then
@@ -28,9 +31,9 @@ fi
 echo "🔐 Unlocking Bitwarden vault..."
 export BW_SESSION=$(bw unlock --raw)
 
-# Load production secrets
+# Load production secrets from vault
 echo "📦 Loading production secrets from vault..."
-export VERCEL_TOKEN=$(bw get password goblin-prod-vercel-token)
+export VERCEL_TOKEN=$(bw get password b0729e06-3b13-4ee4-bf66-b3a9006a2b82)
 export GOOGLE_CLIENT_ID=$(bw get password goblin-prod-google-client-id)
 export SUPABASE_URL=$(bw get password goblin-prod-supabase-url)
 export SUPABASE_ANON_KEY=$(bw get password goblin-prod-supabase-anon-key)
@@ -39,7 +42,11 @@ echo "✅ Secrets loaded successfully"
 
 # Authenticate with Vercel
 echo "🔑 Authenticating with Vercel..."
-vercel login --token "$VERCEL_TOKEN"
+export VERCEL_TOKEN="$VERCEL_TOKEN"  # Ensure token is available for Vercel CLI
+
+# Install dependencies
+echo "📦 Installing dependencies..."
+npm install
 
 # Build the project
 echo "📦 Building frontend..."
@@ -47,6 +54,14 @@ npm run build
 
 # Set environment variables in Vercel
 echo "🔧 Configuring Vercel environment..."
+vercel env rm VITE_API_URL production -y 2>/dev/null || true
+vercel env rm VITE_FASTAPI_URL production -y 2>/dev/null || true
+vercel env rm VITE_FRONTEND_URL production -y 2>/dev/null || true
+vercel env rm VITE_GOOGLE_CLIENT_ID production -y 2>/dev/null || true
+vercel env rm VITE_APP_ENV production -y 2>/dev/null || true
+vercel env rm SUPABASE_URL production -y 2>/dev/null || true
+vercel env rm SUPABASE_ANON_KEY production -y 2>/dev/null || true
+
 vercel env add VITE_API_URL production <<< "https://goblin-assistant.fly.dev"
 vercel env add VITE_FASTAPI_URL production <<< "https://goblin-assistant.fly.dev"
 vercel env add VITE_FRONTEND_URL production <<< "https://goblin-assistant.vercel.app"
@@ -57,7 +72,7 @@ vercel env add SUPABASE_ANON_KEY production <<< "$SUPABASE_ANON_KEY"
 
 # Deploy to Vercel
 echo "🌐 Deploying to Vercel..."
-vercel --prod
+vercel --prod --cwd "$GOBLIN_APP_DIR"
 
 # Clean up session
 unset BW_SESSION
@@ -71,9 +86,7 @@ echo "🔗 URL: https://goblin-assistant.vercel.app"
 echo ""
 echo "🧹 Secrets cleaned from environment"
 echo ""
-echo "⚠️  NOTE: This script is deprecated. Use goblin-infra version for future deployments."
-echo ""
 echo "Next steps:"
-echo "1. Deploy backend to Fly.io (see FLY_DEPLOYMENT.md or run ./deploy-fly.sh)"
+echo "1. Deploy backend to Fly.io (see goblin-infra/projects/goblin-assistant/deploy-backend.sh)"
 echo "2. Verify environment variables in Vercel dashboard"
 echo "3. Test the deployed application"

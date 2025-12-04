@@ -24,6 +24,12 @@ This runbook is for on-call engineers and deployers who need to manage the Gobli
 2. Set secrets: `fly secrets set JWT_SECRET_KEY=...` (or use Bitwarden secrets loader)
 3. Deploy: `./apps/goblin-assistant/deploy-fly.sh` (or `flyctl deploy`)
 
+## Deploying (Vercel - Frontend)
+1. Validate `vercel.json` in `goblin-infra/projects/goblin-assistant/frontend/`
+2. For automated deployment with secrets: `./goblin-infra/projects/goblin-assistant/frontend/deploy-vercel.sh`
+3. For manual deployment: `./goblin-infra/projects/goblin-assistant/frontend/deploy-vercel-simple.sh`
+4. Verify deployment in Vercel dashboard and test application access
+
 ## Rollback (Kubernetes)
 - Use `kubectl rollout undo`:
   - `kubectl rollout undo deployment/<name> -n <namespace>`
@@ -35,20 +41,30 @@ This runbook is for on-call engineers and deployers who need to manage the Gobli
   - `flyctl releases list --app <app>` to find last release
   - `flyctl releases promote <release-id>` or `flyctl rollback <release-id>`
 
+## Rollback (Vercel)
+
+- Use Vercel dashboard to rollback to previous deployment
+- Or use CLI: `vercel rollback <deployment-url>`
+- Check deployment history: `vercel ls`
+
 ## Data & Secrets Compromise
+
 - If secrets are compromised, rotate secrets in Bitwarden and trigger a rolling restart in both Fly and Kubernetes environments.
 - Rotate JWT keys and provider keys (Anthropic/OpenAI). Update env stores and redeploy.
 
 ## Observability & Alerts
+
 - Prometheus alerts: `infra/observability/alertmanager/` has playbooks and runbooks
 - Dashboards and SLOs: Grafana dashboards in `infra/observability/grafana/dashboards` (copy from rendering)
 
 ## Post-deploy checks
+
 - Smoke tests: `apps/goblin-assistant/tools/smoke.sh`
 - Health checks: `curl -f -s https://<host>/health` and `/metrics`
 - Logs: Check Loki / Datadog traces and Grafana dashboards
 
 ## Escalation
+
 - Who to escalate to: See `docs/WORKSPACE_OVERVIEW.md` -> Keepers/Mages guild.
 - Contact details: `owners/email` in README (if present) or use GoblinOS admin channel.
 

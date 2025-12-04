@@ -81,7 +81,7 @@ jobs:
       - name: Build Project Artifacts
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          VITE_API_URL: https://staging-api.goblin.fuaad.ai
+          API_BASE_URL: https://staging-api.goblin.fuaad.ai
 
       - name: Deploy to Vercel (Staging)
         run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} --prod
@@ -121,7 +121,7 @@ jobs:
       - name: Build Project Artifacts
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          VITE_API_URL: https://api.goblin.fuaad.ai
+          API_BASE_URL: https://api.goblin.fuaad.ai
 
       - name: Deploy to Vercel (Production)
         id: deploy

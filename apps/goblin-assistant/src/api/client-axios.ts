@@ -1,7 +1,10 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import { useAuthStore } from '../store/authStore';
 
-const API_BASE_URL = import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8001';
+// Check if running in Vercel environment
+const IS_VERCEL = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
+
+const API_BASE_URL = IS_VERCEL ? '' : (import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8001');
 
 /**
  * Typed API client using axios with interceptors for auth and error handling

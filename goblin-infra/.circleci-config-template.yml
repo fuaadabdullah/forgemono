@@ -1,0 +1,114 @@
+version: 2.1
+
+# Concrete CircleCI config for deploying Goblin Assistant with Bitwarden secrets.
+# Assumes BW_CLIENTID, BW_CLIENTSECRET, BW_PASSWORD, and BW_ORGANIZATION_ID are set in CircleCI contexts.
+# Replace placeholders with real values.
+
+orbs:
+  python: circleci/python@1.4.0
+
+jobs:
+  build-and-push:
+    docker:
+      - image: cimg/python:3.11
+    steps:
+      - checkout
+      - python/install-packages:
+          packages: 'pipx poetry'
+      - run:
+          name: Build and push docker image
+          command: |
+            # Build and push image
+            docker build -t $DOCKER_REGISTRY/goblin-assistant:$CIRCLE_SHA1 .
+            docker push $DOCKER_REGISTRY/goblin-assistant:$CIRCLE_SHA1
+
+  write-secrets-to-bitwarden:
+    docker:
+      - image: bitwarden/cli:latest
+    steps:
+      - checkout
+      - run:
+          name: Write secrets to Bitwarden
+          command: |
+            # Login to Bitwarden using API key
+            bw login --apikey
+
+            # Unlock vault
+            export BW_SESSION=$(bw unlock --passwordenv BW_PASSWORD --raw)
+
+            # Create JSON with all secrets
+            SECRET_DATA=$(cat <<EOF
+            {
+              "DATABASE_URL": "$DATABASE_URL",
+              "SUPABASE_URL": "$SUPABASE_URL",
+              "SUPABASE_SERVICE_ROLE_KEY": "$SUPABASE_SERVICE_ROLE_KEY",
+              "LOCAL_LLM_API_KEY": "$LOCAL_LLM_API_KEY",
+              "LOCAL_LLM_PROXY_URL": "$LOCAL_LLM_PROXY_URL",
+              "JWT_SECRET": "$JWT_SECRET",
+              "GROQ_API_KEY": "$GROQ_API_KEY",
+              "OPENAI_API_KEY": "$OPENAI_API_KEY",
+              "ANTHROPIC_API_KEY": "$ANTHROPIC_API_KEY"
+            }
+            EOF
+            )
+
+            # Store secrets in Bitwarden secure note
+            bw create item --organizationid $BW_ORGANIZATION_ID <<EOF
+            {
+              "type": 2,
+              "name": "goblin-secrets-$CIRCLE_BRANCH",
+              "notes": "$SECRET_DATA",
+              "secureNote": {
+                "type": 0
+              }
+            }
+            EOF
+
+            # Generate a one-time bootstrap token
+            BOOTSTRAP_TOKEN=$(openssl rand -hex 32)
+
+            # Store bootstrap token in separate secure note
+            bw create item --organizationid $BW_ORGANIZATION_ID <<EOF
+            {
+              "type": 2,
+              "name": "goblin-bootstrap-$CIRCLE_SHA1",
+              "notes": "{\"bootstrap_token\": \"$BOOTSTRAP_TOKEN\", \"instance_id\": \"$CIRCLE_SHA1\"}",
+              "secureNote": {
+                "type": 0
+              }
+            }
+            EOF
+
+            # Export bootstrap token for Terraform
+            echo "export BOOTSTRAP_TOKEN=$BOOTSTRAP_TOKEN" >> $BASH_ENV
+
+  trigger-terraform:
+    docker:
+      - image: hashicorp/terraform:light
+    steps:
+      - checkout
+      - run:
+          name: Terraform apply
+          command: |
+            # Use service principal or credentials from CircleCI contexts
+            export ARM_CLIENT_ID=$ARM_CLIENT_ID
+            export ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET
+            export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+            export ARM_TENANT_ID=$ARM_TENANT_ID
+
+            cd goblin-infra
+            terraform init
+            terraform apply -auto-approve \
+              -var="image_tag=$CIRCLE_SHA1" \
+              -var="bootstrap_token=$BOOTSTRAP_TOKEN"
+
+workflows:
+  deploy:
+    jobs:
+      - build-and-push
+      - write-secrets-to-bitwarden:
+          requires:
+            - build-and-push
+      - trigger-terraform:
+          requires:
+            - write-secrets-to-bitwarden

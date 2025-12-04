@@ -2,30 +2,79 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite",
+  "framework": null,
   "rewrites": [
     {
       "source": "/api/:path*",
-  "destination": "https://goblin-assistant.fly.dev/api/:path*"
-    }
-  ],
-  "headers": [
+      "destination": "${API_BASE_URL}/api/:path*"
+    },
     {
-      "source": "/api/:path*",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET,POST,PUT,DELETE,OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        }
-      ]
+      "source": "/auth/:path*",
+      "destination": "${API_BASE_URL}/auth/:path*"
+    },
+    {
+      "source": "/search/:path*",
+      "destination": "${API_BASE_URL}/search/:path*"
+    },
+    {
+      "source": "/settings/:path*",
+      "destination": "${API_BASE_URL}/settings/:path*"
+    },
+    {
+      "source": "/execute/:path*",
+      "destination": "${API_BASE_URL}/execute/:path*"
+    },
+    {
+      "source": "/health/:path*",
+      "destination": "${API_BASE_URL}/health/:path*"
+    },
+    {
+      "source": "/metrics",
+      "destination": "${API_BASE_URL}/metrics"
+    },
+    {
+      "source": "/debug/:path*",
+      "destination": "${API_BASE_URL}/debug/:path*"
+    },
+    {
+      "source": "/debugger/:path*",
+      "destination": "${API_BASE_URL}/debugger/:path*"
+    },
+    {
+      "source": "/dashboard/:path*",
+      "destination": "${API_BASE_URL}/dashboard/:path*"
+    },
+    {
+      "source": "/api/dashboard/:path*",
+      "destination": "${API_BASE_URL}/api/dashboard/:path*"
+    },
+    {
+      "source": "/routing/:path*",
+      "destination": "${API_BASE_URL}/routing/:path*"
+    },
+    {
+      "source": "/chat/:path*",
+      "destination": "${API_BASE_URL}/chat/:path*"
+    },
+    {
+      "source": "/stream/:path*",
+      "destination": "${API_BASE_URL}/stream/:path*"
+    },
+    {
+      "source": "/parse/:path*",
+      "destination": "${API_BASE_URL}/parse/:path*"
+    },
+    {
+      "source": "/raptor/:path*",
+      "destination": "${API_BASE_URL}/raptor/:path*"
+    },
+    {
+      "source": "/api-keys/:path*",
+      "destination": "${API_BASE_URL}/api-keys/:path*"
+    },
+    {
+      "source": "/sandbox/:path*",
+      "destination": "${API_BASE_URL}/sandbox/:path*"
     }
   ]
 }

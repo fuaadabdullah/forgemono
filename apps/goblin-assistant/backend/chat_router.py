@@ -199,17 +199,21 @@ async def create_chat_completion(
         # Initialize the adapter for the selected provider
         # For now, we'll focus on Ollama (local LLMs)
         if provider_info["name"].lower() == "ollama":
-            # Get Ollama configuration - prefer Kalmatura for production
+            # Get Ollama configuration - prefer Kamatera for production
             use_local_llm = os.getenv("USE_LOCAL_LLM", "false").lower() == "true"
 
             if use_local_llm:
                 # Local development mode
-                ollama_base_url = os.getenv("LOCAL_LLM_PROXY_URL", "http://localhost:11434")
+                ollama_base_url = os.getenv(
+                    "LOCAL_LLM_PROXY_URL", "http://localhost:11434"
+                )
                 ollama_api_key = os.getenv("LOCAL_LLM_API_KEY", "")
             else:
-                # Production mode - use Kalmatura-hosted LLM runtime
-                ollama_base_url = os.getenv("KALMATURA_LLM_URL", "http://localhost:11434")
-                ollama_api_key = os.getenv("KALMATURA_LLM_API_KEY", "")
+                # Production mode - use Kamatera-hosted LLM runtime
+                ollama_base_url = os.getenv(
+                    "KAMATERA_LLM_URL", "http://localhost:11434"
+                )
+                ollama_api_key = os.getenv("KAMATERA_LLM_API_KEY", "")
 
             adapter = OllamaAdapter(ollama_api_key, ollama_base_url)
 

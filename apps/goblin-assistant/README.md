@@ -25,8 +25,7 @@ Note: Most backend-specific documentation has been consolidated under the canoni
 ### 🛠️ Infrastructure (`infra/` + `goblin-infra/`)
 
 - **Tools**: Terraform, Cloudflare Workers, Docker
-- **Purpose**: Deployment, hosting, and scaling infrastructure
-- **Environments**: Dev, staging, production with automated CI/CD via CircleCI
+- **Primary CDN/Edge Provider**: Cloudflare (Workers, KV, D1, R2, Tunnel, Turnstile)
 
 ### 💾 Database & API Layer (`api/`, database files)
 
@@ -184,6 +183,7 @@ FALLBACK_MODEL_KEY=your-llm-api-key
 - **Recommended**: Use Bitwarden vault for secrets management (see [Bitwarden Vault Setup](./docs/BITWARDEN_VAULT_SETUP.md))
 - Consider using a secrets management service in production
 - Rotate API keys regularly
+- Data & Privacy: Sanitize user content before sending to external LLM providers, storing in logs, or adding to a Vector DB. Avoid persisting PII in logs/embeddings, use TTLs for context (e.g., 1h in KV), audit logs and telemetry must not contain user secrets or PII. See `backend/docs/MONITORING_IMPLEMENTATION.md` and `backend/docs/PRODUCTION_MONITORING.md` for retention and monitoring best practices.
 
 ### Production Hardening & Checklist
 

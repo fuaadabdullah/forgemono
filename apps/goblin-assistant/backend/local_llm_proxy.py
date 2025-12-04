@@ -97,6 +97,35 @@ async def list_models(request: Request):
     return {"models": models}
 
 
+@app.post("/api/chat")
+async def ollama_chat(request: Request):
+    """Direct proxy to Ollama /api/chat endpoint"""
+    verify_api_key(request)
+
+    try:
+        body = await request.json()
+
+        # Forward to Ollama
+        headers = {"Content-Type": "application/json"}
+        response = await client.post(f"{OLLAMA_URL}/api/chat", json=body, headers=headers)
+
+        if response.status_code != 200:
+            logger.error(f"Ollama chat failed: {response.status_code} {response.text}")
+            raise HTTPException(
+                status_code=response.status_code, detail="Ollama chat failed"
+            )
+
+        return Response(
+            content=response.content, media_type=response.headers.get("content-type")
+        )
+
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="Ollama request timeout")
+    except Exception as e:
+        logger.error(f"Ollama chat error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
 @app.post("/chat/completions")
 async def chat_completions(request: Request):
     """Route chat completions to appropriate local LLM"""

@@ -17,18 +17,18 @@ CORS_ORIGINS=http://localhost:3000,https://yourdomain.com,https://www.yourdomain
 
 ## LLM Runtime (Production)
 
-Important: Production LLM runtimes (e.g., Ollama, llama.cpp instances) must run remotely on the Kalmatura managed hosts. Do NOT host production LLM runtimes on the application host.
+Important: Production LLM runtimes (e.g., Ollama, llama.cpp instances) must run remotely on the Kamatera managed hosts. Do NOT host production LLM runtimes on the application host.
 
-Add the following production-only environment variables and point them to your Kalmatura runtime endpoints:
+Add the following production-only environment variables and point them to your Kamatera runtime endpoints:
 
 ```bash
-# Kalmatura LLM runtime
-KALMATURA_HOST=kalmatura.example
-KALMATURA_LLM_URL=https://llm.kalmatura.example
-KALMATURA_LLM_API_KEY=your-kalmatura-llm-api-key
+# Kamatera LLM runtime
+KAMATERA_HOST=kamatera.example
+KAMATERA_LLM_URL=https://llm.kamatera.example
+KAMATERA_LLM_API_KEY=your-kamatera-llm-api-key
 ```
 
-For local development you may still run a local LLM proxy (ollama/llama.cpp) behind `USE_LOCAL_LLM=true`, but ensure `USE_LOCAL_LLM` is false or unset in production `.env` on Kalmatura.
+For local development you may still run a local LLM proxy (ollama/llama.cpp) behind `USE_LOCAL_LLM=true`, but ensure `USE_LOCAL_LLM` is false or unset in production `.env` on Kamatera.
 
 
 ## Middleware Features

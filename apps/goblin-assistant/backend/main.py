@@ -58,7 +58,12 @@ from stream_router import router as stream_router
 from health_router import router as health_router
 from dashboard_router import router as dashboard_router
 from tasks.provider_probe_worker import ProviderProbeWorker
-from raptor_router import router as raptor_router
+try:
+    from raptor_router import router as raptor_router
+except ImportError:
+    # Create a stub router if raptor_mini is not available
+    from fastapi import APIRouter
+    raptor_router = APIRouter()
 
 # Database imports
 from database import create_tables

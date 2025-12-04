@@ -38,6 +38,10 @@ forgetm.db
 
 # Sensitive infra/key files (store in vault instead of repo)
 /infra/charts/age-key.txt
+token.json
+credentials.json
+.circleci/manual_bitwarden_commands.sh
+.circleci/setup_bitwarden_secrets.sh
 
 # Artifacts
 artifacts/
@@ -45,3 +49,4 @@ artifacts/
 
 # Local Netlify folder
 .netlify
+.vercel

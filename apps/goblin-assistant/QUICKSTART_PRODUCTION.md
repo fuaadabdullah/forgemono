@@ -1,15 +1,12 @@
-This document has moved into the canonical backend documentation folder:
-
-- apps/goblin-assistant/backend/docs/QUICKSTART_PRODUCTION.md
-
-Please update any references or links to point to the new location.
 # 🎉 Production Deployment - Quick Reference
+
+This document contains a mix of backend and frontend quickstart notes. Please update any references or links to point to canonical locations:
 
 ## Status: ✅ ALL COMPLETE
 
 ### What Was Done Today (December 1, 2025)
 
-| Task | Status | Documentation |
+
 |------|--------|---------------|
 | 1. API Keys Setup | ✅ Complete | `.env.production` |
 | 2. Real Task Execution | ✅ Complete | `services/goblin_executor.py` |

@@ -5,7 +5,7 @@
 | Service | URL | Purpose |
 |---------|-----|---------|
 | Frontend (Vercel) | https://goblin-assistant.vercel.app | React UI, Static Assets |
-| Backend (Render) | https://goblin-assistant-backend.onrender.com | FastAPI Server, Database |
+| Backend (Fly.io) | https://goblin-assistant.fly.dev | FastAPI Server, Database |
 | LLM Server (Kamatera) | http://45.61.60.3:8002 | Local Ollama Models |
 
 ## Quick Deploy Commands
@@ -46,7 +46,7 @@ curl http://45.61.60.3:8002/health
 
 ### Vercel (Frontend)
 ```bash
-VITE_API_URL=https://goblin-assistant-backend.onrender.com
+VITE_API_URL=https://goblin-assistant.fly.dev
 VITE_FRONTEND_URL=https://goblin-assistant.vercel.app
 VITE_GOOGLE_CLIENT_ID=<your-google-client-id>
 ```
@@ -76,13 +76,13 @@ ANTHROPIC_API_KEY=<your-key>
 curl https://goblin-assistant.vercel.app
 
 # Backend
-curl https://goblin-assistant-backend.onrender.com/health
+curl https://goblin-assistant.fly.dev/health
 
 # LLM Server
 curl http://45.61.60.3:8002/health
 
 # Test full chain
-curl -X POST https://goblin-assistant-backend.onrender.com/api/chat/completions \
+curl -X POST https://goblin-assistant.fly.dev/api/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <your-jwt-token>" \
   -d '{

@@ -25,20 +25,27 @@ This file lists infra artifacts and their preferred canonical locations in the i
 - apps/goblin-assistant/deploy-frontend.sh
 - apps/goblin-assistant/deploy-vercel.sh
 - apps/goblin-assistant/deploy-vercel-bw.sh
+- goblin-infra/projects/goblin-assistant/frontend/vercel.json
+- goblin-infra/projects/goblin-assistant/frontend/deploy-vercel.sh
+- goblin-infra/projects/goblin-assistant/frontend/deploy-vercel-simple.sh
+- goblin-infra/projects/goblin-assistant/frontend/README.md
 
 ## Observability
+
 - goblin-infra/projects/goblin-assistant/infra/observability/ (kustomize manifests and helm renderers)
 - goblin-infra/projects/goblin-assistant/infra/deployments/prometheus.yaml
 - goblin-infra/projects/goblin-assistant/infra/deployments/grafana.yaml
 - goblin-infra/projects/goblin-assistant/infra/observability/overlays/**
 
 ## Secrets bootstrap / helpers
+
 - apps/goblin-assistant/scripts/setup_bitwarden.sh
 - apps/goblin-assistant/scripts/test_vault.sh
 - apps/goblin-assistant/scripts/load_env.sh
 - apps/goblin-assistant/scripts/setup_ssh_key.sh
 
 ## Runbooks / Readmes
+
 - apps/goblin-assistant/FLY_DEPLOYMENT.md
 - apps/goblin-assistant/DEPLOYMENT_CHECKLIST.md
 - apps/goblin-assistant/PRODUCTION_DEPLOYMENT.md
@@ -49,6 +56,7 @@ This file lists infra artifacts and their preferred canonical locations in the i
 ---
 
 ## Suggested retention policy
+
 - Keep production manifests in `goblin-infra/projects/goblin-assistant/` and reference them in `apps/goblin-assistant/` with minimal wrappers.
 - Keep per-environment overlays in `goblin-infra/projects/goblin-assistant/infra/overlays` as the canonical location.
 - `apps/goblin-assistant/infra` is a symlink to the canonical location for backward compatibility.

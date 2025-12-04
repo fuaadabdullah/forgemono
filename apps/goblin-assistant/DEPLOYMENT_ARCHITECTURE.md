@@ -41,9 +41,9 @@ The GoblinOS Assistant uses a three-tier deployment architecture:
 - Output Directory: `dist`
 - API Proxy: Forwards `/api/*` to Render backend
 
-### 2. Backend - Render
+### 2. Backend - Fly.io
 **Service**: Web Service (Python)
-**URL**: `https://goblin-assistant-backend.onrender.com`
+**URL**: `https://goblin-assistant.fly.dev`
 
 **Why Render?**
 - ✅ Native Python support with pip

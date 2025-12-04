@@ -6,6 +6,7 @@ PyJWT
 bcrypt
 python-multipart
 httpx
+aiohttp
 cryptography
 python-dotenv
 sqlalchemy
