@@ -32,7 +32,7 @@ DD_SITE="datadoghq.com" \
 bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
 # 2. Run our setup script
-cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/infra/observability/datadog
+cd /Users/fuaadabdullah/ForgeMonorepo/goblin-infra/projects/goblin-assistant/infra/observability/datadog
 sudo ./setup-datadog-processes.sh
 ```
 
@@ -54,7 +54,7 @@ export DD_ENV="production"
 export DD_HOSTNAME="goblin-backend-01"
 
 # 2. Start Datadog agent
-cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/infra/observability/datadog
+cd /Users/fuaadabdullah/ForgeMonorepo/goblin-infra/projects/goblin-assistant/infra/observability/datadog
 docker-compose -f docker-compose-datadog.yml up -d
 
 # 3. Verify

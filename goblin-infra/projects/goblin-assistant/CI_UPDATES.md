@@ -1,4 +1,12 @@
-# CI Update Checklist - Moving infra to goblin-infra/projects/goblin-assistant
+# CI Update Checklist - Infrastructure Migration Complete ✅
+
+✅ **Infrastructure artifacts successfully migrated** from `apps/goblin-assistant/infra` into `goblin-infra/projects/goblin-assistant/infra`.
+
+✅ **Bilateral connection established**:
+
+- App → Infra: `apps/goblin-assistant/infra` is a symlink to canonical location
+- Infra → App: ArgoCD applications point to canonical paths
+- Kustomize overlays validated for both dev/prod environments
 
 If you decide to move infra artifacts from `apps/goblin-assistant/infra` into `goblin-infra/projects/goblin-assistant/infra`, follow this checklist to update CI/CD references and avoid interruptions.
 

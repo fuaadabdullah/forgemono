@@ -8,7 +8,7 @@ Successfully configured comprehensive Datadog process monitoring for the Goblin 
 
 ### 1. Configuration Files
 
-Created in `apps/goblin-assistant/infra/observability/datadog/`:
+Created in `goblin-infra/projects/goblin-assistant/infra/observability/datadog/`:
 
 | File | Purpose |
 |------|---------|
@@ -58,7 +58,7 @@ DD_API_KEY=<YOUR_KEY> DD_SITE="datadoghq.com" \
 bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
 # 2. Setup process monitoring
-cd apps/goblin-assistant/infra/observability/datadog
+cd goblin-infra/projects/goblin-assistant/infra/observability/datadog
 sudo ./setup-datadog-processes.sh
 
 # 3. Verify
@@ -69,7 +69,7 @@ sudo ./setup-datadog-processes.sh
 
 ```bash
 # 1. Set environment
-cd apps/goblin-assistant/infra/observability/datadog
+cd goblin-infra/projects/goblin-assistant/infra/observability/datadog
 ./setup-env.sh production
 
 # 2. Start agent

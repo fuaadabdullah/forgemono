@@ -3,10 +3,10 @@
 This file lists infra artifacts and their preferred canonical locations in the infra repository.
 
 ## K8s manifests / Helm / Kustomize (source files)
-- apps/goblin-assistant/infra/deployments/
-- apps/goblin-assistant/infra/charts/
-- apps/goblin-assistant/infra/overlays/
-- apps/goblin-assistant/infra/gitops/
+- goblin-infra/projects/goblin-assistant/infra/deployments/
+- goblin-infra/projects/goblin-assistant/infra/charts/
+- goblin-infra/projects/goblin-assistant/infra/overlays/
+- goblin-infra/projects/goblin-assistant/infra/gitops/
 
 ## Terraform (source)
 - goblin-infra/envs/
@@ -27,10 +27,10 @@ This file lists infra artifacts and their preferred canonical locations in the i
 - apps/goblin-assistant/deploy-vercel-bw.sh
 
 ## Observability
-- apps/goblin-assistant/infra/observability/ (kustomize manifests and helm renderers)
-- apps/goblin-assistant/infra/deployments/prometheus.yaml
-- apps/goblin-assistant/infra/deployments/grafana.yaml
-- apps/goblin-assistant/infra/observability/overlays/**
+- goblin-infra/projects/goblin-assistant/infra/observability/ (kustomize manifests and helm renderers)
+- goblin-infra/projects/goblin-assistant/infra/deployments/prometheus.yaml
+- goblin-infra/projects/goblin-assistant/infra/deployments/grafana.yaml
+- goblin-infra/projects/goblin-assistant/infra/observability/overlays/**
 
 ## Secrets bootstrap / helpers
 - apps/goblin-assistant/scripts/setup_bitwarden.sh
@@ -50,5 +50,6 @@ This file lists infra artifacts and their preferred canonical locations in the i
 
 ## Suggested retention policy
 - Keep production manifests in `goblin-infra/projects/goblin-assistant/` and reference them in `apps/goblin-assistant/` with minimal wrappers.
-- Keep per-environment overlays in `apps/goblin-assistant/infra/overlays` until the migration completes.
+- Keep per-environment overlays in `goblin-infra/projects/goblin-assistant/infra/overlays` as the canonical location.
+- `apps/goblin-assistant/infra` is a symlink to the canonical location for backward compatibility.
 

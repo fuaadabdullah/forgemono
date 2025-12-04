@@ -17,7 +17,7 @@ applyTo: "**"
 
 All Goblin Assistant services are protected and accelerated by Cloudflare:
 
-**Location**: `apps/goblin-assistant/infra/cloudflare/`
+**Location**: `goblin-infra/projects/goblin-assistant/infra/cloudflare/`
 
 **Production URLs**:
 
@@ -71,13 +71,13 @@ All Goblin Assistant services are protected and accelerated by Cloudflare:
 
 Note: In production we use Datadog as our canonical observability platform for the Goblin Assistant backend: metrics, traces, logs, SLOs, and monitors are defined and managed in Datadog. The Analytics Engine is a lower-cost fallback for local development or low-volume environments. See `apps/goblin-assistant/datadog/DATADOG_SLOS.md` and `apps/goblin-assistant/PRODUCTION_MONITORING.md` for Datadog-specific configuration, SLOs, and monitors.
 
-**Documentation**: See `apps/goblin-assistant/infra/cloudflare/README.md` for complete setup and operations guide.
+**Documentation**: See `goblin-infra/projects/goblin-assistant/infra/cloudflare/README.md` for complete setup and operations guide.
 
 **Key Commands**:
 
 ```bash
 # Deploy Worker
-cd apps/goblin-assistant/infra/cloudflare && wrangler deploy
+cd goblin-infra/projects/goblin-assistant/infra/cloudflare && wrangler deploy
 
 # Query D1
 wrangler d1 execute goblin-assistant-db --remote --command "SELECT * FROM feature_flags"
@@ -280,7 +280,7 @@ guilds:
 - ✅ Design offline-first, sync later
 - ✅ Single source of truth for business logic in backend
 - ✅ Test on all platforms
-- ✅ Primary CDN/Edge provider: Cloudflare — use Cloudflare Workers, KV, D1, R2, Cloudflare Tunnel, and Turnstile for edge functionality; consult `apps/goblin-assistant/infra/cloudflare/README.md` and Cloudflare docs when authoring edge/traffic/CDN-related code.
+- ✅ Primary CDN/Edge provider: Cloudflare — use Cloudflare Workers, KV, D1, R2, Cloudflare Tunnel, and Turnstile for edge functionality; consult `goblin-infra/projects/goblin-assistant/infra/cloudflare/README.md` and Cloudflare docs when authoring edge/traffic/CDN-related code.
 
 ### Data & Privacy (Goblin Assistant Backend)
 

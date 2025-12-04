@@ -8,7 +8,7 @@ DD_API_KEY=<YOUR_KEY> DD_SITE="datadoghq.com" \
 bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 
 # 2. Setup process monitoring
-cd apps/goblin-assistant/infra/observability/datadog
+cd goblin-infra/projects/goblin-assistant/infra/observability/datadog
 sudo ./setup-datadog-processes.sh
 
 # 3. Verify
@@ -67,7 +67,7 @@ sudo datadog-agent flare
 
 ## ⚙️ Configuration Locations
 
-```
+```text
 Main Config:         /etc/datadog-agent/datadog.yaml
 System Probe:        /etc/datadog-agent/system-probe.yaml
 Logs:                /var/log/datadog/
@@ -78,6 +78,7 @@ Kubernetes:          k8s-datadog-agent.yaml
 ## 🐛 Troubleshooting
 
 **No processes showing?**
+
 ```bash
 # Check if enabled
 grep -A5 "process_config:" /etc/datadog-agent/datadog.yaml
@@ -85,6 +86,7 @@ sudo systemctl restart datadog-agent
 ```
 
 **No I/O stats?**
+
 ```bash
 # Check system-probe
 ps aux | grep system-probe
@@ -92,6 +94,7 @@ sudo systemctl restart datadog-agent
 ```
 
 **API keys visible?**
+
 ```bash
 # Enable scrubbing
 sudo vi /etc/datadog-agent/datadog.yaml

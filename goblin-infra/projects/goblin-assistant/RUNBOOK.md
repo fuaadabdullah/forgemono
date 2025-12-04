@@ -10,11 +10,11 @@ This runbook is for on-call engineers and deployers who need to manage the Gobli
   - `cd goblin-infra/envs/dev && terraform plan`
   - Use Terraform Cloud workflows for plan/apply as configured in CI
 - Verify Kubernetes manifests and local Kustomize overlays
-  - `kustomize build apps/goblin-assistant/infra/overlays/prod | kubectl apply -f - --dry-run=client`
-  - `helm lint` for Helm charts in `infra/charts`
+  - `kustomize build goblin-infra/projects/goblin-assistant/infra/overlays/prod | kubectl apply -f - --dry-run=client`
+  - `helm lint` for Helm charts in `goblin-infra/projects/goblin-assistant/infra/charts`
 
 ## Deploying (Kubernetes - GitOps)
-1. Update overlay in `apps/goblin-assistant/infra/overlays/<env>/`.
+1. Update overlay in `goblin-infra/projects/goblin-assistant/infra/overlays/<env>/`.
 2. Push changes and let ArgoCD pick up the new manifests (or manually apply):
    - `kubectl -n argocd port-forward svc/argocd-server 8080:80` and navigate to ArgoCD UI
    - Or `argocd app sync <app-name>`

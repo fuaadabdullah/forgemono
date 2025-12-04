@@ -5,29 +5,37 @@ This directory serves as the canonical infrastructure repository for the GoblinO
 ## Infrastructure Categories
 
 ### 🐳 K8s manifests / Helm charts / Kustomize
+
 Located in `infra/` subdirectory:
+
 - `infra/charts/` - Helm charts for various services (argo-rollouts, envoy-gateway, keda, kubecost, kyverno, litellm, nats, otel-collector, temporal-worker)
 - `infra/deployments/` - Kubernetes deployment manifests (ai-router, grafana, ollama, prometheus, multi-cloud workflows)
 - `infra/gitops/` - GitOps configurations
 - `infra/overlays/` - Kustomize overlays for different environments
 
 ### ☁️ Terraform (Cloud Infrastructure)
+
 Located in parent `goblin-infra/` directory:
+
 - `../envs/` - Terraform workspace environments (dev, prod, staging)
 - `../modules/` - Reusable Terraform modules
 
 ### ✈️ Fly.io / flyctl manifests
+
 - `fly.toml` - Fly.io application configuration
 - `deploy-fly.sh` - Production deployment script with Bitwarden integration
 - `deploy-backend.sh` - Backend deployment automation
 
 ### 🔄 CI/CD Deploy Scripts
+
 - `deploy-fly.sh` - Fly.io deployment with secrets management
 - `deploy-backend.sh` - Backend deployment automation
 - CI references in `.circleci/config.yml` (external)
 
 ### 📊 Observability Configuration
+
 Located in `infra/observability/`:
+
 - `prometheus/` - Prometheus configuration and rules
 - `grafana/` - Grafana dashboards and datasources
 - `alertmanager/` - Alert rules and routing
@@ -37,7 +45,9 @@ Located in `infra/observability/`:
 - `datadog/` - Datadog integration manifests
 
 ### 🔐 Secrets Bootstrap Scripts
+
 Located in `infra/secrets/`:
+
 - Bitwarden integration scripts
 - KMS helpers and key management
 - Environment-specific secret configurations
@@ -46,12 +56,14 @@ Located in `infra/secrets/`:
 ## Quick Start
 
 ### Prerequisites
+
 - Bitwarden CLI installed and authenticated
 - `kubectl` configured for target cluster
 - `flyctl` installed for Fly.io deployments
 - Terraform CLI for infrastructure changes
 
 ### Validation
+
 ```bash
 # Test Bitwarden access
 ./infra/secrets/test_vault.sh
@@ -66,16 +78,19 @@ cd ../envs/prod && terraform plan
 ### Deployment
 
 #### Fly.io Deployment
+
 ```bash
 ./deploy-fly.sh
 ```
 
 #### Kubernetes Deployment (GitOps)
+
 ```bash
 kustomize build infra/overlays/prod | kubectl apply -f -
 ```
 
 #### Terraform Infrastructure
+
 ```bash
 cd ../envs/prod
 terraform plan
@@ -85,6 +100,7 @@ terraform apply
 ## Runbook & Rollback Procedures
 
 See `RUNBOOK.md` for detailed operational procedures including:
+
 - Pre-deployment validation steps
 - Deployment execution for different platforms
 - Post-deployment verification
@@ -93,7 +109,7 @@ See `RUNBOOK.md` for detailed operational procedures including:
 
 ## Repository Structure
 
-```
+```text
 goblin-infra/projects/goblin-assistant/
 ├── README.md              # This file
 ├── RUNBOOK.md             # Operational runbook
@@ -116,11 +132,11 @@ goblin-infra/projects/goblin-assistant/
 
 ✅ **Infrastructure artifacts successfully consolidated** from `apps/goblin-assistant/infra` into this canonical location.
 
-- All K8s manifests, Helm charts, and overlays copied
-- Observability configurations migrated
-- Secrets bootstrap scripts included
-- Deploy scripts and Fly configurations present
-- Runbook and operational documentation created
+✅ **Bilateral connection established**:
+
+- App → Infra: `apps/goblin-assistant/infra` is a symlink to this canonical location
+- Infra → App: ArgoCD applications point to canonical paths in this directory
+- Kustomize overlays validated for both dev/prod environments
 
 The original artifacts remain in `apps/goblin-assistant/infra` for backward compatibility during transition.
 

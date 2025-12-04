@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: overmind-prod
+  name: goblin-assistant-prod
   labels:
     environment: production
-    project: overmind
+    project: goblin-assistant
