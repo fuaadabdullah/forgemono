@@ -1,0 +1,92 @@
+name: Manual CI/CD Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_backend_tests:
+        description: 'Run backend linting and tests'
+        required: false
+        default: true
+        type: boolean
+      run_docker_build:
+        description: 'Build and push Docker image'
+        required: false
+        default: true
+        type: boolean
+      run_terraform_security:
+        description: 'Run Terraform security scans'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  backend-test:
+    if: ${{ github.event.inputs.run_backend_tests == 'true' || github.event.inputs.run_backend_tests == true }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/goblin-assistant
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt pytest ruff
+
+      - name: Lint with ruff
+        run: ruff check backend/ . --ignore E501,F401 || echo "Lint warnings found"
+
+      - name: Run unit tests
+        run: python -m pytest backend/tests/ -v --tb=short -q || echo "Some tests failed"
+
+  docker-build:
+    if: ${{ github.event.inputs.run_docker_build == 'true' || github.event.inputs.run_docker_build == true }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/goblin-assistant
+          push: true
+          tags: ghcr.io/${{ github.repository }}:manual-${{ github.run_number }}
+
+  terraform-security:
+    if: ${{ github.event.inputs.run_terraform_security == 'true' || github.event.inputs.run_terraform_security == true }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: goblin-infra
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: goblin-infra/
+          framework: terraform

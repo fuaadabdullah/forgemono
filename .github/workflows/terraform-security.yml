@@ -1,0 +1,61 @@
+name: Terraform Security Scan
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'goblin-infra/**'
+      - '.github/workflows/terraform-security.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'goblin-infra/**'
+      - '.github/workflows/terraform-security.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'  # Daily at 3 AM UTC
+
+jobs:
+  tfsec:
+    name: tfsec
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: goblin-infra
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: goblin-infra/tfsec-results.sarif
+          category: tfsec
+
+  checkov:
+    name: checkov
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        id: checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: goblin-infra/
+          framework: terraform
+          output_format: sarif
+          output_file_path: ./checkov-results.sarif
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: ./checkov-results.sarif
+          category: checkov
