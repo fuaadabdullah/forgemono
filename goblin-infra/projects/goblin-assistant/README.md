@@ -138,7 +138,13 @@ goblin-infra/projects/goblin-assistant/
 - Infra → App: ArgoCD applications point to canonical paths in this directory
 - Kustomize overlays validated for both dev/prod environments
 
-The original artifacts remain in `apps/goblin-assistant/infra` for backward compatibility during transition.
+✅ **CI Validation Complete**:
+
+- Terraform validate: ✅ Passed
+- Kustomize build (dev/prod): ✅ Passed
+- Symlink connection: ✅ Working
+
+**Migration Complete** - Using bilateral symlink approach for backward compatibility.
 
 ## Next Steps
 

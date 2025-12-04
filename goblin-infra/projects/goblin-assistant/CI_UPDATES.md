@@ -8,7 +8,13 @@
 - Infra → App: ArgoCD applications point to canonical paths
 - Kustomize overlays validated for both dev/prod environments
 
-If you decide to move infra artifacts from `apps/goblin-assistant/infra` into `goblin-infra/projects/goblin-assistant/infra`, follow this checklist to update CI/CD references and avoid interruptions.
+✅ **CI Validation Complete**:
+- Terraform validate: ✅ Passed
+- Kustomize build (dev): ✅ Passed
+- Kustomize build (prod): ✅ Passed
+- Symlink connection: ✅ Working
+
+**Decision: Skip final cutover** - The bilateral symlink approach provides backward compatibility while establishing the canonical location. No high-risk symlink removal needed.
 
 1. Decide whether to move or copy.
    - If copy: keep original files until migration is validated.
