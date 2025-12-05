@@ -206,14 +206,21 @@ def get_challenge_store() -> ChallengeStore:
     use_redis = os.getenv("USE_REDIS_CHALLENGES", "false").lower() == "true"
 
     if use_redis:
-        # Production: Use Redis
-        return RedisChallengeStore(
-            host=os.getenv("REDIS_HOST", "localhost"),
-            port=int(os.getenv("REDIS_PORT", "6379")),
-            db=int(os.getenv("REDIS_DB", "0")),
-            password=os.getenv("REDIS_PASSWORD", None),
-            ssl=os.getenv("REDIS_SSL", "false").lower() == "true",
-        )
+        try:
+            # Production: Try Redis first
+            return RedisChallengeStore(
+                host=os.getenv("REDIS_HOST", "localhost"),
+                port=int(os.getenv("REDIS_PORT", "6379")),
+                db=int(os.getenv("REDIS_DB", "0")),
+                password=os.getenv("REDIS_PASSWORD", None),
+                ssl=os.getenv("REDIS_SSL", "false").lower() == "true",
+            )
+        except Exception as e:
+            # Fall back to in-memory if Redis is not available
+            print(
+                f"Redis not available ({e}), falling back to in-memory challenge store"
+            )
+            return InMemoryChallengeStore()
     else:
         # Development: Use in-memory
         return InMemoryChallengeStore()
