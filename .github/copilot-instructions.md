@@ -231,14 +231,14 @@ We use Supabase (Postgres) as our canonical persistent data store and Auth provi
 - Authentication & Authorization: Use Supabase Auth for signups/logins (client libraries in `apps/gaslight` and others). For tenant or user-scoped data, always use Row Level Security (RLS) policies and a minimal set of Postgres roles.
 - Migrations: Use the Supabase CLI to create and apply migrations (`supabase migration new <name>`). Commit SQL migration files. Keep migrations idempotent where possible and include RLS enable statements:
   - `ALTER TABLE public.<table> ENABLE ROW LEVEL SECURITY;`
-- RLS Audit: Run the repository's simple RLS audit script before merging DB migrations: `apps/goblin-assistant/tools/supabase_rls_check.sh` (or pass the Supabase folder when relevant). This checks that `CREATE TABLE` statements are accompanied by explicit RLS enablement and flags missing policies.
+- RLS Audit: Run the repository's simple RLS audit script before merging DB migrations: `scripts/ops/supabase_rls_check.sh` (or pass the Supabase folder when relevant). This checks that `CREATE TABLE` statements are accompanied by explicit RLS enablement and flags missing policies.
 - Local dev: Use `supabase start` (Supabase CLI) for a local Postgres instance for development, or connect to staging Supabase project for testing. The Supabase CLI is mentioned in `apps/goblin-assistant/backend/README.md`.
 - Secrets: Never commit `service_role` keys or admin keys. Store them securely in Bitwarden and pass to CI via CircleCI contexts. Use `apps/goblin-assistant/.circleci/fetch_secrets.sh` to populate environment variables in pipelines.
 - CI: CI pipelines should validate database migrations and run the RLS audit as part of PR checks. Add migration and policy review to PRs that change DB schemas.
 - Backups & compliance: Ensure regular database backups and export paths for compliance requests. If using Supabase hosted plans, use their snapshot/backups. For self-managed Postgres, use `pg_dump`/`pg_restore` or managed snapshots.
 - Data privacy: Do not store PII in vector stores or logs without consent; enforce data deletion and TTLs where required.
 
-Matching files: See `apps/goblin-assistant/backend/README.md` (Supabase CLI install), `apps/goblin-assistant/tools/supabase_rls_check.sh` (RLS audit), and `docs/backend/DATA_FLOW_DIAGRAM.md` (where Supabase fits in the architecture).
+Matching files: See `apps/goblin-assistant/backend/README.md` (Supabase CLI install), `scripts/ops/supabase_rls_check.sh` (RLS audit), and `docs/backend/DATA_FLOW_DIAGRAM.md` (where Supabase fits in the architecture).
 
 - **Market Data**: Server-side only, rate-limited, cached
 
@@ -295,7 +295,7 @@ guilds:
   - Sanitize: Remove PII, secrets, API keys, tokens, and other sensitive identifiers before sending data to external providers, saving to logs, or adding to embeddings.
   - Embeddings / Vector DB: Do NOT embed documents that include PII or secrets. Add a sanitization/consent check before creating embeddings. Store a document metadata flag for sensitivity and apply a TTL or explicit deletion policy.
   - Conversation TTL: Keep conversation context ephemeral. Use Cloudflare KV with a short TTL (e.g., 1h) by default. For persistent chat history, obtain explicit user consent and store encrypted server-side with strict RBAC and audit logs.
-  - Supabase RLS & retention: When storing user/tenant-scoped data in Supabase/Postgres, always enable Row Level Security and define minimal `CREATE POLICY` statements; use TTL policies where needed for retention/deletion. Run `apps/goblin-assistant/tools/supabase_rls_check.sh` before merging DB changes.
+  - Supabase RLS & retention: When storing user/tenant-scoped data in Supabase/Postgres, always enable Row Level Security and define minimal `CREATE POLICY` statements; use TTL policies where needed for retention/deletion. Run `scripts/ops/supabase_rls_check.sh` before merging DB changes.
   - Logging & telemetry: Do not log raw messages or secrets. Track inference metrics (model, provider, latency, cost) while redacting or hashing message content. In production, these metrics and traces are ingested into Datadog — follow `apps/goblin-assistant/backend/docs/MONITORING_IMPLEMENTATION.md` for data retention, redact/sampling practices, and `apps/goblin-assistant/PRODUCTION_MONITORING.md` for how we configure Datadog (agents, API keys, SLOs). Also see `apps/goblin-assistant/datadog/DATADOG_SLOS.md` for the canonical SLO and monitor examples.
   - Access Control & Encryption: Use RBAC and least-privilege for all storage; encrypt data at rest and in transit, and store keys in Bitwarden or a managed secrets store (see `docs/SECRETS_HANDLING.md`).
   - RAG / Sources: When returning generated answers with citations, only include permitted data and add `source` metadata. If a source is flagged as restricted, avoid showing it in answers or embedding it.

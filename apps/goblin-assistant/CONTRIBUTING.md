@@ -15,8 +15,8 @@ Key responsibilities and canonical doc locations
 
     ```bash
     # from repo root
-    chmod +x apps/goblin-assistant/tools/supabase_rls_check.sh
-    apps/goblin-assistant/tools/supabase_rls_check.sh apps/goblin-assistant/supabase
+    chmod +x scripts/ops/supabase_rls_check.sh
+    scripts/ops/supabase_rls_check.sh apps/goblin-assistant/supabase
     ```
 
     Ensure migrations include `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` and create appropriate `CREATE POLICY` statements.

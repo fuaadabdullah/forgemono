@@ -46,9 +46,9 @@ jobs:
       - run:
           name: Deploy to Fly.io
           command: |
-            echo "🌐 Deploying to Fly.io..."
-            echo "$FLY_TOKEN" | flyctl auth login --stdin
-            flyctl deploy --remote-only --yes
+            echo "🌐 Deploying to Fly.io using deployment script..."
+            chmod +x ../../scripts/deploy/deploy-backend.sh
+            ../../scripts/deploy/deploy-backend.sh --platform flyio --env production --ci
       - run:
           name: Health Check
           command: |

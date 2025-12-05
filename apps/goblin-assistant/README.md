@@ -250,12 +250,35 @@ python -m pytest tests/ && python test_debugger.py
 ### Development Server
 
 ```bash
-# With auto-reload for development
+# Backend - With auto-reload for development
 uvicorn backend.main:app --reload --port 8000
 
-# Production deployment
+# Backend - Production deployment
 uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ```
+
+### Frontend Development
+
+The frontend is built with React + Vite (TypeScript). Due to compatibility issues with Vite's development server on some systems, we recommend using the production build for local development.
+
+```bash
+# Install dependencies
+npm install
+
+# Build and serve the frontend (recommended for local development)
+npm run dev:serve
+
+# Alternative: Use Vite's dev server (may have connectivity issues)
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+**Note**: The `dev:serve` script builds the application and serves it using a static file server. This provides the same experience as production but requires rebuilding after code changes. For rapid development with hot reloading, use `npm run dev` if it works on your system.
 
 ## Architecture
 

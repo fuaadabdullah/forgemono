@@ -13,7 +13,7 @@ Thanks for contributing! This repo follows a monorepo workflow with clear owners
 - Include tests, lint fixes, and build checks before requesting review.
 - Link issues and include screenshots or logs when relevant.
 - CI: CircleCI runs on pushes and PRs; ensure your branch's CircleCI pipeline passes before requesting review.
-- DB changes: If your PR changes the database schema, add Supabase migration SQL via the Supabase CLI and run the `supabase_rls_check.sh` script to ensure RLS is enabled and policies are present. For Goblin Assistant use: `apps/goblin-assistant/tools/supabase_rls_check.sh apps/goblin-assistant/supabase`.
+- DB changes: If your PR changes the database schema, add Supabase migration SQL via the Supabase CLI and run the `supabase_rls_check.sh` script to ensure RLS is enabled and policies are present. For Goblin Assistant use: `scripts/ops/supabase_rls_check.sh apps/goblin-assistant`.
 
 ## Local Checks
 
@@ -26,7 +26,7 @@ Run checks at the top of each major area:
   pnpm lint:fix && pnpm test:coverage && pnpm build
   ```
 
-  - Python projects:
+- Python projects:
 
   ```bash
   # Example
@@ -34,6 +34,30 @@ Run checks at the top of each major area:
   pip install -r requirements.txt
   pytest -q
   ```
+
+- Repository-wide checks:
+
+  ```bash
+  # Run all linting and checks
+  ./scripts/dev/lint_all.sh
+
+  # Database security audit
+  ./scripts/ops/supabase_rls_check.sh apps/goblin-assistant
+
+  # Start local development
+  ./scripts/dev/start-dev.sh
+  ```
+
+## Scripts Organization
+
+This repository uses an organized script structure under `scripts/`:
+
+- `scripts/dev/` - Local development tools (linting, server startup)
+- `scripts/deploy/` - Deployment automation for all platforms
+- `scripts/ops/` - Operational tools (health checks, security audits)
+- `scripts/monitoring/` - Performance monitoring and testing
+
+See `scripts/README.md` for complete documentation of all available scripts and their usage patterns.
 
 ## Commit Style
 

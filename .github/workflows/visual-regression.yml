@@ -2,9 +2,13 @@ name: Visual Regression Tests
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+    branches: [main]
+    paths:
+      - 'apps/goblin-assistant/src/**'
+      - 'apps/goblin-assistant/**/*.stories.*'
+      - 'apps/goblin-assistant/package.json'
+      - '.github/workflows/visual-regression.yml'
+  workflow_dispatch:
 
 jobs:
   chromatic:
