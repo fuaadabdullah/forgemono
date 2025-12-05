@@ -27,18 +27,19 @@ export default function ModularLoginForm({
   const handleEmailPasswordSubmit = async (email: string, password: string) => {
     setEmail(email); // Store for passkey
 
-    // Check if Turnstile token is present
-    if (!turnstileToken) {
-      onError('Please complete the security verification');
-      return;
-    }
+    // Temporarily disabled turnstile verification for backend compatibility
+    // TODO: Re-enable when backend implements turnstile verification
+    // if (!turnstileToken) {
+    //   onError('Please complete the security verification');
+    //   return;
+    // }
 
     setIsLoading(true);
 
     try {
       const response = isRegister
         ? await apiClient.register(email, password, turnstileToken)
-        : await apiClient.login(email, password, turnstileToken);
+        : await apiClient.login(email, password);
 
       // Store token in both localStorage and Zustand
       localStorage.setItem('auth_token', response.access_token);

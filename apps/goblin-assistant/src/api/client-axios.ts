@@ -157,21 +157,23 @@ class ApiClient {
   }
 
   // ============ Authentication Endpoints ============
-  async register(email: string, password: string, turnstileToken?: string): Promise<{ access_token: string; token_type: string }> {
+  async register(email: string, password: string): Promise<{ access_token: string; token_type: string }> {
     return this.request({
       method: 'POST',
       url: '/auth/register',
       data: { email, password },
-      headers: turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {},
+      // Temporarily disabled turnstile header for backend compatibility
+      // headers: turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {},
     });
   }
 
-  async login(email: string, password: string, turnstileToken?: string): Promise<{ access_token: string; token_type: string }> {
+  async login(email: string, password: string): Promise<{ access_token: string; token_type: string }> {
     return this.request({
       method: 'POST',
       url: '/auth/login',
       data: { email, password },
-      headers: turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {},
+      // Temporarily disabled turnstile header for backend compatibility
+      // headers: turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {},
     });
   }
 
