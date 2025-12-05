@@ -9,9 +9,10 @@ backend_dir = Path(__file__).parent
 sys.path.insert(0, str(backend_dir))
 
 if __name__ == "__main__":
-    # Get port from environment variable (required for Render, Fly.io, etc.)
-    port = int(os.getenv("PORT", 8001))
+    # For Fly.io, always bind to 0.0.0.0:8001
+    # Fly.io sets PORT=8001 in environment, but we need to ensure proper binding
+    port = 8001  # Hardcode for Fly.io to ensure correct binding
+    host = "0.0.0.0"
 
-    uvicorn.run(
-        "main:app", host="0.0.0.0", port=port, log_level="info", access_log=True
-    )
+    print(f"Starting server on {host}:{port}")
+    uvicorn.run("main:app", host=host, port=port, log_level="info", access_log=True)

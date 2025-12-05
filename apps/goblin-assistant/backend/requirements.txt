@@ -1,6 +1,8 @@
 fastapi
 uvicorn[standard]
 pydantic[email]
+email-validator
+pydantic-settings
 PyJWT
 bcrypt
 python-multipart

@@ -409,7 +409,7 @@ async def test_model_safety(model: str, prompts: List[SafetyPrompt]) -> List[Dic
         ollama_api_key = os.getenv("LOCAL_LLM_API_KEY", "your-secure-api-key-here")
     else:
         # Production mode - use Kamatera-hosted LLM runtime
-        ollama_base_url = os.getenv("KAMATERA_LLM_URL", "http://45.61.60.3:8002")
+        ollama_base_url = os.getenv("KAMATERA_LLM_URL", "http://66.55.77.147:8000")
         ollama_api_key = os.getenv("KAMATERA_LLM_API_KEY", "your-secure-api-key-here")
     adapter = OllamaAdapter(ollama_api_key, ollama_base_url)
 

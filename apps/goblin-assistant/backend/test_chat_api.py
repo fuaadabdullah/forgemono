@@ -63,7 +63,7 @@ def setup_test_provider():
                     "KAMATERA_LLM_API_KEY", "your-secure-api-key-here"
                 )
                 ollama_base_url = os.getenv(
-                    "KAMATERA_LLM_URL", "http://45.61.60.3:8002"
+                    "KAMATERA_LLM_URL", "http://66.55.77.147:8000"
                 )
 
             # Encrypt API key

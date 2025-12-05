@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 import jwt
 from jwt import PyJWTError
@@ -9,17 +9,23 @@ import secrets
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
+from .debug_utils import DebugLogger
 from sqlalchemy.orm import Session
 from .oauth import GoogleOAuth
 from .passkeys import WebAuthnPasskey
 from .challenge_store import get_challenge_store_instance
 from database import get_db
 from models_base import User
+import re
 
 load_dotenv()
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 security = HTTPBearer()
+
+# Debug logger for auth router; enable with DEBUG_AUTH=true
+debug = DebugLogger("auth_router")
+debug.log_import("auth.router")
 
 # JWT Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
@@ -32,13 +38,23 @@ CHALLENGE_EXPIRE_MINUTES = 5
 
 
 class UserCreate(BaseModel):
-    email: str  # Temporarily changed from EmailStr to str
+    email: EmailStr  # Now using EmailStr with pydantic[email]
     password: str
     name: Optional[str] = None
 
+    @field_validator("email")
+    @classmethod
+    def validate_email_domain(cls, v: str) -> str:
+        """Additional validation beyond format - block disposable domains"""
+        disposable_domains = ["tempmail.com", "10minutemail.com", "guerrillamail.com"]
+        domain = v.split("@")[1].lower()
+        if domain in disposable_domains:
+            raise ValueError("Disposable email addresses not allowed")
+        return v
+
 
 class UserLogin(BaseModel):
-    email: str  # Temporarily changed from EmailStr to str
+    email: EmailStr  # Now using EmailStr with pydantic[email]
     password: str
 
 
@@ -58,13 +74,13 @@ class GoogleAuthCallback(BaseModel):
 
 
 class PasskeyRegistrationRequest(BaseModel):
-    email: str  # Temporarily changed from EmailStr to str
+    email: EmailStr  # Now using EmailStr with pydantic[email]
     credential_id: str
     public_key: str
 
 
 class PasskeyAuthRequest(BaseModel):
-    email: str  # Temporarily changed from EmailStr to str
+    email: EmailStr  # Now using EmailStr with pydantic[email]
     credential_id: str
     authenticator_data: str
     client_data_json: str
@@ -129,6 +145,53 @@ async def cleanup_expired_challenges():
     return await challenge_store.cleanup_expired()
 
 
+@router.get("/debug/routes")
+async def list_routes():
+    """Return registered routes and some debug health info for dependencies.
+
+    Guarded by DEBUG_AUTH environment variable to avoid exposing route layout in prod.
+    """
+    if not os.getenv("DEBUG_AUTH", "false").lower() == "true":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Debug mode not enabled"
+        )
+
+    # Collect route info
+    routes = [
+        {
+            "path": r.path,
+            "methods": list(r.methods) if hasattr(r, "methods") else [],
+            "name": getattr(r, "name", None),
+        }
+        for r in router.routes
+    ]
+
+    # Challenge store health if available
+    redis_health = None
+    try:
+        if hasattr(challenge_store, "health_check"):
+            redis_health = challenge_store.health_check()
+    except Exception as e:
+        redis_health = {"error": str(e)}
+
+    # Database health placeholder (if db exposes health_check)
+    db_health = None
+    try:
+        db = get_db()
+        if hasattr(db, "execute"):
+            db_health = {"ok": True}
+    except Exception as e:
+        db_health = {"error": str(e)}
+
+    # Log if debug enabled
+    debug.log_route_registration("auth", router.routes)
+
+    return {
+        "routes": routes,
+        "dependencies": {"redis": redis_health, "database": db_health},
+    }
+
+
 @router.post("/register", response_model=Token)
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     # Check if user already exists
@@ -149,6 +212,11 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
         name=user_data.name,
         password_hash=hashed_password,
     )
+
+    # Add user to database
+    db.add(user)
+    db.commit()
+    db.refresh(user)
 
     # Create access token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -315,7 +383,7 @@ async def google_auth_callback(
 
 
 @router.post("/passkey/challenge")
-async def get_passkey_challenge(email: str = None):
+async def get_passkey_challenge(email: EmailStr = None):
     """
     Get a challenge for passkey registration/authentication
     Optionally provide email to store challenge for later verification

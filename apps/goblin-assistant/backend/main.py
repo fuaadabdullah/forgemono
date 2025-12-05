@@ -2,7 +2,7 @@ import os
 import sys
 import asyncio
 from pathlib import Path
-from fastapi import FastAPI, Request, Body, APIRouter
+from fastapi import FastAPI, Body, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import Response
 
@@ -16,30 +16,16 @@ from middleware.logging_middleware import StructuredLoggingMiddleware, setup_log
 from middleware.request_id_middleware import RequestIDMiddleware
 from middleware.metrics import PrometheusMiddleware, get_metrics, CONTENT_TYPE_LATEST
 
+# Import routers
 from debugger.router import router as debugger_router
 from providers.ollama_adapter import OllamaAdapter
 
-"""FastAPI backend main module with deferred initialization.
-
-Adjust import of cleanup_expired_challenges to be resilient when an alternate
-auth package (e.g. apps/goblin-assistant/api/auth) shadows the intended
-backend/auth module and does not expose the function. We fall back to a stub
-to avoid hard startup failure while still cleaning up gracefully when the
-real implementation is available.
-
-Version: 1.0.1 - Datadog logging enabled
-"""
-
 try:  # Prefer full implementation
     from backend.auth.router import router as auth_router, cleanup_expired_challenges  # type: ignore
-    print("Successfully imported auth_router from backend.auth.router")
-except Exception as e:  # noqa: BLE001
-    print(f"Failed to import from backend.auth.router: {e}")
+except Exception:  # noqa: BLE001
     try:
         from auth.router import router as auth_router  # type: ignore
-        print("Successfully imported auth_router from auth.router")
-    except Exception as e2:  # noqa: BLE001
-        print(f"Failed to import from auth.router: {e2}")
+    except Exception:  # noqa: BLE001
         # As a last resort define a minimal router stub to keep app booting.
         from fastapi import APIRouter
 
@@ -75,16 +61,7 @@ except ImportError:
 
 # Database imports
 from database import create_tables
-
-"""Main FastAPI application setup with deferred heavy initialization for faster cold starts."""
-
-# Import models only if needed later; keep minimal imports here to reduce startup overhead.
-# (If these are required for ORM table creation side-effects, uncomment selectively.)
-from models import User, Task, Stream, StreamChunk, SearchCollection, SearchDocument
-from models.settings import Provider, ProviderCredential, ModelConfig, GlobalSetting
-from models.routing import RoutingProvider, ProviderMetric, RoutingRequest
-
-# (imports consolidated at top for style compliance)
+from backend.auth.challenge_store import get_challenge_store_instance
 
 # Add GoblinOS to path for raptor
 try:
@@ -99,6 +76,104 @@ except ImportError:
             print("Raptor stub stop (module not found)")
 
     raptor = _RaptorStub()
+
+
+async def validate_startup_configuration():
+    """Validate critical configuration and dependencies before server starts"""
+    print("🔍 Validating startup configuration...")
+
+    issues = []
+
+    # Check configuration
+    try:
+        from config import settings
+
+        print(
+            f"✅ Configuration loaded: environment={settings.environment}, instances={settings.instance_count}"
+        )
+
+        # Validate production requirements
+        if settings.is_production and not settings.database_url:
+            issues.append("DATABASE_URL required in production environment")
+
+        if (
+            settings.is_production
+            and settings.allow_memory_fallback
+            and settings.is_multi_instance
+        ):
+            issues.append("Memory fallback not allowed in multi-instance production")
+
+    except ImportError:
+        issues.append("Configuration system not available")
+    except Exception as e:
+        issues.append(f"Configuration validation failed: {e}")
+
+    # Check challenge store
+    try:
+        challenge_store = get_challenge_store_instance()
+        health = challenge_store.health_check()
+        print(
+            f"✅ Challenge store initialized: redis_available={health['redis_available']}"
+        )
+
+        if health.get("fallback_mode") and settings.should_alert_on_fallback:
+            issues.append(
+                "CRITICAL: Challenge store in fallback mode in production multi-instance"
+            )
+
+    except Exception as e:
+        issues.append(f"Challenge store validation failed: {e}")
+
+    # Check critical dependencies
+    try:
+        from scripts.check_dependencies import check_pydantic_email, check_redis
+
+        if not check_pydantic_email():
+            issues.append("Email validation dependencies not properly configured")
+        redis_available = check_redis()
+        if (
+            not redis_available
+            and settings.is_production
+            and settings.is_multi_instance
+        ):
+            issues.append(
+                "Redis required but not available in multi-instance production"
+            )
+    except ImportError:
+        print("⚠️  Dependency checker not available - skipping automated checks")
+    except Exception as e:
+        issues.append(f"Dependency validation failed: {e}")
+
+    # Report issues
+    if issues:
+        print("❌ Startup validation failed:")
+        for issue in issues:
+            print(f"  - {issue}")
+        print(
+            "\n🚨 Critical configuration issues detected. Server may not function properly."
+        )
+        print("   Check the issues above and fix before proceeding to production.")
+        # Don't exit - allow server to start with warnings for development
+        if settings.is_production:
+            print(
+                "   In production environment, these issues should be resolved immediately."
+            )
+    else:
+        print("✅ Startup validation passed - all systems ready")
+
+    return len(issues) == 0
+
+
+"""FastAPI backend main module with deferred initialization.
+
+Adjust import of cleanup_expired_challenges to be resilient when an alternate
+auth package (e.g. apps/goblin-assistant/api/auth) shadows the intended
+backend/auth module and does not expose the function. We fall back to a stub
+to avoid hard startup failure while still cleaning up gracefully when the
+real implementation is available.
+
+Version: 1.0.1 - Datadog logging enabled
+"""
 
 app = FastAPI(
     title="GoblinOS Assistant Backend",
@@ -124,6 +199,9 @@ SKIP_PROBE_INIT = os.getenv("SKIP_PROBE_INIT", "0") == "1"
 # Create database tables on startup (keep minimal blocking work only)
 @app.on_event("startup")
 async def startup_event():
+    # Validate configuration first
+    await validate_startup_configuration()
+
     create_tables()
 
     # Always start challenge cleanup early (cheap)
@@ -259,9 +337,6 @@ app.add_middleware(
 
 # Include routers
 app.include_router(debugger_router)
-print(
-    f"Including auth_router with {len(auth_router.routes)} routes, prefix: {auth_router.prefix}"
-)
 app.include_router(auth_router)
 app.include_router(search_router)
 app.include_router(settings_router)
@@ -284,7 +359,18 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    # Base health
+    result = {"status": "healthy"}
+
+    # Include auth challenge store health when available
+    try:
+        cs = get_challenge_store_instance()
+        if hasattr(cs, "health_check"):
+            result["challenge_store"] = cs.health_check()
+    except Exception as e:
+        result["challenge_store"] = {"error": str(e)}
+
+    return result
 
 
 @app.get("/metrics")

@@ -3,7 +3,7 @@ Chat API endpoint with intelligent routing to local and cloud LLMs.
 Uses the routing service to select the best model based on request characteristics.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Header
+from fastapi import APIRouter, HTTPException, Depends, Header, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
@@ -23,10 +23,24 @@ from providers import (
 
 logger = logging.getLogger(__name__)
 
+
+# Simple token counting approximation (rough estimate: ~4 chars per token)
+def estimate_tokens(text: str) -> int:
+    """Estimate token count for text. Rough approximation: ~4 characters per token."""
+    if not text:
+        return 0
+    # More accurate approximation: count words and adjust for punctuation/subwords
+    words = len(text.split())
+    # Adjust for average subword tokenization (roughly 1.3 tokens per word)
+    return max(1, int(words * 1.3))
+
+
 # Get encryption key from environment
 ROUTING_ENCRYPTION_KEY = os.getenv("ROUTING_ENCRYPTION_KEY")
 if not ROUTING_ENCRYPTION_KEY:
-    raise ValueError("ROUTING_ENCRYPTION_KEY environment variable must be set")
+    raise ValueError(
+        "ROUTING_ENCRYPTION_KEY environment variable must be set for chat routing functionality"
+    )
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -88,6 +102,55 @@ class ChatCompletionResponse(BaseModel):
     usage: Optional[Dict[str, int]] = None
 
 
+def validate_chat_request(request: ChatCompletionRequest):
+    """Validate chat completion request parameters."""
+    # Validate messages
+    if not request.messages:
+        raise HTTPException(status_code=400, detail="At least one message is required")
+
+    if len(request.messages) > 50:
+        raise HTTPException(status_code=400, detail="Maximum 50 messages allowed")
+
+    total_content_length = 0
+    for msg in request.messages:
+        if not msg.content or not msg.content.strip():
+            raise HTTPException(
+                status_code=400, detail="Message content cannot be empty"
+            )
+
+        if len(msg.content) > 10000:  # 10KB per message
+            raise HTTPException(
+                status_code=400, detail="Message content too long (max 10KB)"
+            )
+
+        total_content_length += len(msg.content)
+
+    if total_content_length > 50000:  # 50KB total
+        raise HTTPException(
+            status_code=400, detail="Total message content too long (max 50KB)"
+        )
+
+    # Validate temperature
+    if request.temperature is not None and (
+        request.temperature < 0 or request.temperature > 2
+    ):
+        raise HTTPException(
+            status_code=400, detail="Temperature must be between 0 and 2"
+        )
+
+    # Validate max_tokens
+    if request.max_tokens is not None and (
+        request.max_tokens < 1 or request.max_tokens > 4096
+    ):
+        raise HTTPException(
+            status_code=400, detail="max_tokens must be between 1 and 4096"
+        )
+
+    # Validate top_p
+    if request.top_p is not None and (request.top_p < 0 or request.top_p > 1):
+        raise HTTPException(status_code=400, detail="top_p must be between 0 and 1")
+
+
 def get_routing_service(db: Session = Depends(get_db)) -> RoutingService:
     """Dependency to get routing service instance."""
     return RoutingService(db, ROUTING_ENCRYPTION_KEY)
@@ -96,6 +159,7 @@ def get_routing_service(db: Session = Depends(get_db)) -> RoutingService:
 @router.post("/completions", response_model=ChatCompletionResponse)
 async def create_chat_completion(
     request: ChatCompletionRequest,
+    req: Request,
     service: RoutingService = Depends(get_routing_service),
     x_api_key: Optional[str] = Header(
         None, description="Optional API key for authentication"
@@ -141,6 +205,9 @@ async def create_chat_completion(
        }
     """
     try:
+        # Validate request parameters
+        validate_chat_request(request)
+
         # Convert messages to dict format
         messages = [
             {"role": msg.role, "content": msg.content} for msg in request.messages
@@ -214,8 +281,6 @@ async def create_chat_completion(
                     "KAMATERA_LLM_URL", "http://localhost:11434"
                 )
                 ollama_api_key = os.getenv("KAMATERA_LLM_API_KEY", "")
-
-            adapter = OllamaAdapter(ollama_api_key, ollama_base_url)
 
             adapter = OllamaAdapter(ollama_api_key, ollama_base_url)
 
@@ -297,7 +362,13 @@ async def create_chat_completion(
                     if next_model and escalation_count < max_escalations:
                         logger.info(
                             f"Escalating from {selected_model} to {next_model} "
-                            f"(confidence: {confidence_result.confidence_score:.2f})"
+                            f"(confidence: {confidence_result.confidence_score:.2f})",
+                            extra={
+                                "correlation_id": getattr(
+                                    req.state, "correlation_id", None
+                                ),
+                                "request_id": getattr(req.state, "request_id", None),
+                            },
                         )
                         selected_model = next_model
                         escalated = True
@@ -323,9 +394,9 @@ async def create_chat_completion(
                 ],
                 "usage": {
                     "prompt_tokens": routing_result.get("context_length", 0),
-                    "completion_tokens": len(response_text.split()),
+                    "completion_tokens": estimate_tokens(response_text),
                     "total_tokens": routing_result.get("context_length", 0)
-                    + len(response_text.split()),
+                    + estimate_tokens(response_text),
                 },
             }
 
@@ -407,9 +478,9 @@ async def create_chat_completion(
                 ],
                 "usage": {
                     "prompt_tokens": routing_result.get("context_length", 0),
-                    "completion_tokens": len(response_text.split()),
+                    "completion_tokens": estimate_tokens(response_text),
                     "total_tokens": routing_result.get("context_length", 0)
-                    + len(response_text.split()),
+                    + estimate_tokens(response_text),
                 },
             }
 
@@ -418,12 +489,20 @@ async def create_chat_completion(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Chat completion failed: {e}", exc_info=True)
+        logger.error(
+            f"Chat completion failed: {e}",
+            exc_info=True,
+            extra={
+                "correlation_id": getattr(req.state, "correlation_id", None),
+                "request_id": getattr(req.state, "request_id", None),
+            },
+        )
         raise HTTPException(status_code=500, detail=f"Chat completion failed: {str(e)}")
 
 
 @router.get("/models")
 async def list_available_models(
+    req: Request,
     service: RoutingService = Depends(get_routing_service),
 ):
     """
@@ -476,7 +555,13 @@ async def list_available_models(
         }
 
     except Exception as e:
-        logger.error(f"Failed to list models: {e}")
+        logger.error(
+            f"Failed to list models: {e}",
+            extra={
+                "correlation_id": getattr(req.state, "correlation_id", None),
+                "request_id": getattr(req.state, "request_id", None),
+            },
+        )
         raise HTTPException(status_code=500, detail=f"Failed to list models: {str(e)}")
 
 

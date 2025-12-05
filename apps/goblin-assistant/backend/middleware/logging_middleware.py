@@ -10,10 +10,18 @@ Features:
 import time
 import logging
 import uuid
+import json
 from typing import Callable
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from pythonjsonlogger import jsonlogger
+
+# Try to import JSON logger, fall back to standard logging if not available
+try:
+    from pythonjsonlogger import jsonlogger
+
+    HAS_JSON_LOGGER = True
+except ImportError:
+    HAS_JSON_LOGGER = False
 
 
 class StructuredLoggingMiddleware(BaseHTTPMiddleware):
@@ -23,6 +31,9 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
         # Generate correlation ID for request tracing
         correlation_id = str(uuid.uuid4())
         request.state.correlation_id = correlation_id
+
+        # Get request ID if available (from RequestIDMiddleware)
+        request_id = getattr(request.state, "request_id", None)
 
         # Start timer
         start_time = time.time()
@@ -41,6 +52,7 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
         logger.info(
             "incoming_request",
             extra={
+                "request_id": request_id,
                 "correlation_id": correlation_id,
                 "method": request.method,
                 "path": request.url.path,
@@ -59,6 +71,7 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
             logger.info(
                 "request_completed",
                 extra={
+                    "request_id": request_id,
                     "correlation_id": correlation_id,
                     "method": request.method,
                     "path": request.url.path,
@@ -79,6 +92,7 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
             logger.error(
                 "request_failed",
                 extra={
+                    "request_id": request_id,
                     "correlation_id": correlation_id,
                     "method": request.method,
                     "path": request.url.path,
@@ -108,25 +122,47 @@ def setup_logging(log_level: str = "INFO") -> logging.Logger:
     # Remove existing handlers
     logger.handlers.clear()
 
-    # Create JSON formatter
-    formatter = jsonlogger.JsonFormatter(
-        fmt="%(asctime)s %(levelname)s %(name)s %(message)s",
-        rename_fields={
-            "asctime": "timestamp",
-            "levelname": "level",
-            "name": "logger",
-        },
-    )
+    # Create formatter - use JSON if available, otherwise standard
+    if HAS_JSON_LOGGER:
+        formatter = jsonlogger.JsonFormatter(
+            fmt="%(asctime)s %(levelname)s %(name)s %(message)s",
+            rename_fields={
+                "asctime": "timestamp",
+                "levelname": "level",
+                "name": "logger",
+            },
+        )
+    else:
+        # Fallback to standard formatter with JSON-like structure
+        class JSONFormatter(logging.Formatter):
+            def format(self, record):
+                log_entry = {
+                    "timestamp": self.formatTime(record),
+                    "level": record.levelname,
+                    "logger": record.name,
+                    "message": record.getMessage(),
+                }
+                # Add extra fields if present
+                if hasattr(record, "request_id"):
+                    log_entry["request_id"] = record.request_id
+                if hasattr(record, "correlation_id"):
+                    log_entry["correlation_id"] = record.correlation_id
+                if hasattr(record, "method"):
+                    log_entry["method"] = record.method
+                if hasattr(record, "path"):
+                    log_entry["path"] = record.path
+                if hasattr(record, "status_code"):
+                    log_entry["status_code"] = record.status_code
+                if hasattr(record, "duration_ms"):
+                    log_entry["duration_ms"] = record.duration_ms
+                return json.dumps(log_entry)
 
-    # Console handler with JSON format
+        formatter = JSONFormatter()
+
+    # Console handler
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
-
-    # Optionally add file handler for persistent logs
-    # file_handler = logging.FileHandler('logs/app.log')
-    # file_handler.setFormatter(formatter)
-    # logger.addHandler(file_handler)
 
     return logger
 
