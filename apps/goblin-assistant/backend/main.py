@@ -255,6 +255,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(debugger_router)
+print(f"Including auth_router with {len(auth_router.routes)} routes, prefix: {auth_router.prefix}")
 app.include_router(auth_router)
 app.include_router(search_router)
 app.include_router(settings_router)
