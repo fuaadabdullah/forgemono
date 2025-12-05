@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 import jwt
 from jwt import PyJWTError
@@ -32,13 +32,13 @@ CHALLENGE_EXPIRE_MINUTES = 5
 
 
 class UserCreate(BaseModel):
-    email: EmailStr
+    email: str  # Temporarily changed from EmailStr to str
     password: str
     name: Optional[str] = None
 
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: str  # Temporarily changed from EmailStr to str
     password: str
 
 
@@ -58,13 +58,13 @@ class GoogleAuthCallback(BaseModel):
 
 
 class PasskeyRegistrationRequest(BaseModel):
-    email: EmailStr
+    email: str  # Temporarily changed from EmailStr to str
     credential_id: str
     public_key: str
 
 
 class PasskeyAuthRequest(BaseModel):
-    email: EmailStr
+    email: str  # Temporarily changed from EmailStr to str
     credential_id: str
     authenticator_data: str
     client_data_json: str
@@ -315,7 +315,7 @@ async def google_auth_callback(
 
 
 @router.post("/passkey/challenge")
-async def get_passkey_challenge(email: EmailStr = None):
+async def get_passkey_challenge(email: str = None):
     """
     Get a challenge for passkey registration/authentication
     Optionally provide email to store challenge for later verification
