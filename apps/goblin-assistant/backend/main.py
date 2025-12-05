@@ -32,10 +32,14 @@ Version: 1.0.1 - Datadog logging enabled
 
 try:  # Prefer full implementation
     from backend.auth.router import router as auth_router, cleanup_expired_challenges  # type: ignore
-except Exception:  # noqa: BLE001
+    print("Successfully imported auth_router from backend.auth.router")
+except Exception as e:  # noqa: BLE001
+    print(f"Failed to import from backend.auth.router: {e}")
     try:
         from auth.router import router as auth_router  # type: ignore
-    except Exception:  # noqa: BLE001
+        print("Successfully imported auth_router from auth.router")
+    except Exception as e2:  # noqa: BLE001
+        print(f"Failed to import from auth.router: {e2}")
         # As a last resort define a minimal router stub to keep app booting.
         from fastapi import APIRouter
 
@@ -255,7 +259,9 @@ app.add_middleware(
 
 # Include routers
 app.include_router(debugger_router)
-print(f"Including auth_router with {len(auth_router.routes)} routes, prefix: {auth_router.prefix}")
+print(
+    f"Including auth_router with {len(auth_router.routes)} routes, prefix: {auth_router.prefix}"
+)
 app.include_router(auth_router)
 app.include_router(search_router)
 app.include_router(settings_router)
