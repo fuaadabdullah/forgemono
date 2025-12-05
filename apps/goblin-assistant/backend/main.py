@@ -2,7 +2,7 @@ import os
 import sys
 import asyncio
 from pathlib import Path
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Body, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import Response
 
@@ -13,9 +13,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "api"))
 # Import middleware
 from middleware.rate_limiter import RateLimitMiddleware, limiter
 from middleware.logging_middleware import StructuredLoggingMiddleware, setup_logging
+from middleware.request_id_middleware import RequestIDMiddleware
 from middleware.metrics import PrometheusMiddleware, get_metrics, CONTENT_TYPE_LATEST
 
 from debugger.router import router as debugger_router
+from providers.ollama_adapter import OllamaAdapter
 
 """FastAPI backend main module with deferred initialization.
 
@@ -29,7 +31,7 @@ Version: 1.0.1 - Datadog logging enabled
 """
 
 try:  # Prefer full implementation
-    from auth.router import router as auth_router, cleanup_expired_challenges  # type: ignore
+    from backend.auth.router import router as auth_router, cleanup_expired_challenges  # type: ignore
 except Exception:  # noqa: BLE001
     try:
         from auth.router import router as auth_router  # type: ignore
@@ -58,11 +60,13 @@ from stream_router import router as stream_router
 from health_router import router as health_router
 from dashboard_router import router as dashboard_router
 from tasks.provider_probe_worker import ProviderProbeWorker
+
 try:
     from raptor_router import router as raptor_router
 except ImportError:
     # Create a stub router if raptor_mini is not available
     from fastapi import APIRouter
+
     raptor_router = APIRouter()
 
 # Database imports
@@ -72,9 +76,9 @@ from database import create_tables
 
 # Import models only if needed later; keep minimal imports here to reduce startup overhead.
 # (If these are required for ORM table creation side-effects, uncomment selectively.)
-# from models import User, Task, Stream, StreamChunk, SearchCollection, SearchDocument
-# from models.settings import Provider, ProviderCredential, ModelConfig, GlobalSetting
-# from models.routing import RoutingProvider, ProviderMetric, RoutingRequest
+from models import User, Task, Stream, StreamChunk, SearchCollection, SearchDocument
+from models.settings import Provider, ProviderCredential, ModelConfig, GlobalSetting
+from models.routing import RoutingProvider, ProviderMetric, RoutingRequest
 
 # (imports consolidated at top for style compliance)
 
@@ -230,6 +234,9 @@ async def shutdown_event():
 # Add Prometheus metrics middleware (must be before other middleware)
 app.add_middleware(PrometheusMiddleware)
 
+# Add request ID middleware (must be before logging middleware)
+app.add_middleware(RequestIDMiddleware)
+
 # Add structured logging middleware
 app.add_middleware(StructuredLoggingMiddleware)
 
@@ -277,3 +284,16 @@ async def health():
 async def metrics():
     """Prometheus metrics endpoint for monitoring."""
     return Response(content=get_metrics(), media_type=CONTENT_TYPE_LATEST)
+
+
+ollama_router = APIRouter()
+
+
+@ollama_router.post("/api/generate")
+async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
+    adapter = OllamaAdapter()
+    result = adapter.generate(prompt, model)
+    return result
+
+
+app.include_router(ollama_router)
