@@ -14,7 +14,7 @@ from .oauth import GoogleOAuth
 from .passkeys import WebAuthnPasskey
 from .challenge_store import get_challenge_store_instance
 from database import get_db
-from models import User
+from models_base import User
 
 load_dotenv()
 
