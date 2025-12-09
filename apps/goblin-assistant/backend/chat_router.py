@@ -3,7 +3,8 @@ Chat API endpoint with intelligent routing to local and cloud LLMs.
 Uses the routing service to select the best model based on request characteristics.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Header, Request
+from fastapi import APIRouter, Depends, Request, HTTPException, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
@@ -13,6 +14,10 @@ import os
 from database import get_db
 from services.routing import RoutingService
 from services.output_verification import VerificationPipeline
+from services.rag_service import RAGService
+from services.inference_scaling_service import InferenceScalingService
+from services.latency_monitoring_service import LatencyMonitoringService
+from gateway_service import get_gateway_service, TokenBudgetExceeded, MaxTokensExceeded
 from providers import (
     OllamaAdapter,
     GrokAdapter,
@@ -20,8 +25,48 @@ from providers import (
     AnthropicAdapter,
     DeepSeekAdapter,
 )
+from errors import (
+    raise_validation_error,
+    raise_internal_error,
+    raise_service_unavailable,
+    raise_problem,
+)
+from auth.policies import AuthScope
+from auth_service import get_auth_service
 
 logger = logging.getLogger(__name__)
+
+# Security schemes
+security = HTTPBearer()
+
+
+def require_scope(required_scope: AuthScope):
+    """Dependency to require a specific scope."""
+
+    def scope_checker(
+        credentials: HTTPAuthorizationCredentials = Security(security),
+    ) -> List[str]:
+        auth_service = get_auth_service()
+
+        # Try JWT token first
+        token = credentials.credentials
+        claims = auth_service.validate_access_token(token)
+
+        if claims:
+            # Convert AuthScope enums back to strings
+            scopes = auth_service.get_user_scopes(claims)
+            scope_values = [scope.value for scope in scopes]
+
+            if required_scope.value not in scope_values:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Insufficient permissions. Required scope: {required_scope.value}",
+                )
+            return scope_values
+
+        raise HTTPException(status_code=401, detail="Invalid authentication")
+
+    return scope_checker
 
 
 # Simple token counting approximation (rough estimate: ~4 chars per token)
@@ -41,6 +86,9 @@ if not ROUTING_ENCRYPTION_KEY:
     raise ValueError(
         "ROUTING_ENCRYPTION_KEY environment variable must be set for chat routing functionality"
     )
+
+# Initialize latency monitoring service
+latency_monitor = LatencyMonitoringService()
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -86,6 +134,12 @@ class ChatCompletionRequest(BaseModel):
         True,
         description="Automatically escalate to better model if confidence is low (default: True)",
     )
+    sla_target_ms: Optional[float] = Field(
+        None, description="SLA target response time in milliseconds"
+    )
+    cost_budget: Optional[float] = Field(
+        None, description="Maximum cost per request in USD"
+    )
 
 
 class ChatCompletionResponse(BaseModel):
@@ -96,59 +150,119 @@ class ChatCompletionResponse(BaseModel):
     routing_explanation: Optional[str] = None
     verification_result: Optional[Dict[str, Any]] = None
     confidence_result: Optional[Dict[str, Any]] = None
+    rag_context: Optional[Dict[str, Any]] = None
+    inference_scaling: Optional[Dict[str, Any]] = None
     escalated: Optional[bool] = False
     original_model: Optional[str] = None
     choices: List[Dict[str, Any]]
     usage: Optional[Dict[str, int]] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 
 def validate_chat_request(request: ChatCompletionRequest):
     """Validate chat completion request parameters."""
+    errors = {}
+
     # Validate messages
     if not request.messages:
-        raise HTTPException(status_code=400, detail="At least one message is required")
+        errors["messages"] = ["At least one message is required"]
 
     if len(request.messages) > 50:
-        raise HTTPException(status_code=400, detail="Maximum 50 messages allowed")
+        errors["messages"] = ["Maximum 50 messages allowed"]
 
     total_content_length = 0
-    for msg in request.messages:
+    for i, msg in enumerate(request.messages):
         if not msg.content or not msg.content.strip():
-            raise HTTPException(
-                status_code=400, detail="Message content cannot be empty"
+            errors.setdefault("messages", []).append(
+                f"Message {i}: content cannot be empty"
             )
 
         if len(msg.content) > 10000:  # 10KB per message
-            raise HTTPException(
-                status_code=400, detail="Message content too long (max 10KB)"
+            errors.setdefault("messages", []).append(
+                f"Message {i}: content too long (max 10KB)"
             )
 
         total_content_length += len(msg.content)
 
     if total_content_length > 50000:  # 50KB total
-        raise HTTPException(
-            status_code=400, detail="Total message content too long (max 50KB)"
-        )
+        errors["messages"] = ["Total message content too long (max 50KB)"]
 
     # Validate temperature
     if request.temperature is not None and (
         request.temperature < 0 or request.temperature > 2
     ):
-        raise HTTPException(
-            status_code=400, detail="Temperature must be between 0 and 2"
-        )
+        errors["temperature"] = ["Must be between 0 and 2"]
 
     # Validate max_tokens
     if request.max_tokens is not None and (
         request.max_tokens < 1 or request.max_tokens > 4096
     ):
-        raise HTTPException(
-            status_code=400, detail="max_tokens must be between 1 and 4096"
-        )
+        errors["max_tokens"] = ["Must be between 1 and 4096"]
 
     # Validate top_p
     if request.top_p is not None and (request.top_p < 0 or request.top_p > 1):
-        raise HTTPException(status_code=400, detail="top_p must be between 0 and 1")
+        errors["top_p"] = ["Must be between 0 and 1"]
+
+    if errors:
+        raise_validation_error("Request validation failed", errors=errors)
+
+
+def should_use_scaling(
+    request: ChatCompletionRequest, messages: List[Dict[str, str]]
+) -> bool:
+    """
+    Determine if inference-time scaling should be used for this request.
+
+    Uses scaling for complex queries that are likely to benefit from multiple
+    candidate generation and PRM-based selection to reduce hallucinations.
+    """
+    # Always use scaling for explicit complex intents
+    if request.intent in ["explain", "analyze", "solve", "reason"]:
+        return True
+
+    # Use scaling for long queries (>200 words) that might be complex
+    user_query = messages[-1]["content"] if messages else ""
+    word_count = len(user_query.split())
+
+    if word_count > 200:
+        return True
+
+    # Use scaling for queries with complex keywords (but avoid false positives)
+    complex_keywords = [
+        "explain",
+        "analyze",
+        "why",
+        "solve",
+        "reason",
+        "compare",
+        "evaluate",
+        "design",
+        "implement",
+        "optimize",
+        "troubleshoot",
+        "debug",
+        "architecture",
+        "system",
+        "complex",
+        "difficult",
+        "algorithm",
+        "theory",
+        "mathematical",
+        "scientific",
+    ]
+
+    query_lower = user_query.lower()
+
+    # Check for complex keywords, but require minimum length to avoid greetings
+    has_complex_keyword = any(keyword in query_lower for keyword in complex_keywords)
+    if has_complex_keyword and len(user_query.split()) > 3:
+        return True
+
+    # Use scaling for multi-part questions (containing ?, and, or)
+    if "?" in user_query and (" and " in query_lower or " or " in query_lower):
+        return True
+
+    return False
 
 
 def get_routing_service(db: Session = Depends(get_db)) -> RoutingService:
@@ -161,9 +275,7 @@ async def create_chat_completion(
     request: ChatCompletionRequest,
     req: Request,
     service: RoutingService = Depends(get_routing_service),
-    x_api_key: Optional[str] = Header(
-        None, description="Optional API key for authentication"
-    ),
+    scopes: List[str] = Depends(require_scope(AuthScope.WRITE_CONVERSATIONS)),
 ):
     """
     Create a chat completion with intelligent routing to the best model.
@@ -213,10 +325,45 @@ async def create_chat_completion(
             {"role": msg.role, "content": msg.content} for msg in request.messages
         ]
 
+        # Gateway-level protections and classification
+        gateway_service = get_gateway_service()
+        gateway_result = None
+        try:
+            gateway_result = await gateway_service.process_request(
+                messages=messages,
+                max_tokens=request.max_tokens,
+                context=request.context,
+            )
+
+            # Log gateway analysis
+            logger.info(
+                f"Gateway analysis: intent={gateway_result.intent.value}, "
+                f"estimated_tokens={gateway_result.estimated_tokens}, "
+                f"risk_score={gateway_result.risk_score:.2f}, "
+                f"allowed={gateway_result.allowed}"
+            )
+
+            # Check if request should be denied
+            if not gateway_result.allowed:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Request flagged as high-risk. Please reduce token limits or simplify request.",
+                )
+
+        except TokenBudgetExceeded:
+            raise HTTPException(
+                status_code=429,
+                detail="Token budget exceeded. Please try again later or contact support.",
+                headers={"Retry-After": "3600"},  # 1 hour
+            )
+        except MaxTokensExceeded as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
         # Build requirements for routing
         requirements = {
             "messages": messages,
-            "intent": request.intent,
+            "intent": request.intent
+            or gateway_result.intent.value,  # Use gateway classification if not specified
             "latency_target": request.latency_target,
             "context": request.context,
             "cost_priority": request.cost_priority,
@@ -227,14 +374,54 @@ async def create_chat_completion(
             requirements["model"] = request.model
 
         # Route the request
+        # Get client IP for rate limiting
+        client_ip = req.client.host if req.client else None
+        request_path = req.url.path if req.url else None
+
         routing_result = await service.route_request(
-            capability="chat", requirements=requirements
+            capability="chat",
+            requirements=requirements,
+            sla_target_ms=request.sla_target_ms,
+            cost_budget=request.cost_budget,
+            latency_priority=request.latency_target,
+            client_ip=client_ip,
+            user_id=getattr(req.state, "user_id", None)
+            if hasattr(req, "state")
+            else None,
+            request_path=request_path,
         )
 
+        # Handle autoscaling responses
         if not routing_result.get("success"):
-            raise HTTPException(
-                status_code=503,
-                detail=f"No suitable provider available: {routing_result.get('error')}",
+            error_msg = routing_result.get("error", "Unknown error")
+
+            # Check if rate limited
+            if "Rate limit exceeded" in error_msg:
+                fallback_level = routing_result.get("fallback_level", "deny")
+                retry_after = routing_result.get("retry_after")
+
+                if fallback_level == "deny":
+                    raise HTTPException(
+                        status_code=429,
+                        detail="Rate limit exceeded. Please try again later.",
+                        headers={
+                            "Retry-After": str(int(retry_after))
+                            if retry_after
+                            else "60"
+                        },
+                    )
+                elif fallback_level == "cheap_model":
+                    # Allow but log that we're using fallback
+                    logger.warning(
+                        f"Rate limited request {routing_result.get('request_id')} using cheap fallback"
+                    )
+
+            raise_service_unavailable(f"No suitable provider available: {error_msg}")
+
+        # Check if this is emergency mode
+        if routing_result.get("emergency_mode"):
+            logger.warning(
+                f"Request {routing_result.get('request_id')} served in emergency mode"
             )
 
         provider_info = routing_result["provider"]
@@ -262,6 +449,42 @@ async def create_chat_completion(
         system_prompt = routing_result.get("system_prompt")
         if system_prompt and not any(msg["role"] == "system" for msg in messages):
             messages = [{"role": "system", "content": system_prompt}] + messages
+
+        # Handle RAG requests with extended context
+        rag_context = None
+        if request.intent == "rag" or (request.context and len(request.context) > 1000):
+            try:
+                rag_service = RAGService()
+                user_query = messages[-1]["content"] if messages else ""
+
+                # Generate session ID for caching
+                session_id = f"session_{hash(user_query + str(request.context or ''))}"
+
+                # Run RAG pipeline
+                rag_result = await rag_service.rag_pipeline(
+                    query=user_query,
+                    session_id=session_id,
+                    filters={"intent": "rag"} if request.intent == "rag" else None,
+                )
+
+                rag_context = rag_result
+
+                # If RAG found relevant context, modify the prompt
+                if rag_result.get("context", {}).get("chunks"):
+                    # Replace the last user message with RAG-enhanced prompt
+                    rag_prompt = rag_result["prompt"]
+                    messages[-1] = {"role": "user", "content": rag_prompt}
+
+                    # Increase max tokens for RAG responses (they need more context)
+                    max_tokens = min(max_tokens * 2, 4096)
+
+                    logger.info(
+                        f"RAG: Retrieved {rag_result['context']['filtered_count']} chunks, {rag_result['context']['total_tokens']} tokens"
+                    )
+
+            except Exception as e:
+                logger.warning(f"RAG processing failed: {e}")
+                # Continue without RAG if it fails
 
         # Initialize the adapter for the selected provider
         # For now, we'll focus on Ollama (local LLMs)
@@ -298,85 +521,154 @@ async def create_chat_completion(
             response_text = None
             verification_result = None
             confidence_result = None
+            scaling_result = None
+            response_time_ms = None  # Track response time for metadata
 
-            # Attempt generation with escalation loop
-            while escalation_count <= max_escalations:
-                # Make the completion request
-                response_text = await adapter.chat(
+            # Check if we should use inference-time scaling for complex queries
+            use_scaling = should_use_scaling(request, messages)
+
+            if use_scaling:
+                logger.info("Using inference-time scaling for complex query")
+                scaling_service = InferenceScalingService()
+
+                # Get the user query for scaling
+                user_query = messages[-1]["content"] if messages else ""
+
+                # Perform inference scaling
+                scaling_result = await scaling_service.scale_inference(
+                    query=user_query,
+                    adapter=adapter,
                     model=selected_model,
-                    messages=messages,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    top_p=top_p,
                 )
 
-                # If verification/scoring disabled, accept immediately
-                if not (
-                    request.enable_verification or request.enable_confidence_scoring
-                ):
-                    break
+                if scaling_result.get("success"):
+                    # Use the best chain from scaling
+                    response_text = scaling_result["best_chain"]["response"]
+                    logger.info(
+                        f"Inference scaling successful. Best score: {scaling_result['best_chain']['score']:.2f}"
+                    )
+                else:
+                    logger.warning(
+                        "Inference scaling failed, falling back to standard generation"
+                    )
+                    use_scaling = False
 
-                # Run verification and confidence scoring
-                (
-                    verification_result,
-                    confidence_result,
-                ) = await verification_pipeline.verify_and_score(
-                    original_prompt=messages[-1]["content"],  # Get last user message
-                    model_output=response_text,
-                    model_used=selected_model,
-                    context={
-                        "intent": request.intent,
-                        "latency_target": request.latency_target,
-                    },
-                    skip_verification=not request.enable_verification,
-                )
+            # If not using scaling or scaling failed, use standard generation with escalation
+            if not use_scaling:
+                # Attempt generation with escalation loop
+                while escalation_count <= max_escalations:
+                    # Make the completion request with timing
+                    import time
 
-                # Check if we should reject the output
-                if verification_pipeline.should_reject_output(
-                    verification_result, confidence_result
-                ):
-                    raise HTTPException(
-                        status_code=422,
-                        detail={
-                            "error": "Output rejected due to safety or quality concerns",
-                            "verification": {
-                                "is_safe": verification_result.is_safe,
-                                "safety_score": verification_result.safety_score,
-                                "issues": verification_result.issues,
-                            },
-                            "confidence": {
-                                "score": confidence_result.confidence_score,
-                                "reasoning": confidence_result.reasoning,
-                            },
+                    start_time = time.time()
+
+                    try:
+                        response_text = await adapter.chat(
+                            model=selected_model,
+                            messages=messages,
+                            temperature=temperature,
+                            max_tokens=max_tokens,
+                            top_p=top_p,
+                        )
+                        success = True
+                    except Exception as e:
+                        success = False
+                        raise e
+                    finally:
+                        # Record latency metrics
+                        end_time = time.time()
+                        response_time_ms = (end_time - start_time) * 1000
+                        tokens_used = (
+                            estimate_tokens(response_text) if response_text else 0
+                        )
+
+                        try:
+                            await latency_monitor.record_metric(
+                                provider_name="ollama",
+                                model_name=selected_model,
+                                response_time_ms=response_time_ms,
+                                tokens_used=tokens_used,
+                                success=success,
+                            )
+                        except Exception as e:
+                            logger.warning(f"Failed to record latency metric: {e}")
+
+                    # If verification/scoring disabled, accept immediately
+                    if not (
+                        request.enable_verification or request.enable_confidence_scoring
+                    ):
+                        break
+
+                    # Run verification and confidence scoring
+                    (
+                        verification_result,
+                        confidence_result,
+                    ) = await verification_pipeline.verify_and_score(
+                        original_prompt=messages[-1][
+                            "content"
+                        ],  # Get last user message
+                        model_output=response_text,
+                        model_used=selected_model,
+                        context={
+                            "intent": request.intent,
+                            "latency_target": request.latency_target,
                         },
+                        skip_verification=not request.enable_verification,
                     )
 
-                # Check if we should escalate
-                if request.auto_escalate and verification_pipeline.should_escalate(
-                    verification_result, confidence_result, selected_model
-                ):
-                    next_model = verification_pipeline.get_escalation_target(
-                        selected_model
-                    )
-
-                    if next_model and escalation_count < max_escalations:
-                        logger.info(
-                            f"Escalating from {selected_model} to {next_model} "
-                            f"(confidence: {confidence_result.confidence_score:.2f})",
-                            extra={
-                                "correlation_id": getattr(
-                                    req.state, "correlation_id", None
-                                ),
-                                "request_id": getattr(req.state, "request_id", None),
+                    # Check if we should reject the output
+                    if verification_pipeline.should_reject_output(
+                        verification_result, confidence_result
+                    ):
+                        raise_problem(
+                            status=422,
+                            title="Output Rejected",
+                            detail="Output rejected due to safety or quality concerns",
+                            type_uri="https://api.goblin.fuaad.ai/errors/output-rejected",
+                            code="OUTPUT_REJECTED",
+                            errors={
+                                "verification": {
+                                    "is_safe": verification_result.is_safe,
+                                    "safety_score": verification_result.safety_score,
+                                    "issues": verification_result.issues,
+                                },
+                                "confidence": {
+                                    "score": confidence_result.confidence_score,
+                                    "reasoning": confidence_result.reasoning,
+                                },
                             },
                         )
-                        selected_model = next_model
-                        escalated = True
-                        escalation_count += 1
-                        continue
 
-                # If we get here, accept the output
-                break
+                    # Check if we should escalate
+                    if request.auto_escalate and verification_pipeline.should_escalate(
+                        verification_result, confidence_result, selected_model
+                    ):
+                        next_model = verification_pipeline.get_escalation_target(
+                            selected_model
+                        )
+
+                        if next_model and escalation_count < max_escalations:
+                            logger.info(
+                                f"Escalating from {selected_model} to {next_model} "
+                                f"(confidence: {confidence_result.confidence_score:.2f})",
+                                extra={
+                                    "correlation_id": getattr(
+                                        req.state, "correlation_id", None
+                                    ),
+                                    "request_id": getattr(
+                                        req.state, "request_id", None
+                                    ),
+                                },
+                            )
+                            selected_model = next_model
+                            escalated = True
+                            escalation_count += 1
+                            continue
+
+                    # If we get here, accept the output
+                    break
 
             # Build response
             response_data = {
@@ -397,6 +689,11 @@ async def create_chat_completion(
                     "completion_tokens": estimate_tokens(response_text),
                     "total_tokens": routing_result.get("context_length", 0)
                     + estimate_tokens(response_text),
+                },
+                "metadata": {
+                    "response_time_ms": response_time_ms,
+                    "tokens_used": tokens_used,
+                    "success": success,
                 },
             }
 
@@ -420,6 +717,31 @@ async def create_chat_completion(
                 response_data["escalated"] = True
                 response_data["original_model"] = original_model
 
+            # Add RAG context if available
+            if rag_context:
+                response_data["rag_context"] = {
+                    "chunks_retrieved": rag_context.get("context", {}).get(
+                        "filtered_count", 0
+                    ),
+                    "total_tokens": rag_context.get("context", {}).get(
+                        "total_tokens", 0
+                    ),
+                    "cached": rag_context.get("cached", False),
+                    "session_id": rag_context.get("session_id"),
+                }
+
+            # Add inference scaling results if used
+            if scaling_result:
+                response_data["inference_scaling"] = {
+                    "used": True,
+                    "best_score": scaling_result["best_chain"]["score"],
+                    "candidates_count": scaling_result["candidates_count"],
+                    "score_distribution": scaling_result["scaling_info"][
+                        "score_distribution"
+                    ],
+                    "evaluation": scaling_result["best_chain"]["evaluation"],
+                }
+
             return ChatCompletionResponse(**response_data)
 
         else:
@@ -435,9 +757,12 @@ async def create_chat_completion(
             }
 
             if provider_name not in provider_adapters:
-                raise HTTPException(
-                    status_code=501,
+                raise_problem(
+                    status=501,
+                    title="Not Implemented",
                     detail=f"Provider {provider_info['name']} not yet implemented in chat endpoint",
+                    type_uri="https://api.goblin.fuaad.ai/errors/not-implemented",
+                    code="PROVIDER_NOT_IMPLEMENTED",
                 )
 
             # Get adapter class, API key env var, and base URL
@@ -445,22 +770,46 @@ async def create_chat_completion(
             api_key = os.getenv(api_key_env)
 
             if not api_key:
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"API key not configured for provider {provider_info['name']}",
+                raise_internal_error(
+                    f"API key not configured for provider {provider_info['name']}"
                 )
 
             # Initialize adapter
             adapter = adapter_class(api_key, base_url)
 
-            # Make the completion request
-            response_text = await adapter.chat(
-                model=selected_model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-            )
+            # Make the completion request with timing
+            import time
+
+            start_time = time.time()
+
+            try:
+                response_text = await adapter.chat(
+                    model=selected_model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                )
+                success = True
+            except Exception as e:
+                success = False
+                raise e
+            finally:
+                # Record latency metrics
+                end_time = time.time()
+                response_time_ms = (end_time - start_time) * 1000
+                tokens_used = estimate_tokens(response_text) if response_text else 0
+
+                try:
+                    await latency_monitor.record_metric(
+                        provider_name=provider_name,
+                        model_name=selected_model,
+                        response_time_ms=response_time_ms,
+                        tokens_used=tokens_used,
+                        success=success,
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to record latency metric: {e}")
 
             # Build response
             response_data = {
@@ -482,13 +831,43 @@ async def create_chat_completion(
                     "total_tokens": routing_result.get("context_length", 0)
                     + estimate_tokens(response_text),
                 },
+                "metadata": {
+                    "response_time_ms": response_time_ms,
+                    "tokens_used": tokens_used,
+                    "success": success,
+                },
             }
+
+            # Record token usage in gateway service
+            if tokens_used > 0:
+                try:
+                    await gateway_service.record_usage(
+                        None,  # No API key with JWT auth
+                        tokens_used,
+                        intent=gateway_result.intent,
+                        success=success,
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to record token usage: {e}")
 
             return ChatCompletionResponse(**response_data)
 
-    except HTTPException:
-        raise
     except Exception as e:
+        # Record failed request in anomaly detector
+        if gateway_result:
+            try:
+                await gateway_service.record_usage(
+                    None,  # No API key with JWT auth
+                    0,  # No tokens used for failed requests
+                    intent=gateway_result.intent,
+                    success=False,
+                    error_type=type(e).__name__,
+                )
+            except Exception as record_error:
+                logger.warning(
+                    f"Failed to record failed request anomaly: {record_error}"
+                )
+
         logger.error(
             f"Chat completion failed: {e}",
             exc_info=True,
@@ -497,7 +876,7 @@ async def create_chat_completion(
                 "request_id": getattr(req.state, "request_id", None),
             },
         )
-        raise HTTPException(status_code=500, detail=f"Chat completion failed: {str(e)}")
+        raise_internal_error(f"Chat completion failed: {str(e)}")
 
 
 @router.get("/models")
@@ -562,7 +941,7 @@ async def list_available_models(
                 "request_id": getattr(req.state, "request_id", None),
             },
         )
-        raise HTTPException(status_code=500, detail=f"Failed to list models: {str(e)}")
+        raise_internal_error(f"Failed to list models: {str(e)}")
 
 
 @router.get("/routing-info")

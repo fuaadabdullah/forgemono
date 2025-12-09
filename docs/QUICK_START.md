@@ -71,12 +71,10 @@ gh run watch
 
 ### Get These Before Starting:
 
-#### Backend (goblin-assistant-backend)
-- [ ] `RENDER_API_KEY` - https://dashboard.render.com/account/api-keys
-- [ ] `RENDER_STAGING_SERVICE_ID` - Create Render service
-- [ ] `RENDER_PRODUCTION_SERVICE_ID` - Create Render service
+#### Backend (Fly.io)
+- [ ] `FLY_API_TOKEN` - https://fly.io/user/personal_access_tokens
 
-#### Frontend (goblin-assistant-frontend)
+#### Frontend (Vercel)
 - [ ] `VERCEL_TOKEN` - https://vercel.com/account/tokens
 - [ ] `VERCEL_ORG_ID` - Run `vercel project ls`
 - [ ] `VERCEL_PROJECT_ID` - Run `vercel project ls`
@@ -164,7 +162,7 @@ docker-compose up
 
 ### Backend
 - **CI**: Black, Ruff, MyPy, PyTest, Docker build, Trivy scan
-- **Deploy**: Build image → Push to GHCR → Deploy to Render
+- **Deploy**: Build image → Push to GHCR → Deploy to Fly.io
 
 ### Frontend
 - **CI**: ESLint, TypeScript, Vitest, Storybook, Chromatic, Lighthouse
@@ -215,9 +213,8 @@ Migration is successful when:
 
 ### If deployment fails:
 ```bash
-# Backend (Render)
-curl -X POST https://api.render.com/v1/services/SERVICE_ID/rollback \
-  -H "Authorization: Bearer $RENDER_API_KEY"
+# Backend (Fly.io)
+fly deploy --remote-only
 
 # Frontend (Vercel)
 vercel rollback https://goblin.fuaad.ai
@@ -276,7 +273,7 @@ bash tools/migrate-to-multirepo.sh --dry-run
 - Migration issues: See `docs/MULTI_REPO_MIGRATION_GUIDE.md`
 - CI/CD issues: See `docs/CI_CD_WORKFLOWS_COMPLETE.md`
 - Workflow errors: Check GitHub Actions logs
-- Deployment issues: Check service-specific logs (Render/Vercel)
+- Deployment issues: Check service-specific logs (Fly.io/Vercel)
 
 ---
 

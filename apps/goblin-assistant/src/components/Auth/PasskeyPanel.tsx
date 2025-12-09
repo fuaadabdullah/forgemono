@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { apiClient } from '../../api/client';
+import { apiClient } from '../../api/client-axios';
+import { useAuthStore } from '../../store/authStore';
+import { PasskeyChallenge, PasskeyVerificationChallenge } from '../../types/api';
 
 interface PasskeyPanelProps {
   email: string;
@@ -52,8 +54,8 @@ const PasskeyPanel: React.FC<PasskeyPanelProps> = ({ email, onSuccess, onError }
     setStatus(null);
     try {
       if (!('PublicKeyCredential' in window)) throw new Error('WebAuthn not supported in this browser');
-      const challengeData = await apiClient.passkeyChallenge(email);
-      const publicKey = challengeData.publicKey || challengeData; // backend may return wrapped object
+      const challengeData: PasskeyChallenge = await apiClient.passkeyChallenge(email);
+      const publicKey = challengeData.publicKey as any; // Cast for WebAuthn compatibility
 
       // Decode base64url fields
       if (publicKey.challenge) publicKey.challenge = base64urlToUint8Array(publicKey.challenge);
@@ -77,8 +79,8 @@ const PasskeyPanel: React.FC<PasskeyPanelProps> = ({ email, onSuccess, onError }
     setStatus(null);
     try {
       if (!('PublicKeyCredential' in window)) throw new Error('WebAuthn not supported in this browser');
-      const challengeData = await apiClient.passkeyChallenge(email);
-      const publicKey = challengeData.publicKey || challengeData; // expecting request options
+      const challengeData: PasskeyVerificationChallenge = await apiClient.passkeyChallenge(email);
+      const publicKey = challengeData.publicKey as any; // Cast for WebAuthn compatibility
       if (publicKey.challenge) publicKey.challenge = base64urlToUint8Array(publicKey.challenge);
       // allowCredentials id decode
       if (Array.isArray(publicKey.allowCredentials)) {
@@ -90,7 +92,8 @@ const PasskeyPanel: React.FC<PasskeyPanelProps> = ({ email, onSuccess, onError }
       const assertion: any = await navigator.credentials.get({ publicKey });
       const jsonAssertion = credentialToJSON(assertion);
       const res = await apiClient.passkeyAuth(email, jsonAssertion);
-      apiClient.setAuthToken(res.access_token);
+      // Auth is handled via cookies - no need to set token manually
+      useAuthStore.getState().setAuth(res.user);
       setStatus('Passkey authentication successful');
       onSuccess();
     } catch (e: any) {

@@ -20,10 +20,41 @@ google-generativeai
 redis[hiredis]
 pytest
 pytest-asyncio
+pytest-cov
+httpx  # for testing FastAPI
+faker  # test data generation
 
-# Production monitoring (lightweight, no heavy dependencies)
-python-json-logger>=2.0.7
-prometheus-client>=0.19.0
+# RAG and Vector Search
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+
+# Job Queue System - Celery with Redis backend
+celery[redis]>=5.3.0
+flower>=2.0.0  # Monitoring dashboard for Celery
+flask>=2.3.0  # For monitoring endpoints
+
+# Lightweight job scheduling - APScheduler with SQLAlchemy persistence
+APScheduler>=3.10.0
+psutil>=5.9.0  # System monitoring for health checks
+
+# HashiCorp Vault client
+hvac>=2.0.0
+
+# Production monitoring (lightweight, essential only)
+sentry-sdk[fastapi]>=1.40.0
+
+# OpenTelemetry for unified observability
+opentelemetry-distro>=0.45b0
+opentelemetry-instrumentation>=0.45b0
+opentelemetry-instrumentation-fastapi>=0.45b0
+opentelemetry-instrumentation-httpx>=0.45b0
+opentelemetry-instrumentation-sqlalchemy>=0.45b0
+opentelemetry-instrumentation-redis>=0.45b0
+opentelemetry-exporter-otlp>=1.24.0
+opentelemetry-exporter-otlp-proto-grpc>=1.24.0
+
+# Retry logic for API calls
+backoff>=2.2.0
 
 # Load testing (optional, install separately: pip install locust)
 # locust>=2.20.0

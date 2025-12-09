@@ -47,7 +47,7 @@ INSTANCE_COUNT=1
 # Redis
 REDIS_URL=redis://localhost:6379
 REDIS_TIMEOUT=5
-ALLOW_MEMORY_FALLBACK=true
+ALLOW_MEMORY_FALLBACK=false
 
 # Authentication
 CHALLENGE_TTL=300
@@ -66,8 +66,8 @@ ALLOW_DISPOSABLE_EMAILS=false
 The system validates configuration on startup:
 
 - **Production**: Requires `DATABASE_URL`
-- **Multi-instance Production**: Prohibits memory fallback
-- **Development**: More permissive for local development
+- **All Environments**: Memory fallback disabled by default (Redis required)
+- **Development**: Can enable memory fallback for local development
 
 ## Email Validation
 
@@ -262,16 +262,17 @@ pytest tests/test_auth_resilience.py::TestHealthCheckIntegration
 3. Confirm Redis service is running
 4. Check firewall/network connectivity
 
-### Memory Fallback Active
+### Memory Fallback Disabled
 
-**Symptom**: `fallback_active: true` in production
+**Symptom**: `ConnectionError` when Redis unavailable and `ALLOW_MEMORY_FALLBACK=false`
 
-**Impact**: Single-instance only, data not shared across instances
+**Impact**: System fails fast, preventing unsafe operation
 
 **Solutions**:
-1. **Immediate**: Restart with Redis available
-2. **Long-term**: Ensure Redis availability in production
-3. **Multi-instance**: Redis is required
+
+1. **Immediate**: Ensure Redis is available and accessible
+2. **Development**: Set `ALLOW_MEMORY_FALLBACK=true` for local testing
+3. **Production**: Redis is always required for multi-instance safety
 
 ### Email Validation Failures
 
@@ -301,7 +302,8 @@ pytest tests/test_auth_resilience.py::TestHealthCheckIntegration
 
 - Challenges expire within 5 minutes
 - Redis encryption recommended for production
-- Memory fallback contains no persistent sensitive data
+- Memory fallback disabled by default (Redis required for all environments)
+- No sensitive data stored in memory-only mode
 
 ### Email Validation Security
 

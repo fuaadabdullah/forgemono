@@ -2,79 +2,87 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": null,
+  "framework": "vite",
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "${API_BASE_URL}/api/:path*"
+      "destination": "https://goblin-backend.fly.dev/api/:path*"
     },
     {
       "source": "/auth/:path*",
-      "destination": "${API_BASE_URL}/auth/:path*"
+      "destination": "https://goblin-backend.fly.dev/auth/:path*"
     },
     {
       "source": "/search/:path*",
-      "destination": "${API_BASE_URL}/search/:path*"
+      "destination": "https://goblin-backend.fly.dev/search/:path*"
     },
     {
       "source": "/settings/:path*",
-      "destination": "${API_BASE_URL}/settings/:path*"
+      "destination": "https://goblin-backend.fly.dev/settings/:path*"
     },
     {
       "source": "/execute/:path*",
-      "destination": "${API_BASE_URL}/execute/:path*"
+      "destination": "https://goblin-backend.fly.dev/execute/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "https://goblin-backend.fly.dev/health"
     },
     {
       "source": "/health/:path*",
-      "destination": "${API_BASE_URL}/health/:path*"
+      "destination": "https://goblin-backend.fly.dev/health/:path*"
     },
     {
       "source": "/metrics",
-      "destination": "${API_BASE_URL}/metrics"
+      "destination": "https://goblin-backend.fly.dev/metrics"
     },
     {
       "source": "/debug/:path*",
-      "destination": "${API_BASE_URL}/debug/:path*"
+      "destination": "https://goblin-backend.fly.dev/debug/:path*"
     },
     {
       "source": "/debugger/:path*",
-      "destination": "${API_BASE_URL}/debugger/:path*"
+      "destination": "https://goblin-backend.fly.dev/debugger/:path*"
     },
     {
       "source": "/dashboard/:path*",
-      "destination": "${API_BASE_URL}/dashboard/:path*"
+      "destination": "https://goblin-backend.fly.dev/dashboard/:path*"
     },
     {
       "source": "/api/dashboard/:path*",
-      "destination": "${API_BASE_URL}/api/dashboard/:path*"
+      "destination": "https://goblin-backend.fly.dev/api/dashboard/:path*"
     },
     {
       "source": "/routing/:path*",
-      "destination": "${API_BASE_URL}/routing/:path*"
+      "destination": "https://goblin-backend.fly.dev/routing/:path*"
     },
     {
       "source": "/chat/:path*",
-      "destination": "${API_BASE_URL}/chat/:path*"
+      "destination": "https://goblin-backend.fly.dev/chat/:path*"
     },
     {
       "source": "/stream/:path*",
-      "destination": "${API_BASE_URL}/stream/:path*"
+      "destination": "https://goblin-backend.fly.dev/stream/:path*"
     },
     {
       "source": "/parse/:path*",
-      "destination": "${API_BASE_URL}/parse/:path*"
+      "destination": "https://goblin-backend.fly.dev/parse/:path*"
     },
     {
       "source": "/raptor/:path*",
-      "destination": "${API_BASE_URL}/raptor/:path*"
+      "destination": "https://goblin-backend.fly.dev/raptor/:path*"
     },
     {
       "source": "/api-keys/:path*",
-      "destination": "${API_BASE_URL}/api-keys/:path*"
+      "destination": "https://goblin-backend.fly.dev/api-keys/:path*"
     },
     {
       "source": "/sandbox/:path*",
-      "destination": "${API_BASE_URL}/sandbox/:path*"
+      "destination": "https://goblin-backend.fly.dev/sandbox/:path*"
+    },
+    {
+      "source": "/((?!api|auth|search|settings|execute|health|metrics|debug|debugger|dashboard|api-keys|sandbox).*)",
+      "destination": "/index.html"
     }
   ]
 }

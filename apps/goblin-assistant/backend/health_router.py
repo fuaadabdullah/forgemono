@@ -22,6 +22,14 @@ try:
 except ImportError:
     challenge_store_available = False
 
+# Import session cache for health checks
+try:
+    from cache.session_cache import get_session_cache
+
+    session_cache_available = True
+except ImportError:
+    session_cache_available = False
+
 # Import LLM adapters for health checks
 try:
     from providers.ollama_adapter import OllamaAdapter
@@ -281,6 +289,31 @@ async def comprehensive_health_check(db: Session = Depends(get_db)):
         }
         checks["status"] = "unhealthy"
 
+    # Session Cache check
+    if session_cache_available:
+        try:
+            session_cache = get_session_cache()
+            cache_health = session_cache.health_check()
+
+            checks["components"]["session_cache"] = {
+                "status": "healthy" if cache_health["available"] else "degraded",
+                "memory_used": cache_health.get("memory_used", "unknown"),
+                "session_cache_ttl": cache_health.get("session_cache_ttl", "unknown"),
+            }
+
+        except Exception as e:
+            checks["components"]["session_cache"] = {
+                "status": "unhealthy",
+                "error": str(e),
+            }
+            checks["status"] = "unhealthy"
+    else:
+        checks["components"]["session_cache"] = {
+            "status": "unhealthy",
+            "error": "Session cache not available",
+        }
+        checks["status"] = "unhealthy"
+
     # Database check
     try:
         # Simple connectivity test
@@ -353,6 +386,15 @@ async def comprehensive_health_check(db: Session = Depends(get_db)):
     return checks
 
 
+@router.get("/health", response_model=ComprehensiveHealthResponse)
+async def simple_health_check(db: Session = Depends(get_db)):
+    """
+    Simple health check endpoint for load balancers and monitoring systems.
+    Same as comprehensive check but accessible at /health path.
+    """
+    return await comprehensive_health_check(db)
+
+
 class HealthCheckResponse(BaseModel):
     status: str
     checks: Dict[str, Any]
@@ -383,6 +425,12 @@ class SandboxStatusResponse(BaseModel):
     status: str
     active_jobs: int
     queue_size: int
+    last_check: str
+
+
+class SchedulerStatusResponse(BaseModel):
+    status: str
+    jobs: List[Dict[str, Any]]
     last_check: str
 
 
@@ -730,7 +778,7 @@ async def get_sandbox_status():
 
         # Try Redis-backed task queue
         try:
-            from task_queue import get_task_meta
+            from celery_task_queue import get_task_meta
             import redis
 
             REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -773,6 +821,25 @@ async def get_sandbox_status():
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to get sandbox status: {str(e)}"
+        )
+
+
+@router.get("/scheduler/status", response_model=SchedulerStatusResponse)
+async def get_scheduler_status():
+    """Get APScheduler status and job information"""
+    try:
+        from scheduler import get_scheduler_status
+
+        scheduler_info = get_scheduler_status()
+
+        return SchedulerStatusResponse(
+            status=scheduler_info.get("status", "unknown"),
+            jobs=scheduler_info.get("jobs", []),
+            last_check=datetime.now().isoformat(),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get scheduler status: {str(e)}"
         )
 
 

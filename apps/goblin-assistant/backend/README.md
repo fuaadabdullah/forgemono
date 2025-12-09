@@ -93,6 +93,33 @@ cd apps/goblin-assistant/backend
 pytest -v
 ```
 
+### Local LLM Integration Tests
+These tests require a local LLM runtime. To run them:
+
+1. Pull a model via ollama (or run raptor-mini service):
+
+```bash
+./scripts/pull_ollama_model.sh raptor-mini
+```
+
+2. Start a local runtime:
+
+```bash
+# Ollama local server (example)
+ollama run raptor-mini
+
+# Or run the raptor-mini docker service
+cd apps/raptor-mini && docker-compose up --build
+```
+
+3. Enable local LLM mode and run the integration test:
+
+```bash
+export USE_LOCAL_LLM=true
+pytest -q apps/goblin-assistant/backend/test_local_model_integration.py -q
+```
+
+
 ## Docker
 
 - `apps/goblin-assistant/Dockerfile` builds the backend image.
@@ -109,6 +136,11 @@ Deprecation note: Local LLM runtime helpers
 Files such as `local_llm_proxy.py` and `mock_local_llm_proxy.py` exist for local development and testing. These local helpers are considered development-only and are deprecated for production deployments. For production, run your LLM runtimes on Kamatera and point the backend at `KAMATERA_LLM_URL`.
 
 If you need to run experiments locally, keep them behind feature flags (for example `USE_LOCAL_LLM=true`) and never expose local proxies in production `.env`.
+
+Testing changes (2025-12-05):
+- The test suite has been updated to prefer a real local model instead of a mock server when `USE_LOCAL_LLM=true`.
+- Use `scripts/pull_ollama_model.sh` to download a local model (e.g., `raptor-mini`) and run the service.
+- Integration tests that call local endpoints are in `apps/goblin-assistant/backend/test_local_model_integration.py` and will be skipped unless `USE_LOCAL_LLM=true`.
 
 ## Canonical Documentation
 

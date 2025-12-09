@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Goblin Assistant Backend Production Deployment Script
-# Supports multiple deployment platforms: Render, Fly.io, Railway
+# Supports Fly.io deployment platform
 
 set -e
 
-echo "🚀 Deploying Goblin Assistant Backend to Production"
+echo "🚀 Deploying Goblin Assistant Backend to Production (Fly.io)"
 
 # Colors for output
 RED='\033[0;31m'
@@ -30,12 +30,6 @@ print_step() {
     echo -e "${BLUE}[STEP]${NC} $1"
 }
 
-# Render.com deployment
-deploy_to_render() {
-    print_error "Render deployment is deprecated. Use Fly.io instead."
-    exit 1
-}
-
 # Fly.io deployment
 deploy_to_fly() {
     print_step "Setting up Fly.io deployment..."
@@ -50,12 +44,13 @@ deploy_to_fly() {
 
     print_status "Creating fly.toml..."
     cat > fly.toml << EOF
-app = "goblin-assistant"
+app = "goblin-backend"
 primary_region = "iad"
 
 [env]
 LOG_LEVEL = "info"
 PORT = "8001"
+ENV = "production"
 
 [build]
 dockerfile = "Dockerfile"
@@ -82,11 +77,8 @@ timeout = "5s"
 grace_period = "5s"
 
 [[mounts]]
-source = "chroma-db"
+source = "chroma_db"
 destination = "/app/chroma_db"
-
-[env]
-  ENV = "production"
 EOF
 
     print_status "Deploying to Fly.io..."
@@ -123,10 +115,6 @@ get_deployment_url() {
 PLATFORM=${1:-"fly"}
 
 case $PLATFORM in
-    "render")
-        print_error "Render deployment is deprecated. Use Fly.io instead."
-        exit 1
-        ;;
     "fly")
         print_status "Deploying to Fly.io"
         deploy_to_fly
@@ -166,7 +154,7 @@ main() {
     print_status "Next steps:"
     echo "1. Wait for deployment to complete"
     echo "2. Note the backend URL for frontend configuration"
-    echo "3. Deploy frontend: ./deploy-frontend.sh"
+    echo "3. Deploy frontend: ./deploy-vercel.sh"
     echo "4. Test the complete application"
 }
 

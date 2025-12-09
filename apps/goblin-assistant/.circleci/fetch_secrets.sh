@@ -35,7 +35,6 @@ export CHROMATIC_PROJECT_TOKEN=$(bw get password goblin-prod-chromatic-token)
 # export GROQ_KEY=$(bw get password goblin-prod-groq)
 # export ANTHROPIC_KEY=$(bw get password goblin-prod-anthropic)
 # export CLOUDINARY_KEY=$(bw get password goblin-prod-cloudinary)
-# export DATADOG_API=$(bw get password goblin-prod-datadog-api)
 
 # Verify critical secrets are loaded
 if [ -z "$FASTAPI_SECRET" ]; then

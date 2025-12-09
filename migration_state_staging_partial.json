@@ -1,0 +1,36 @@
+{
+  "store": {
+    "secret/data/staging/database/config": {
+      "data": {
+        "host": "localhost",
+        "port": "5432",
+        "name": "goblin_assistant",
+        "admin_user": "vault_admin",
+        "admin_password": "vault_password"
+      },
+      "metadata": {
+        "created_time": "2025-12-06T15:38:59.970020",
+        "deletion_time": "",
+        "destroyed": false,
+        "version": 1
+      }
+    },
+    "secret/data/staging/ssh/keys": {
+      "data": {
+        "id_ed25519": {
+          "private_key": "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\nQyNTUxOQAAACDd0TSzRWdxIzwshhbM2yu7+PUzv4rToSJHBY4MjRUWuwAAAKCFro9mha6P\nZgAAAAtzc2gtZWQyNTUxOQAAACDd0TSzRWdxIzwshhbM2yu7+PUzv4rToSJHBY4MjRUWuw\nAAAEDTlN1BJmzlRTOw4YSoqIq0nfNpddLPn1c5oqBvThLl/t3RNLNFZ3EjPCyGFszbK7v4\n9TO/itOhIkcFjgyNFRa7AAAAF2Z1YWFkYWJkdWxsYWhAZ21haWwuY29tAQIDBAUG\n-----END OPENSSH PRIVATE KEY-----",
+          "public_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN3RNLNFZ3EjPCyGFszbK7v49TO/itOhIkcFjgyNFRa7 fuaadabdullah@gmail.com"
+        }
+      },
+      "metadata": {
+        "created_time": "2025-12-06T15:39:34.429096",
+        "deletion_time": "",
+        "destroyed": false,
+        "version": 1
+      }
+    }
+  },
+  "policies": {},
+  "auth_methods": {},
+  "timestamp": "2025-12-06T15:39:34.429469"
+}

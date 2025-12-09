@@ -15,15 +15,11 @@ This interactive script will guide you through setting up all required secrets f
 ## 📋 Secrets Checklist
 
 ### ✅ Backend (goblin-assistant-backend)
-- [ ] `RENDER_API_KEY` - From Render dashboard → Account Settings → API Keys
-- [ ] `RENDER_STAGING_SERVICE_ID` - Create staging service, copy ID from URL
-- [ ] `RENDER_PRODUCTION_SERVICE_ID` - Create production service, copy ID from URL
+- [ ] `FLY_API_TOKEN` - From Fly.io dashboard → Account → Access Tokens
 
 **Set via CLI**:
 ```bash
-gh secret set RENDER_API_KEY --repo fuaadabdullah/goblin-assistant-backend
-gh secret set RENDER_STAGING_SERVICE_ID --repo fuaadabdullah/goblin-assistant-backend
-gh secret set RENDER_PRODUCTION_SERVICE_ID --repo fuaadabdullah/goblin-assistant-backend
+gh secret set FLY_API_TOKEN --repo fuaadabdullah/goblin-assistant-backend
 ```
 
 **Verify**:
@@ -122,7 +118,7 @@ gh secret list --org fuaadabdullah
 ## 🔗 Direct Links
 
 ### Credential Creation
-- **Render API Key**: https://dashboard.render.com/account/settings
+- **Fly.io API Token**: https://fly.io/user/personal_access_tokens
 - **Vercel Token**: https://vercel.com/account/tokens
 - **npm Token**: https://www.npmjs.com/settings/~/tokens
 - **PyPI Token**: https://pypi.org/manage/account/token/

@@ -8,37 +8,122 @@ from sqlalchemy import (
     JSON,
     Float,
     ForeignKey,
+    UUID,
 )
 from sqlalchemy.orm import relationship
 from datetime import datetime
+import uuid
 
 # Import Base from database.py to use the same declarative base
 from database import Base
 
 
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = "app_users"  # Updated to match consolidated auth schema
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String)
+    password_hash = Column(String)  # Kept for backward compatibility during migration
     name = Column(String)
-    google_id = Column(String, unique=True)
-    passkey_credential_id = Column(String)
-    passkey_public_key = Column(Text)
+    google_id = Column(String, unique=True)  # Kept for backward compatibility
+    passkey_credential_id = Column(String)  # Kept for backward compatibility
+    passkey_public_key = Column(Text)  # Kept for backward compatibility
+
+    # New consolidated auth fields
+    role = Column(String, default="user")  # Simple role for RBAC
+    token_version = Column(Integer, default=0)  # For token revocation
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     tasks = relationship("Task", back_populates="user")
-    streams = relationship("Stream", back_populates="user")
+    streams = relationship(
+        "Stream", back_populates="streams_user"
+    )  # Updated to avoid conflict
+    sessions = relationship("UserSession", back_populates="user")
+    role_assignments = relationship(
+        "UserRoleAssignment",
+        back_populates="user",
+        foreign_keys="UserRoleAssignment.user_id",
+    )
+
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("app_users.id"), nullable=False)
+    refresh_token_id = Column(String, unique=True, nullable=False)
+    device_info = Column(Text)
+    ip_address = Column(String)
+    user_agent = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_active = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime)
+    revoked = Column(Boolean, default=False)
+    revoked_at = Column(DateTime)
+    revoked_reason = Column(Text)
+
+    # Relationships
+    user = relationship("User", back_populates="sessions")
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    actor_id = Column(UUID(as_uuid=True), ForeignKey("app_users.id"))
+    action = Column(String, nullable=False)
+    object_table = Column(String)
+    object_id = Column(String)
+    old_values = Column(JSON)
+    new_values = Column(JSON)
+    metadata_ = Column(JSON)  # Renamed to avoid conflict with SQLAlchemy metadata
+    ip_address = Column(String)
+    user_agent = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class UserRole(Base):
+    __tablename__ = "user_roles"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String, unique=True, nullable=False)
+    description = Column(Text)
+    permissions = Column(JSON, default=dict)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    assignments = relationship("UserRoleAssignment", back_populates="role")
+
+
+class UserRoleAssignment(Base):
+    __tablename__ = "user_role_assignments"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("app_users.id"), nullable=False)
+    role_id = Column(UUID(as_uuid=True), ForeignKey("user_roles.id"), nullable=False)
+    assigned_by = Column(UUID(as_uuid=True), ForeignKey("app_users.id"))
+    assigned_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime)
+
+    # Relationships
+    user = relationship(
+        "User", back_populates="role_assignments", foreign_keys=[user_id]
+    )
+    role = relationship("UserRole", back_populates="assignments")
+    assigner = relationship("User", foreign_keys=[assigned_by])
 
 
 class Task(Base):
     __tablename__ = "tasks"
 
     id = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.id"))
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("app_users.id")
+    )  # Updated to match new User model
     goblin = Column(String, nullable=False)
     task = Column(Text, nullable=False)
     code = Column(Text)
@@ -59,7 +144,9 @@ class Stream(Base):
     __tablename__ = "streams"
 
     id = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.id"))
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("app_users.id")
+    )  # Updated to match new User model
     goblin = Column(String, nullable=False)
     task = Column(Text, nullable=False)
     code = Column(Text)
@@ -69,7 +156,9 @@ class Stream(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    user = relationship("User", back_populates="streams")
+    streams_user = relationship(
+        "User", back_populates="streams"
+    )  # Renamed to avoid conflict
     chunks = relationship(
         "StreamChunk", back_populates="stream", cascade="all, delete-orphan"
     )

@@ -30,8 +30,8 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 **Triggers**: Push to `main`, tags `v*`, manual dispatch
 **Jobs**:
 - **build-and-push**: Docker build → GitHub Container Registry (ghcr.io), SBOM generation
-- **deploy-staging**: Render API deployment (staging environment)
-- **deploy-production**: Render API deployment (production environment)
+- **deploy-staging**: Fly.io deployment (staging environment)
+- **deploy-production**: Fly.io deployment (production environment)
 - **create-release**: GitHub release with changelog on version tags
 
 **Environments**:
@@ -39,9 +39,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 - Production: `https://api.goblin.fuaad.ai`
 
 **Required Secrets**:
-- `RENDER_API_KEY`: Render.com API authentication
-- `RENDER_STAGING_SERVICE_ID`: Staging service identifier
-- `RENDER_PRODUCTION_SERVICE_ID`: Production service identifier
+- `FLY_API_TOKEN`: Fly.io API authentication
 - `SLACK_WEBHOOK_URL`: Deployment notifications
 
 ---
@@ -196,14 +194,14 @@ npm install @goblin/contracts@1.2.3
 ## Environment Configuration
 
 ### Staging Environment
-- **Backend**: `https://staging-api.goblin.fuaad.ai` (Render)
+- **Backend**: `https://staging-api.goblin.fuaad.ai` (Fly.io)
 - **Frontend**: `https://staging.goblin.fuaad.ai` (Vercel)
 - **Auto-deploy**: On push to `develop` branch
-- **Database**: PostgreSQL (Render managed)
-- **Cache**: Redis (Render managed)
+- **Database**: PostgreSQL (Fly.io managed)
+- **Cache**: Redis (Fly.io managed)
 
 ### Production Environment
-- **Backend**: `https://api.goblin.fuaad.ai` (Render)
+- **Backend**: `https://api.goblin.fuaad.ai` (Fly.io)
 - **Frontend**: `https://goblin.fuaad.ai` (Vercel)
 - **Deploy**: Manual approval required (GitHub Environments)
 - **Database**: PostgreSQL (AWS RDS via Terraform)
@@ -256,7 +254,7 @@ npm install @goblin/contracts@1.2.3
 | Repository | Workflow File | Purpose | Trigger |
 |------------|---------------|---------|---------|
 | `backend` | `ci.yml` | Lint, test, build, security | Push, PR |
-| `backend` | `deploy.yml` | Docker build, Render deploy | Push to `main`, tags |
+| `backend` | `deploy.yml` | Docker build, Fly.io deploy | Push to `main`, tags |
 | `frontend` | `ci.yml` | Lint, test, Storybook, visual regression | Push, PR |
 | `frontend` | `deploy-vercel.yml` | Vercel deployments | Push, PR |
 | `contracts` | `ci.yml` | Lint, test, schema validation | Push, PR |
@@ -280,9 +278,7 @@ INFRACOST_API_KEY
 
 ### Backend Repo Secrets
 ```
-RENDER_API_KEY
-RENDER_STAGING_SERVICE_ID
-RENDER_PRODUCTION_SERVICE_ID
+FLY_API_TOKEN
 ```
 
 ### Frontend Repo Secrets
@@ -380,7 +376,7 @@ kubeval k8s/*.yaml
 1. Merge `develop` → `main`
 2. Create tag: `git tag v1.2.3`
 3. Push tag: `git push origin v1.2.3`
-4. Backend: Docker build → Render deploy → health check
+4. Backend: Docker build → Fly.io deploy → health check
 5. Frontend: Vercel production deploy → Lighthouse CI
 6. Infrastructure: Manual approval → Terraform apply → K8s rollout
 7. GitHub Release created with changelog
@@ -453,7 +449,7 @@ After running `tools/migrate-to-multirepo.sh`:
 - [ ] Set up GitHub Environments (staging, production)
 - [ ] Add all required secrets
 - [ ] Configure Vercel project
-- [ ] Configure Render services
+- [ ] Configure Fly.io app
 - [ ] Set up AWS credentials
 - [ ] Enable Dependabot
 - [ ] Configure Codecov integrations

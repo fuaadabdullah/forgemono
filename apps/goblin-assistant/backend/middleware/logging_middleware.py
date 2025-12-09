@@ -5,6 +5,7 @@ Features:
 - Request/response logging with timing
 - Error tracking with stack traces
 - Correlation IDs for request tracing
+- OpenTelemetry trace context integration
 """
 
 import time
@@ -22,6 +23,15 @@ try:
     HAS_JSON_LOGGER = True
 except ImportError:
     HAS_JSON_LOGGER = False
+
+# Try to import OpenTelemetry for trace context
+try:
+    from opentelemetry import trace
+    from opentelemetry.trace import Status, StatusCode
+
+    HAS_OPENTELEMETRY = True
+except ImportError:
+    HAS_OPENTELEMETRY = False
 
 
 class StructuredLoggingMiddleware(BaseHTTPMiddleware):
@@ -48,19 +58,33 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
             except Exception:
                 pass
 
+        # Get trace context if OpenTelemetry is available
+        trace_id = None
+        span_id = None
+        if HAS_OPENTELEMETRY:
+            try:
+                current_span = trace.get_current_span()
+                if current_span and current_span.get_span_context().trace_id:
+                    trace_id = format(current_span.get_span_context().trace_id, "032x")
+                    span_id = format(current_span.get_span_context().span_id, "016x")
+            except Exception:
+                pass  # Ignore trace context extraction errors
+
         # Log incoming request
-        logger.info(
-            "incoming_request",
-            extra={
-                "request_id": request_id,
-                "correlation_id": correlation_id,
-                "method": request.method,
-                "path": request.url.path,
-                "query_params": dict(request.query_params),
-                "client_host": request.client.host if request.client else None,
-                "user_agent": request.headers.get("user-agent"),
-            },
-        )
+        log_extra = {
+            "request_id": request_id,
+            "correlation_id": correlation_id,
+            "method": request.method,
+            "path": request.url.path,
+            "query_params": dict(request.query_params),
+            "client_host": request.client.host if request.client else None,
+            "user_agent": request.headers.get("user-agent"),
+        }
+        if trace_id:
+            log_extra["trace_id"] = trace_id
+            log_extra["span_id"] = span_id
+
+        logger.info("incoming_request", extra=log_extra)
 
         # Process request
         try:
@@ -68,17 +92,19 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
             duration = time.time() - start_time
 
             # Log successful response
-            logger.info(
-                "request_completed",
-                extra={
-                    "request_id": request_id,
-                    "correlation_id": correlation_id,
-                    "method": request.method,
-                    "path": request.url.path,
-                    "status_code": response.status_code,
-                    "duration_ms": round(duration * 1000, 2),
-                },
-            )
+            log_extra = {
+                "request_id": request_id,
+                "correlation_id": correlation_id,
+                "method": request.method,
+                "path": request.url.path,
+                "status_code": response.status_code,
+                "duration_ms": round(duration * 1000, 2),
+            }
+            if trace_id:
+                log_extra["trace_id"] = trace_id
+                log_extra["span_id"] = span_id
+
+            logger.info("request_completed", extra=log_extra)
 
             # Add correlation ID to response headers
             response.headers["X-Correlation-ID"] = correlation_id
@@ -89,19 +115,20 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
             duration = time.time() - start_time
 
             # Log error
-            logger.error(
-                "request_failed",
-                extra={
-                    "request_id": request_id,
-                    "correlation_id": correlation_id,
-                    "method": request.method,
-                    "path": request.url.path,
-                    "duration_ms": round(duration * 1000, 2),
-                    "error_type": type(e).__name__,
-                    "error_message": str(e),
-                },
-                exc_info=True,
-            )
+            log_extra = {
+                "request_id": request_id,
+                "correlation_id": correlation_id,
+                "method": request.method,
+                "path": request.url.path,
+                "duration_ms": round(duration * 1000, 2),
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+            }
+            if trace_id:
+                log_extra["trace_id"] = trace_id
+                log_extra["span_id"] = span_id
+
+            logger.error("request_failed", extra=log_extra, exc_info=True)
 
             raise
 

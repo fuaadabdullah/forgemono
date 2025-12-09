@@ -5,7 +5,7 @@ This folder is the canonical location for all frontend-specific documentation an
 Please use this folder for:
 
 - Local dev and start guides (Vite, Storybook)
-- Frontend deployment guides (Vercel, Netlify, Render)
+- Frontend deployment guides (Vercel)
 - Frontend build/test/CI guidance
 - Accessibility, theme, and UI guidelines
 - Visual regression and Storybook results

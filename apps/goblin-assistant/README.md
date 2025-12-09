@@ -1,6 +1,8 @@
 # GoblinOS Assistant
 
-A comprehensive AI-powered development assistant built with FastAPI, featuring intelligent model routing and specialized debugging capabilities.
+## Core Value
+
+GoblinOS Assistant gives you a lean, powerful AI teammate for software tasks and everyday stuff — one that automatically picks the best LLM or AI provider for the job, balancing quality, cost, and speed.
 
 ## Overview
 
@@ -33,11 +35,12 @@ Note: Most backend-specific documentation has been consolidated under the canoni
 - **Purpose**: Data persistence, user sessions, and API routing
 - **Features**: SQLAlchemy integration, database migrations
 
-### 📊 Monitoring & Observability (`datadog/`)
+### 📊 Monitoring & Observability
 
-- **Tools**: Datadog integration
+- **Tools**: Sentry error tracking, Fly.io metrics, Vercel Analytics
 - **Purpose**: Application monitoring, performance tracking, and alerting
-- **Features**: Real-time metrics, error tracking, and health monitoring
+- **Features**: Real-time error monitoring, performance insights, and health tracking
+- **Setup**: See [Monitoring Setup Guide](./docs/MONITORING_SETUP.md) for complete configuration
 
 ## Features
 
@@ -164,16 +167,130 @@ The assistant provides specialized debugging capabilities through the `/debugger
 
 ### Environment Variables
 
-Create a `.env.local` file in the `backend/` directory:
+The application uses environment variables for configuration. Create the appropriate `.env` files in the respective directories.
+
+#### Frontend Environment Variables (`.env.local` in project root)
+
+**Required:**
+
+- `VITE_API_BASE_URL` - Base URL for the API (e.g., `https://api.goblin.fuaad.ai`)
+
+**Optional:**
+
+- `VITE_BACKEND_URL` - Backend API URL (default: `http://localhost:8000`)
+- `VITE_FASTAPI_URL` - FastAPI backend URL (default: `http://localhost:8001`)
+- `VITE_ENABLE_DEBUG` - Enable debug mode (`true`/`false`, default: `false`)
+- `VITE_MOCK_API` - Use mock API for development (`true`/`false`, default: `false`)
+
+**Feature Flags:**
+
+- `VITE_FEATURE_RAG_ENABLED` - Enable RAG functionality (`true`/`false`, default: `false`)
+- `VITE_FEATURE_MULTI_PROVIDER` - Enable multi-provider routing (`true`/`false`, default: `false`)
+- `VITE_FEATURE_PASSKEY_AUTH` - Enable passkey authentication (`true`/`false`, default: `false`)
+- `VITE_FEATURE_GOOGLE_AUTH` - Enable Google OAuth (`true`/`false`, default: `false`)
+- `VITE_FEATURE_ORCHESTRATION` - Enable task orchestration (`true`/`false`, default: `false`)
+- `VITE_FEATURE_SANDBOX` - Enable sandbox mode (`true`/`false`, default: `false`)
+- `VITE_ENABLE_ANALYTICS` - Enable analytics tracking (`true`/`false`, default: `false`)
+- `VITE_DEBUG_MODE` - Enable debug features (`true`/`false`, default: `false`)
+
+**Turnstile (Bot Protection):**
+
+- `VITE_TURNSTILE_SITE_KEY_CHAT` - Turnstile site key for chat forms
+- `VITE_TURNSTILE_SITE_KEY_LOGIN` - Turnstile site key for login forms
+- `VITE_TURNSTILE_SITE_KEY_SEARCH` - Turnstile site key for search forms
+
+**Monitoring:**
+
+- `VITE_SENTRY_DSN` - Sentry DSN for error tracking and performance monitoring
+
+#### Backend Environment Variables (`.env` in `backend/` directory)
+
+**Required:**
+
+- `DATABASE_URL` - Database connection string (e.g., `postgresql://user:pass@localhost/db` or `sqlite:///./goblin_assistant.db`)
+- `JWT_SECRET_KEY` - Secret key for JWT token signing (use strong random string)
+- `ROUTING_ENCRYPTION_KEY` - Encryption key for API key storage (32-byte base64)
+- `SETTINGS_ENCRYPTION_KEY` - Encryption key for settings storage (32-byte base64)
+
+**AI Provider API Keys (at least one required):**
+
+- `OPENAI_API_KEY` - OpenAI API key
+- `ANTHROPIC_API_KEY` - Anthropic API key
+- `DEEPSEEK_API_KEY` - DeepSeek API key
+- `GEMINI_API_KEY` - Google Gemini API key
+- `GROK_API_KEY` - Grok API key
+
+**Optional:**
+
+- `ENVIRONMENT` - Environment type (`development`/`staging`/`production`, default: `development`)
+- `INSTANCE_COUNT` - Number of application instances (default: `1`)
+- `LOG_LEVEL` - Logging level (`DEBUG`/`INFO`/`WARNING`/`ERROR`, default: `INFO`)
+- `PORT` - Server port (default: `8001`)
+
+**Redis Configuration (for production/scaling):**
+
+- `REDIS_URL` - Redis connection URL (e.g., `redis://localhost:6379`)
+- `USE_REDIS_CHALLENGES` - Use Redis for challenge storage (`true`/`false`, default: `false`)
+- `REDIS_HOST` - Redis host (default: `localhost`)
+- `REDIS_PORT` - Redis port (default: `6379`)
+- `REDIS_DB` - Redis database number (default: `0`)
+- `REDIS_PASSWORD` - Redis password
+- `REDIS_SSL` - Use SSL for Redis connection (`true`/`false`, default: `false`)
+- `REDIS_TIMEOUT` - Redis connection timeout in seconds (default: `5`)
+
+**Authentication:**
+
+- `GOOGLE_CLIENT_ID` - Google OAuth client ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
+- `FRONTEND_URL` - Frontend URL for CORS (default: `http://localhost:5173`)
+- `DEBUG_AUTH` - Enable debug authentication (`true`/`false`, default: `false`)
+
+**Raptor Integration (for quick debug tasks):**
+
+- `RAPTOR_URL` - Raptor API endpoint URL
+- `RAPTOR_API_KEY` - Raptor API key
+
+**Monitoring & Analytics:**
+
+- `SENTRY_DSN` - Sentry DSN for error tracking and performance monitoring
+- `POSTHOG_API_KEY` - PostHog API key for user analytics (optional)
+- `POSTHOG_HOST` - PostHog host URL (optional, defaults to PostHog Cloud)
+
+**Email Validation:**
+
+- `REQUIRE_EMAIL_VALIDATION` - Require email validation (`true`/`false`, default: `true`)
+- `ALLOW_DISPOSABLE_EMAILS` - Allow disposable email addresses (`true`/`false`, default: `false`)
+
+**Development Fallbacks:**
+
+- `ALLOW_MEMORY_FALLBACK` - Allow memory fallback when Redis unavailable (`true`/`false`, default: `true`)
+
+#### Example `.env.local` (Frontend)
 
 ```bash
-# Raptor model configuration (for quick debug tasks)
-RAPTOR_URL=https://your-raptor-endpoint/api
-RAPTOR_API_KEY=your-raptor-api-key
+VITE_API_BASE_URL=https://api.goblin.fuaad.ai
+VITE_ENABLE_DEBUG=false
+VITE_MOCK_API=false
+VITE_FEATURE_RAG_ENABLED=true
+VITE_FEATURE_MULTI_PROVIDER=true
+VITE_FEATURE_PASSKEY_AUTH=true
+VITE_TURNSTILE_SITE_KEY_CHAT=0x4AAAAAACEUKA3R8flZ2Ig0
+VITE_TURNSTILE_SITE_KEY_LOGIN=0x4AAAAAACEUKak3TnCntrFv
+VITE_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+```
 
-# Fallback model configuration (existing LLM)
-FALLBACK_MODEL_URL=https://your-llm-endpoint/api
-FALLBACK_MODEL_KEY=your-llm-api-key
+#### Example `.env` (Backend)
+
+```bash
+ENVIRONMENT=development
+DATABASE_URL=sqlite:///./goblin_assistant.db
+JWT_SECRET_KEY=your-super-secret-jwt-key-change-in-production
+ROUTING_ENCRYPTION_KEY=R-gey0ZNSPehux88bohbsUm9My8LAd09L2CbC_MRNo4=
+SETTINGS_ENCRYPTION_KEY=R-gey0ZNSPehux88bohbsUm9My8LAd09L2CbC_MRNo4=
+OPENAI_API_KEY=sk-your-openai-key
+ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
+LOG_LEVEL=INFO
+PORT=8001
 ```
 
 ### Security Notes
@@ -195,13 +312,18 @@ The following items are recommended before deploying to production. The app is u
 - Ensure `ROUTING_ENCRYPTION_KEY` is configured and protected — it's used for decrypting provider API keys stored in DB.
 - Run `ProviderProbeWorker` (or enable routing probe worker) in a background worker to continuously monitor provider health and gather metrics.
 - Disable any debug endpoints or routes (e.g., local-llm-proxy admin endpoints) in production and ensure proper API key validation for local proxies.
-- Configure Prometheus to scrape `/metrics` and set up alerts on provider health, error rates, and request latency.
-- Set up a log aggregation pipeline (Datadog/ELK/CloudWatch) and ensure logs do not capture raw secret values. Configure structured logging (`X-Correlation-ID`) for traceability.
+- Configure Sentry error tracking and set up alerts on error rates and performance issues.
+- Set up a log aggregation pipeline (CloudWatch/ELK) and ensure logs do not capture raw secret values. Configure structured logging (`X-Correlation-ID`) for traceability.
 - Use a distributed session/store for `task_queue` (Redis) and ensure backups for persistent data (Postgres or backups of SQLite if used temporarily).
 - Implement a secrets rotation policy and an automated process for rotating encryption keys and API keys.
 
 ### Frontend Security Checklist
 
+- ✅ **Environment Validation**: CI/CD validates that no sensitive environment variables are exposed via `VITE_` prefixes
+- ✅ **Authentication Security**: HttpOnly, Secure cookies used for session tokens instead of localStorage
+- ✅ **Bot Protection**: Cloudflare Turnstile integration with runtime key validation
+- ✅ **XSS Prevention**: Replaced dangerous `innerHTML` with safe React error boundaries
+- ✅ **Pre-commit Hooks**: Automatic security validation on every commit
 - Ensure no secrets are exposed via `VITE_` variables (client `VITE_` envs are public). Move secrets to the backend / secrets manager.
 - Use HttpOnly, Secure cookies for session/JWT tokens instead of localStorage to reduce XSS risks.
 - Authenticate streaming endpoints using cookies or short-lived signed stream tokens; do not put secrets into URL query strings.

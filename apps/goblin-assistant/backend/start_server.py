@@ -15,4 +15,7 @@ if __name__ == "__main__":
     host = "0.0.0.0"
 
     print(f"Starting server on {host}:{port}")
-    uvicorn.run("main:app", host=host, port=port, log_level="info", access_log=True)
+    # Run backend as a package module so relative imports resolve correctly
+    uvicorn.run(
+        "backend.main:app", host=host, port=port, log_level="info", access_log=True
+    )

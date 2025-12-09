@@ -2,14 +2,16 @@
 Routing router with real provider discovery, health monitoring, and intelligent task routing.
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 
 from database import get_db
 from services.routing import RoutingService
-from tasks.provider_probe_worker import ProviderProbeWorker
+from auth.policies import AuthScope
+from auth_service import get_auth_service
 import os
 
 # Get encryption key from environment
@@ -19,7 +21,6 @@ if not ROUTING_ENCRYPTION_KEY:
 
 # Initialize services
 routing_service = None
-probe_worker = None
 
 
 def get_routing_service(db: Session = Depends(get_db)) -> RoutingService:
@@ -30,15 +31,39 @@ def get_routing_service(db: Session = Depends(get_db)) -> RoutingService:
     return routing_service
 
 
-def get_probe_worker() -> ProviderProbeWorker:
-    """Dependency to get probe worker instance."""
-    global probe_worker
-    if probe_worker is None:
-        probe_worker = ProviderProbeWorker(ROUTING_ENCRYPTION_KEY)
-    return probe_worker
-
-
 router = APIRouter(prefix="/routing", tags=["routing"])
+
+# Security schemes
+security = HTTPBearer()
+
+
+def require_scope(required_scope: AuthScope):
+    """Dependency to require a specific scope."""
+
+    def scope_checker(
+        credentials: HTTPAuthorizationCredentials = Security(security),
+    ) -> List[str]:
+        auth_service = get_auth_service()
+
+        # Try JWT token first
+        token = credentials.credentials
+        claims = auth_service.validate_access_token(token)
+
+        if claims:
+            # Convert AuthScope enums back to strings
+            scopes = auth_service.get_user_scopes(claims)
+            scope_values = [scope.value for scope in scopes]
+
+            if required_scope.value not in scope_values:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Insufficient permissions. Required scope: {required_scope.value}",
+                )
+            return scope_values
+
+        raise HTTPException(status_code=401, detail="Invalid authentication")
+
+    return scope_checker
 
 
 class RouteRequest(BaseModel):
@@ -62,6 +87,7 @@ class ProviderInfo(BaseModel):
 @router.get("/providers", response_model=List[ProviderInfo])
 async def get_available_providers(
     service: RoutingService = Depends(get_routing_service),
+    scopes: List[str] = Depends(require_scope(AuthScope.READ_MODELS)),
 ):
     """Get list of all configured providers with their capabilities and status"""
     try:
@@ -75,7 +101,9 @@ async def get_available_providers(
 
 @router.get("/providers/{capability}", response_model=List[ProviderInfo])
 async def get_providers_for_capability(
-    capability: str, service: RoutingService = Depends(get_routing_service)
+    capability: str,
+    service: RoutingService = Depends(get_routing_service),
+    scopes: List[str] = Depends(require_scope(AuthScope.READ_MODELS)),
 ):
     """Get providers that support a specific capability"""
     try:
@@ -96,7 +124,9 @@ async def get_providers_for_capability(
 
 @router.post("/route")
 async def route_request(
-    request: RouteRequest, service: RoutingService = Depends(get_routing_service)
+    request: RouteRequest,
+    service: RoutingService = Depends(get_routing_service),
+    scopes: List[str] = Depends(require_scope(AuthScope.WRITE_CONVERSATIONS)),
 ):
     """Route a request to the best available provider"""
     try:
@@ -109,7 +139,10 @@ async def route_request(
 
 
 @router.get("/health")
-async def routing_health(service: RoutingService = Depends(get_routing_service)):
+async def routing_health(
+    service: RoutingService = Depends(get_routing_service),
+    scopes: List[str] = Depends(require_scope(AuthScope.READ_USER)),
+):
     """Check if the routing system is operational"""
     try:
         providers = await service.discover_providers()

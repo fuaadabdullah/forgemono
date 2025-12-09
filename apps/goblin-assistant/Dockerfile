@@ -1,49 +1,42 @@
+# Dockerfile
 FROM python:3.11-slim
 
-# Set environment variables
+# Avoid Python buffering problems and ensure logs flush
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    curl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-
-# Create non-root user
-RUN useradd -m goblin -s /bin/bash
-
-# Set work directory
+# Set working directory where app will live inside the container
 WORKDIR /app
 
-# Copy requirements first for better caching
-COPY backend/requirements.txt .
+# Copy requirements file for dependency installation
+COPY requirements.txt /app/
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Install system deps (if you need build tools, uncomment below)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  build-essential \
+  gcc \
+  git \
+  && rm -rf /var/lib/apt/lists/*
 
-# Copy application code
-COPY backend/ .
-COPY backend-api/ ./backend-api/
+# Install Python deps
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
-# Change ownership to non-root user
-RUN chown -R goblin:goblin /app
+# Copy app source into container
+COPY . /app
 
-# Switch to non-root user
-USER goblin
+# Ensure backend is importable: make sure /app on PYTHONPATH and workdir is /app
+ENV PYTHONPATH=/app
 
-# Expose port
+# Make sure backend is a package (helpful if missing __init__.py)
+# Note: This will create an empty __init__.py if it doesn't exist
+RUN if [ -d /app/backend ] && [ ! -f /app/backend/__init__.py ]; then touch /app/backend/__init__.py; fi || true
+
+# Expose the app port
+ENV PORT=8001
 EXPOSE 8001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8001/health || exit 1
+# Use a small startup wrapper that prints diagnostics before starting
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
-# Start the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--log-level", "info", "--access-log"]
+CMD ["/app/start.sh"]

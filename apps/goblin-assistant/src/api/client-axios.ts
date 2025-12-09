@@ -1,10 +1,36 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../store/authStore';
+import { env } from '../config/env';
+import {
+  HealthStatus,
+  OrchestrationPlan,
+  CreateOrchestrationRequest,
+  CreateOrchestrationResponse,
+  TaskExecutionResponse,
+  ExecutionResult,
+  ChatCompletionResponse,
+  PasskeyChallenge,
+  ChatMessage,
+  User,
+  LoginRequest,
+  LoginResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
+  SessionsResponse,
+  RevokeSessionRequest,
+  EmergencyLogoutResponse,
+  UserSession,
+} from '../types/api';
 
-// Check if running in Vercel environment
-const IS_VERCEL = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
+// Check if running in Vercel environment at runtime
+const getIsVercel = () => {
+  if (typeof window === 'undefined') return false;
+  return window.location.hostname.includes('vercel.app') ||
+         window.location.hostname.includes('goblin-assistant.vercel.app') ||
+         env.isProduction;
+};
 
-const API_BASE_URL = IS_VERCEL ? '' : (import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8001');
+const getApiBaseUrl = () => env.backendUrl || (getIsVercel() ? 'https://goblin-backend.fly.dev' : 'http://localhost:8000');
 
 /**
  * Typed API client using axios with interceptors for auth and error handling
@@ -12,35 +38,55 @@ const API_BASE_URL = IS_VERCEL ? '' : (import.meta.env.VITE_FASTAPI_URL || 'http
 class ApiClient {
   private client: AxiosInstance;
 
-  constructor(baseUrl: string = API_BASE_URL) {
+  constructor(baseUrl?: string) {
+    const defaultBaseUrl = getIsVercel() ? '' : (env.fastApiUrl || 'http://localhost:8001');
     this.client = axios.create({
-      baseURL: baseUrl,
+      baseURL: baseUrl || defaultBaseUrl,
       headers: {
         'Content-Type': 'application/json',
       },
       timeout: 30000, // 30 second timeout
+      withCredentials: true, // Enable cookies for authentication
     });
 
-    // Request interceptor: Add auth token
-    this.client.interceptors.request.use(
-      (config) => {
-        const token = useAuthStore.getState().token;
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
+    // Request interceptor: No longer needed - cookies are sent automatically
+    // this.client.interceptors.request.use(
+    //   (config) => {
+    //     const token = useAuthStore.getState().token;
+    //     if (token) {
+    //       config.headers.Authorization = `Bearer ${token}`;
+    //     }
+    //     return config;
+    //   },
+    //   (error) => Promise.reject(error)
+    // );
 
-    // Response interceptor: Handle auth errors
+    // Response interceptor: Handle auth errors with token refresh
     this.client.interceptors.response.use(
       (response) => response,
-      (error: AxiosError) => {
+      async (error: AxiosError) => {
+        const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+        if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          try {
+            // Attempt to refresh token
+            await this.refreshAuthToken();
+            // Retry the original request
+            return this.client(originalRequest);
+          } catch (refreshError) {
+            // Refresh failed, clear auth
+            useAuthStore.getState().clearAuth();
+            return Promise.reject(this.handleError(error));
+          }
+        }
+
         if (error.response?.status === 401) {
-          // Clear auth on 401 Unauthorized
+          // Clear auth on 401 Unauthorized (if not already handled above)
           useAuthStore.getState().clearAuth();
         }
+
         return Promise.reject(this.handleError(error));
       }
     );
@@ -60,6 +106,28 @@ class ApiClient {
     }
   }
 
+  // Set auth token (for compatibility with existing code) - DEPRECATED: Use cookies instead
+  setAuthToken(_token: string | null) {
+    // No longer needed - cookies handle authentication
+    console.warn('setAuthToken is deprecated. Authentication is handled via httpOnly cookies.');
+  }
+
+  /**
+   * Refresh authentication token using refresh token cookie
+   */
+  private async refreshAuthToken(): Promise<void> {
+    try {
+      // Make refresh request - cookies will be sent automatically
+      const response = await this.client.post('/auth/refresh');
+      // If successful, the new tokens will be set as httpOnly cookies by the server
+      // The response may contain user info or just success status
+      return response.data;
+    } catch (error) {
+      // Refresh failed, throw to trigger auth clearing
+      throw new Error('Token refresh failed');
+    }
+  }
+
   // Generic request method
   private async request<T>(config: AxiosRequestConfig): Promise<T> {
     const response = await this.client.request<T>(config);
@@ -67,7 +135,7 @@ class ApiClient {
   }
 
   // ============ Health Endpoints ============
-  async getHealth() {
+  async getHealth(): Promise<HealthStatus> {
     return this.request({ method: 'GET', url: '/health' });
   }
 
@@ -157,23 +225,51 @@ class ApiClient {
   }
 
   // ============ Authentication Endpoints ============
-  async register(email: string, password: string): Promise<{ access_token: string; token_type: string }> {
+  async register(email: string, password: string, turnstileToken?: string): Promise<{ user: User }> {
     return this.request({
       method: 'POST',
-      url: '/auth/register',
+      url: '/v1/auth/register',
       data: { email, password },
+      headers: turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {},
+    });
+  }
+
+  async login(data: LoginRequest): Promise<LoginResponse> {
+    return this.request({
+      method: 'POST',
+      url: '/auth/login',
+      data,
       // Temporarily disabled turnstile header for backend compatibility
       // headers: turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {},
     });
   }
 
-  async login(email: string, password: string): Promise<{ access_token: string; token_type: string }> {
+  async refreshToken(data: RefreshTokenRequest): Promise<RefreshTokenResponse> {
     return this.request({
       method: 'POST',
-      url: '/auth/login',
-      data: { email, password },
-      // Temporarily disabled turnstile header for backend compatibility
-      // headers: turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {},
+      url: '/auth/refresh',
+      data,
+    });
+  }
+
+  async getSessions(): Promise<SessionsResponse> {
+    return this.request({
+      method: 'GET',
+      url: '/auth/sessions',
+    });
+  }
+
+  async revokeSession(data: RevokeSessionRequest): Promise<{ message: string }> {
+    return this.request({
+      method: 'DELETE',
+      url: `/auth/sessions/${data.session_id}`,
+    });
+  }
+
+  async emergencyLogout(): Promise<EmergencyLogoutResponse> {
+    return this.request({
+      method: 'POST',
+      url: '/auth/emergency-logout',
     });
   }
 
@@ -197,7 +293,7 @@ class ApiClient {
     });
   }
 
-  async passkeyChallenge(email: string) {
+  async passkeyChallenge(email: string): Promise<PasskeyChallenge> {
     return this.request({
       method: 'POST',
       url: '/auth/passkey/challenge',
@@ -213,7 +309,7 @@ class ApiClient {
     });
   }
 
-  async passkeyAuth(email: string, assertion: any): Promise<{ access_token: string; token_type: string }> {
+  async passkeyAuth(email: string, assertion: any): Promise<{ user: User }> {
     return this.request({
       method: 'POST',
       url: '/auth/passkey/auth',
@@ -238,7 +334,7 @@ class ApiClient {
   }
 
   // ============ Chat Endpoints ============
-  async chatCompletion(messages: any[], model?: string, stream?: boolean, turnstileToken?: string) {
+  async chatCompletion(messages: ChatMessage[], model?: string, stream?: boolean, turnstileToken?: string): Promise<ChatCompletionResponse> {
     return this.request({
       method: 'POST',
       url: '/chat/completions',
@@ -522,7 +618,7 @@ class ApiClient {
     });
   }
 
-  async pollStreamingTask(streamId: string) {
+  async pollStreamingTask(streamId: string): Promise<TaskExecutionResponse> {
     return this.request({
       method: 'GET',
       url: `/api/route_task_stream_poll/${streamId}`,
@@ -537,7 +633,7 @@ class ApiClient {
   }
 
   // ============ Orchestration ============
-  async createOrchestrationPlan(request: { text: string; default_goblin?: string }) {
+  async createOrchestrationPlan(request: CreateOrchestrationRequest): Promise<CreateOrchestrationResponse> {
     return this.request({
       method: 'POST',
       url: '/execute/',
@@ -553,7 +649,7 @@ class ApiClient {
     });
   }
 
-  async parseOrchestration(request: { text: string }) {
+  async parseOrchestration(request: CreateOrchestrationRequest): Promise<CreateOrchestrationResponse> {
     return this.request({
       method: 'POST',
       url: '/execute/orchestrate/parse',
@@ -561,14 +657,14 @@ class ApiClient {
     });
   }
 
-  async getOrchestrationPlan(planId: string) {
+  async getOrchestrationPlan(planId: string): Promise<OrchestrationPlan> {
     return this.request({
       method: 'GET',
       url: `/execute/orchestrate/plans/${planId}`,
     });
   }
 
-  async getExecutionStatus(taskId: string) {
+  async getExecutionStatus(taskId: string): Promise<ExecutionResult> {
     return this.request({
       method: 'GET',
       url: `/execute/status/${taskId}`,
@@ -577,7 +673,7 @@ class ApiClient {
 
   // ============ Streaming Endpoint (EventSource - not axios) ============
   streamTaskExecution(taskId: string, goblin: string = 'default', task: string = 'default task'): EventSource {
-    const url = `${API_BASE_URL}/stream?task_id=${encodeURIComponent(taskId)}&goblin=${encodeURIComponent(goblin)}&task=${encodeURIComponent(task)}`;
+    const url = `${getApiBaseUrl()}/stream?task_id=${encodeURIComponent(taskId)}&goblin=${encodeURIComponent(goblin)}&task=${encodeURIComponent(task)}`;
     return new EventSource(url);
   }
 }

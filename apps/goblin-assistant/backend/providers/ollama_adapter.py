@@ -2,18 +2,35 @@ import os
 import requests
 import json
 import asyncio
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import logging
+
+from .base_adapter import AdapterBase
+from .provider_registry import get_provider_registry
 
 logger = logging.getLogger(__name__)
 
 
-class OllamaAdapter:
-    def __init__(self, api_key: str = None, base_url: str = None):
-        self.api_key = api_key
-        if base_url is None:
-            base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-        self.base_url = base_url
+class OllamaAdapter(AdapterBase):
+    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
+        registry = get_provider_registry()
+        config = registry.get_provider_config_dict("ollama")
+
+        if not config:
+            # Fallback to manual config if registry fails
+            if base_url is None:
+                base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+            config = {
+                "api_key": api_key,
+                "base_url": base_url,
+                "timeout": 30,
+                "retries": 2,
+                "cost_per_token_input": 0.0,
+                "cost_per_token_output": 0.0,
+                "latency_threshold_ms": 10000,
+            }
+
+        super().__init__(name="ollama", config=config)
 
     def get_status(self):
         try:
@@ -30,6 +47,8 @@ class OllamaAdapter:
             headers = {}
             if self.api_key:
                 headers["Authorization"] = f"Bearer {self.api_key}"
+                # Some proxies use X-API-Key instead of Authorization; include both
+                headers["X-API-Key"] = self.api_key
 
             response = await asyncio.get_event_loop().run_in_executor(
                 None,
@@ -103,7 +122,7 @@ class OllamaAdapter:
                 },
             ]
 
-    def generate(self, prompt, model="llama2"):
+    def generate_simple(self, prompt, model="llama2"):
         try:
             payload = {"prompt": prompt, "model": model, "stream": False}
             response = requests.post(
@@ -200,3 +219,56 @@ class OllamaAdapter:
         except Exception as e:
             logger.error(f"Ollama chat request failed: {e}")
             raise
+
+    async def generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Generate completion using Ollama API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters (model, temperature, max_tokens, etc.)
+
+        Returns:
+            Dict containing response data
+        """
+        model = kwargs.get("model", "llama2")
+
+        # Use the existing chat method but wrap it to match the interface
+        content = await self.chat(model, messages, **kwargs)
+
+        # Ollama doesn't provide token usage info, so we estimate
+        # Rough estimation: 4 chars per token
+        input_chars = sum(len(msg.get("content", "")) for msg in messages)
+        output_chars = len(content)
+        input_tokens = input_chars // 4
+        output_tokens = output_chars // 4
+
+        # Log cost (Ollama is typically free/local)
+        self._log_cost(input_tokens, output_tokens)
+
+        return {
+            "content": content,
+            "usage": {
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "total_tokens": input_tokens + output_tokens,
+            },
+            "model": model,
+            "finish_reason": "stop",  # Ollama doesn't provide this
+        }
+
+    async def a_generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Async generate completion using Ollama API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters
+
+        Returns:
+            Dict containing response data
+        """
+        # For Ollama, async and sync are the same
+        return await self.generate(messages, **kwargs)

@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: goblin-assistant-dev
-  labels:
-    environment: development
-    project: goblin-assistant

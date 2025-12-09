@@ -96,7 +96,7 @@ If deploying frontend separately:
    VITE_FASTAPI_URL=https://goblin-assistant.fly.dev
    ```
 
-2. [ ] Redeploy frontend (Netlify/Vercel)
+2. [ ] Redeploy frontend (Vercel)
 
 ## 🔍 Verification Checklist
 

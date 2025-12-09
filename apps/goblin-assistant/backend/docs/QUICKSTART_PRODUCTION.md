@@ -100,8 +100,8 @@ curl https://your-backend/raptor/status
 
 - **Supabase Dashboard**: <https://supabase.com/dashboard>
 - **Upstash Console**: <https://console.upstash.com>
-- **Render Dashboard**: <https://dashboard.render.com>
-- **Netlify Dashboard**: <https://app.netlify.com>
+- **Fly.io Dashboard**: <https://fly.io/dashboard>
+- **Vercel Dashboard**: <https://vercel.com/dashboard>
 
 ---
 

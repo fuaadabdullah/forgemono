@@ -52,7 +52,7 @@ cd apps/goblin-assistant
 ./deploy-backend.sh render  # or fly
 
 # Frontend
-./deploy-frontend.sh
+./deploy-vercel.sh
 
 # Update FRONTEND_URL in backend env vars
 FRONTEND_URL=https://your-production-domain.com
@@ -152,7 +152,7 @@ alembic upgrade head
 - **Supabase Dashboard**: <https://supabase.com/dashboard>
 - **Upstash Console**: <https://console.upstash.com>
 - **Render Dashboard**: <https://dashboard.render.com>
-- **Netlify Dashboard**: <https://app.netlify.com>
+- **Vercel Dashboard**: <https://vercel.com/dashboard>
 
 ---
 

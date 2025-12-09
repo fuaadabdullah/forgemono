@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiClient } from '../api/client';
+import { apiClient } from '../api/client-axios';
 import { Button, Alert } from './ui';
 
 interface StreamChunk {

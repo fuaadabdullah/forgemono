@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # Redis Configuration
     redis_url: str = "redis://localhost:6379"
     redis_timeout: int = 5
+    # By default memory fallback is disabled to force use of real DBs in production
     allow_memory_fallback: bool = False
 
     # Authentication

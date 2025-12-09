@@ -18,6 +18,7 @@ __pycache__/
 # Env/Secrets
 .env
 .env.*
+!.env.example
 .secrets/
 
 # Local env / decrypted files
