@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import { devLog } from '../utils/dev-log';
 
 type BaseButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   className?: string;
@@ -202,7 +203,7 @@ export function ButtonExamples() {
           Primary Actions
         </h3>
         <div className="flex gap-3 flex-wrap">
-          <GoblinButton onClick={() => console.log('Deploy!')}>
+          <GoblinButton onClick={() => devLog('Deploy!')}>
             Deploy Goblin
           </GoblinButton>
           <GoblinButton disabled>
@@ -216,7 +217,7 @@ export function ButtonExamples() {
           Call-to-Action
         </h3>
         <div className="flex gap-3 flex-wrap">
-          <CtaButton onClick={() => console.log('Execute!')}>
+          <CtaButton onClick={() => devLog('Execute!')}>
             Execute Task
           </CtaButton>
           <CtaButton disabled>
@@ -247,7 +248,7 @@ export function ButtonExamples() {
           Destructive Actions
         </h3>
         <div className="flex gap-3 flex-wrap">
-          <DangerButton onClick={() => console.log('Delete!')}>
+          <DangerButton onClick={() => devLog('Delete!')}>
             Delete Resource
           </DangerButton>
         </div>

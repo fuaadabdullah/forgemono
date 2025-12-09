@@ -29,12 +29,12 @@ export CF_TOKEN=$(bw get password goblin-prod-cloudflare)
 export OPENAI_KEY=$(bw get password goblin-prod-openai)
 export JWT_SECRET=$(bw get password goblin-prod-jwt)
 export FLY_TOKEN=$(bw get password goblin-prod-fly-token)
+export CHROMATIC_PROJECT_TOKEN=$(bw get password goblin-prod-chromatic-token)
 
 # Optional: Load additional secrets as needed
 # export GROQ_KEY=$(bw get password goblin-prod-groq)
 # export ANTHROPIC_KEY=$(bw get password goblin-prod-anthropic)
 # export CLOUDINARY_KEY=$(bw get password goblin-prod-cloudinary)
-# export DATADOG_API=$(bw get password goblin-prod-datadog-api)
 
 # Verify critical secrets are loaded
 if [ -z "$FASTAPI_SECRET" ]; then
@@ -62,5 +62,6 @@ echo "export CF_TOKEN=\"$CF_TOKEN\"" >> $BASH_ENV
 echo "export OPENAI_KEY=\"$OPENAI_KEY\"" >> $BASH_ENV
 echo "export JWT_SECRET=\"$JWT_SECRET\"" >> $BASH_ENV
 echo "export FLY_TOKEN=\"$FLY_TOKEN\"" >> $BASH_ENV
+echo "export CHROMATIC_PROJECT_TOKEN=\"$CHROMATIC_PROJECT_TOKEN\"" >> $BASH_ENV
 
 echo "🧙‍♂️ Goblin secrets loaded into CircleCI environment"

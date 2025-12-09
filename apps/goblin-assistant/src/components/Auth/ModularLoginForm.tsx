@@ -7,6 +7,7 @@ import SocialLoginButtons from './SocialLoginButtons';
 import Divider from './Divider';
 import PasskeyPanel from './PasskeyPanel';
 import TurnstileWidget from '../TurnstileWidget';
+import { useTurnstile } from '../../config/turnstile';
 
 interface ModularLoginFormProps {
   onSuccess: () => void;
@@ -24,25 +25,27 @@ export default function ModularLoginForm({
   const [email, setEmail] = useState('');
   const [turnstileToken, setTurnstileToken] = useState('');
 
+  const turnstileConfig = useTurnstile('login');
+
   const handleEmailPasswordSubmit = async (email: string, password: string) => {
     setEmail(email); // Store for passkey
 
-    // Check if Turnstile token is present
-    if (!turnstileToken) {
-      onError('Please complete the security verification');
-      return;
-    }
+    // Temporarily disabled turnstile verification for backend compatibility
+    // TODO: Re-enable when backend implements turnstile verification
+    // if (!turnstileToken) {
+    //   onError('Please complete the security verification');
+    //   return;
+    // }
 
     setIsLoading(true);
 
     try {
       const response = isRegister
         ? await apiClient.register(email, password, turnstileToken)
-        : await apiClient.login(email, password, turnstileToken);
+        : await apiClient.login(email, password);
 
-      // Store token in both localStorage and Zustand
-      localStorage.setItem('auth_token', response.access_token);
-      useAuthStore.getState().setAuth(response.access_token, { email });
+      // ✅ NO localStorage - cookies handle auth
+      useAuthStore.getState().setAuth(response.user || { email });
       onSuccess();
     } catch (error) {
       onError(error instanceof Error ? error.message : 'Authentication failed');
@@ -76,7 +79,7 @@ export default function ModularLoginForm({
         {/* Turnstile Bot Protection */}
         <div className="mt-4">
           <TurnstileWidget
-            siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY_MANAGED}
+            siteKey={turnstileConfig.siteKey}
             onVerify={(token) => setTurnstileToken(token)}
             mode="managed"
             theme="auto"

@@ -268,16 +268,16 @@ cat master_test_results.json | jq .
 
 ### Tests Failing to Connect
 
-**Issue:** Cannot reach Kalmatura LLM runtime
+**Issue:** Cannot reach Kamatera LLM runtime
 
 **Solution:**
 ```bash
 # Check environment variables
-echo $KALMATURA_LLM_URL
-echo $KALMATURA_LLM_API_KEY
+echo $KAMATERA_LLM_URL
+echo $KAMATERA_LLM_API_KEY
 
-# Test connectivity (adjust URL for your Kalmatura endpoint)
-curl ${KALMATURA_LLM_URL}/api/tags
+# Test connectivity (adjust URL for your Kamatera endpoint)
+curl ${KAMATERA_LLM_URL}/api/tags
 ```
 
 ### High Latency

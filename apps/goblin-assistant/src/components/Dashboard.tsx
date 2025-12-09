@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { apiClient } from '../api/client';
+import { apiClient } from '../api/client-axios';
+import { HealthStatus, isHealthStatus } from '../types/api';
 
 interface Goblin {
   id: string;
@@ -7,18 +8,6 @@ interface Goblin {
   title: string;
   status: string;
   guild: string;
-}
-
-interface HealthStatus {
-  status: string;
-  timestamp: number;
-  version: string;
-  services: {
-    routing: string;
-    execution: string;
-    search: string;
-    auth: string;
-  };
 }
 
 const Dashboard = () => {
@@ -36,7 +25,12 @@ const Dashboard = () => {
           apiClient.getStreamingHealth(),
         ]);
         setGoblins(goblinsData);
-        setHealth(healthData);
+        if (isHealthStatus(healthData)) {
+          setHealth(healthData);
+        } else {
+          console.error('Invalid health status response');
+          setHealth(null);
+        }
       } catch (err) {
         setError('Failed to load dashboard data');
         console.error('Dashboard error:', err);
@@ -78,26 +72,26 @@ const Dashboard = () => {
           <h2 className="text-xl font-semibold text-text mb-4">System Health</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className={`text-2xl mb-2 ${health.status === 'healthy' ? 'text-success' : 'text-danger'}`}>
-                {health.status === 'healthy' ? '✅' : '❌'}
+              <div className={`text-2xl mb-2 ${health.overall === 'healthy' ? 'text-success' : 'text-danger'}`}>
+                {health.overall === 'healthy' ? '✅' : '❌'}
               </div>
               <div className="text-sm text-muted">Overall Status</div>
             </div>
             <div className="text-center">
-              <div className={`text-2xl mb-2 ${health.services.routing === 'healthy' ? 'text-success' : 'text-danger'}`}>
-                {health.services.routing === 'healthy' ? '🚀' : '❌'}
+              <div className={`text-2xl mb-2 ${health.services.routing?.status === 'healthy' ? 'text-success' : 'text-danger'}`}>
+                {health.services.routing?.status === 'healthy' ? '🚀' : '❌'}
               </div>
               <div className="text-sm text-muted">Routing</div>
             </div>
             <div className="text-center">
-              <div className={`text-2xl mb-2 ${health.services.execution === 'healthy' ? 'text-success' : 'text-danger'}`}>
-                {health.services.execution === 'healthy' ? '⚡' : '❌'}
+              <div className={`text-2xl mb-2 ${health.services.execution?.status === 'healthy' ? 'text-success' : 'text-danger'}`}>
+                {health.services.execution?.status === 'healthy' ? '⚡' : '❌'}
               </div>
               <div className="text-sm text-muted">Execution</div>
             </div>
             <div className="text-center">
-              <div className={`text-2xl mb-2 ${health.services.auth === 'healthy' ? 'text-success' : 'text-danger'}`}>
-                {health.services.auth === 'healthy' ? '🔐' : '❌'}
+              <div className={`text-2xl mb-2 ${health.services.auth?.status === 'healthy' ? 'text-success' : 'text-danger'}`}>
+                {health.services.auth?.status === 'healthy' ? '🔐' : '❌'}
               </div>
               <div className="text-sm text-muted">Auth</div>
             </div>

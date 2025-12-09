@@ -353,10 +353,10 @@ webhook_url = https://alerts.example.com
 
 ## Deployment Notes
 
-### For Render.com
-The `render.yaml` already includes all environment variables. Raptor will:
+### For Fly.io
+The `fly.toml` configuration includes all environment variables. Raptor will:
 - ✅ Start automatically on app startup
-- ✅ Log to `logs/raptor.log` (ensure Render has write access)
+- ✅ Log to `logs/raptor.log` (ensure Fly.io has write access)
 - ✅ Use `config/raptor.ini` for configuration
 - ✅ Gracefully handle missing `psutil` if not installed
 

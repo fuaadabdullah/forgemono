@@ -8,22 +8,39 @@ from typing import Dict, List, Optional, Any
 from openai import OpenAI
 import logging
 
+from .base_adapter import AdapterBase
+from .provider_registry import get_provider_registry
+
 logger = logging.getLogger(__name__)
 
 
-class OpenAIAdapter:
+class OpenAIAdapter(AdapterBase):
     """Adapter for OpenAI API provider operations."""
 
-    def __init__(self, api_key: str, base_url: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
         """Initialize OpenAI adapter.
 
         Args:
-            api_key: OpenAI API key
+            api_key: OpenAI API key (optional, will use registry)
             base_url: Optional custom base URL
         """
-        self.api_key = api_key
-        self.base_url = base_url or "https://api.openai.com/v1"
-        self.client = OpenAI(api_key=api_key, base_url=self.base_url)
+        registry = get_provider_registry()
+        config = registry.get_provider_config_dict("openai")
+
+        if not config:
+            # Fallback to manual config if registry fails
+            config = {
+                "api_key": api_key,
+                "base_url": base_url or "https://api.openai.com/v1",
+                "timeout": 30,
+                "retries": 2,
+                "cost_per_token_input": 0.0015,
+                "cost_per_token_output": 0.002,
+                "latency_threshold_ms": 3000,
+            }
+
+        super().__init__(name="openai", config=config)
+        self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check on OpenAI API.
@@ -216,3 +233,60 @@ class OpenAIAdapter:
                 "error": str(e),
                 "model": model,
             }
+
+    async def generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Generate completion using OpenAI API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters (model, temperature, max_tokens, etc.)
+
+        Returns:
+            Dict containing response data
+        """
+        model = kwargs.get("model", "gpt-3.5-turbo")
+
+        def _sync_call():
+            return self.client.chat.completions.create(
+                model=model, messages=messages, **kwargs
+            )
+
+        response = await self._call_with_circuit_breaker(_sync_call)
+
+        # Extract usage information for cost logging
+        usage = getattr(response, "usage", None)
+        input_tokens = getattr(usage, "prompt_tokens", 0) if usage else 0
+        output_tokens = getattr(usage, "completion_tokens", 0) if usage else 0
+
+        # Log cost using base adapter method
+        self._log_cost(input_tokens, output_tokens)
+
+        return {
+            "content": response.choices[0].message.content if response.choices else "",
+            "usage": {
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "total_tokens": (getattr(usage, "total_tokens", 0) if usage else 0),
+            },
+            "model": model,
+            "finish_reason": response.choices[0].finish_reason
+            if response.choices
+            else None,
+        }
+
+    async def a_generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Async generate completion using OpenAI API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters
+
+        Returns:
+            Dict containing response data
+        """
+        # For OpenAI, async and sync are the same since we use run_in_executor
+        return await self.generate(messages, **kwargs)

@@ -3,8 +3,8 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import re
 from sqlalchemy.orm import Session
-from database import get_db
-from models import SearchCollection, SearchDocument
+from .database import get_db
+from .models import SearchCollection, SearchDocument
 
 router = APIRouter(prefix="/search", tags=["search"])
 

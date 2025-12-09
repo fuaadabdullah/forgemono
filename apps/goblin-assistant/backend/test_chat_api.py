@@ -46,17 +46,25 @@ def setup_test_provider():
             )
             encryption_service = EncryptionService(encryption_key)
 
-            # Get Ollama configuration - prefer Kalmatura for production
+            # Get Ollama configuration - prefer Kamatera for production
             use_local_llm = os.getenv("USE_LOCAL_LLM", "false").lower() == "true"
 
             if use_local_llm:
                 # Local development mode
-                ollama_api_key = os.getenv("LOCAL_LLM_API_KEY", "your-secure-api-key-here")
-                ollama_base_url = os.getenv("LOCAL_LLM_PROXY_URL", "http://45.61.60.3:8002")
+                ollama_api_key = os.getenv(
+                    "LOCAL_LLM_API_KEY", "your-secure-api-key-here"
+                )
+                ollama_base_url = os.getenv(
+                    "LOCAL_LLM_PROXY_URL", "http://45.61.60.3:8002"
+                )
             else:
-                # Production mode - use Kalmatura-hosted LLM runtime
-                ollama_api_key = os.getenv("KALMATURA_LLM_API_KEY", "your-secure-api-key-here")
-                ollama_base_url = os.getenv("KALMATURA_LLM_URL", "http://45.61.60.3:8002")
+                # Production mode - use Kamatera-hosted LLM runtime
+                ollama_api_key = os.getenv(
+                    "KAMATERA_LLM_API_KEY", "your-secure-api-key-here"
+                )
+                ollama_base_url = os.getenv(
+                    "KAMATERA_LLM_URL", "http://66.55.77.147:8000"
+                )
 
             # Encrypt API key
             encrypted_key = encryption_service.encrypt(ollama_api_key)

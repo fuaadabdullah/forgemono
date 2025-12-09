@@ -1,0 +1,29 @@
+name: Doc Check
+
+on:
+  pull_request:
+    paths: ['docs/**', 'templates/**', 'scripts/goblin_docs.py']
+  push:
+    branches: [main, master]
+    paths: ['docs/**']
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+
+      - name: Install deps
+        run: pip install frontmatter click
+
+      - name: Validate docs
+        run: python scripts/goblin_docs.py scan --path docs
+
+      - name: Markdown lint
+        run: |
+          npx markdownlint-cli docs/ --config .markdownlint.json
+        continue-on-error: true

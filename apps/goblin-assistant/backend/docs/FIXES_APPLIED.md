@@ -5,30 +5,30 @@
 
 **Date:** December 1, 2025
 
-## 1. ✅ KALMATURA_LLM_API_KEY - SECURED
+## 1. ✅ KAMATERA_LLM_API_KEY - SECURED
 
 **Status:** COMPLETE
 **Old Value:** `your-secure-api-key-here` (placeholder)
 **New Value:** `goblin-llm-hrDD-3IO83-YpusDBHXV_V0r7Lx9sMtvEs4CWBnF2kE`
 
 **What was done:**
-- Generated cryptographically secure random API key for Kalmatura LLM runtime
-- Updated `backend/.env` with new KALMATURA_LLM_API_KEY
-- Key is now production-ready for Kalmatura-hosted LLM endpoints
+- Generated cryptographically secure random API key for Kamatera LLM runtime
+- Updated `backend/.env` with new KAMATERA_LLM_API_KEY
+- Key is now production-ready for Kamatera-hosted LLM endpoints
 
 **Security Note:**
 - The key should be stored in a managed secrets store and not kept in plaintext in files. Please move this key into your secrets manager (Render, HashiCorp Vault, AWS Secrets Manager, or similar) and rotate it periodically.
 
-**⚠️ IMPORTANT:** You need to configure the Kalmatura LLM runtime with this API key:
+**⚠️ IMPORTANT:** You need to configure the Kamatera LLM runtime with this API key:
 ```bash
-# SSH into Kalmatura host
-ssh deploy@${KALMATURA_HOST}
+# SSH into Kamatera host
+ssh deploy@${KAMATERA_HOST}
 
 # Configure the LLM runtime service with the new API key
-export KALMATURA_LLM_API_KEY="goblin-llm-hrDD-3IO83-YpusDBHXV_V0r7Lx9sMtvEs4CWBnF2kE"
+export KAMATERA_LLM_API_KEY="goblin-llm-hrDD-3IO83-YpusDBHXV_V0r7Lx9sMtvEs4CWBnF2kE"
 
 # Restart the LLM runtime service
-systemctl restart kalmatura-llm-runtime
+systemctl restart kamatera-llm-runtime
 ```
 
 ---
@@ -67,7 +67,12 @@ systemctl restart kalmatura-llm-runtime
 ✅ All dependencies resolved
 ```
 
-**How to start:**
+**How to start (canonical frontend docs):**
+
+See: `apps/goblin-assistant/README.md` and `apps/goblin-assistant/start-dev.sh`.
+
+Example (local dev):
+
 ```bash
 # From monorepo root
 cd /Users/fuaadabdullah/ForgeMonorepo

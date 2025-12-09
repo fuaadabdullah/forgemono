@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  raptor:
+    build: .
+    image: raptor-mini:dev
+    ports:
+      - "8080:8080"
+    environment:
+      - API_KEY=supersecretkey
+      - MODEL_NAME=raptor-mini
+    volumes:
+      - ./models/raptor-mini:/models/raptor-mini:ro
+    restart: unless-stopped

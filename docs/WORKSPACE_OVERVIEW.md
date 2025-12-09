@@ -8,7 +8,7 @@ This monorepo contains GoblinOS (primary platform), infra tooling, utilities, an
 
 ## Structure
 
-- `apps/` — Polyglot applications (Python apps moved to dedicated repositories).
+- `apps/` — Active polyglot applications and projects (Python, Node.js, etc.)
 - `GoblinOS/` — TypeScript/pnpm workspace for the Goblin platform, agents, and automation.
 - `infra/` — Devcontainer, docker-compose, and deployment scaffolding.
 - `tools/` — Dev scripts, release helpers, TUIs.

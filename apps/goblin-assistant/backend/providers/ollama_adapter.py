@@ -1,249 +1,274 @@
-"""
-Ollama provider adapter for local LLM operations.
-"""
-
+import os
+import requests
+import json
 import asyncio
-import time
-from typing import Dict, List, Optional, Any
-import httpx
+from typing import List, Dict, Any, Optional
 import logging
+
+from .base_adapter import AdapterBase
+from .provider_registry import get_provider_registry
 
 logger = logging.getLogger(__name__)
 
 
-class OllamaAdapter:
-    """Adapter for Ollama local LLM provider operations."""
+class OllamaAdapter(AdapterBase):
+    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
+        registry = get_provider_registry()
+        config = registry.get_provider_config_dict("ollama")
 
-    def __init__(self, api_key: str, base_url: Optional[str] = None):
-        """Initialize Ollama adapter.
-
-        Args:
-            api_key: API key for the local proxy
-            base_url: Optional custom base URL (defaults to local proxy)
-        """
-        self.api_key = api_key
-        self.base_url = base_url or "http://localhost:8002"
-        self.client = httpx.AsyncClient(timeout=120.0)
-
-    async def health_check(self) -> Dict[str, Any]:
-        """Perform health check on Ollama via local proxy.
-
-        Returns:
-            Dict containing health status and metrics
-        """
-        start_time = time.time()
-        try:
-            response = await self.client.get(f"{self.base_url}/health")
-            response_time = (time.time() - start_time) * 1000
-
-            if response.status_code == 200:
-                # Get models to check if Ollama is responsive
-                models_response = await self.client.get(
-                    f"{self.base_url}/models", headers={"x-api-key": self.api_key}
-                )
-
-                available_models = 0
-                if models_response.status_code == 200:
-                    data = models_response.json()
-                    available_models = len(data.get("models", {}).get("ollama", []))
-
-                return {
-                    "healthy": True,
-                    "response_time_ms": round(response_time, 2),
-                    "error_rate": 0.0,
-                    "available_models": available_models,
-                    "timestamp": time.time(),
-                }
-            else:
-                return {
-                    "healthy": False,
-                    "response_time_ms": round(response_time, 2),
-                    "error_rate": 1.0,
-                    "error": f"HTTP {response.status_code}",
-                    "timestamp": time.time(),
-                }
-
-        except Exception as e:
-            response_time = (time.time() - start_time) * 1000
-            logger.error(f"Ollama health check failed: {e}")
-
-            return {
-                "healthy": False,
-                "response_time_ms": round(response_time, 2),
-                "error_rate": 1.0,
-                "error": str(e),
-                "timestamp": time.time(),
+        if not config:
+            # Fallback to manual config if registry fails
+            if base_url is None:
+                base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+            config = {
+                "api_key": api_key,
+                "base_url": base_url,
+                "timeout": 30,
+                "retries": 2,
+                "cost_per_token_input": 0.0,
+                "cost_per_token_output": 0.0,
+                "latency_threshold_ms": 10000,
             }
 
-    async def list_models(self) -> List[Dict[str, Any]]:
-        """List available Ollama models via local proxy.
+        super().__init__(name="ollama", config=config)
 
-        Returns:
-            List of model information dictionaries
-        """
+    def get_status(self):
         try:
-            response = await self.client.get(
-                f"{self.base_url}/models", headers={"x-api-key": self.api_key}
+            response = requests.get(f"{self.base_url}/api/status")
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
+    async def list_models(self) -> List[Dict[str, Any]]:
+        """List available models from the Ollama server."""
+        try:
+            # Try OpenAI-compatible endpoint first
+            headers = {}
+            if self.api_key:
+                headers["Authorization"] = f"Bearer {self.api_key}"
+                # Some proxies use X-API-Key instead of Authorization; include both
+                headers["X-API-Key"] = self.api_key
+
+            response = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: requests.get(
+                    f"{self.base_url}/v1/models", headers=headers, timeout=10
+                ),
             )
+            response.raise_for_status()
+            result = response.json()
 
-            if response.status_code != 200:
-                logger.error(
-                    f"Failed to list Ollama models: HTTP {response.status_code}"
-                )
-                return []
-
-            data = response.json()
-            ollama_models = data.get("models", {}).get("ollama", [])
-
-            models = []
-            for model_name in ollama_models:
-                models.append(
+            if "data" in result:
+                # OpenAI format
+                return [
                     {
-                        "id": model_name,
-                        "name": model_name,
-                        "capabilities": ["chat"],  # Ollama models support chat
-                        "context_window": self._get_context_window(model_name),
-                        "pricing": {
-                            "input": 0.0,
-                            "output": 0.0,
-                        },  # Local models are free
-                        "provider": "ollama",
-                        "local": True,
+                        "id": model["id"],
+                        "name": model.get("id", ""),
+                        "capabilities": ["chat"],
+                        "context_window": model.get("context_length", 4096),
+                        "pricing": {},
                     }
+                    for model in result["data"]
+                ]
+            else:
+                # Try Ollama native endpoint
+                response = await asyncio.get_event_loop().run_in_executor(
+                    None, lambda: requests.get(f"{self.base_url}/api/tags", timeout=10)
                 )
+                response.raise_for_status()
+                result = response.json()
 
-            return models
+                if "models" in result:
+                    return [
+                        {
+                            "id": model["name"],
+                            "name": model["name"],
+                            "capabilities": ["chat"],
+                            "context_window": model.get("context_length", 4096),
+                            "pricing": {},
+                        }
+                        for model in result["models"]
+                    ]
+
+            # Fallback: return some default models
+            return [
+                {
+                    "id": "llama3.2:3b",
+                    "name": "Llama 3.2 3B",
+                    "capabilities": ["chat"],
+                    "context_window": 4096,
+                    "pricing": {},
+                },
+                {
+                    "id": "gemma:2b",
+                    "name": "Gemma 2B",
+                    "capabilities": ["chat"],
+                    "context_window": 8192,
+                    "pricing": {},
+                },
+            ]
 
         except Exception as e:
             logger.error(f"Failed to list Ollama models: {e}")
-            return []
+            # Return default models on error
+            return [
+                {
+                    "id": "llama3.2:3b",
+                    "name": "Llama 3.2 3B",
+                    "capabilities": ["chat"],
+                    "context_window": 4096,
+                    "pricing": {},
+                },
+            ]
 
-    def _get_context_window(self, model_name: str) -> int:
-        """Get context window size for Ollama model.
-
-        Args:
-            model_name: Ollama model name
-
-        Returns:
-            Context window size in tokens
-        """
-        # Common context windows for popular Ollama models
-        context_windows = {
-            "phi3:3.8b": 4096,
-            "gemma:2b": 8192,
-            "qwen2.5:3b": 32768,
-            "deepseek-coder:1.3b": 16384,
-            "llama2:7b": 4096,
-            "llama2:13b": 4096,
-            "mistral:7b": 8192,
-            "codellama:7b": 16384,
-            "codellama:13b": 16384,
-        }
-
-        # Default to 4096 for unknown models
-        return context_windows.get(model_name, 4096)
+    def generate_simple(self, prompt, model="llama2"):
+        try:
+            payload = {"prompt": prompt, "model": model, "stream": False}
+            response = requests.post(
+                f"{self.base_url}/api/generate", json=payload, timeout=30
+            )
+            response.raise_for_status()
+            text = response.text.strip()
+            lines = text.split("\n")
+            for line in reversed(lines):
+                line = line.strip()
+                if line:
+                    try:
+                        return json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+            return {
+                "status": "error",
+                "error": "No valid JSON found",
+                "raw": text[:500],
+            }
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
 
     async def chat(
         self,
         model: str,
         messages: List[Dict[str, str]],
-        temperature: float = 0.7,
+        temperature: float = 0.0,
         max_tokens: int = 1024,
-        top_p: float = 0.9,
+        top_p: float = 1.0,
+        stream: bool = False,
         **kwargs: Any,
     ) -> str:
-        """Send chat completion request via local proxy.
+        """Send chat completion request to Ollama/OpenAI-compatible API.
 
         Args:
             model: Model name to use
             messages: List of message dictionaries with role and content
-            temperature: Sampling temperature (0.0 to 2.0)
+            temperature: Sampling temperature
             max_tokens: Maximum tokens in response
             top_p: Nucleus sampling parameter
-            **kwargs: Additional parameters to pass to the API
+            stream: Whether to stream the response
+            **kwargs: Additional parameters
 
         Returns:
             The text content of the model's response
-
-        Raises:
-            Exception: If the API request fails
         """
         try:
+            # Prepare headers
+            headers = {}
+            if self.api_key:
+                headers["Authorization"] = f"Bearer {self.api_key}"
+
+            # Prepare payload for OpenAI-compatible API
             payload = {
                 "model": model,
                 "messages": messages,
-                "options": {
-                    "temperature": temperature,
-                    "num_predict": max_tokens,
-                    "top_p": top_p,
-                },
-                "stream": False,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "top_p": top_p,
+                "stream": stream,
+                **kwargs,
             }
 
-            response = await self.client.post(
-                f"{self.base_url}/api/chat",
-                json=payload,
-                headers={"x-api-key": self.api_key} if self.api_key else {},
+            # Make request
+            response = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: requests.post(
+                    f"{self.base_url}/v1/chat/completions",
+                    json=payload,
+                    headers=headers,
+                    timeout=60,
+                ),
             )
+            response.raise_for_status()
 
-            if response.status_code != 200:
-                error_text = response.text
-                logger.error(
-                    f"Ollama chat failed: HTTP {response.status_code} - {error_text}"
-                )
-                raise Exception(f"HTTP {response.status_code}: {error_text}")
+            result = response.json()
 
-            data = response.json()
-
-            # Extract content from Ollama response
-            # Format: {"model": "...", "message": {"role": "...", "content": "..."}, ...}
-            if "message" in data and "content" in data["message"]:
-                return data["message"]["content"]
+            # Handle different response formats
+            if "choices" in result and len(result["choices"]) > 0:
+                # OpenAI-compatible format
+                return result["choices"][0]["message"]["content"]
+            elif "content" in result:
+                # Direct content format (like from Kamatera server)
+                return result["content"]
+            elif "response" in result:
+                # Native Ollama format
+                return result["response"]
             else:
-                logger.error(f"Unexpected response format: {data}")
-                raise Exception(f"Unexpected response format from Ollama")
+                logger.error(f"Unexpected response format from Ollama: {result}")
+                logger.error(f"Full response: {response.text}")
+                raise Exception("Unexpected response format from Ollama API")
 
         except Exception as e:
             logger.error(f"Ollama chat request failed: {e}")
             raise
 
-    async def test_completion(
-        self, model: str = "phi3:3.8b", max_tokens: int = 10
+    async def generate(
+        self, messages: List[Dict[str, str]], **kwargs
     ) -> Dict[str, Any]:
-        """Test completion capability via local proxy.
+        """Generate completion using Ollama API.
 
         Args:
-            model: Model to test
-            max_tokens: Maximum tokens for response
+            messages: List of message dictionaries
+            **kwargs: Additional parameters (model, temperature, max_tokens, etc.)
 
         Returns:
-            Dict with test results
+            Dict containing response data
         """
-        start_time = time.time()
-        try:
-            # Use the new chat method for consistency
-            await self.chat(
-                model=model,
-                messages=[{"role": "user", "content": "Hello, test message"}],
-                max_tokens=max_tokens,
-            )
+        model = kwargs.get("model", "llama2")
 
-            response_time = (time.time() - start_time) * 1000
+        # Use the existing chat method but wrap it to match the interface
+        content = await self.chat(model, messages, **kwargs)
 
-            return {
-                "success": True,
-                "response_time_ms": round(response_time, 2),
-                "model": model,
-                "local": True,
-            }
+        # Ollama doesn't provide token usage info, so we estimate
+        # Rough estimation: 4 chars per token
+        input_chars = sum(len(msg.get("content", "")) for msg in messages)
+        output_chars = len(content)
+        input_tokens = input_chars // 4
+        output_tokens = output_chars // 4
 
-        except Exception as e:
-            response_time = (time.time() - start_time) * 1000
-            logger.error(f"Ollama completion test failed: {e}")
+        # Log cost (Ollama is typically free/local)
+        self._log_cost(input_tokens, output_tokens)
 
-            return {
-                "success": False,
-                "response_time_ms": round(response_time, 2),
-                "error": str(e),
-                "model": model,
-            }
+        return {
+            "content": content,
+            "usage": {
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "total_tokens": input_tokens + output_tokens,
+            },
+            "model": model,
+            "finish_reason": "stop",  # Ollama doesn't provide this
+        }
+
+    async def a_generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Async generate completion using Ollama API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters
+
+        Returns:
+            Dict containing response data
+        """
+        # For Ollama, async and sync are the same
+        return await self.generate(messages, **kwargs)

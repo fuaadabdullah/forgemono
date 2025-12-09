@@ -1,0 +1,19 @@
+{
+  "store": {
+    "secret/data/test/api_keys": {
+      "data": {
+        "openai": "sk-test123",
+        "anthropic": "sk-ant-test456"
+      },
+      "metadata": {
+        "created_time": "2025-12-06T15:38:37.885309",
+        "deletion_time": "",
+        "destroyed": false,
+        "version": 1
+      }
+    }
+  },
+  "policies": {},
+  "auth_methods": {},
+  "timestamp": "2025-12-06T15:38:37.886119"
+}

@@ -1,7 +1,7 @@
 ```markdown
 # GoblinOS Assistant — Backend
 
-NOTE: Production runtime is hosted remotely on "Kalmatura" (set via the `KALMATURA_HOST` environment variable or your inventory). Do NOT run production traffic locally — follow the "Remote runtime on Kalmatura" section below for deployment and operational steps.
+NOTE: Production runtime is hosted remotely on "Kamatera" (set via the `KAMATERA_HOST` environment variable or your inventory). Do NOT run production traffic locally — follow the "Remote runtime on Kamatera" section below for deployment and operational steps.
 
 This is the backend service for GoblinOS Assistant. It's a FastAPI application responsible for:
 
@@ -32,9 +32,9 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 # Edit .env with your configuration:
-# - KALMATURA_HOST (production LLM runtime host)
-# - KALMATURA_LLM_URL (production LLM API endpoint)
-# - KALMATURA_LLM_API_KEY (production LLM API key)
+# - KAMATERA_HOST (production LLM runtime host)
+# - KAMATERA_LLM_URL (production LLM API endpoint)
+# - KAMATERA_LLM_API_KEY (production LLM API key)
 # - DATABASE_URL
 # - JWT_SECRET_KEY
 # - API keys for cloud providers (OpenAI, Anthropic, etc.)
@@ -62,19 +62,19 @@ curl http://localhost:8001/health
 
 ## Environment Variables (Essential)
 
-- `KALMATURA_HOST` - Hostname/IP of the Kalmatura deployment (production LLM runtime)
-- `KALMATURA_LLM_URL` - Base URL for the Kalmatura LLM runtime API
-- `KALMATURA_LLM_API_KEY` - API key for Kalmatura LLM runtime authentication
+- `KAMATERA_HOST` - Hostname/IP of the Kamatera deployment (production LLM runtime)
+- `KAMATERA_LLM_URL` - Base URL for the Kamatera LLM runtime API
+- `KAMATERA_LLM_API_KEY` - API key for Kamatera LLM runtime authentication
 - `DATABASE_URL` - e.g., `sqlite:///./goblin_assistant.db` or Postgres
 - `JWT_SECRET_KEY` - JWT signing key for auth
 - `ROUTING_ENCRYPTION_KEY` - Base64 Fernet key to encrypt provider API keys
 - `REDIS_URL` - Redis connection string for RQ and challenge store
 
-Note: For production, local runtimes (ollama, llama.cpp, local proxies) should be avoided. All production LLM runtime traffic is hosted and proxied through the Kalmatura runtime. Use the following variables to point the backend at Kalmatura-hosted runtimes:
+Note: For production, local runtimes (ollama, llama.cpp, local proxies) should be avoided. All production LLM runtime traffic is hosted and proxied through the Kamatera runtime. Use the following variables to point the backend at Kamatera-hosted runtimes:
 
-- `KALMATURA_HOST` - Hostname or IP of the Kalmatura deployment (used for operational/admin tasks)
-- `KALMATURA_LLM_URL` - Base URL for the Kalmatura LLM runtime API (e.g. https://llm.kalmatura.example)
-- `KALMATURA_LLM_API_KEY` - API key used to authenticate requests to the Kalmatura LLM runtime
+- `KAMATERA_HOST` - Hostname or IP of the Kamatera deployment (used for operational/admin tasks)
+- `KAMATERA_LLM_URL` - Base URL for the Kamatera LLM runtime API (e.g. https://llm.kamatera.example)
+- `KAMATERA_LLM_API_KEY` - API key used to authenticate requests to the Kamatera LLM runtime
 
 For local development only you may continue to use a local proxy. Gate it behind `USE_LOCAL_LLM=true` and never expose local proxies to production traffic.
 
@@ -93,6 +93,33 @@ cd apps/goblin-assistant/backend
 pytest -v
 ```
 
+### Local LLM Integration Tests
+These tests require a local LLM runtime. To run them:
+
+1. Pull a model via ollama (or run raptor-mini service):
+
+```bash
+./scripts/pull_ollama_model.sh raptor-mini
+```
+
+2. Start a local runtime:
+
+```bash
+# Ollama local server (example)
+ollama run raptor-mini
+
+# Or run the raptor-mini docker service
+cd apps/raptor-mini && docker-compose up --build
+```
+
+3. Enable local LLM mode and run the integration test:
+
+```bash
+export USE_LOCAL_LLM=true
+pytest -q apps/goblin-assistant/backend/test_local_model_integration.py -q
+```
+
+
 ## Docker
 
 - `apps/goblin-assistant/Dockerfile` builds the backend image.
@@ -106,9 +133,14 @@ pytest -v
 Deprecation note: Local LLM runtime helpers
 -----------------------------------------
 
-Files such as `local_llm_proxy.py` and `mock_local_llm_proxy.py` exist for local development and testing. These local helpers are considered development-only and are deprecated for production deployments. For production, run your LLM runtimes on Kalmatura and point the backend at `KALMATURA_LLM_URL`.
+Files such as `local_llm_proxy.py` and `mock_local_llm_proxy.py` exist for local development and testing. These local helpers are considered development-only and are deprecated for production deployments. For production, run your LLM runtimes on Kamatera and point the backend at `KAMATERA_LLM_URL`.
 
 If you need to run experiments locally, keep them behind feature flags (for example `USE_LOCAL_LLM=true`) and never expose local proxies in production `.env`.
+
+Testing changes (2025-12-05):
+- The test suite has been updated to prefer a real local model instead of a mock server when `USE_LOCAL_LLM=true`.
+- Use `scripts/pull_ollama_model.sh` to download a local model (e.g., `raptor-mini`) and run the service.
+- Integration tests that call local endpoints are in `apps/goblin-assistant/backend/test_local_model_integration.py` and will be skipped unless `USE_LOCAL_LLM=true`.
 
 ## Canonical Documentation
 

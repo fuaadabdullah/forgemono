@@ -1,15 +1,12 @@
-This document has moved into the canonical backend documentation folder:
-
-- apps/goblin-assistant/backend/docs/QUICKSTART_PRODUCTION.md
-
-Please update any references or links to point to the new location.
 # 🎉 Production Deployment - Quick Reference
+
+This document contains a mix of backend and frontend quickstart notes. Please update any references or links to point to canonical locations:
 
 ## Status: ✅ ALL COMPLETE
 
 ### What Was Done Today (December 1, 2025)
 
-| Task | Status | Documentation |
+
 |------|--------|---------------|
 | 1. API Keys Setup | ✅ Complete | `.env.production` |
 | 2. Real Task Execution | ✅ Complete | `services/goblin_executor.py` |
@@ -55,7 +52,7 @@ cd apps/goblin-assistant
 ./deploy-backend.sh render  # or fly
 
 # Frontend
-./deploy-frontend.sh
+./deploy-vercel.sh
 
 # Update FRONTEND_URL in backend env vars
 FRONTEND_URL=https://your-production-domain.com
@@ -155,7 +152,7 @@ alembic upgrade head
 - **Supabase Dashboard**: <https://supabase.com/dashboard>
 - **Upstash Console**: <https://console.upstash.com>
 - **Render Dashboard**: <https://dashboard.render.com>
-- **Netlify Dashboard**: <https://app.netlify.com>
+- **Vercel Dashboard**: <https://vercel.com/dashboard>
 
 ---
 

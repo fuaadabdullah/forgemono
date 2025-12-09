@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Diagnostic script for llama.cpp build issues in Colab
-Run this in Colab to troubleshoot build problems
+Diagnostic script for llama.cpp build issues in Kamatera
+Run this in Kamatera to troubleshoot build problems
 """
 
 import os

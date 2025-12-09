@@ -1,0 +1,60 @@
+{
+  "test_date": "2025-12-01",
+  "test_duration_per_model": 60,
+  "results": [
+    {
+      "model": "gemma:2b",
+      "target_qps": 2,
+      "duration_seconds": 60,
+      "total_requests": 120,
+      "successful_requests": 0,
+      "failed_requests": 120,
+      "error_rate_percent": 100.0,
+      "actual_qps": 2.0,
+      "successful_qps": 0.0,
+      "latency_ms": {
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "avg": 0,
+        "min": 0,
+        "max": 0
+      },
+      "tokens": {
+        "avg_per_response": 0,
+        "total": 0,
+        "tokens_per_second": 0
+      },
+      "error_breakdown": {
+        "HTTP 404": 120
+      }
+    },
+    {
+      "model": "phi3:3.8b",
+      "target_qps": 1,
+      "duration_seconds": 60,
+      "total_requests": 60,
+      "successful_requests": 0,
+      "failed_requests": 60,
+      "error_rate_percent": 100.0,
+      "actual_qps": 1.0,
+      "successful_qps": 0.0,
+      "latency_ms": {
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "avg": 0,
+        "min": 0,
+        "max": 0
+      },
+      "tokens": {
+        "avg_per_response": 0,
+        "total": 0,
+        "tokens_per_second": 0
+      },
+      "error_breakdown": {
+        "HTTP 404": 60
+      }
+    }
+  ]
+}

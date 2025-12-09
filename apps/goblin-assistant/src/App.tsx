@@ -25,8 +25,7 @@ const Orchestration = lazy(() => import('./components/Orchestration'));
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const { token, clearAuth } = useAuthStore();
-  const isAuthenticated = !!token;
+  const { isAuthenticated, clearAuth } = useAuthStore();
   const location = useLocation();
 
   // Initialize theme system on mount

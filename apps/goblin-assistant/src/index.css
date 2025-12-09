@@ -1,4 +1,6 @@
 /* normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
+@import './theme/index.css';
+
 html{line-height:1.15;-webkit-text-size-adjust:100%}
 body{margin:0}
 main{display:block}
@@ -38,7 +40,6 @@ template{display:none}
    GOBLINOS THEME SYSTEM
    Import centralized theme tokens from theme/index.css
    ============================================================================ */
-@import './theme/index.css';
 
 /* ============================================================================
    BASE STYLES
