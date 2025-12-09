@@ -1,0 +1,32 @@
+name: Require-Jira-Key
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  checks: read
+  pull-requests: write
+  contents: read
+
+jobs:
+  require-jira:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title or branch for Jira key
+        run: |
+          set -e
+          KEY_REGEX='PROJ-\d+'
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          BRANCH_NAME="${{ github.event.pull_request.head_ref }}"
+          BODY="${{ github.event.pull_request.body }}"
+          echo "PR title: $PR_TITLE"
+          echo "Branch name: $BRANCH_NAME"
+
+          if echo "$PR_TITLE" | grep -Eiq "$KEY_REGEX" || echo "$BRANCH_NAME" | grep -Eiq "$KEY_REGEX" || echo "$BODY" | grep -Eiq "$KEY_REGEX"; then
+            echo "Jira key detected"
+            exit 0
+          else
+            echo "No Jira key found in PR title, branch name, or body." >&2
+            echo "Please include a Jira issue key (eg. PROJ-123) in the PR title or branch name." >&2
+            exit 1
+          fi

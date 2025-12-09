@@ -1,0 +1,9 @@
+# CODEOWNERS for forgemono
+/goblin-infra/ @fuaadabdullah
+/goblin-assistant/ @fuaadabdullah
+/apps/forge-lite/ @fuaadabdullah
+/apps/raptor-mini/ @fuaadabdullah
+/goblin-assistant-contracts/ @fuaadabdullah
+/chroma_db/ @fuaadabdullah
+/vector_db/ @fuaadabdullah
+* @fuaadabdullah
