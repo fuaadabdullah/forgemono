@@ -13,7 +13,6 @@ Provides enterprise-grade job queue management with:
 import os
 import logging
 from celery import Celery, Task
-from celery.schedules import crontab
 from kombu import Exchange, Queue
 
 # Redis configuration
@@ -95,17 +94,8 @@ app.conf.task_ignore_result = False
 
 # Scheduled tasks (beat configuration)
 app.conf.beat_schedule = {
-    # Heavy tasks remain in Celery
-    "model-performance-report": {
-        "task": "tasks.model_training_worker.generate_performance_report",
-        "schedule": crontab(hour="*/12"),  # Every 12 hours
-        "options": {"queue": "batch"},
-    },
-    "system-health-check": {
-        "task": "tasks.monitoring_worker.system_health_check",
-        "schedule": crontab(minute="*/1"),  # Every minute
-        "options": {"queue": "high_priority"},
-    },
+    # TODO: Add actual heavy tasks here when implemented
+    # Currently no active Celery beat schedules - using APScheduler for lightweight tasks
 }
 
 # Custom task classes for advanced features

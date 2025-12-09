@@ -56,7 +56,6 @@ from .api_router import router as api_router
 from .stream_router import router as stream_router
 from .health_router import router as health_router
 from .dashboard_router import router as dashboard_router
-from .tasks.provider_probe_worker import ProviderProbeWorker
 
 try:
     from .raptor_router import router as raptor_router
@@ -183,15 +182,11 @@ logger = setup_logging(log_level)
 
 
 # Global variables for routing components
-routing_probe_worker = None
 challenge_cleanup_task = None
 rate_limiter_cleanup_task = None
 
 
 SKIP_RAPTOR_INIT = os.getenv("SKIP_RAPTOR_INIT", "0") == "1"
-SKIP_PROBE_INIT = (
-    os.getenv("SKIP_PROBE_INIT", "1") == "1"
-)  # Default to skip - APScheduler handles probing
 
 
 # Create database tables on startup (keep minimal blocking work only)
@@ -239,24 +234,8 @@ async def deferred_initialization():
         print(f"Warning: Deferred APScheduler start failed: {e}")
 
     # Initialize routing probe worker if encryption key is available (optional)
-    # DISABLED: APScheduler with Redis locks now handles all periodic probing
+    # REMOVED: APScheduler with Redis locks now handles all periodic probing
     # to prevent duplicate work across replicas
-    global routing_probe_worker
-    if SKIP_PROBE_INIT:
-        print(
-            "Skipping routing probe worker init (SKIP_PROBE_INIT=1) - APScheduler handles probing"
-        )
-    else:
-        routing_encryption_key = os.getenv("ROUTING_ENCRYPTION_KEY")
-        if routing_encryption_key:
-            try:
-                routing_probe_worker = ProviderProbeWorker(routing_encryption_key)
-                await routing_probe_worker.start()
-                print("Started routing probe worker (deferred)")
-            except Exception as e:
-                print(f"Warning: Deferred routing probe worker start failed: {e}")
-        else:
-            print("ROUTING_ENCRYPTION_KEY not set; probe worker not started")
 
 
 async def challenge_cleanup_worker():
