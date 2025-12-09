@@ -226,3 +226,18 @@ All scripts follow these standards:
 ✅ **Emergency operations** - Manual operations when CI/CD is unavailable
 ✅ **Comprehensive tooling** - Scripts for every operational need
 ✅ **Maintainable** - Clear organization and documentation
+
+## Consolidation & housekeeping scripts
+
+### `check-goblin-assistant-diffs.sh`
+- **Purpose**: Detect potential duplicates and filename collisions between the root `goblin-assistant/` and `apps/goblin-assistant/` directories
+- **Usage**: `./scripts/check-goblin-assistant-diffs.sh` — writes conflict and file lists to `/tmp/`
+
+### `consolidate-goblin-assistant.sh`
+- **Purpose**: Merge unique files from root `goblin-assistant/` into `apps/goblin-assistant/` safely using `rsync` and back up the root folder
+- **Usage**: `./scripts/consolidate-goblin-assistant.sh` — runs the check script, asks for confirmation, copies files and backs up root
+
+### `consolidate-data.sh`
+- **Purpose**: Consolidate and reorganize on-disk data into `data/` folder (vector DBs, sqlite files, logs) and create backups with `.moved-<date>` suffix.
+- **Usage**: `./scripts/consolidate-data.sh` — non-destructive, creates `.moved-` backups and copies
+
