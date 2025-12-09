@@ -5,12 +5,18 @@ on:
     branches: [ main ]
     paths:
       - 'apps/goblin-assistant/**'
+      - '!apps/goblin-assistant/README.md'
+      - '!apps/goblin-assistant/docs/**'
+      - '!apps/goblin-assistant/**/*.md'
       - 'Dockerfile'
       - '.github/workflows/docker-ci.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'apps/goblin-assistant/**'
+      - '!apps/goblin-assistant/README.md'
+      - '!apps/goblin-assistant/docs/**'
+      - '!apps/goblin-assistant/**/*.md'
       - 'Dockerfile'
       - '.github/workflows/docker-ci.yml'
   workflow_dispatch:

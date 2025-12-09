@@ -8,19 +8,30 @@ from typing import Dict, List, Optional, Any
 import google.generativeai as genai
 import logging
 
+from .base_adapter import AdapterBase
+from .provider_registry import ProviderRegistry
+
 logger = logging.getLogger(__name__)
 
 
-class GeminiAdapter:
+class GeminiAdapter(AdapterBase):
     """Adapter for Google Gemini API provider operations."""
 
-    def __init__(self, api_key: str, base_url: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
         """Initialize Gemini adapter.
 
         Args:
-            api_key: Google AI API key
+            api_key: Google AI API key (optional, will use registry config)
             base_url: Optional custom base URL (not used for Gemini)
         """
+        # Get provider config from registry
+        provider_config = ProviderRegistry.get_provider_config("gemini")
+        api_key = api_key or provider_config.api_key
+
+        if not api_key:
+            raise ValueError("API key is required for Gemini adapter")
+
+        super().__init__(provider_name="gemini")
         self.api_key = api_key
         self.base_url = base_url
         genai.configure(api_key=api_key)
@@ -187,3 +198,87 @@ class GeminiAdapter:
                 "error": str(e),
                 "model": model,
             }
+
+    async def generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Generate completion using Gemini API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters (model, temperature, max_tokens, etc.)
+
+        Returns:
+            Dict containing response data
+        """
+        model = kwargs.get("model", "gemini-pro")
+        temperature = kwargs.get("temperature", 0.7)
+        max_tokens = kwargs.get("max_tokens", 1024)
+
+        # Convert messages to Gemini format
+        gemini_messages = []
+        for msg in messages:
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+
+            # Gemini uses 'model' for assistant responses
+            if role == "assistant":
+                role = "model"
+            elif role not in ["user", "model"]:
+                role = "user"  # Default to user for unknown roles
+
+            gemini_messages.append({"role": role, "parts": [content]})
+
+        def _sync_call():
+            genai_model = self.client.GenerativeModel(model)
+            chat = genai_model.start_chat(
+                history=gemini_messages[:-1]
+            )  # All but last message
+
+            return chat.send_message(
+                gemini_messages[-1]["parts"][0],
+                generation_config={
+                    "temperature": temperature,
+                    "max_output_tokens": max_tokens,
+                },
+            )
+
+        response = await self._call_with_circuit_breaker(_sync_call)
+
+        content = response.text if response.text else ""
+
+        # Gemini doesn't provide detailed token usage, so we estimate
+        # Rough estimation: 4 chars per token
+        input_chars = sum(len(msg.get("content", "")) for msg in messages)
+        output_chars = len(content)
+        input_tokens = input_chars // 4
+        output_tokens = output_chars // 4
+
+        # Log cost using provider config
+        self._log_cost(input_tokens, output_tokens)
+
+        return {
+            "content": content,
+            "usage": {
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "total_tokens": input_tokens + output_tokens,
+            },
+            "model": model,
+            "finish_reason": "stop",  # Gemini doesn't provide detailed finish reasons
+        }
+
+    async def a_generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Async generate completion using Gemini API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters
+
+        Returns:
+            Dict containing response data
+        """
+        # For Gemini, async and sync are the same
+        return await self.generate(messages, **kwargs)

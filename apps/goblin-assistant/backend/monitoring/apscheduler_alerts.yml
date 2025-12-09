@@ -1,0 +1,79 @@
+groups:
+  - name: apscheduler_alerts
+    rules:
+      # Alert when jobs are failing frequently
+      - alert: APSchedulerJobFailureRate
+        expr: rate(apscheduler_job_failure_total[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: apscheduler
+        annotations:
+          summary: "High job failure rate detected"
+          description: "APScheduler job {{ $labels.job_name }} has failed {{ $value }} times in the last 5 minutes"
+
+      # Alert when Redis locks are failing
+      - alert: APSchedulerLockAcquisitionFailure
+        expr: rate(apscheduler_redis_lock_failed_total[5m]) > 0.3
+        for: 3m
+        labels:
+          severity: warning
+          service: apscheduler
+        annotations:
+          summary: "Redis lock acquisition failures"
+          description: "APScheduler is failing to acquire Redis locks at rate {{ $value }}/second"
+
+      # Alert when scheduler has stopped
+      - alert: APSchedulerDown
+        expr: up{job="apscheduler"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: apscheduler
+        annotations:
+          summary: "APScheduler is down"
+          description: "APScheduler has been down for more than 2 minutes"
+
+      # Alert when jobs are taking too long
+      - alert: APSchedulerJobDurationHigh
+        expr: histogram_quantile(0.95, rate(apscheduler_job_duration_seconds_bucket[5m])) > 60
+        for: 5m
+        labels:
+          severity: warning
+          service: apscheduler
+        annotations:
+          summary: "Jobs taking longer than expected"
+          description: "95th percentile job duration is {{ $value }}s, exceeding 60s threshold"
+
+      # Alert when there are missed runs
+      - alert: APSchedulerMissedRuns
+        expr: increase(apscheduler_missed_runs_total[10m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          service: apscheduler
+        annotations:
+          summary: "Missed scheduled runs detected"
+          description: "{{ $value }} scheduled runs have been missed in the last 10 minutes"
+
+      # Alert when backlog is growing
+      - alert: APSchedulerBacklogGrowing
+        expr: apscheduler_backlog_size > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: apscheduler
+        annotations:
+          summary: "Job execution backlog growing"
+          description: "APScheduler has {{ $value }} jobs in backlog, exceeding threshold"
+
+      # Alert when Redis connectivity is lost
+      - alert: APSchedulerRedisDown
+        expr: redis_up{job="apscheduler"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: apscheduler
+        annotations:
+          summary: "Redis connectivity lost"
+          description: "APScheduler cannot connect to Redis for distributed locking"

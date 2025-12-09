@@ -39,42 +39,68 @@ scp -i "$SSH_KEY" -o StrictHostKeyChecking=no \
     local-llm-proxy.service \
     nginx-local-llm.conf \
     bootstrap_llm.sh \
+    ../scripts/setup_resource_isolation.sh \
+    ../scripts/configure_systemd_cgroups.sh \
+    ../scripts/create_resource_management_service.sh \
+    ../scripts/ai-resource-monitor.sh \
     root@$SERVER_IP:/tmp/
 echo -e "${GREEN}✅ Files transferred${NC}"
 
-echo -e "${YELLOW}📋 Step 4: Setting up server...${NC}"
-ssh -i "$SSH_KEY" root@$SERVER_IP << 'SERVER_SETUP_EOF'
-set -e
-
-echo "🔄 Updating system packages..."
-apt update && apt upgrade -y
-
-echo "📦 Installing dependencies..."
-apt install -y curl wget git python3 python3-pip python3-venv nginx rclone ufw build-essential cmake
-
-echo "🤖 Installing Ollama..."
-curl -fsSL https://ollama.ai/install.sh | sh
-
-echo "📁 Creating deployment directory..."
-mkdir -p ~/llm-deployment
+echo -e "${YELLOW}📋 Step 4: Setting up resource isolation...${NC}"
+ssh -i "$SSH_KEY" root@$SERVER_IP << 'RESOURCE_SETUP_EOF'
 cd ~/llm-deployment
 
-echo "📋 Moving deployment files..."
-mv /tmp/local_llm_proxy.py /tmp/local-llm-proxy.service /tmp/nginx-local-llm.conf /tmp/bootstrap_llm.sh ./
+echo "� Setting up resource isolation for AI services..."
 
-echo "🔧 Making bootstrap script executable..."
-chmod +x bootstrap_llm.sh
+# Copy resource isolation scripts
+cp ~/llm-deployment/setup_resource_isolation.sh /usr/local/bin/ 2>/dev/null || echo "Resource isolation script not found, skipping..."
+cp ~/llm-deployment/configure_systemd_cgroups.sh /usr/local/bin/ 2>/dev/null || echo "Systemd cgroups script not found, skipping..."
+cp ~/llm-deployment/create_resource_management_service.sh /usr/local/bin/ 2>/dev/null || echo "Resource management service script not found, skipping..."
+cp ~/llm-deployment/ai-resource-monitor.sh /usr/local/bin/ 2>/dev/null || echo "Resource monitor script not found, skipping..."
 
-echo "🔐 Configuring firewall..."
-ufw --force enable
-ufw allow 22/tcp
-ufw allow 80/tcp
-ufw allow 443/tcp
+# Make scripts executable
+chmod +x /usr/local/bin/setup_resource_isolation.sh 2>/dev/null || true
+chmod +x /usr/local/bin/configure_systemd_cgroups.sh 2>/dev/null || true
+chmod +x /usr/local/bin/create_resource_management_service.sh 2>/dev/null || true
+chmod +x /usr/local/bin/ai-resource-monitor.sh 2>/dev/null || true
 
-echo "✅ Server setup complete!"
-SERVER_SETUP_EOF
+# Run resource isolation setup
+if [[ -x /usr/local/bin/setup_resource_isolation.sh ]]; then
+    echo "Setting up swap and zram..."
+    /usr/local/bin/setup_resource_isolation.sh
+else
+    echo "Resource isolation script not available, setting up basic swap..."
+    # Fallback: basic swap setup
+    if [[ ! -f /swapfile ]]; then
+        echo "Creating 8GB swapfile..."
+        dd if=/dev/zero of=/swapfile bs=1M count=8192 status=progress
+        chmod 600 /swapfile
+        mkswap /swapfile
+        swapon /swapfile
+        echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    fi
+fi
 
-echo -e "${GREEN}✅ Server setup complete${NC}"
+# Configure systemd cgroups
+if [[ -x /usr/local/bin/configure_systemd_cgroups.sh ]]; then
+    echo "Configuring systemd cgroups..."
+    /usr/local/bin/configure_systemd_cgroups.sh
+else
+    echo "Systemd cgroups script not available, skipping..."
+fi
+
+# Create resource management service
+if [[ -x /usr/local/bin/create_resource_management_service.sh ]]; then
+    echo "Creating resource management service..."
+    /usr/local/bin/create_resource_management_service.sh
+else
+    echo "Resource management service script not available, skipping..."
+fi
+
+echo "✅ Resource isolation setup complete!"
+RESOURCE_SETUP_EOF
+
+echo -e "${GREEN}✅ Resource isolation setup complete${NC}"
 
 echo -e "${YELLOW}📋 Step 5: Running bootstrap script...${NC}"
 ssh -i "$SSH_KEY" root@$SERVER_IP << 'BOOTSTRAP_EOF'
@@ -216,4 +242,9 @@ echo "5. Monitor services:"
 echo "   ssh -i ~/kamatera_key root@$SERVER_IP 'systemctl status local-llm-proxy'"
 echo "   ssh -i ~/kamatera_key root@$SERVER_IP 'systemctl status ollama'"
 echo "   ssh -i ~/kamatera_key root@$SERVER_IP 'systemctl status llamacpp'"
+echo ""
+echo "6. Monitor resources:"
+echo "   ssh -i ~/kamatera_key root@$SERVER_IP 'ai-resource-monitor.sh --display'"
+echo "   ssh -i ~/kamatera_key root@$SERVER_IP 'journalctl -u ai-resource-monitor -f'"
+echo "   ssh -i ~/kamatera_key root@$SERVER_IP 'journalctl -u ai-resource-manager -f'"
 

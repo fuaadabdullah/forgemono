@@ -1,0 +1,71 @@
+title = "gitleaks config"
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(api[_-]?key|apikey)([\'\"]?)\s*([:=])\s*[\'\"]?([a-zA-Z0-9]{20,})[\'\"]?'''
+tags = ["key", "API", "generic"]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["aws"]
+
+[[rules]]
+id = "aws-secret-key"
+description = "AWS Secret Key"
+regex = '''(?i)aws[_-]?secret[_-]?key|aws[_-]?access[_-]?key'''
+tags = ["aws"]
+
+[[rules]]
+id = "azure-key"
+description = "Azure Key"
+regex = '''(?i)azure[_-]?key|azure[_-]?secret'''
+tags = ["azure"]
+
+[[rules]]
+id = "google-api-key"
+description = "Google API Key"
+regex = '''AIza[0-9A-Za-z_-]{35}'''
+tags = ["google"]
+
+[[rules]]
+id = "slack-token"
+description = "Slack Token"
+regex = '''xox[baprs]-([0-9a-zA-Z]{10,48})'''
+tags = ["slack"]
+
+[[rules]]
+id = "stripe-key"
+description = "Stripe Key"
+regex = '''(?i)sk_live_[0-9a-zA-Z]{24}'''
+tags = ["stripe"]
+
+[[rules]]
+id = "github-token"
+description = "GitHub Token"
+regex = '''ghp_[0-9a-zA-Z]{36}'''
+tags = ["github"]
+
+[[rules]]
+id = "private-key"
+description = "Private Key"
+regex = '''-----BEGIN [A-Z ]*PRIVATE KEY-----'''
+tags = ["key", "private"]
+
+[[rules]]
+id = "env-file"
+description = "Environment File"
+regex = '''\.env$'''
+path = '''\.env$'''
+tags = ["env", "file"]
+
+# Allow .env.example files
+[allowlist]
+paths = [
+    '''\.env\.example$''',
+    '''\.env\.local\.example$''',
+    '''\.env\.production\.example$''',
+]
+regexes = ['''\.env\.example$''']

@@ -182,7 +182,7 @@ kubectl create secret generic sops-age \
 2. **Rotate age keys quarterly** - See rotation schedule in team calendar
 3. **Use separate keys per environment** - Prod keys separate from dev
 4. **Audit access regularly** - Review who has which keys
-5. **Backup age keys** - Store securely (1Password, Vault, etc.)
+5. **Backup age keys** - Store securely (Bitwarden, 1Password, Vault, etc.)
 
 ## Makefile Commands
 
@@ -249,7 +249,7 @@ Your public key is not in `.sops.yaml`. Contact team lead to add you.
 In case of lost keys, contact:
 
 - **Team Lead**: @fuaadabdullah
-- **Backup**: Check team 1Password vault
+- **Backup**: Check team Bitwarden (or 1Password) vault
 - **Last Resort**: Regenerate secrets and re-encrypt
 
 ## Key Rotation Schedule

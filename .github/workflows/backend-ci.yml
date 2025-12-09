@@ -45,10 +45,10 @@ jobs:
       - name: Install test dependencies
         run: pip install pytest pytest-asyncio pytest-cov ruff
 
-      - name: Lint with ruff
+      - name: Run comprehensive linting
         run: |
-          cd backend
-          ruff check . --ignore E501,F401 || echo "Lint warnings found (non-blocking)"
+          chmod +x scripts/dev/lint_all.sh
+          ./scripts/dev/lint_all.sh --ci
 
       - name: Run unit tests
         run: |

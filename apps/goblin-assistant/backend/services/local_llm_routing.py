@@ -105,6 +105,21 @@ MODEL_CONFIGS = {
         max_tokens=40,
         stop_sequences=None,
     ),
+    "goblin-simple-llama-1b": ModelConfig(
+        model_id="goblin-simple-llama-1b",
+        provider="ollama",
+        context_window=2048,
+        best_for=[
+            "emergency_fallback",
+            "rate_limited",
+            "cheap_inference",
+            "overload_protection",
+        ],
+        temperature=0.1,
+        top_p=0.9,
+        max_tokens=128,
+        stop_sequences=None,
+    ),
 }
 
 
@@ -199,13 +214,32 @@ def select_model(
     latency_target: LatencyTarget = LatencyTarget.MEDIUM,
     context_provided: Optional[str] = None,
     cost_priority: bool = False,
+    force_cheap_fallback: bool = False,
 ) -> tuple[str, Dict[str, Any]]:
     """
     Select the best model based on routing rules.
 
+    Args:
+        messages: List of message dictionaries
+        intent: Detected intent (auto-detected if None)
+        latency_target: Latency requirements
+        context_provided: Additional context string
+        cost_priority: Prefer cheaper models
+        force_cheap_fallback: Force use of cheap emergency model
+
     Returns:
         tuple: (model_id, parameters)
     """
+    # Emergency fallback - use cheap model regardless of other rules
+    if force_cheap_fallback:
+        config = MODEL_CONFIGS["goblin-simple-llama-1b"]
+        return config.model_id, {
+            "temperature": config.temperature,
+            "top_p": config.top_p,
+            "max_tokens": config.max_tokens,
+            "stop": config.stop_sequences,
+        }
+
     # Auto-detect intent if not provided
     if intent is None:
         intent = detect_intent(messages)

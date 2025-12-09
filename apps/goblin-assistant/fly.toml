@@ -1,45 +1,26 @@
-# fly.toml app configuration file generated for goblin-assistant on 2025-12-03T15:11:10-05:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = 'goblin-assistant'
-primary_region = 'iad'
+app = "goblin-backend"
 
 [build]
-dockerfile = 'Dockerfile'
-
-[env]
-LOG_LEVEL = 'info'
-PORT = '8001'
-
-[processes]
-app = 'uvicorn main:app --host 0.0.0.0 --port 8001'
-
-[[mounts]]
-source = 'chroma_db'
-destination = '/app/chroma_db'
+image = ""
 
 [[services]]
-protocol = 'tcp'
 internal_port = 8001
-processes = ['app']
+protocol = "tcp"
+
+[services.concurrency]
+type = "connections"
+hard_limit = 25
 
 [[services.ports]]
+handlers = ["http"]
 port = 80
-handlers = ['http']
 
-[[services.ports]]
-port = 443
-handlers = ['tls', 'http']
+[env]
+PORT = "8001"
 
-[[services.http_checks]]
-interval = '15s'
-timeout = '5s'
-grace_period = '5s'
-path = '/health'
+[deploy]
+release_command = ""
 
-[[vm]]
-memory = '1gb'
-cpu_kind = 'shared'
-cpus = 1
+[[mounts]]
+source = "chroma_db"
+destination = "/app/chroma_db"

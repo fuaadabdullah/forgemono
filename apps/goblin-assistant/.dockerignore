@@ -15,10 +15,6 @@ infra/secrets/**/*.dec.yaml
 infra/secrets/**/*.dec.yml
 infra/secrets/**/*.dec.json
 
-# Ignore age keys (should be in ~/.config/sops/age/)
-infra/secrets/**/keys.txt
-infra/secrets/**/*.agekey
-
 # Ignore backup files
 infra/secrets/**/*.bak
 infra/secrets/**/*~

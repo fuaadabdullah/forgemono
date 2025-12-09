@@ -53,7 +53,6 @@ Infra Vault/
 ├── goblin-dev-cloudinary-key
 ├── goblin-dev-groq-key
 ├── goblin-dev-anthropic-key
-├── goblin-dev-datadog-api
 ├── goblin-prod-fastapi-secret
 ├── goblin-prod-db-url
 ├── goblin-prod-jwt-secret
@@ -62,7 +61,6 @@ Infra Vault/
 ├── goblin-prod-cloudinary-key
 ├── goblin-prod-groq-key
 ├── goblin-prod-anthropic-key
-├── goblin-prod-datadog-api
 └── goblin-ssh-private-key
 ```
 
@@ -173,13 +171,7 @@ vercel env add DB_URL production
 # Use fly secrets set
 fly secrets set FASTAPI_SECRET=$FASTAPI_SECRET
 fly secrets set DB_URL=$DB_URL
-```
-
-#### Render
-
-```bash
-# Environment variables set in dashboard or via API
-render env set FASTAPI_SECRET $FASTAPI_SECRET
+fly secrets set FASTAPI_SECRET=$FASTAPI_SECRET
 ```
 
 ## 5. Local Development Workflow
@@ -291,13 +283,9 @@ bw edit item goblin-prod-fastapi-secret  # Update item
 3. Add loading script to development workflow
 4. Remove plaintext secrets from repository
 
-### From SOPS (Current Setup)
+### Migration Complete
 
-This Bitwarden setup can complement or replace the existing SOPS system:
-
-- **Development**: Use Bitwarden for quick access
-- **Production**: Keep SOPS for GitOps deployments
-- **Migration**: Gradually move secrets to Bitwarden
+Bitwarden is now the primary secrets management solution for all environments.
 
 ## 9. Troubleshooting
 

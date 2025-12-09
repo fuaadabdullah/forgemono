@@ -12,6 +12,68 @@ This frontend follows best practices for modern React applications with TypeScri
 - **Tailwind CSS 3.3** - Utility-first styling
 - **Lucide React** - Icon system
 
+### Deployment Architecture
+
+**Simplified Deployment Strategy (December 2025)**
+
+To reduce complexity and maintenance overhead, Goblin Assistant uses a streamlined deployment approach:
+
+#### ✅ Active Platforms
+- **Backend**: Fly.io - Primary backend deployment with global edge network
+- **Frontend**: Vercel - Optimized for React/Vite with global CDN
+
+#### ❌ Archived Platforms
+- **Render** - Config removed (render.yaml deleted)
+- **Railway** - Config removed (railway.toml deleted)
+- **Netlify** - Config removed (netlify.toml deleted)
+- **Kubernetes + Helm + GitOps** - Deferred until 100k+ users (charts/ and gitops/ archived)
+
+#### Benefits
+- **Reduced config drift** - Only 2 platforms to maintain
+- **Lower testing overhead** - Validate on Fly.io + Vercel only
+- **Simplified debugging** - Fewer deployment environments
+- **Cost savings** - ~40 hours/month maintenance time
+
+#### Deployment Files
+- `fly.toml` - Fly.io backend configuration
+- `vercel.json` - Vercel frontend configuration
+- Archived configs in `goblin-infra/projects/goblin-assistant/infra/archive/`
+
+### Infrastructure Stack
+
+#### Consolidated Infrastructure (December 2025)
+
+To reduce infrastructure sprawl from 15+ components, Goblin Assistant uses a minimal, integrated approach:
+
+#### ✅ Active Infrastructure
+- **Observability**:
+  - Sentry - Error tracking and crash reporting
+  - Vercel Analytics - Frontend performance metrics
+  - Fly.io Metrics - Backend performance metrics (built-in)
+- **Secrets Management**:
+  - Bitwarden - Secure credential storage
+  - Vercel Environment Variables - Frontend secrets
+  - Fly.io Secrets - Backend secrets (`fly secrets set`)
+- **Infrastructure as Code**:
+  - Terraform - Kamatera VM provisioning
+
+#### ❌ Archived Infrastructure
+- **Complex Observability** - Prometheus, Grafana, Loki, Tempo, Datadog (overkill for current scale)
+- **Complex Secrets** - SOPS, KMS (unnecessary complexity)
+- **GitOps** - ArgoCD, Helm charts (deferred until scale requires it)
+
+#### Benefits
+- **Reduced complexity** - From 15+ to 6 core components
+- **Lower maintenance** - Integrated platform services
+- **Cost effective** - Free/built-in monitoring
+- **Simpler operations** - No complex Kubernetes monitoring stack
+
+#### Configuration
+- Sentry: Configure DSN in environment variables
+- Vercel Analytics: Enabled in Vercel dashboard
+- Fly.io Metrics: Available in Fly.io dashboard
+- Bitwarden: CLI integration for secrets management
+
 ### State Management
 
 #### 1. **Server State: TanStack Query (React Query) v5** ✅

@@ -9,7 +9,7 @@ Summary (short):
 
 Key rules
 - Only commit encrypted secrets (SOPS, age-encrypted blobs). Commit the public recipients (age public keys) or sops metadata — do NOT commit private keys.
-- Store the decryption private keys in a secure vault (1Password, HashiCorp Vault, AWS Secrets Manager, or similar) and only grant access to required persons.
+- Store the decryption private keys in a secure vault (Bitwarden, 1Password, HashiCorp Vault, AWS Secrets Manager, or similar) and only grant access to required persons.
 - Use a machine-level keyring (OS protected store) or the vault to mount the key at runtime; do not store in plaintext in the repo.
 
 ## HashiCorp Vault

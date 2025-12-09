@@ -1,38 +1,148 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      '@tanstack/react-query',
-      'react-router-dom',
-      'zustand',
-      'axios'
-    ],
-  },
-  server: {
-    port: 3000,
-    host: true,
-    open: false,
-  },
-  build: {
-    sourcemap: false,
-    target: 'esnext',
-    rollupOptions: {
-      output: {
-        // Explicit vendor chunking for better long-term caching & smaller initial index.* bundle.
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom'],
-          query: ['@tanstack/react-query'],
-          state: ['zustand'],
-            net: ['axios'],
-          icons: ['lucide-react']
-        }
-      }
-    }
-  },
-})
+export default defineConfig(({ mode }) => {
+  // Load env file based on mode
+  const env = loadEnv(mode, process.cwd(), '');
+
+  // Get backend URL from env or use safe default
+  const backendUrl = env.VITE_BACKEND_URL || 'http://localhost:8000';
+
+  // Validate we're not accidentally hitting production in dev
+  if (mode === 'development' && backendUrl.includes('fly.dev')) {
+    console.warn('\n⚠️  WARNING: Dev mode is proxying to PRODUCTION backend!\n');
+    console.warn('Set VITE_BACKEND_URL=http://localhost:8000 in .env.development\n');
+  }
+
+  return {
+    plugins: [react()],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
+    server: {
+      port: 3000,
+      host: '127.0.0.1', // Only bind to localhost for security
+      open: false,
+      headers: {
+        // Content Security Policy
+        'Content-Security-Policy': [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data: https:",
+          "font-src 'self' data:",
+          "connect-src 'self' https://goblin-backend.fly.dev https://challenges.cloudflare.com ws://localhost:3000",
+          "frame-src https://challenges.cloudflare.com",
+          "base-uri 'self'",
+          "form-action 'self'"
+        ].join('; '),
+        // Additional Security Headers
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      },
+      proxy: {
+        '/api': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+          rewrite: (path) => path.replace(/^\/api/, ''),
+        },
+        '/auth': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/search': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/settings': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/execute': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/health': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/debug': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/debugger': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/dashboard': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/routing': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/chat': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/stream': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/parse': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/raptor': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/api-keys': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+        '/sandbox': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: mode === 'production',
+        },
+      },
+    },
+    build: {
+      target: 'es2020', // Changed from esnext for broader compatibility
+      sourcemap: mode !== 'production',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'query-vendor': ['@tanstack/react-query'],
+            'state-vendor': ['zustand'],
+            'net-vendor': ['axios'],
+            'icons-vendor': ['lucide-react'],
+          },
+        },
+      },
+    },
+  };
+});

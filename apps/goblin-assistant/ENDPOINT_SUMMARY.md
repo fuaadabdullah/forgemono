@@ -56,7 +56,7 @@ All endpoint mismatches have been fixed and the build passes. The frontend API c
 
 - [ ] Add rate limiting middleware
 - [ ] Configure structured JSON logging
-- [ ] Set up monitoring/alerting (Datadog/Sentry)
+- [ ] Set up monitoring/alerting (Sentry)
 - [ ] Load test chat and health endpoints
 
 ### Recommended

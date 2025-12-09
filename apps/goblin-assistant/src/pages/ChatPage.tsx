@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { apiClient } from '../api/client';
+import { apiClient } from '../api/client-axios';
 import TurnstileWidget from '../components/TurnstileWidget';
+import { useTurnstile } from '../config/turnstile';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -14,6 +15,8 @@ const ChatPage: React.FC = () => {
   const [totalTokens, setTotalTokens] = useState(0);
   const [turnstileToken, setTurnstileToken] = useState('');
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  const turnstileConfig = useTurnstile('chat');
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -103,6 +106,7 @@ const ChatPage: React.FC = () => {
               placeholder="Type your message..."
               className="flex-1 px-4 py-3 border border-border bg-surface-hover rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text placeholder-muted"
               disabled={isSending}
+              aria-label="Chat message input"
             />
             <button
               onClick={sendMessage}
@@ -137,7 +141,7 @@ const ChatPage: React.FC = () => {
       {/* Invisible Turnstile Widget for API Protection */}
       <div style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}>
         <TurnstileWidget
-          siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY_INVISIBLE}
+          siteKey={turnstileConfig.siteKey}
           onVerify={(token) => setTurnstileToken(token)}
           mode="invisible"
           onError={(error) => {

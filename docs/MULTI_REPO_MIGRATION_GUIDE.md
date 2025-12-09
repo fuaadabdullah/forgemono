@@ -131,7 +131,6 @@ cp /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/index.html .
 
 # Copy deployment configs
 cp /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/vercel.json .
-cp /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/netlify.toml .
 
 # Initial commit
 git add .
@@ -175,7 +174,7 @@ git init
 
 #### 3.2 Kubernetes Manifests
 
-Create K8s deployments for backend/frontend (optional, can use Render/Vercel instead).
+Create K8s deployments for backend/frontend (optional, can use Fly.io/Vercel instead).
 
 ### Phase 4: Local Development Orchestration (Day 2)
 
@@ -194,7 +193,7 @@ git init
 
 Add to `goblin-assistant-backend/.github/workflows/`:
 - `ci.yml` - Run tests on PR
-- `deploy.yml` - Build Docker image, push to registry, deploy to Render
+- `deploy.yml` - Build Docker image, push to registry, deploy to Fly.io
 
 #### 5.2 Frontend CI/CD
 
@@ -207,7 +206,7 @@ Add to `goblin-assistant-frontend/.github/workflows/`:
 Set in GitHub org or per-repo:
 - `DOCKER_USERNAME`
 - `DOCKER_PASSWORD`
-- `RENDER_API_KEY`
+- `FLY_API_TOKEN`
 - `VERCEL_TOKEN`
 - `CHROMATIC_PROJECT_TOKEN`
 

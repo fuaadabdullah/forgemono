@@ -226,15 +226,13 @@ alembic upgrade head
 
 ### Deployment Steps
 
-1. **Backend to Render/Fly.io**
+1. **Backend to Fly.io**
    ```bash
    cd apps/goblin-assistant
-   ./deploy-backend.sh render
-   # OR
    ./deploy-backend.sh fly
    ```
 
-2. **Frontend to Netlify**
+2. **Frontend to Vercel**
    ```bash
    ./deploy-frontend.sh
    ```
@@ -257,7 +255,7 @@ alembic upgrade head
 - [ ] **Check database** connection pool
 - [ ] **Verify Redis** challenge storage
 - [ ] **Test all API** endpoints
-- [ ] **Enable monitoring** (Datadog, Sentry)
+- [ ] **Enable monitoring** (Sentry, Vercel Analytics, Fly.io Metrics)
 - [ ] **Set up backups** (automatic with Supabase)
 - [ ] **Document** production URLs
 
@@ -274,8 +272,6 @@ alembic upgrade head
 ### Logs
 ```bash
 # Backend logs
-render logs
-# OR
 fly logs
 
 # Raptor logs
@@ -352,9 +348,9 @@ All five production tasks are **COMPLETE** and **READY FOR DEPLOYMENT**:
 
 1. Set up PostgreSQL database (Supabase)
 2. Set up Redis (Upstash)
-3. Deploy backend (Render/Fly.io)
+3. Deploy backend (Fly.io)
 4. Run migrations
-5. Deploy frontend (Netlify)
+5. Deploy frontend (Vercel)
 6. Test production deployment
 
 ---

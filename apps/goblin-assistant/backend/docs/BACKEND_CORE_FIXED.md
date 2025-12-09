@@ -95,7 +95,6 @@ Backend MEM: 0.8% ✅
 - `GET /health/chroma/status` → ChromaDB status
 - `GET /health/sandbox/status` → Sandbox status
 - `GET /health/raptor/status` → Raptor status
-- `GET /metrics` → Prometheus metrics
 
 - ### ✅ Core API
 
@@ -259,7 +258,7 @@ ps aux | grep "uvicorn.*8001" | grep -v grep | awk '{print $2}' | xargs kill
 - Set up Redis for passkey challenges
 - Configure CORS for production domain
 - Run database migrations: `alembic upgrade head`
-- Deploy to Render/Fly.io/Railway
+- Deploy to Render or Fly.io (Railway support removed)
 
 ---
 

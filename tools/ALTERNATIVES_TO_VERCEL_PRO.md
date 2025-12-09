@@ -23,7 +23,7 @@ Do not commit secrets to the repository. Use Vercel env variables or CI secrets 
 
 1) Best short-term: Host your backend externally and keep static front end on Vercel
 -------------------------------------------------------------------------
-- Quick win: Host your entire API server (FastAPI) to Render / Railway / Fly / DigitalOcean App Platform / Cloud Run and point your Vercel frontend at the external URL via environment variables.
+- Quick win: Host your entire API server (FastAPI) to Render / Fly / DigitalOcean App Platform / Cloud Run and point your Vercel frontend at the external URL via environment variables.
 - This reduces Vercel's serverless function usage to zero and keeps Vercel free for static hosting.
 
 Advantages:
@@ -85,7 +85,7 @@ Cons:
 --------------------------------------------------------------------------
 - Netlify: Netlify has function limits on hobby, but it often provides free tiers. Additional functions cost money.
 - Render: Provides both web services and background workers; free tier for backend web services; easy to deploy and configure.
-- Railway: Good for fast prototypes; free tier and easy deployment.
+-- Railway: (Removed) — we no longer maintain Railway deployment guidance. Use Render, Fly, or Cloud Run instead.
 - Fly.io: Deploys containers; you can run a single container for many endpoints.
 - Cloud Run / Cloud Functions: Pay-as-you-go; can be cheap for small loads; unlimited endpoints via a single server container
 

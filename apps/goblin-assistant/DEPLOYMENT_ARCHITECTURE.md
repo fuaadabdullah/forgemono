@@ -2,7 +2,9 @@
 
 ## Overview
 
-The GoblinOS Assistant uses a three-tier deployment architecture:
+### Simplified Deployment Strategy (December 2025)
+
+To reduce complexity and maintenance overhead, Goblin Assistant uses a streamlined two-platform deployment:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -10,7 +12,7 @@ The GoblinOS Assistant uses a three-tier deployment architecture:
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
 │  ┌─────────────┐      ┌──────────────┐      ┌────────────┐ │
-│  │   VERCEL    │─────▶│    RENDER    │─────▶│  KAMATERA  │ │
+│  │   VERCEL    │─────▶│    FLY.IO    │─────▶│  KAMATERA  │ │
 │  │  (Frontend) │      │  (Backend)   │      │ (LLM Models)│ │
 │  └─────────────┘      └──────────────┘      └────────────┘ │
 │                                                               │
@@ -21,13 +23,44 @@ The GoblinOS Assistant uses a three-tier deployment architecture:
 └─────────────────────────────────────────────────────────────┘
 ```
 
+**Previous Platforms (Archived)**:
+- ❌ Render - Config removed, database migrated to Supabase
+- ❌ Railway - Config removed
+- ❌ Netlify - Config removed
+- ❌ Kubernetes + GitOps - Deferred until 100k+ users
+
+### Infrastructure Consolidation (December 2025)
+
+To eliminate infrastructure sprawl, Goblin Assistant has consolidated from 15+ components to a minimal stack:
+
+#### ✅ Simplified Infrastructure Stack
+
+- **Observability**: Sentry + Vercel Analytics + Fly.io Metrics
+- **Secrets**: Bitwarden + Vercel Env Vars + Fly.io Secrets
+- **IaC**: Terraform (Kamatera VM only)
+
+#### ❌ Removed Complex Components
+
+- **Monitoring**: Prometheus, Grafana, Loki, Tempo, Datadog
+- **Secrets**: SOPS, KMS encryption complexity
+- **GitOps**: ArgoCD, Helm charts, Kubernetes manifests
+
+#### Cost & Maintenance Savings
+
+- **Components**: 15+ → 6 core components
+- **Maintenance**: ~60 hours/month saved
+- **Cost**: Free/built-in platform services
+- **Complexity**: Dramatically reduced operational overhead
+
 ## Components
 
 ### 1. Frontend - Vercel
+
 **Service**: Static Site Hosting
 **URL**: `https://goblin-assistant.vercel.app`
 
 **Why Vercel?**
+
 - ✅ Zero-config deployment for Vite/React apps
 - ✅ Global CDN with edge caching
 - ✅ Automatic HTTPS and SSL
@@ -36,35 +69,40 @@ The GoblinOS Assistant uses a three-tier deployment architecture:
 - ✅ Free tier sufficient for development
 
 **Configuration**: `vercel.json`
+
 - Framework: Vite
 - Build Command: `npm run build`
 - Output Directory: `dist`
-- API Proxy: Forwards `/api/*` to Render backend
+- API Proxy: Forwards `/api/*` to Fly.io backend
 
-### 2. Backend - Render
+### 2. Backend - Fly.io
+
 **Service**: Web Service (Python)
-**URL**: `https://goblin-assistant-backend.onrender.com`
+**URL**: `https://goblin-assistant.fly.dev`
 
-**Why Render?**
+**Why Fly.io?**
+
 - ✅ Native Python support with pip
-- ✅ Managed PostgreSQL database
+- ✅ Global edge network with low latency
 - ✅ Environment variable management
 - ✅ Auto-deploy from Git
 - ✅ Health check monitoring
 - ✅ Built-in SSL certificates
 - ✅ Better for long-running backend processes than serverless
 
-**Configuration**: `render.yaml`
+**Configuration**: `fly.toml`
+
 - Runtime: Python 3.11
 - Start Command: `python start_server.py`
 - Health Check: `/health` endpoint
-- Database: Managed PostgreSQL (starter plan)
-- Redis: Optional, for production caching
+- Database: Supabase PostgreSQL
+- Redis: Upstash (optional, for production caching)
 
-**Environment Variables** (Set in Render Dashboard):
+**Environment Variables** (Set in Fly.io):
+
 ```bash
 # Required
-DATABASE_URL=<from Render PostgreSQL>
+DATABASE_URL=<from Supabase>
 LOCAL_LLM_PROXY_URL=http://45.61.60.3:8002
 LOCAL_LLM_API_KEY=<your-kamatera-api-key>
 JWT_SECRET_KEY=<generated>
@@ -89,10 +127,12 @@ SUPABASE_SERVICE_ROLE_KEY=<your-key>
 ```
 
 ### 3. LLM Models - Kamatera VPS
+
 **Service**: Self-hosted Ollama Server
 **URL**: `http://45.61.60.3:8002`
 
 **Why Kamatera?**
+
 - ✅ Cost-effective for running local LLM models
 - ✅ Full control over model deployment
 - ✅ No per-token pricing (fixed monthly cost)
@@ -101,6 +141,7 @@ SUPABASE_SERVICE_ROLE_KEY=<your-key>
 - ✅ Private network for sensitive data
 
 **Configuration**:
+
 - Server: Ubuntu VPS with GPU
 - Software: Ollama + Custom API Proxy
 - Models: gemma:2b, phi3:3.8b, qwen2.5:3b, mistral:7b
@@ -108,23 +149,25 @@ SUPABASE_SERVICE_ROLE_KEY=<your-key>
 - Port: 8002 (with firewall rules)
 
 **Models Available**:
+
 ```
 gemma:2b        - Safety verification (1.7GB)
 phi3:3.8b       - Confidence scoring (2.2GB)
 qwen2.5:3b      - Advanced reasoning (1.9GB)
-mistral:7b      - Top-tier responses (4.1GB)
+mistral:7b      - Top-tier responses (4.4GB)
 deepseek-coder  - Code generation (776MB)
 ```
 
 ## Data Flow
 
 ### 1. User Request Flow
-```
+
+```text
 User Browser
     ↓
 Vercel (Static UI)
     ↓
-Render Backend (/api/chat/completions)
+Fly.io Backend (/api/chat/completions)
     ↓
 Kamatera LLM Server (http://45.61.60.3:8002)
     ↓
@@ -134,12 +177,13 @@ Ollama Model Inference
 ```
 
 ### 2. Authentication Flow
-```
+
+```text
 User → Vercel UI → Google OAuth
                       ↓
-                   Render Backend (validates token)
+                   Fly.io Backend (validates token)
                       ↓
-                   PostgreSQL (stores session)
+                   Supabase PostgreSQL (stores session)
                       ↓
                    ← JWT returned to client
 ```
@@ -149,16 +193,19 @@ User → Vercel UI → Google OAuth
 ### Deploy Frontend to Vercel
 
 1. **Install Vercel CLI** (if not already installed):
+
    ```bash
    npm install -g vercel
    ```
 
 2. **Login to Vercel**:
+
    ```bash
    vercel login
    ```
 
 3. **Deploy from project root**:
+
    ```bash
    cd apps/goblin-assistant
    vercel --prod
@@ -173,42 +220,43 @@ User → Vercel UI → Google OAuth
    - Go to Project Settings → Domains
    - Add `goblin-assistant.vercel.app` or custom domain
 
-### Deploy Backend to Render
+### Deploy Backend to Fly.io
 
-1. **Create Render Account**:
-   - Sign up at https://render.com
-   - Connect your GitHub repository
+1. **Install Fly CLI**:
 
-2. **Create New Web Service**:
-   - Click "New +" → "Web Service"
-   - Select repository: `forgemono`
-   - Name: `goblin-assistant-backend`
-   - Root Directory: `apps/goblin-assistant/backend`
-   - Runtime: Python 3
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `python start_server.py`
+   ```bash
+   curl -L https://fly.io/install.sh | sh
+   fly auth login
+   ```
 
-3. **Create PostgreSQL Database**:
-   - Click "New +" → "PostgreSQL"
-   - Name: `goblin-assistant-db`
-   - Plan: Starter (free tier)
-   - Region: Oregon (or closest to your users)
+2. **Create Fly App**:
 
-4. **Link Database to Web Service**:
-   - In Web Service settings → Environment
-   - Add `DATABASE_URL` → Connect to Internal Database
-   - Select `goblin-assistant-db`
+   ```bash
+   cd apps/goblin-assistant
+   fly launch --name goblin-assistant-backend
+   ```
 
-5. **Add Environment Variables**:
-   - Copy all variables from `render.yaml` envVars section
-   - Or use Render CLI to sync from file:
-     ```bash
-     render deploy --config render.yaml
-     ```
+3. **Configure Database**:
+   - Use Supabase for PostgreSQL (already configured)
+   - Set `DATABASE_URL` environment variable
+
+4. **Set Environment Variables**:
+
+   ```bash
+   fly secrets set DATABASE_URL="your-supabase-url"
+   fly secrets set JWT_SECRET_KEY="$(openssl rand -hex 32)"
+   # Add other secrets as needed
+   ```
+
+5. **Deploy**:
+
+   ```bash
+   fly deploy
+   ```
 
 6. **Configure Health Check**:
+   - Already configured in `fly.toml`
    - Path: `/health`
-   - Interval: 30 seconds
 
 7. **Deploy**:
    - Click "Manual Deploy" → "Deploy latest commit"
@@ -241,18 +289,21 @@ User → Vercel UI → Google OAuth
    ```
 
 5. **Configure API Proxy** (if using custom proxy):
+
    ```bash
    cd /opt/llm-proxy
    python3 local_llm_proxy.py
    ```
 
 6. **Configure Firewall**:
+
    ```bash
    ufw allow 8002/tcp
    ufw enable
    ```
 
 7. **Test Connection**:
+
    ```bash
    curl http://45.61.60.3:8002/health
    ```
@@ -260,19 +311,22 @@ User → Vercel UI → Google OAuth
 ## Monitoring & Maintenance
 
 ### Vercel
+
 - Monitor deployments: https://vercel.com/dashboard
 - View build logs for errors
 - Check analytics for traffic patterns
 - Set up uptime monitoring (optional)
 
-### Render
-- Monitor service health: https://dashboard.render.com
-- Check logs for backend errors
-- Monitor PostgreSQL database metrics
+### Fly.io
+
+- Monitor service health: https://fly.io/dashboard
+- Check logs for backend errors: `fly logs`
+- Monitor app metrics and scaling
 - Set up alerts for downtime
 - Review billing and resource usage
 
 ### Kamatera
+
 - Monitor VPS resources (CPU, RAM, disk)
 - Check Ollama logs: `journalctl -u ollama -f`
 - Monitor API proxy logs
@@ -286,26 +340,29 @@ User → Vercel UI → Google OAuth
 | Service | Plan | Cost |
 |---------|------|------|
 | Vercel (Frontend) | Hobby | $0 (free tier) |
-| Render (Backend) | Starter | $7/month |
-| Render (PostgreSQL) | Starter | $7/month |
+| Fly.io (Backend) | Free | $0 (free tier) |
+| Supabase (PostgreSQL) | Free | $0 (free tier) |
 | Kamatera (VPS) | Custom | $20-50/month |
-| **Total** | | **$34-64/month** |
+| **Total** | | **$20-50/month** |
 
 ### Cost Optimization Tips
-- Use Vercel free tier for hobby projects
-- Upgrade Render only when needed (500 build hours/month on free tier)
+
+- Use Vercel and Fly.io free tiers for development
+- Upgrade Fly.io only when needed (3GB RAM free tier)
 - Kamatera: Use spot instances or reserved pricing
-- Redis: Start with in-memory, add Redis only in production
+- Supabase: Free tier includes 500MB database
 
 ## Security Considerations
 
 ### Frontend (Vercel)
+
 - ✅ HTTPS enabled by default
 - ✅ Environment variables hidden from client
 - ✅ CORS configured for backend API
 - ⚠️ Never expose API keys in frontend code
 
-### Backend (Render)
+### Backend (Fly.io)
+
 - ✅ Environment variables encrypted at rest
 - ✅ SSL/TLS for all connections
 - ✅ Database connection encrypted
@@ -313,6 +370,7 @@ User → Vercel UI → Google OAuth
 - ⚠️ Rotate JWT secrets regularly
 
 ### Kamatera (LLM Server)
+
 - ✅ API key authentication required
 - ✅ Firewall configured (UFW)
 - ⚠️ Use VPN or private network if possible
@@ -322,43 +380,53 @@ User → Vercel UI → Google OAuth
 ## Troubleshooting
 
 ### Frontend Issues
+
 **Problem**: Build fails on Vercel
+
 - Check `package.json` dependencies
 - Ensure `vite.config.ts` is correct
 - Review build logs in Vercel dashboard
 
 **Problem**: API calls failing
+
 - Verify `VITE_API_URL` in environment variables
 - Check CORS configuration in backend
 - Inspect network tab in browser DevTools
 
 ### Backend Issues
-**Problem**: Service won't start on Render
+
+**Problem**: Service won't start on Fly.io
+
 - Check `requirements.txt` for missing dependencies
 - Review start command syntax
 - Check environment variables are set
-- Review build logs for errors
+- Review build logs: `fly logs`
 
 **Problem**: Database connection fails
+
 - Verify `DATABASE_URL` is set correctly
-- Check PostgreSQL service is running
-- Review Render database logs
+- Check Supabase service is running
+- Review Fly.io app logs: `fly logs`
 
 ### LLM Server Issues
+
 **Problem**: Models not responding
+
 - Check Ollama service: `systemctl status ollama`
 - Verify models are loaded: `ollama list`
 - Check disk space: `df -h`
 - Review API proxy logs
 
-**Problem**: Connection timeout from Render
-- Verify firewall allows connections from Render IPs
+**Problem**: Connection timeout from Fly.io
+
+- Verify firewall allows connections from Fly.io IPs
 - Check Kamatera server is running
 - Test locally: `curl http://45.61.60.3:8002/health`
 
 ## Rollback Procedures
 
-### Frontend (Vercel)
+### Frontend Rollback (Vercel)
+
 ```bash
 # Revert to previous deployment
 vercel rollback <deployment-url>
@@ -367,10 +435,14 @@ vercel rollback <deployment-url>
 # Deployments → Select working deployment → Promote to Production
 ```
 
-### Backend (Render)
+### Backend Rollback (Fly.io)
+
 ```bash
-# Via Render Dashboard:
-# Services → goblin-assistant-backend → Deploys → Select previous → Redeploy
+# Revert to previous deployment
+fly deploy --image <previous-image-id>
+
+# Or via dashboard:
+# Apps → goblin-assistant-backend → Activity → Select working deployment → Scale to 1
 ```
 
 ### Database Migrations
@@ -386,9 +458,9 @@ alembic downgrade -1
    - Add deployment workflows
 
 2. **Add Monitoring**:
-   - Set up Sentry for error tracking
-   - Add PostHog for analytics
-   - Configure Datadog for infrastructure monitoring
+   - Set up Sentry for error tracking (already configured)
+   - Enable Vercel Analytics for frontend metrics (already configured)
+   - Monitor Fly.io metrics for backend performance (already configured)
 
 3. **Implement Caching**:
    - Add Redis for session management
@@ -403,10 +475,12 @@ alembic downgrade -1
 ## Support
 
 For deployment issues:
+
 - Vercel: https://vercel.com/support
-- Render: https://render.com/docs/support
+- Fly.io: https://fly.io/docs/getting-help/
 - Kamatera: support@kamatera.com
 
 For code issues:
+
 - GitHub Issues: https://github.com/fuaadabdullah/forgemono/issues
 - GoblinOS Docs: `/GoblinOS/docs/`
