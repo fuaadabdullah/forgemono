@@ -32,10 +32,12 @@ This directory contains GitHub Actions workflows that serve as fallbacks/alterna
   - Supports dev/staging/prod environments
   - Uses Terraform Cloud for state management
 
-### 5. Manual CI/CD Pipeline (`cicd-pipeline.yml`)
-- **Triggers**: Manual workflow dispatch only
+### 5. Manual CI/CD Pipeline (now part of `backend-ci.yml`)
+
+- **Triggers**: Manual workflow dispatch only (via `workflow_dispatch` inputs to `backend-ci.yml`)
+
 - **What it does**:
-  - Allows selective running of CI components
+  - Allows selective running of CI components for the backend (lint/tests, Docker build, and Terraform security)
   - Useful for testing or one-off deployments
 
 ## Required GitHub Secrets
