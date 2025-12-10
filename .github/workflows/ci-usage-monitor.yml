@@ -29,11 +29,13 @@ jobs:
           # Calculate per-workflow minutes (Documentation CI & Backend CI)
           docs_minutes=$(echo "$response" | jq -r '.workflow_runs | map(select(.name=="Documentation CI") | .run_duration_ms // 0) | add // 0' | awk '{print int($1/60000)}')
           backend_minutes=$(echo "$response" | jq -r '.workflow_runs | map(select(.name=="Backend CI") | .run_duration_ms // 0) | add // 0' | awk '{print int($1/60000)}')
+          frontend_minutes=$(echo "$response" | jq -r '.workflow_runs | map(select(.name=="Frontend Deploy (Vercel)" or .name=="Frontend Deploy (Preview)" or .name=="Frontend Deploy (Production)" or .name=="Frontend Deploy (Staging)") | .run_duration_ms // 0) | add // 0' | awk '{print int($1/60000)}')
 
           echo "included_minutes=$included_minutes" >> $GITHUB_OUTPUT
           echo "used_minutes=$used_minutes" >> $GITHUB_OUTPUT
           echo "docs_minutes=$docs_minutes" >> $GITHUB_OUTPUT
           echo "backend_minutes=$backend_minutes" >> $GITHUB_OUTPUT
+          echo "frontend_minutes=$frontend_minutes" >> $GITHUB_OUTPUT
 
           # Calculate percentage used
           if [ "$included_minutes" -gt 0 ]; then

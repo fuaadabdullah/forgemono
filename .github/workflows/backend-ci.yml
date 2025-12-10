@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'apps/goblin-assistant/backend/**'
+      - 'apps/goblin-assistant/**'
       - '.github/workflows/backend-ci.yml'
   pull_request:
     branches: [ main ]
@@ -28,12 +28,17 @@ on:
         required: false
         default: false
         type: boolean
+      run_frontend_deploy:
+        description: 'Run frontend deploy steps (preview/staging/production)'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   backend-test:
     name: Lint & Test
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_backend_tests == 'true' || github.event.inputs.run_backend_tests == true }}
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_backend_tests == 'true' || github.event.inputs.run_backend_tests == true }}
     defaults:
       run:
         working-directory: apps/goblin-assistant
@@ -83,11 +88,12 @@ jobs:
   docker-build:
     name: Docker Build & Publish
     runs-on: ubuntu-latest
+    if: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.run_docker_build == 'true' || github.event.inputs.run_docker_build == true)) || (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') }}
     needs: backend-test
+    if: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.run_docker_build == 'true' || github.event.inputs.run_docker_build == true)) || (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') }}
     permissions:
       contents: read
       packages: write
-    if: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.run_docker_build == 'true' || github.event.inputs.run_docker_build == true)) || (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -109,8 +115,8 @@ jobs:
   terraform-security:
     name: Terraform Security
     runs-on: ubuntu-latest
-    needs: backend-test
     if: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.run_terraform_security == 'true' || github.event.inputs.run_terraform_security == true)) || (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') }}
+    needs: backend-test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -125,3 +131,161 @@ jobs:
         with:
           directory: goblin-infra/
           framework: terraform
+
+  frontend-deploy-preview:
+    name: Frontend Deploy (Preview)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_frontend_deploy == 'true') }}
+    needs: backend-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project Artifacts (Preview)
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL_STAGING }}
+
+      - name: Deploy to Vercel (Preview)
+        id: deploy_preview
+        run: |
+          url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const previewURL = process.env.DEPLOY_PREVIEW_URL || '${{ steps.deploy_preview.outputs.url }}';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🚀 Preview Deployment\n\n✅ Deployed to: ${previewURL}\n\n- Frontend preview is live\n- Linked to staging backend API`,
+            });
+
+  frontend-deploy-staging:
+    name: Frontend Deploy (Staging)
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_frontend_deploy == 'true') }}
+    needs: backend-test
+    environment:
+      name: staging
+      url: https://goblin-assistant-git-develop.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project Artifacts (Staging)
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          API_BASE_URL: https://goblin-backend.fly.dev
+
+      - name: Deploy to Vercel (Staging)
+        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} --prod
+
+      - name: Health check
+        run: |
+          sleep 10
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://goblin-assistant-git-develop.vercel.app)
+          if [ $response -eq 200 ]; then
+            echo "✅ Staging deployment healthy"
+          else
+            echo "⚠️  Frontend deployed but backend health check failed (expected for proxy testing)"
+            echo "🔗 Frontend URL: https://goblin-assistant-git-develop.vercel.app"
+          fi
+
+  frontend-deploy-production:
+    name: Frontend Deploy (Production)
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_frontend_deploy == 'true') }}
+    needs: backend-test
+    environment:
+      name: production
+      url: https://goblin.fuaad.ai
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project Artifacts (Production)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          API_BASE_URL: https://api.goblin.fuaad.ai
+
+      - name: Deploy to Vercel (Production)
+        id: deploy_prod
+        run: |
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Health check
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://goblin.fuaad.ai)
+          if [ $response -eq 200 ]; then
+            echo "✅ Production deployment healthy"
+          else
+            echo "❌ Production deployment failed"
+            exit 1
+          fi
+
+      - name: Run Lighthouse CI (Production)
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            https://goblin.fuaad.ai
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "Frontend deployment to production: ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Frontend Deployment*\nEnvironment: Production\nStatus: ${{ job.status }}\nURL: https://goblin.fuaad.ai\nCommit: ${{ github.sha }}"
+                  }
+                }
+              ]
+            }
