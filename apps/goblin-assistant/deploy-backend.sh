@@ -77,8 +77,8 @@ timeout = "5s"
 grace_period = "5s"
 
 [[mounts]]
-source = "chroma_db"
-destination = "/app/chroma_db"
+source = "data"
+destination = "/app/data"
 EOF
 
     print_status "Deploying to Fly.io..."

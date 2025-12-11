@@ -297,7 +297,7 @@ This document provides comprehensive documentation for all environment variables
 - **Default**: Auto-generated path
 - **Required**: No
 - **Description**: Path to Chroma vector database
-- **Example**: `CHROMA_DB_PATH=/app/chroma_db`
+- **Example**: `CHROMA_DB_PATH=/app/data/vector/chroma`
 
 ### QDRANT_URL
 - **Type**: String
@@ -381,7 +381,7 @@ REDIS_URL=redis://your-redis-host:6379/0
 CORS_ORIGINS=https://goblin.fuaad.ai,https://api.goblin.fuaad.ai
 
 # Vector Database
-CHROMA_DB_PATH=/app/chroma_db
+CHROMA_DB_PATH=/app/data/vector/chroma
 ```
 
 ## Notes

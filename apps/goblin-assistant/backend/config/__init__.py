@@ -39,6 +39,10 @@ class Settings(BaseSettings):
     # Logging
     log_level: str = "INFO"
 
+    # RAG Configuration
+    enable_enhanced_rag: bool = False  # Enable advanced RAG features (hybrid search, reranking, query expansion)
+    rag_chroma_path: str = "data/vector/chroma"  # Path for ChromaDB vector storage
+
     @property
     def is_multi_instance(self) -> bool:
         """Check if running in multi-instance mode"""

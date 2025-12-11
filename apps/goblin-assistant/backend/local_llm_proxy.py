@@ -19,6 +19,7 @@ import logging
 # Add RAG service import
 try:
     from services.rag_service import RAGService
+    from config import settings
 
     RAG_AVAILABLE = True
 except ImportError:
@@ -442,7 +443,10 @@ async def add_documents(request: Request, doc_request: DocumentRequest):
         raise HTTPException(status_code=503, detail="RAG service not available")
 
     try:
-        rag_service = RAGService()
+        rag_service = RAGService(
+            enable_enhanced=settings.enable_enhanced_rag,
+            chroma_path=settings.rag_chroma_path,
+        )
         documents = [
             {
                 "content": doc_request.content,
@@ -475,14 +479,24 @@ async def rag_query(request: Request, query_request: RAGQueryRequest):
         raise HTTPException(status_code=503, detail="RAG service not available")
 
     try:
-        rag_service = RAGService()
-
-        # Run complete RAG pipeline
-        result = await rag_service.rag_pipeline(
-            query=query_request.query,
-            session_id=query_request.session_id,
-            filters=query_request.filters,
+        rag_service = RAGService(
+            enable_enhanced=settings.enable_enhanced_rag,
+            chroma_path=settings.rag_chroma_path,
         )
+
+        # Run complete RAG pipeline (enhanced if enabled)
+        if settings.enable_enhanced_rag:
+            result = await rag_service.enhanced_rag_pipeline(
+                query=query_request.query,
+                session_id=query_request.session_id,
+                filters=query_request.filters,
+            )
+        else:
+            result = await rag_service.rag_pipeline(
+                query=query_request.query,
+                session_id=query_request.session_id,
+                filters=query_request.filters,
+            )
 
         return result
 
@@ -500,10 +514,18 @@ async def rag_health(request: Request):
         return {"status": "unavailable", "message": "RAG dependencies not installed"}
 
     try:
-        rag_service = RAGService()
+        rag_service = RAGService(
+            enable_enhanced=settings.enable_enhanced_rag,
+            chroma_path=settings.rag_chroma_path,
+        )
         # Simple health check - try to get collection count
         collections = rag_service.chroma_client.list_collections()
-        return {"status": "healthy", "collections": len(collections), "service": "rag"}
+        return {
+            "status": "healthy",
+            "collections": len(collections),
+            "service": "rag",
+            "enhanced_rag_enabled": settings.enable_enhanced_rag,
+        }
     except Exception as e:
         logger.error(f"RAG health check failed: {e}")
         return {"status": "error", "message": str(e)}

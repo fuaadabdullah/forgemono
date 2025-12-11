@@ -4,11 +4,16 @@ description: "README"
 
 # Apps
 
-Polyglot applications that live alongside GoblinOS. Each subdirectory groups apps by language/runtime.
+Polyglot applications that live alongside GoblinOS. Each subdirectory contains active applications and projects.
 
-Current layout:
+Current applications:
 
-- `python/` — Python applications (moved to dedicated repositories).
+- `goblin-assistant/` — AI-powered development assistant (Python FastAPI backend)
+- `forge-lite/` — Trading and risk management application
+- `fuaad-portfolio/` — Personal portfolio website
+- `gaslight/` — Additional applications
+- `python/` — Python utilities and tools
+- `raptor-mini/` — Raptor monitoring system components
 
 
 Conventions:

@@ -135,7 +135,7 @@ jobs:
         if: steps.api-check.outputs.api_available == 'true'
         run: |
           echo "🔍 Running documentation quality analysis..."
-          python3 doc_quality_check.py --ci --min-score 70 --report quality_report.md
+          python3 tools/doc-quality/doc_quality_check.py --ci --mode raptor_only --min-score 70 --report quality_report.md
 
       - name: Create fallback report
         if: steps.api-check.outputs.api_available == 'false'

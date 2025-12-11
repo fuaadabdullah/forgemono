@@ -1,56 +1,67 @@
 # Quick Production Setup Guide
 
 ## Overview
+
 You need to: (1) Get PostgreSQL connection from Supabase, (2) Set up Redis on Upstash, (3) Run migrations
 
 ---
 
 ## ✅ STEP 1: PostgreSQL (Supabase)
 
-### Get Your Connection String
+### Automated Database Setup (Recommended)
+
+**Use the automated script we created:**
+
+```bash
+cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend
+
+# Run the complete database fix script
+python3 complete_db_fix.py
+```
+
+This script will:
+
+- Open the Supabase dashboard in your browser
+- Guide you through password reset
+- Update your .env file automatically
+- Test the database connection
+
+### Manual Setup (Alternative)
 
 1. **Open Supabase Dashboard:**
-   ```
+
+   ```text
    https://supabase.com/dashboard/project/dhxoowakvmobjxsffpst/settings/database
    ```
 
 2. **Get/Reset Database Password:**
+
    - Scroll to "Database Password" section
    - Click "Reset Database Password" if needed
    - **SAVE THIS PASSWORD** - you'll need it!
 
 3. **Get Connection String:**
+
    - Scroll to "Connection string" section
    - Click **"Connection pooling"** tab (port 6543)
    - Copy the string (looks like this):
+
+     ```text
+     postgresql://postgres.dhxoowakvmobjxsffpst:[YOUR-PASSWORD]@aws-0-us-west-2.pooler.supabase.com:6543/postgres
      ```
-     postgresql://postgres.dhxoowakvmobjxsffpst:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres
-     ```
+
    - Replace `[YOUR-PASSWORD]` with your actual password
 
-### Update Your .env File
+### Configure Your .env File
 
-Open `.env` file and update this line:
+Your .env file should now contain:
 
 ```bash
-# BEFORE (SQLite):
-DATABASE_URL=sqlite:///./goblin_assistant.db
-
-# AFTER (PostgreSQL):
-DATABASE_URL=postgresql://postgres.dhxoowakvmobjxsffpst:[PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres
+# PostgreSQL (Supabase):
+DATABASE_URL=postgresql://postgres.dhxoowakvmobjxsffpst:[PASSWORD]@aws-0-us-west-2.pooler.supabase.com:6543/postgres
 ```
 
-**Or use this command:**
-```bash
-cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend
-
-# Create backup first
-cp .env .env.backup
-
-# Edit .env and replace the DATABASE_URL line
-nano .env
-# Or use your preferred editor: code .env, vim .env, etc.
-```
+**Note:** The region is `aws-0-us-west-2` (Oregon), not `aws-0-us-east-1`.
 
 ---
 
@@ -59,7 +70,8 @@ nano .env
 ### Create Redis Database
 
 1. **Go to Upstash:**
-   ```
+
+   ```text
    https://console.upstash.com
    ```
 
@@ -118,8 +130,9 @@ with engine.connect() as conn:
 alembic upgrade head
 ```
 
-### Expected Output:
-```
+### Expected Output
+
+```text
 INFO  [alembic.runtime.migration] Context impl PostgreSQLImpl.
 INFO  [alembic.runtime.migration] Will assume transactional DDL.
 INFO  [alembic.runtime.migration] Running upgrade  -> 0ae54fa82ef0, Initial schema with all models
@@ -167,24 +180,29 @@ else:
 ## 🆘 Troubleshooting
 
 ### "Connection refused" or timeout
+
 - Check if you're using the correct connection string
 - Verify port is 6543 (connection pooling) not 5432 (direct)
 - Check Supabase project is not paused
 - Verify your IP is not blocked
 
 ### "Password authentication failed"
+
 - Double-check your password
 - Try resetting it in Supabase dashboard
 - Make sure there are no extra spaces in .env
 
 ### "relation already exists"
+
 If you see this error, your tables already exist. You can:
+
 ```bash
 # Mark current state as baseline
 alembic stamp head
 ```
 
 ### Redis connection fails
+
 - Verify endpoint and password
 - Check SSL is set to `true` for Upstash
 - Test with: `redis-cli -h <host> -p 6379 -a <password> --tls PING`
@@ -206,9 +224,10 @@ alembic stamp head
 
 ---
 
-## 🎉 Done!
+## 🎉 Done
 
 Your production database is ready! Next steps:
+
 - Deploy backend to production
 - Update production env vars with same values
 - Test all endpoints

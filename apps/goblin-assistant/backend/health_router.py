@@ -479,7 +479,13 @@ async def health_all():
         if not chroma_path:
             # default path in repo
             chroma_path = os.path.join(
-                os.path.dirname(__file__), "..", "..", "chroma_db", "chroma.sqlite3"
+                os.path.dirname(__file__),
+                "..",
+                "..",
+                "data",
+                "vector",
+                "chroma",
+                "chroma.sqlite3",
             )
         chroma_file = pathlib.Path(chroma_path).resolve()
         if chroma_file.exists():
@@ -652,7 +658,13 @@ async def get_chroma_status():
         chroma_path = os.getenv("CHROMA_DB_PATH")
         if not chroma_path:
             chroma_path = os.path.join(
-                os.path.dirname(__file__), "..", "..", "chroma_db", "chroma.sqlite3"
+                os.path.dirname(__file__),
+                "..",
+                "..",
+                "data",
+                "vector",
+                "chroma",
+                "chroma.sqlite3",
             )
 
         chroma_file = pathlib.Path(chroma_path).resolve()

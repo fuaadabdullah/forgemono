@@ -25,8 +25,13 @@ httpx  # for testing FastAPI
 faker  # test data generation
 
 # RAG and Vector Search
-chromadb>=0.4.0
-sentence-transformers>=2.2.0
+# Note: sentence-transformers requires torch>=1.11.0
+# PyTorch CPU wheels not available for Python 3.14 yet
+# System gracefully falls back to standard RAG when dependencies unavailable
+chromadb
+sentence-transformers
+rank-bm25
+nltk
 
 # Job Queue System - Celery with Redis backend
 celery[redis]>=5.3.0

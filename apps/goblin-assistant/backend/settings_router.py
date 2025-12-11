@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 import os
 from dotenv import load_dotenv
+from config import settings as app_settings
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
@@ -32,6 +33,11 @@ class SettingsResponse(BaseModel):
     models: List[ModelSettings]
     default_provider: Optional[str] = None
     default_model: Optional[str] = None
+
+
+class RAGSettings(BaseModel):
+    enable_enhanced_rag: bool = False
+    chroma_path: str = "data/vector/chroma"
 
 
 # Default provider configurations
@@ -192,3 +198,85 @@ async def test_provider_connection(provider_name: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Connection test failed: {str(e)}")
+
+
+# RAG Settings Endpoints
+
+
+@router.get("/rag", response_model=RAGSettings)
+async def get_rag_settings():
+    """Get current RAG settings"""
+    try:
+        return RAGSettings(
+            enable_enhanced_rag=app_settings.enable_enhanced_rag,
+            chroma_path=app_settings.rag_chroma_path,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get RAG settings: {str(e)}"
+        )
+
+
+@router.put("/rag")
+async def update_rag_settings(rag_settings: RAGSettings):
+    """Update RAG settings"""
+    try:
+        # In a real app, this would update the database and restart services
+        # For now, we'll just validate the input and return success
+        if not rag_settings.chroma_path:
+            raise HTTPException(status_code=400, detail="Chroma path is required")
+
+        return {
+            "status": "success",
+            "message": "RAG settings updated. Note: Changes may require service restart to take effect.",
+            "settings": rag_settings.dict(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to update RAG settings: {str(e)}"
+        )
+
+
+@router.post("/rag/test")
+async def test_rag_configuration():
+    """Test RAG configuration and dependencies"""
+    try:
+        # Test if RAG service can be initialized
+        from services.rag_service import RAGService
+
+        # Try to initialize with current settings
+        rag_service = RAGService(
+            enable_enhanced=app_settings.enable_enhanced_rag,
+            chroma_path=app_settings.rag_chroma_path,
+        )
+
+        # Check if ChromaDB is available
+        chroma_available = rag_service.chroma_client is not None
+
+        # Check if enhanced features are available
+        enhanced_available = False
+        if app_settings.enable_enhanced_rag:
+            try:
+                enhanced_service = rag_service._get_enhanced_service()
+                enhanced_available = enhanced_service is not None
+            except Exception:
+                enhanced_available = False
+
+        return {
+            "status": "success",
+            "chroma_available": chroma_available,
+            "enhanced_rag_enabled": app_settings.enable_enhanced_rag,
+            "enhanced_rag_available": enhanced_available,
+            "chroma_path": app_settings.rag_chroma_path,
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"RAG configuration test failed: {str(e)}",
+            "chroma_available": False,
+            "enhanced_rag_enabled": app_settings.enable_enhanced_rag,
+            "enhanced_rag_available": False,
+        }

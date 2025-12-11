@@ -6,6 +6,8 @@ NOTE: Production runtime is hosted remotely on "Kamatera" (set via the `KAMATERA
 This is the backend service for GoblinOS Assistant. It's a FastAPI application responsible for:
 
 - Routing chat and debug requests to local or cloud LLM providers
+See `../docs/ARCHITECTURE_OVERVIEW.md` for a compact diagram and request flow covering frontend + backend components.
+
 - Managing user authentication (JWT, Google OAuth, WebAuthn passkeys)
 - Task execution orchestration via GoblinOS integration
 - Monitoring, structured logs, Prometheus metrics
@@ -14,7 +16,7 @@ This is the backend service for GoblinOS Assistant. It's a FastAPI application r
 Core languages & frameworks:
 - Python 3.11
 - FastAPI
-- SQLAlchemy (SQLite/Postgres)
+- SQLAlchemy (PostgreSQL via Supabase)
 - Redis + RQ for background tasks
 - Prometheus and structured logging
 
@@ -65,7 +67,8 @@ curl http://localhost:8001/health
 - `KAMATERA_HOST` - Hostname/IP of the Kamatera deployment (production LLM runtime)
 - `KAMATERA_LLM_URL` - Base URL for the Kamatera LLM runtime API
 - `KAMATERA_LLM_API_KEY` - API key for Kamatera LLM runtime authentication
-- `DATABASE_URL` - e.g., `sqlite:///./goblin_assistant.db` or Postgres
+- `DATABASE_URL` - PostgreSQL connection string (see SETUP_GUIDE.md for automated setup)
+  - Example: `postgresql://postgres.dhxoowakvmobjxsffpst:[PASSWORD]@aws-0-us-west-2.pooler.supabase.com:6543/postgres`
 - `JWT_SECRET_KEY` - JWT signing key for auth
 - `ROUTING_ENCRYPTION_KEY` - Base64 Fernet key to encrypt provider API keys
 - `REDIS_URL` - Redis connection string for RQ and challenge store

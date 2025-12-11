@@ -8,16 +8,16 @@ This system provides automated quality checks for ForgeMonorepo documentation us
 
 ```bash
 # Check all documentation files
-python3 doc_quality_check.py
+python3 tools/doc-quality/doc_quality_check.py
 
 # Check specific files
-python3 doc_quality_check.py docs/README.md docs/WORKSPACE_OVERVIEW.md
+python3 tools/doc-quality/doc_quality_check.py docs/README.md docs/WORKSPACE_OVERVIEW.md
 
 # CI mode with quality gate
-python3 doc_quality_check.py --ci --min-score 70
+python3 tools/doc-quality/doc_quality_check.py --ci --min-score 70
 
 # Generate detailed report
-python3 doc_quality_check.py --report quality_report.md
+python3 tools/doc-quality/doc_quality_check.py --report quality_report.md
 ```
 
 ### Installation
@@ -47,7 +47,7 @@ Scores range from 0-100, with thresholds:
 
 ## 🛠️ Configuration
 
-Customize behavior via `doc_quality_config.yaml`:
+Customize behavior via `tools/doc-quality/doc_quality_config.yaml`:
 
 ```yaml
 api:
@@ -90,7 +90,7 @@ The system includes GitHub Actions workflow (`.github/workflows/docs-ci.yml`) th
 
 ```bash
 # In your CI script
-python3 doc_quality_check.py --ci --min-score 70 --report report.md
+python3 tools/doc-quality/doc_quality_check.py --ci --min-score 70 --report report.md
 ```
 
 ## 📈 Reporting
@@ -140,19 +140,19 @@ The quality checker includes comprehensive debugging tools to help with developm
 
 ```bash
 # Enable general debug mode
-python3 doc_quality_check.py --debug
+python3 tools/doc-quality/doc_quality_check.py --debug
 
 # Show detailed API request/response information
-python3 doc_quality_check.py --debug-api
+python3 tools/doc-quality/doc_quality_check.py --debug-api
 
 # Show timing information for all operations
-python3 doc_quality_check.py --debug-timing
+python3 tools/doc-quality/doc_quality_check.py --debug-timing
 
 # Show file discovery and processing details
-python3 doc_quality_check.py --debug-files
+python3 tools/doc-quality/doc_quality_check.py --debug-files
 
 # Combine multiple debug options
-python3 doc_quality_check.py --debug --debug-api --debug-timing --debug-files
+python3 tools/doc-quality/doc_quality_check.py --debug --debug-api --debug-timing --debug-files
 ```
 
 ### Environment Variables
@@ -167,7 +167,7 @@ export DOC_QUALITY_DEBUG_TIMING=true
 export DOC_QUALITY_DEBUG_FILES=true
 
 # Run with environment-based debug settings
-python3 doc_quality_check.py
+python3 tools/doc-quality/doc_quality_check.py
 ```
 
 ### Save API Responses
@@ -176,7 +176,7 @@ Save raw API responses for detailed analysis:
 
 ```bash
 # Save responses to a directory
-python3 doc_quality_check.py --save-responses ./debug_responses
+python3 tools/doc-quality/doc_quality_check.py --save-responses ./debug_responses
 
 # Each API call creates a timestamped JSON file with:
 # - Request details (method, URL, payload)
@@ -244,5 +244,5 @@ When adding new documentation:
 For issues with:
 - **API connectivity**: Check Raptor Mini server status
 - **Quality scoring**: Review the analysis output for specific suggestions
-- **Configuration**: Validate YAML syntax in `doc_quality_config.yaml`
+- **Configuration**: Validate YAML syntax in `tools/doc-quality/doc_quality_config.yaml`
 - **Integration**: Check CI logs and pre-commit hook output

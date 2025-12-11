@@ -22,5 +22,5 @@ PORT = "8001"
 release_command = ""
 
 [[mounts]]
-source = "chroma_db"
-destination = "/app/chroma_db"
+source = "data"
+destination = "/app/data"

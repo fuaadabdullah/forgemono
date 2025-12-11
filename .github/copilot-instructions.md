@@ -377,8 +377,8 @@ Mini API. This tool helps maintain high-quality documentation standards across t
 
 ### Tool Location
 
-- **Script**: `doc_quality_check.py` (root directory)
-- **Configuration**: `doc_quality_config.yaml`
+- **Script**: `tools/doc-quality/doc_quality_check.py`
+- **Configuration**: `tools/doc-quality/doc_quality_config.yaml`
 - **Documentation**: `docs/DOC_QUALITY_AUTOMATION.md`
 
 ### Usage Examples
@@ -387,26 +387,26 @@ Mini API. This tool helps maintain high-quality documentation standards across t
 
 ```bash
 # Check all documentation files
-python3 doc_quality_check.py
+python3 tools/doc-quality/doc_quality_check.py
 
 # Check specific files
-python3 doc_quality_check.py docs/README.md docs/WORKSPACE_OVERVIEW.md
+python3 tools/doc-quality/doc_quality_check.py docs/README.md docs/WORKSPACE_OVERVIEW.md
 
 # CI mode with quality gates
-python3 doc_quality_check.py --ci --min-score 70
+python3 tools/doc-quality/doc_quality_check.py --ci --min-score 70
 ```
 
 **Debug and Development:**
 
 ```bash
 # Full debug mode
-python3 doc_quality_check.py --debug --debug-api --debug-timing
+python3 tools/doc-quality/doc_quality_check.py --debug --debug-api --debug-timing
 
 # Save API responses for analysis
-python3 doc_quality_check.py --save-responses ./debug_logs
+python3 tools/doc-quality/doc_quality_check.py --save-responses ./debug_logs
 
 # Environment-based debugging
-DOC_QUALITY_DEBUG_API=true python3 doc_quality_check.py
+DOC_QUALITY_DEBUG_API=true python3 tools/doc-quality/doc_quality_check.py
 ```
 
 ### Quality Metrics
@@ -435,8 +435,8 @@ cp pre-commit-doc-check.sh .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
 ```
 
--**CI/CD Pipeline:**
--
+## -**CI/CD Pipeline:**
+
 - GitHub Actions workflow: `.github/workflows/docs-ci.yml`
 - Runs on documentation changes
 - Fails CI if quality standards aren't met

@@ -1,0 +1,112 @@
+{
+  "timestamp": "2025-12-09T19:59:51.597219",
+  "total_queries": 8,
+  "valid_results": 8,
+  "collections": {
+    "readme_files": 136,
+    "python_files": 334,
+    "config_files": 1,
+    "documentation": 0
+  },
+  "performance_metrics": {
+    "baseline": {
+      "avg_latency": 3.790855407714844e-05,
+      "median_latency": 3.504753112792969e-05,
+      "avg_score": 0.0,
+      "median_score": 0.0
+    },
+    "enhanced": {
+      "avg_latency": 3.784894943237305e-05,
+      "median_latency": 3.5881996154785156e-05,
+      "avg_score": 0.0,
+      "median_score": 0.0
+    },
+    "improvement": {
+      "avg_ratio": 1.0,
+      "median_ratio": 1.0,
+      "latency_overhead": -5.960464477539063e-08
+    }
+  },
+  "detailed_results": [
+    {
+      "query": "How do I set up the backend environment variables?",
+      "baseline_score": 0.0,
+      "enhanced_score": 0.0,
+      "improvement_ratio": 1.0,
+      "baseline_latency": 0.0,
+      "enhanced_latency": 0.0,
+      "baseline_chunks": 0,
+      "enhanced_chunks": 0
+    },
+    {
+      "query": "What are the main API endpoints for chat functiona...",
+      "baseline_score": 0.0,
+      "enhanced_score": 0.0,
+      "improvement_ratio": 1.0,
+      "baseline_latency": 0.0,
+      "enhanced_latency": 0.0,
+      "baseline_chunks": 0,
+      "enhanced_chunks": 0
+    },
+    {
+      "query": "How does the RAG system work in this project?",
+      "baseline_score": 0.0,
+      "enhanced_score": 0.0,
+      "improvement_ratio": 1.0,
+      "baseline_latency": 0.0,
+      "enhanced_latency": 0.0,
+      "baseline_chunks": 0,
+      "enhanced_chunks": 0
+    },
+    {
+      "query": "What authentication methods are supported?",
+      "baseline_score": 0.0,
+      "enhanced_score": 0.0,
+      "improvement_ratio": 1.0,
+      "baseline_latency": 0.0,
+      "enhanced_latency": 0.0,
+      "baseline_chunks": 0,
+      "enhanced_chunks": 0
+    },
+    {
+      "query": "How to deploy the application to production?",
+      "baseline_score": 0.0,
+      "enhanced_score": 0.0,
+      "improvement_ratio": 1.0,
+      "baseline_latency": 0.0,
+      "enhanced_latency": 0.0,
+      "baseline_chunks": 0,
+      "enhanced_chunks": 0
+    },
+    {
+      "query": "What monitoring and observability features are ava...",
+      "baseline_score": 0.0,
+      "enhanced_score": 0.0,
+      "improvement_ratio": 1.0,
+      "baseline_latency": 0.0,
+      "enhanced_latency": 0.0,
+      "baseline_chunks": 0,
+      "enhanced_chunks": 0
+    },
+    {
+      "query": "How does the routing service select LLM providers?",
+      "baseline_score": 0.0,
+      "enhanced_score": 0.0,
+      "improvement_ratio": 1.0,
+      "baseline_latency": 0.0,
+      "enhanced_latency": 0.0,
+      "baseline_chunks": 0,
+      "enhanced_chunks": 0
+    },
+    {
+      "query": "What database migrations are available?",
+      "baseline_score": 0.0,
+      "enhanced_score": 0.0,
+      "improvement_ratio": 1.0,
+      "baseline_latency": 0.0,
+      "enhanced_latency": 0.0,
+      "baseline_chunks": 0,
+      "enhanced_chunks": 0
+    }
+  ]
+}

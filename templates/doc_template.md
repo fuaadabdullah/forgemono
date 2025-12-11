@@ -1,7 +1,7 @@
 ---
 title: "{{title}}"
 type: "{{type}}"        # architecture | runbook | spec | api | onboarding | model
-owner: "{{owner}}"
+owner: "{{owner}}"      # your name/team
 status: "draft"         # draft | review | final | archived
 version: "0.1.0"
 last_updated: "{{date}}"
@@ -11,27 +11,23 @@ related: []
 # {{title}}
 
 ## 🎯 Purpose
-One sentence: What does this document exist to solve?
+*Why this document exists in one sentence*
 
 ## 🔍 Context
-- Why this exists
-- What problem it addresses
-- What happens if this disappears
+*What problem does this solve? What happens if this disappears?*
 
-## 📐 Design / Architecture
-- Key decisions (with tradeoffs)
-- Diagram references (Mermaid links preferred)
-- Dependencies
+## 📐 Design
+*Key decisions, diagrams, architecture*
 
-## 🛠️ Operations / Runbook
+## 🛠️ Runbook (if applicable)
 ```bash
-# Commands that actually work
+# Commands that work when copy-pasted
 # Tested in production
 📋 Validation
 
 Self-review completed
 Commands tested
-Links valid
+Links checked
 📝 Changelog
 
 v0.1.0 — Created by {{owner}} on {{date}}

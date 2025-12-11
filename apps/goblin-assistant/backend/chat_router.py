@@ -12,6 +12,7 @@ import logging
 import os
 
 from database import get_db
+from config import settings
 from services.routing import RoutingService
 from services.output_verification import VerificationPipeline
 from services.rag_service import RAGService
@@ -454,18 +455,28 @@ async def create_chat_completion(
         rag_context = None
         if request.intent == "rag" or (request.context and len(request.context) > 1000):
             try:
-                rag_service = RAGService()
+                rag_service = RAGService(
+                    enable_enhanced=settings.enable_enhanced_rag,
+                    chroma_path=settings.rag_chroma_path,
+                )
                 user_query = messages[-1]["content"] if messages else ""
 
                 # Generate session ID for caching
                 session_id = f"session_{hash(user_query + str(request.context or ''))}"
 
-                # Run RAG pipeline
-                rag_result = await rag_service.rag_pipeline(
-                    query=user_query,
-                    session_id=session_id,
-                    filters={"intent": "rag"} if request.intent == "rag" else None,
-                )
+                # Use enhanced RAG pipeline if enabled, otherwise use standard pipeline
+                if settings.enable_enhanced_rag:
+                    rag_result = await rag_service.enhanced_rag_pipeline(
+                        query=user_query,
+                        session_id=session_id,
+                        filters={"intent": "rag"} if request.intent == "rag" else None,
+                    )
+                else:
+                    rag_result = await rag_service.rag_pipeline(
+                        query=user_query,
+                        session_id=session_id,
+                        filters={"intent": "rag"} if request.intent == "rag" else None,
+                    )
 
                 rag_context = rag_result
 

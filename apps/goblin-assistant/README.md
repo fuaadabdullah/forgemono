@@ -4,9 +4,14 @@
 
 GoblinOS Assistant gives you a lean, powerful AI teammate for software tasks and everyday stuff — one that automatically picks the best LLM or AI provider for the job, balancing quality, cost, and speed.
 
+### Core identity & tagline
+
+GoblinOS is a multi-provider, privacy-first AI assistant platform that routes workloads across cloud and local models for maximum control and cost-efficiency. For a short, focused description of our architecture, characteristics, and target users, see `docs/CORE_IDENTITY.md`.
+
 ## Overview
 
 GoblinOS Assistant is a comprehensive AI-powered development assistant with multiple components working together to provide intelligent software development support. It features intelligent model routing that automatically selects the most appropriate AI model based on task complexity, ensuring optimal performance and cost efficiency.
+See `docs/ARCHITECTURE_OVERVIEW.md` for a compact architecture diagram and request flow.
 
 ## Components
 
@@ -24,14 +29,14 @@ Note: Most backend-specific documentation has been consolidated under the canoni
 - **Purpose**: User interface for interacting with the AI assistant
 - **Features**: Web-based interface for development tasks and AI interactions
 
-### 🛠️ Infrastructure (`infra/` + `goblin-infra/`)
+### 🛠️ Infrastructure (`infra/`)
 
 - **Tools**: Terraform, Cloudflare Workers, Docker
 - **Primary CDN/Edge Provider**: Cloudflare (Workers, KV, D1, R2, Tunnel, Turnstile)
 
 ### 💾 Database & API Layer (`api/`, database files)
 
-- **Database**: SQLite (`goblin_assistant.db`)
+- **Database**: SQLite (default) or PostgreSQL (`goblin_assistant.db` or Postgres)
 - **Purpose**: Data persistence, user sessions, and API routing
 - **Features**: SQLAlchemy integration, database migrations
 
@@ -131,7 +136,11 @@ Note: Most backend-specific documentation has been consolidated under the canoni
 
 ### Core Endpoints
 
-#### Health Check
+### Health & Monitoring Endpoints
+
+The assistant provides comprehensive health monitoring and system status endpoints.
+
+#### Basic Health Check
 
 ```http
 GET /health
@@ -145,23 +154,61 @@ Response:
 }
 ```
 
-#### Root Endpoint
+#### Comprehensive Health Check
 
 ```http
-GET /
+GET /v1/health/
 ```
 
-Response:
+Returns detailed system health including database connectivity, service availability, and performance metrics.
 
-```json
-{
-  "message": "GoblinOS Assistant Backend API"
-}
+#### All Services Health
+
+```http
+GET /v1/health/all
 ```
 
-### Debugging Endpoints
+Returns health status for all system components and dependencies.
 
-The assistant provides specialized debugging capabilities through the `/debugger` endpoints. See [Debugger Documentation](./README_DEBUGGER.md) for detailed API specifications.
+#### Component-Specific Health Checks
+
+- `GET /v1/health/chroma/status` - Vector database health
+- `GET /v1/health/mcp/status` - MCP (Model Context Protocol) service health
+- `GET /v1/health/raptor/status` - Raptor monitoring system health
+- `GET /v1/health/sandbox/status` - Sandbox environment health
+- `GET /v1/health/scheduler/status` - Background task scheduler health
+
+#### Cost Tracking
+
+```http
+GET /v1/health/cost-tracking
+```
+
+Returns API usage costs and budget tracking information.
+
+#### Latency History
+
+```http
+GET /v1/health/latency-history/{service}
+```
+
+Returns historical latency data for specified services.
+
+#### Service Error Analysis
+
+```http
+GET /v1/health/service-errors/{service}
+```
+
+Returns error analysis and failure patterns for specified services.
+
+#### Service Retesting
+
+```http
+POST /v1/health/retest/{service}
+```
+
+Triggers retesting of a specific service and returns updated health status.
 
 ## Configuration
 

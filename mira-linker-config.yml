@@ -1,0 +1,86 @@
+# mira-linker-config.yml
+version: 2.0
+project:
+  name: "${GITHUB_REPOSITORY:-forgemono}"
+  url: "https://github.com/${GITHUB_REPOSITORY:-fuaadabdullah/forgemono}"
+
+integration:
+  github:
+    # Auto-detected from environment
+    repository: "${GITHUB_REPOSITORY:-fuaadabdullah/forgemono}"
+    branch_pattern: "feature/*,fix/*,hotfix/*"
+
+  jira:
+    # Configurable project keys - update to match your Jira projects
+    # Supports multiple keys like: PROJ|GOB|INF
+    project_key: "${JIRA_PROJECT_KEYS:-PROJ}"
+    url: "https://goblinos.atlassian.net"
+
+automation:
+  auto_assign: true
+  transitions:
+    - when: "pull_request.opened"
+      then: "In Progress"
+    - when: "pull_request.merged"
+      then: "Done"
+
+  blocking:
+    require_jira_key: true
+    require_approval: true
+    status_checks: true
+
+webhook:
+  auto_configure: true
+  events:
+    - pull_request
+    - pull_request_review
+    - issues
+    - push
+
+# Legacy config for backward compatibility
+# Mira Linker config for forgemono
+autoAssign:
+  enabled: true
+  fallback: "@fuaadabdullah"
+  method: CODEOWNERS_fallback
+
+autoTransitionTicket:
+  onBranchOpen:
+    from: ["To Do","Backlog"]
+    to: "In Progress"
+  onPRMerge:
+    from: ["In Review","Code Review"]
+    to: "Done"
+  onPROpen:
+    from: ["In Progress"]
+    to: "In Review"
+
+blockMergeIfTicketNotInAllowedState: true
+
+git_host: github
+
+hotfixBypass:
+  auditLog: true
+  label: "hotfix/force"
+  requireInfraApprovals: true
+  requireReviewers: 2
+
+org: fuaadabdullah
+
+repo: forgemono
+
+requireTicketLink:
+  enabled: true
+  location: ["branch_name","pr_title","pr_body"]
+  regex: "${JIRA_PROJECT_KEYS:-PROJ}-\\d+"   # Configurable project keys
+
+ticketStatusAllowedForMerge:
+  - "In Review"
+  - "Code Review"
+  - "Ready for QA"
+
+# Auto-discovery section (filled by automation script)
+metadata:
+  configured_at: "${TIMESTAMP}"
+  configured_by: "${GITHUB_ACTOR}"
+  automation_version: "2.0"

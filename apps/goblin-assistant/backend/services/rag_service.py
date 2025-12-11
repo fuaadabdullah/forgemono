@@ -8,6 +8,7 @@ Features:
 - Extended context window support (10k tokens)
 - Session-based caching for hot-paths
 - Fallback to large context models
+- Optional enhanced features: hybrid search, reranking, query expansion, multiple embeddings
 """
 
 import os
@@ -16,27 +17,69 @@ import hashlib
 import json
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta
-import chromadb
-from chromadb.config import Settings
-import numpy as np
-from sentence_transformers import SentenceTransformer
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Lazy imports for optional dependencies
+# Check ChromaDB availability independently
+try:
+    import chromadb
+
+    CHROMADB_AVAILABLE = True
+    logger.info("ChromaDB is available")
+except ImportError as e:
+    CHROMADB_AVAILABLE = False
+    logger.warning(f"ChromaDB not available: {e}")
+except Exception as e:
+    CHROMADB_AVAILABLE = False
+    logger.warning(
+        f"ChromaDB failed to import (likely Python 3.14 compatibility issue): {e}"
+    )
+
+# Check sentence-transformers availability separately
+try:
+    from sentence_transformers import SentenceTransformer
+
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+    logger.warning(
+        "sentence-transformers not available. Enhanced embeddings will be limited."
+    )
 
 
 class RAGService:
     """RAG service with dense retriever and extended context support."""
 
     def __init__(
-        self, chroma_path: str = "/Users/fuaadabdullah/ForgeMonorepo/chroma_db"
+        self, chroma_path: str = "data/vector/chroma", enable_enhanced: bool = False
     ):
         """Initialize RAG service with ChromaDB and embedding model."""
         self.chroma_path = chroma_path
+        self.enable_enhanced = enable_enhanced
+
+        # Check if dependencies are available
+        if not CHROMADB_AVAILABLE:
+            logger.error(
+                "ChromaDB dependencies not available. RAG service will not function."
+            )
+            self.chroma_client = None
+            self.embedding_model = None
+            self.documents_collection = None
+            self.sessions_collection = None
+            self._enhanced_service = (
+                None  # Initialize even when dependencies unavailable
+            )
+            return
+
         self.chroma_client = chromadb.PersistentClient(path=chroma_path)
 
         # Initialize embedding model (fast and efficient)
         self.embedding_model = SentenceTransformer("all-MiniLM-L6-v2")  # Fast, 384-dim
+
+        # Enhanced features (lazy-loaded)
+        self._enhanced_service = None
 
         # Create/get collections
         self.documents_collection = self.chroma_client.get_or_create_collection(
@@ -63,6 +106,22 @@ class RAGService:
         self, documents: List[Dict[str, Any]], collection_name: str = "documents"
     ) -> bool:
         """Add documents to the vector database with chunking."""
+        # Check if we should use enhanced RAG service (including fallback mode)
+        if self.enable_enhanced:
+            try:
+                enhanced_service = self._get_enhanced_service()
+                if enhanced_service:
+                    return await enhanced_service.add_documents(
+                        documents, collection_name, "general"
+                    )
+            except Exception as e:
+                logger.warning(f"Enhanced RAG add_documents failed, falling back: {e}")
+
+        # Fallback to standard ChromaDB implementation
+        if not CHROMADB_AVAILABLE or self.chroma_client is None:
+            logger.error("ChromaDB not available. Cannot add documents.")
+            return False
+
         try:
             collection = self.chroma_client.get_or_create_collection(
                 name=collection_name
@@ -82,7 +141,6 @@ class RAGService:
                 chunk_metadatas = []
 
                 for i, chunk in enumerate(chunks):
-                    chunk_id = f"{doc_id}_chunk_{i}"
                     chunk_metadata = {
                         **metadata,
                         "doc_id": doc_id,
@@ -93,6 +151,7 @@ class RAGService:
 
                     embeddings.append(self.embedding_model.encode(chunk).tolist())
                     chunk_texts.append(chunk)
+                    chunk_metadatas.append(chunk_metadata)
                     chunk_metadatas.append(chunk_metadata)
 
                 # Add to collection
@@ -401,3 +460,50 @@ Response:"""
             "cached": False,
             "session_id": session_id,
         }
+
+    def _get_enhanced_service(self):
+        """Lazy-load enhanced RAG service."""
+        if self._enhanced_service is None and self.enable_enhanced:
+            try:
+                from services.enhanced_rag_service import EnhancedRAGService
+
+                self._enhanced_service = EnhancedRAGService(
+                    chroma_path=self.chroma_path
+                )
+                logger.info("Enhanced RAG service initialized")
+            except ImportError as e:
+                logger.warning(f"Enhanced RAG service not available: {e}")
+                self._enhanced_service = None
+        return self._enhanced_service
+
+    async def enhanced_rag_pipeline(
+        self,
+        query: str,
+        session_id: Optional[str] = None,
+        filters: Optional[Dict] = None,
+        use_hybrid: bool = True,
+        use_reranking: bool = True,
+        expand_query: bool = True,
+    ) -> Dict[str, Any]:
+        """Enhanced RAG pipeline with advanced features (hybrid search, reranking, query expansion)."""
+        if not self.enable_enhanced:
+            logger.info(
+                "Enhanced features disabled, falling back to standard RAG pipeline"
+            )
+            return await self.rag_pipeline(query, session_id, filters)
+
+        enhanced_service = self._get_enhanced_service()
+        if enhanced_service:
+            return await enhanced_service.enhanced_rag_pipeline(
+                query=query,
+                session_id=session_id,
+                filters=filters,
+                use_hybrid=use_hybrid,
+                use_reranking=use_reranking,
+                expand_query=expand_query,
+            )
+        else:
+            logger.warning(
+                "Enhanced service not available, falling back to standard RAG pipeline"
+            )
+            return await self.rag_pipeline(query, session_id, filters)
