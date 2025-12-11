@@ -49,8 +49,6 @@ Run unit tests for doc-quality and raptor-mini:
 ```bash
 python3 -m pytest -q tools/raptor-mini/tests tools/doc-quality/tests
 ```
-
-
 ## Installation
 
 1. Ensure Python 3.9+ is installed

@@ -1,7 +1,8 @@
 # Code Citations
 
-## License: unknown
-https://github.com/JokaMilen/meet/blob/68cd53f260ddfa926e087649d624d940f52feaf6/src/EventGenre.js
+## License: unknown — EventGenre.js
+
+Link: <https://github.com/JokaMilen/meet/blob/68cd53f260ddfa926e087649d624d940f52feaf6/src/EventGenre.js>
 
 ```jsx
 %" height={300}>
@@ -28,8 +29,9 @@ https://github.com/JokaMilen/meet/blob/68cd53f260ddfa926e087649d624d940f52feaf6/
 ```
 
 
-## License: unknown
-https://github.com/prabhathkumar1729/expensetracker-react/blob/cf2cfdee1b2a0caa28fc096f99bd38bffbb2e7c5/src/components/CustomBarChart.jsx
+## License: unknown — CustomBarChart.jsx
+
+Link: <https://github.com/prabhathkumar1729/expensetracker-react/blob/cf2cfdee1b2a0caa28fc096f99bd38bffbb2e7c5/src/components/CustomBarChart.jsx>
 
 ```jsx
 %" height={300}>
@@ -56,5 +58,6 @@ https://github.com/prabhathkumar1729/expensetracker-react/blob/cf2cfdee1b2a0caa2
 ```
 
 
-## License: unknown
-https://github.com/ss-sahoo/user-wallet/blob/c99df87dcd3d741cd91a507d1bd0f1cc395c2f20/src/pages/data/Data.jsx
+## License: unknown — Data.jsx
+
+Link: <https://github.com/ss-sahoo/user-wallet/blob/c99df87dcd3d741cd91a507d1bd0f1cc395c2f20/src/pages/data/Data.jsx>

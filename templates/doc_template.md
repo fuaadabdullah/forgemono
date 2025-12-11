@@ -11,23 +11,30 @@ related: []
 # {{title}}
 
 ## 🎯 Purpose
-*Why this document exists in one sentence*
+
+Why this document exists in one sentence
 
 ## 🔍 Context
+
 *What problem does this solve? What happens if this disappears?*
 
 ## 📐 Design
-*Key decisions, diagrams, architecture*
+
+Key decisions, diagrams, architecture
 
 ## 🛠️ Runbook (if applicable)
+
 ```bash
 # Commands that work when copy-pasted
 # Tested in production
-📋 Validation
+```
 
-Self-review completed
-Commands tested
-Links checked
-📝 Changelog
+### 📋 Validation
 
-v0.1.0 — Created by {{owner}} on {{date}}
+- Self-review completed
+- Commands tested
+- Links checked
+
+### 📝 Changelog
+
+- v0.1.0 — Created by {{owner}} on {{date}}
