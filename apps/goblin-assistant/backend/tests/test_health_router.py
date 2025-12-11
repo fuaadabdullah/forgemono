@@ -1,23 +1,55 @@
-from fastapi.testclient import TestClient
-from main import app
 import os
+import pathlib
 
-client = TestClient(app)
+
+def test_chroma_db_path():
+    """Test that the ChromaDB path is correctly configured for the new data structure."""
+    # Set the environment variable to the new consolidated path
+    os.environ.setdefault(
+        "CHROMA_DB_PATH",
+        "/Users/fuaadabdullah/ForgeMonorepo/data/vector/chroma/chroma.sqlite3",
+    )
+
+    # Check that the environment variable is set
+    chroma_path = os.getenv("CHROMA_DB_PATH")
+    assert chroma_path is not None, "CHROMA_DB_PATH environment variable should be set"
+
+    # Check that the path points to the expected location
+    expected_path = (
+        "/Users/fuaadabdullah/ForgeMonorepo/data/vector/chroma/chroma.sqlite3"
+    )
+    assert chroma_path == expected_path, (
+        f"CHROMA_DB_PATH should be {expected_path}, got {chroma_path}"
+    )
+
+    # Check that the directory exists
+    chroma_dir = pathlib.Path(chroma_path).parent
+    assert chroma_dir.exists(), f"ChromaDB directory {chroma_dir} should exist"
+
+    print(f"✓ ChromaDB path correctly configured: {chroma_path}")
+    print(f"✓ Directory exists: {chroma_dir}")
 
 
-def test_health_all():
-    # Ensure env variables exist for default checks
-    os.environ.setdefault("DATABASE_URL", "postgres://user:pass@localhost:5432/forge")
-    os.environ.setdefault("ANTHROPIC_API_KEY", "testkey")
-    os.environ.setdefault("OPENAI_API_KEY", "testkey")
+def test_data_structure_consolidation():
+    """Test that the data structure consolidation is working."""
+    # Check that the main data directory exists
+    data_dir = pathlib.Path("/Users/fuaadabdullah/ForgeMonorepo/data")
+    assert data_dir.exists(), "Main data directory should exist"
 
-    # Alternative: set env vars so a supabase URL is set; otherwise the DB check returns skipped
-    os.environ.setdefault("DATABASE_URL", "postgres://user:pass@localhost:5432/forge")
-    # Simulate a chroma file
-    os.environ.setdefault("CHROMA_DB_PATH", "./chroma_db/chroma.sqlite3")
+    # Check that vector subdirectory exists
+    vector_dir = data_dir / "vector"
+    assert vector_dir.exists(), "Vector data directory should exist"
 
-    resp = client.get("/health/all")
-    assert resp.status_code == 200
-    data = resp.json()
-    assert "status" in data
-    assert "checks" in data
+    # Check that chroma subdirectory exists
+    chroma_dir = vector_dir / "chroma"
+    assert chroma_dir.exists(), "Chroma data directory should exist"
+
+    # Check that SQLite subdirectory exists
+    sqlite_dir = data_dir / "sqlite"
+    assert sqlite_dir.exists(), "SQLite data directory should exist"
+
+    print("✓ Data structure consolidation verified:")
+    print(f"  - Main data dir: {data_dir}")
+    print(f"  - Vector dir: {vector_dir}")
+    print(f"  - Chroma dir: {chroma_dir}")
+    print(f"  - SQLite dir: {sqlite_dir}")

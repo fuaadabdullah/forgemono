@@ -53,6 +53,7 @@
 ## 🚀 Quick API Examples
 
 ### 1. Code Generation (mistral:7b)
+
 ```python
 {
     "messages": [
@@ -64,16 +65,19 @@
 
 ### 2. Fast Status Check (gemma:2b)
 ```python
+
 {
     "messages": [
         {"role": "user", "content": "Is the service healthy?"}
     ],
     "latency_target": "ultra_low"
 }
+
 # → Routes to gemma:2b with temp=0.0, max_tokens=40
 ```
 
 ### 3. Long Document RAG (qwen2.5:3b)
+
 ```python
 {
     "messages": [
@@ -87,6 +91,7 @@
 
 ### 4. Conversational Chat (phi3:3.8b)
 ```python
+
 {
     "messages": [
         {"role": "user", "content": "Hi, can you help?"},
@@ -95,6 +100,7 @@
     ],
     "latency_target": "low"
 }
+
 # → Routes to phi3:3.8b with temp=0.15, max_tokens=128
 ```
 
@@ -130,6 +136,7 @@
 
 Force specific model:
 ```python
+
 {
     "messages": [...],
     "intent": "creative",           # Force mistral:7b

@@ -111,7 +111,9 @@ class CostSummaryResponse(BaseModel):
 
 
 # Helper Functions
-def check_tcp_connection(host: str, port: int, timeout: float = 2.0) -> tuple[bool, Optional[float]]:
+def check_tcp_connection(
+    host: str, port: int, timeout: float = 2.0
+) -> tuple[bool, Optional[float]]:
     """Check TCP connection and measure latency"""
     try:
         import time
@@ -163,7 +165,15 @@ async def check_vector_db_status() -> ServiceStatus:
         chroma_path = os.getenv("CHROMA_DB_PATH")
         if not chroma_path:
             chroma_path = os.path.join(
-                os.path.dirname(__file__), "..", "..", "chroma_db", "chroma.sqlite3"
+                os.path.dirname(__file__),
+                "..",
+                "..",
+                "..",
+                "..",
+                "data",
+                "vector",
+                "chroma",
+                "chroma.sqlite3",
             )
 
         chroma_file = pathlib.Path(chroma_path).resolve()
@@ -178,7 +188,9 @@ async def check_vector_db_status() -> ServiceStatus:
                 collections = client.list_collections()
                 latency = (time.time() - start) * 1000
 
-                total_docs = sum([col.count() for col in collections if hasattr(col, "count")])
+                total_docs = sum(
+                    [col.count() for col in collections if hasattr(col, "count")]
+                )
 
                 return ServiceStatus(
                     status="healthy",

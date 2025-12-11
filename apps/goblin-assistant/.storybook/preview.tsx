@@ -1,64 +1,16 @@
-import type { Preview } from '@storybook/react';
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import '../src/index.css';
-import { ContrastModeProvider } from '../src/hooks/useContrastMode';
+import { initialize, mswDecorator } from 'msw-storybook-addon';
 
-const preview: Preview = {
-  parameters: {
-    controls: {
-      matchers: {
-        color: /(background|color)$/i,
-        date: /Date$/i,
-      },
-    },
-    backgrounds: {
-      default: 'dark',
-      values: [
-        {
-          name: 'dark',
-          value: '#0a0a0a',
-        },
-        {
-          name: 'light',
-          value: '#ffffff',
-        },
-      ],
-    },
-    a11y: {
-      config: {
-        rules: [
-          {
-            id: 'color-contrast',
-            enabled: true,
-          },
-        ],
-      },
-    },
-  },
-  decorators: [
-    (Story) => (
-      <ContrastModeProvider>
-        <BrowserRouter>
-          <div style={{ padding: '2rem', minHeight: '100vh' }}>
-            <Story />
-          </div>
-        </BrowserRouter>
-      </ContrastModeProvider>
-    ),
-  ],
-  globalTypes: {
-    theme: {
-      description: 'Global theme for components',
-      defaultValue: 'dark',
-      toolbar: {
-        title: 'Theme',
-        icon: 'circlehollow',
-        items: ['dark', 'light'],
-        dynamicTitle: true,
-      },
-    },
-  },
+// Initialize MSW (optional, for mocking API)
+initialize();
+
+export const decorators = [
+  mswDecorator, // To mock API responses per-story if needed
+  (Story: React.ComponentType) => <div style={{ padding: 16, fontFamily: 'Inter, system-ui' }}><Story/></div>,
+];
+
+export const parameters = {
+  actions: { argTypesRegex: '^on[A-Z].*' },
+  controls: { expanded: true },
+  a11y: { element: '#root' },
 };
-
-export default preview;

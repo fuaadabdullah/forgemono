@@ -2,7 +2,7 @@
 
 ## Basic Information
 
-**Public Service Address**: `https://api.moonshot.ai`
+**Public Service Address**: `<https://api.moonshot.ai`>
 
 Moonshot offers API services based on HTTP, and for most APIs, they are compatible with the OpenAI SDK.
 
@@ -13,6 +13,7 @@ Replace `$MOONSHOT_API_KEY` with the API Key created on the platform.
 ## Models
 
 Available models:
+
 - `kimi-k2-0905-preview`
 - `kimi-k2-0711-preview`
 - `kimi-k2-turbo-preview` (recommended)
@@ -54,6 +55,7 @@ print(completion.choices[0].message.content)
 ### Multi-turn Chat
 
 ```python
+
 history = [
     {"role": "system", "content": "You are Kimi, an AI assistant provided by Moonshot AI."}
 ]
@@ -117,6 +119,7 @@ completion = client.chat.completions.create(
 Force JSON output by starting assistant response with `{`:
 
 ```python
+
 completion = client.chat.completions.create(
     model="kimi-k2-turbo-preview",
     messages=[
@@ -180,6 +183,7 @@ completion = client.chat.completions.create(
 Vision models support image input via base64 encoding:
 
 ```python
+
 import base64
 
 with open("your_image_path", 'rb') as f:
@@ -211,21 +215,23 @@ response = client.chat.completions.create(
 
 ### Chat Completion
 ```
-POST https://api.moonshot.ai/v1/chat/completions
+POST <https://api.moonshot.ai/v1/chat/completions>
 ```
 
 ### List Models
 ```
-GET https://api.moonshot.ai/v1/models
+GET <https://api.moonshot.ai/v1/models>
 ```
 
 ## Parameters
 
 ### Required Parameters
+
 - `messages`: List of conversation messages
 - `model`: Model ID (e.g., `kimi-k2-turbo-preview`)
 
 ### Optional Parameters
+
 - `max_tokens`: Maximum tokens to generate
 - `temperature`: Sampling temperature (0-1, default: 0.6 for kimi-k2, 1.0 for kimi-k2-thinking, 0.0 for moonshot-v1)
 - `top_p`: Nucleus sampling (default: 1.0)
@@ -239,6 +245,7 @@ GET https://api.moonshot.ai/v1/models
 ## Error Codes
 
 ### Common Errors
+
 - **400 content_filter**: Content rejected due to high risk
 - **400 invalid_request_error**: Invalid request format or missing parameters
 - **401 invalid_authentication_error**: Invalid API key

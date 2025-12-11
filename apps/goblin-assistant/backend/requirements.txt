@@ -1,14 +1,16 @@
-fastapi
-uvicorn[standard]
-pydantic
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic[email]
 email-validator
+pydantic-settings
 PyJWT
 bcrypt
 python-multipart
 httpx
+aiohttp
 cryptography
-python-dotenv
-sqlalchemy
+python-dotenv==1.0.0
+sqlalchemy>=2.0.25
 alembic
 psycopg2-binary
 supabase
@@ -18,10 +20,54 @@ google-generativeai
 redis[hiredis]
 pytest
 pytest-asyncio
+pytest-cov
+httpx  # for testing FastAPI
+faker  # test data generation
 
-# Production monitoring (lightweight, no heavy dependencies)
-python-json-logger>=2.0.7
-prometheus-client>=0.19.0
+# RAG and Vector Search
+# Note: sentence-transformers requires torch>=1.11.0
+# PyTorch CPU wheels not available for Python 3.14 yet
+# System gracefully falls back to standard RAG when dependencies unavailable
+chromadb
+sentence-transformers
+rank-bm25
+nltk
+
+# Job Queue System - Celery with Redis backend
+celery[redis]>=5.3.0
+flower>=2.0.0  # Monitoring dashboard for Celery
+Flask==2.3.3  # For monitoring endpoints, and from api
+flask-cors==4.0.0 # from api
+flask-sqlalchemy==3.1.1 # from api
+gunicorn==23.0.0
+
+# Google Drive integration for Ollama models
+google-api-python-client==2.110.0
+google-auth-httplib2==0.1.1
+google-auth-oauthlib==1.2.0
+
+# Lightweight job scheduling - APScheduler with SQLAlchemy persistence
+APScheduler>=3.10.0
+psutil>=5.9.0  # System monitoring for health checks
+
+# HashiCorp Vault client
+hvac>=2.0.0
+
+# Production monitoring (lightweight, essential only)
+sentry-sdk[fastapi]>=1.40.0
+
+# OpenTelemetry for unified observability
+opentelemetry-distro>=0.45b0
+opentelemetry-instrumentation>=0.45b0
+opentelemetry-instrumentation-fastapi>=0.45b0
+opentelemetry-instrumentation-httpx>=0.45b0
+opentelemetry-instrumentation-sqlalchemy>=0.45b0
+opentelemetry-instrumentation-redis>=0.45b0
+opentelemetry-exporter-otlp>=1.24.0
+opentelemetry-exporter-otlp-proto-grpc>=1.24.0
+
+# Retry logic for API calls
+backoff>=2.2.0
 
 # Load testing (optional, install separately: pip install locust)
 # locust>=2.20.0

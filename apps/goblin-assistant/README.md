@@ -1,10 +1,17 @@
 # GoblinOS Assistant
 
-A comprehensive AI-powered development assistant built with FastAPI, featuring intelligent model routing and specialized debugging capabilities.
+## Core Value
+
+GoblinOS Assistant gives you a lean, powerful AI teammate for software tasks and everyday stuff — one that automatically picks the best LLM or AI provider for the job, balancing quality, cost, and speed.
+
+### Core identity & tagline
+
+GoblinOS is a multi-provider, privacy-first AI assistant platform that routes workloads across cloud and local models for maximum control and cost-efficiency. For a short, focused description of our architecture, characteristics, and target users, see `docs/CORE_IDENTITY.md`.
 
 ## Overview
 
 GoblinOS Assistant is a comprehensive AI-powered development assistant with multiple components working together to provide intelligent software development support. It features intelligent model routing that automatically selects the most appropriate AI model based on task complexity, ensuring optimal performance and cost efficiency.
+See `docs/ARCHITECTURE_OVERVIEW.md` for a compact architecture diagram and request flow.
 
 ## Components
 
@@ -22,23 +29,23 @@ Note: Most backend-specific documentation has been consolidated under the canoni
 - **Purpose**: User interface for interacting with the AI assistant
 - **Features**: Web-based interface for development tasks and AI interactions
 
-### 🛠️ Infrastructure (`infra/` + `goblin-infra/`)
+### 🛠️ Infrastructure (`infra/`)
 
 - **Tools**: Terraform, Cloudflare Workers, Docker
-- **Purpose**: Deployment, hosting, and scaling infrastructure
-- **Environments**: Dev, staging, production with automated CI/CD via CircleCI
+- **Primary CDN/Edge Provider**: Cloudflare (Workers, KV, D1, R2, Tunnel, Turnstile)
 
 ### 💾 Database & API Layer (`api/`, database files)
 
-- **Database**: SQLite (`goblin_assistant.db`)
+- **Database**: SQLite (default) or PostgreSQL (`goblin_assistant.db` or Postgres)
 - **Purpose**: Data persistence, user sessions, and API routing
 - **Features**: SQLAlchemy integration, database migrations
 
-### 📊 Monitoring & Observability (`datadog/`)
+### 📊 Monitoring & Observability
 
-- **Tools**: Datadog integration
+- **Tools**: Sentry error tracking, Fly.io metrics, Vercel Analytics
 - **Purpose**: Application monitoring, performance tracking, and alerting
-- **Features**: Real-time metrics, error tracking, and health monitoring
+- **Features**: Real-time error monitoring, performance insights, and health tracking
+- **Setup**: See [Monitoring Setup Guide](./docs/MONITORING_SETUP.md) for complete configuration
 
 ## Features
 
@@ -82,6 +89,7 @@ Note: Most backend-specific documentation has been consolidated under the canoni
 2. **Install dependencies**:
 
    ```bash
+
    pip install fastapi uvicorn httpx pytest
    ```
 
@@ -109,6 +117,7 @@ Note: Most backend-specific documentation has been consolidated under the canoni
    **Option B: Manual .env (Development Only)**
 
    ```bash
+
    cp backend/.env.example backend/.env.local
    # Edit .env.local with your actual values
    ```
@@ -122,14 +131,19 @@ Note: Most backend-specific documentation has been consolidated under the canoni
 5. **Verify installation**:
 
    ```bash
-   curl http://localhost:8000/health
+
+   curl <http://localhost:8000/health>
    ```
 
 ## API Documentation
 
 ### Core Endpoints
 
-#### Health Check
+### Health & Monitoring Endpoints
+
+The assistant provides comprehensive health monitoring and system status endpoints.
+
+#### Basic Health Check
 
 ```http
 GET /health
@@ -138,43 +152,200 @@ GET /health
 Response:
 
 ```json
+
 {
   "status": "healthy"
 }
 ```
 
-#### Root Endpoint
+#### Comprehensive Health Check
 
 ```http
-GET /
+GET /v1/health/
 ```
 
-Response:
+Returns detailed system health including database connectivity, service availability, and performance metrics.
 
-```json
-{
-  "message": "GoblinOS Assistant Backend API"
-}
+#### All Services Health
+
+```http
+
+GET /v1/health/all
 ```
 
-### Debugging Endpoints
+Returns health status for all system components and dependencies.
 
-The assistant provides specialized debugging capabilities through the `/debugger` endpoints. See [Debugger Documentation](./README_DEBUGGER.md) for detailed API specifications.
+#### Component-Specific Health Checks
+
+- `GET /v1/health/chroma/status` - Vector database health
+- `GET /v1/health/mcp/status` - MCP (Model Context Protocol) service health
+- `GET /v1/health/raptor/status` - Raptor monitoring system health
+- `GET /v1/health/sandbox/status` - Sandbox environment health
+- `GET /v1/health/scheduler/status` - Background task scheduler health
+
+#### Cost Tracking
+
+```http
+GET /v1/health/cost-tracking
+```
+
+Returns API usage costs and budget tracking information.
+
+#### Latency History
+
+```http
+
+GET /v1/health/latency-history/{service}
+```
+
+Returns historical latency data for specified services.
+
+#### Service Error Analysis
+
+```http
+GET /v1/health/service-errors/{service}
+```
+
+Returns error analysis and failure patterns for specified services.
+
+#### Service Retesting
+
+```http
+
+POST /v1/health/retest/{service}
+```
+
+Triggers retesting of a specific service and returns updated health status.
 
 ## Configuration
 
 ### Environment Variables
 
-Create a `.env.local` file in the `backend/` directory:
+The application uses environment variables for configuration. Create the appropriate `.env` files in the respective directories.
+
+#### Frontend Environment Variables (`.env.local` in project root)
+
+**Required:**
+
+- `VITE_API_BASE_URL` - Base URL for the API (e.g., `<https://api.goblin.fuaad.ai`)>
+
+**Optional:**
+
+- `VITE_BACKEND_URL` - Backend API URL (default: `<http://localhost:8000`)>
+- `VITE_FASTAPI_URL` - FastAPI backend URL (default: `<http://localhost:8001`)>
+- `VITE_ENABLE_DEBUG` - Enable debug mode (`true`/`false`, default: `false`)
+- `VITE_MOCK_API` - Use mock API for development (`true`/`false`, default: `false`)
+
+**Feature Flags:**
+
+- `VITE_FEATURE_RAG_ENABLED` - Enable RAG functionality (`true`/`false`, default: `false`)
+- `VITE_FEATURE_MULTI_PROVIDER` - Enable multi-provider routing (`true`/`false`, default: `false`)
+- `VITE_FEATURE_PASSKEY_AUTH` - Enable passkey authentication (`true`/`false`, default: `false`)
+- `VITE_FEATURE_GOOGLE_AUTH` - Enable Google OAuth (`true`/`false`, default: `false`)
+- `VITE_FEATURE_ORCHESTRATION` - Enable task orchestration (`true`/`false`, default: `false`)
+- `VITE_FEATURE_SANDBOX` - Enable sandbox mode (`true`/`false`, default: `false`)
+- `VITE_ENABLE_ANALYTICS` - Enable analytics tracking (`true`/`false`, default: `false`)
+- `VITE_DEBUG_MODE` - Enable debug features (`true`/`false`, default: `false`)
+
+**Turnstile (Bot Protection):**
+
+- `VITE_TURNSTILE_SITE_KEY_CHAT` - Turnstile site key for chat forms
+- `VITE_TURNSTILE_SITE_KEY_LOGIN` - Turnstile site key for login forms
+- `VITE_TURNSTILE_SITE_KEY_SEARCH` - Turnstile site key for search forms
+
+**Monitoring:**
+
+- `VITE_SENTRY_DSN` - Sentry DSN for error tracking and performance monitoring
+
+#### Backend Environment Variables (`.env` in `backend/` directory)
+
+**Required:**
+
+- `DATABASE_URL` - Database connection string (e.g., `postgresql://user:pass@localhost/db` or `sqlite:///./goblin_assistant.db`)
+- `JWT_SECRET_KEY` - Secret key for JWT token signing (use strong random string)
+- `ROUTING_ENCRYPTION_KEY` - Encryption key for API key storage (32-byte base64)
+- `SETTINGS_ENCRYPTION_KEY` - Encryption key for settings storage (32-byte base64)
+
+**AI Provider API Keys (at least one required):**
+
+- `OPENAI_API_KEY` - OpenAI API key
+- `ANTHROPIC_API_KEY` - Anthropic API key
+- `DEEPSEEK_API_KEY` - DeepSeek API key
+- `GEMINI_API_KEY` - Google Gemini API key
+- `GROK_API_KEY` - Grok API key
+
+**Optional:**
+
+- `ENVIRONMENT` - Environment type (`development`/`staging`/`production`, default: `development`)
+- `INSTANCE_COUNT` - Number of application instances (default: `1`)
+- `LOG_LEVEL` - Logging level (`DEBUG`/`INFO`/`WARNING`/`ERROR`, default: `INFO`)
+- `PORT` - Server port (default: `8001`)
+
+**Redis Configuration (for production/scaling):**
+
+- `REDIS_URL` - Redis connection URL (e.g., `redis://localhost:6379`)
+- `USE_REDIS_CHALLENGES` - Use Redis for challenge storage (`true`/`false`, default: `false`)
+- `REDIS_HOST` - Redis host (default: `localhost`)
+- `REDIS_PORT` - Redis port (default: `6379`)
+- `REDIS_DB` - Redis database number (default: `0`)
+- `REDIS_PASSWORD` - Redis password
+- `REDIS_SSL` - Use SSL for Redis connection (`true`/`false`, default: `false`)
+- `REDIS_TIMEOUT` - Redis connection timeout in seconds (default: `5`)
+
+**Authentication:**
+
+- `GOOGLE_CLIENT_ID` - Google OAuth client ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
+- `FRONTEND_URL` - Frontend URL for CORS (default: `<http://localhost:5173`)>
+- `DEBUG_AUTH` - Enable debug authentication (`true`/`false`, default: `false`)
+
+**Raptor Integration (for quick debug tasks):**
+
+- `RAPTOR_URL` - Raptor API endpoint URL
+- `RAPTOR_API_KEY` - Raptor API key
+
+**Monitoring & Analytics:**
+
+- `SENTRY_DSN` - Sentry DSN for error tracking and performance monitoring
+- `POSTHOG_API_KEY` - PostHog API key for user analytics (optional)
+- `POSTHOG_HOST` - PostHog host URL (optional, defaults to PostHog Cloud)
+
+**Email Validation:**
+
+- `REQUIRE_EMAIL_VALIDATION` - Require email validation (`true`/`false`, default: `true`)
+- `ALLOW_DISPOSABLE_EMAILS` - Allow disposable email addresses (`true`/`false`, default: `false`)
+
+**Development Fallbacks:**
+
+- `ALLOW_MEMORY_FALLBACK` - Allow memory fallback when Redis unavailable (`true`/`false`, default: `true`)
+
+#### Example `.env.local` (Frontend)
 
 ```bash
-# Raptor model configuration (for quick debug tasks)
-RAPTOR_URL=https://your-raptor-endpoint/api
-RAPTOR_API_KEY=your-raptor-api-key
+VITE_API_BASE_URL=https://api.goblin.fuaad.ai
+VITE_ENABLE_DEBUG=false
+VITE_MOCK_API=false
+VITE_FEATURE_RAG_ENABLED=true
+VITE_FEATURE_MULTI_PROVIDER=true
+VITE_FEATURE_PASSKEY_AUTH=true
+VITE_TURNSTILE_SITE_KEY_CHAT=0x4AAAAAACEUKA3R8flZ2Ig0
+VITE_TURNSTILE_SITE_KEY_LOGIN=0x4AAAAAACEUKak3TnCntrFv
+VITE_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+```
 
-# Fallback model configuration (existing LLM)
-FALLBACK_MODEL_URL=https://your-llm-endpoint/api
-FALLBACK_MODEL_KEY=your-llm-api-key
+#### Example `.env` (Backend)
+
+```bash
+
+ENVIRONMENT=development
+DATABASE_URL=sqlite:///./goblin_assistant.db
+JWT_SECRET_KEY=your-super-secret-jwt-key-change-in-production
+ROUTING_ENCRYPTION_KEY=R-gey0ZNSPehux88bohbsUm9My8LAd09L2CbC_MRNo4=
+SETTINGS_ENCRYPTION_KEY=R-gey0ZNSPehux88bohbsUm9My8LAd09L2CbC_MRNo4=
+OPENAI_API_KEY=sk-your-openai-key
+ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
+LOG_LEVEL=INFO
+PORT=8001
 ```
 
 ### Security Notes
@@ -184,6 +355,7 @@ FALLBACK_MODEL_KEY=your-llm-api-key
 - **Recommended**: Use Bitwarden vault for secrets management (see [Bitwarden Vault Setup](./docs/BITWARDEN_VAULT_SETUP.md))
 - Consider using a secrets management service in production
 - Rotate API keys regularly
+- Data & Privacy: Sanitize user content before sending to external LLM providers, storing in logs, or adding to a Vector DB. Avoid persisting PII in logs/embeddings, use TTLs for context (e.g., 1h in KV), audit logs and telemetry must not contain user secrets or PII. See `backend/docs/MONITORING_IMPLEMENTATION.md` and `backend/docs/PRODUCTION_MONITORING.md` for retention and monitoring best practices.
 
 ### Production Hardening & Checklist
 
@@ -195,13 +367,18 @@ The following items are recommended before deploying to production. The app is u
 - Ensure `ROUTING_ENCRYPTION_KEY` is configured and protected — it's used for decrypting provider API keys stored in DB.
 - Run `ProviderProbeWorker` (or enable routing probe worker) in a background worker to continuously monitor provider health and gather metrics.
 - Disable any debug endpoints or routes (e.g., local-llm-proxy admin endpoints) in production and ensure proper API key validation for local proxies.
-- Configure Prometheus to scrape `/metrics` and set up alerts on provider health, error rates, and request latency.
-- Set up a log aggregation pipeline (Datadog/ELK/CloudWatch) and ensure logs do not capture raw secret values. Configure structured logging (`X-Correlation-ID`) for traceability.
+- Configure Sentry error tracking and set up alerts on error rates and performance issues.
+- Set up a log aggregation pipeline (CloudWatch/ELK) and ensure logs do not capture raw secret values. Configure structured logging (`X-Correlation-ID`) for traceability.
 - Use a distributed session/store for `task_queue` (Redis) and ensure backups for persistent data (Postgres or backups of SQLite if used temporarily).
 - Implement a secrets rotation policy and an automated process for rotating encryption keys and API keys.
 
 ### Frontend Security Checklist
 
+- ✅ **Environment Validation**: CI/CD validates that no sensitive environment variables are exposed via `VITE_` prefixes
+- ✅ **Authentication Security**: HttpOnly, Secure cookies used for session tokens instead of localStorage
+- ✅ **Bot Protection**: Cloudflare Turnstile integration with runtime key validation
+- ✅ **XSS Prevention**: Replaced dangerous `innerHTML` with safe React error boundaries
+- ✅ **Pre-commit Hooks**: Automatic security validation on every commit
 - Ensure no secrets are exposed via `VITE_` variables (client `VITE_` envs are public). Move secrets to the backend / secrets manager.
 - Use HttpOnly, Secure cookies for session/JWT tokens instead of localStorage to reduce XSS risks.
 - Authenticate streaming endpoints using cookies or short-lived signed stream tokens; do not put secrets into URL query strings.
@@ -232,6 +409,7 @@ apps/goblin-assistant/
 #### Unit Tests
 
 ```bash
+
 python -m pytest tests/ -v
 ```
 
@@ -244,18 +422,43 @@ python test_debugger.py
 #### All Tests
 
 ```bash
+
 python -m pytest tests/ && python test_debugger.py
 ```
 
 ### Development Server
 
 ```bash
-# With auto-reload for development
+# Backend - With auto-reload for development
 uvicorn backend.main:app --reload --port 8000
 
-# Production deployment
+# Backend - Production deployment
 uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ```
+
+### Frontend Development
+
+The frontend is built with React + Vite (TypeScript). Due to compatibility issues with Vite's development server on some systems, we recommend using the production build for local development.
+
+```bash
+
+# Install dependencies
+npm install
+
+# Build and serve the frontend (recommended for local development)
+npm run dev:serve
+
+# Alternative: Use Vite's dev server (may have connectivity issues)
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+**Note**: The `dev:serve` script builds the application and serves it using a static file server. This provides the same experience as production but requires rebuilding after code changes. For rapid development with hot reloading, use `npm run dev` if it works on your system.
 
 ## Architecture
 
@@ -308,6 +511,7 @@ The **villain-level production pipeline** combines Bitwarden CLI, CircleCI, and 
 For testing or emergency deployments:
 
 ```bash
+
 # Load production secrets from Bitwarden
 source scripts/load_env.sh
 
@@ -328,6 +532,7 @@ uvicorn backend.main:app --reload
 #### Docker Deployment
 
 ```dockerfile
+
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -378,6 +583,7 @@ cd apps/goblin-assistant
 **Environment Variables**: Verify `.env.local` exists and contains valid keys:
 
 ```bash
+
 ls -la backend/.env.local
 ```
 
@@ -392,6 +598,7 @@ uvicorn backend.main:app --port 8001
 Enable detailed logging:
 
 ```bash
+
 export PYTHONPATH=/Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant
 python -c "import logging; logging.basicConfig(level=logging.DEBUG)"
 ```

@@ -31,6 +31,7 @@ Test the dashboard at these common viewport widths to ensure proper responsive b
 ### Method 2: Device Presets
 
 Test with these device presets:
+
 - **iPhone SE** (375x667)
 - **iPad** (768x1024)
 - **iPad Pro** (1024x1366)
@@ -40,6 +41,7 @@ Test with these device presets:
 ## What to Check
 
 ### Layout Breakpoints
+
 - [ ] Cards stack properly on mobile (1 column)
 - [ ] Grid transitions smoothly to 2 columns at 768px
 - [ ] Grid expands to 3 columns at 1024px
@@ -48,6 +50,7 @@ Test with these device presets:
 - [ ] Gap spacing remains consistent (1rem)
 
 ### Component Behavior
+
 - [ ] StatusCard meta grid adapts (grid-cols-2 sm:grid-cols-3)
 - [ ] Navigation wraps gracefully on mobile
 - [ ] Header flex layout stacks on mobile (flex-col sm:flex-row)
@@ -56,12 +59,14 @@ Test with these device presets:
 - [ ] Touch targets are at least 44x44px
 
 ### Typography
+
 - [ ] No text overflow or truncation
 - [ ] Font sizes remain readable on mobile (min 14px body, 16px input)
 - [ ] Line heights prevent cramping
 - [ ] Headings scale appropriately
 
 ### Accessibility
+
 - [ ] Focus indicators visible at all sizes
 - [ ] Skip link accessible on mobile
 - [ ] Aria-live regions work correctly
@@ -70,6 +75,7 @@ Test with these device presets:
 ## Known Breakpoints Fixed
 
 The `.grid-auto-fit` utility now includes optimized breakpoints:
+
 - **375px**: Force 1 column on mobile
 - **768px**: 2 columns with 320px minimum card width
 - **1024px**: 3 columns with 300px cards
@@ -79,6 +85,7 @@ The `.grid-auto-fit` utility now includes optimized breakpoints:
 ## Testing Commands
 
 ### Start Dev Server
+
 ```bash
 cd apps/goblin-assistant
 npm run dev
@@ -86,6 +93,7 @@ npm run dev
 
 ### Run Accessibility Tests
 ```bash
+
 # Install puppeteer if needed
 npm install -D puppeteer
 
@@ -94,6 +102,7 @@ node ../../tools/axe-smoke.js
 ```
 
 ### Check for Responsive Issues
+
 ```bash
 # Lint CSS for overflow issues
 npm run lint
@@ -154,10 +163,11 @@ npm run build
 Consider adding Playwright tests for viewport testing:
 
 ```typescript
+
 // Example test
 test('dashboard responsive on mobile', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 });
-  await page.goto('http://localhost:5173/dashboard');
+  await page.goto('<http://localhost:5173/dashboard');>
 
   // Check single column layout
   const cards = await page.locator('.grid-auto-fit > *').count();

@@ -1,76 +1,56 @@
 [build]
-# Build commands for different directories
-command = "echo 'Backend build complete'"
-publish = "backend"
+# Build command
+command = "npm run build"
 
-[build.environment]
-PYTHON_VERSION = "3.11"
+# Directory to publish (build output)
+publish = "dist"
 
-# Backend service configuration
-[[redirects]]
-from = "/api/*"
-to = "http://localhost:8001/:splat"
-status = 200
+# Node version and environment variables
+environment = { NODE_VERSION = "18" }
+VITE_DD_APPLICATION_ID = "099e1645-6b87-46a3-85c0-4737ce3cb243"
+VITE_DD_CLIENT_TOKEN = "pub5bc4a8c9b6c34524b19314ea9f12ba2b"
+VITE_DD_ENV = "production"
+VITE_DD_VERSION = "1.0.0"
 
-# Health check endpoint
-[[redirects]]
-from = "/health"
-to = "http://localhost:8001/health"
-status = 200
+# Backend configuration
+VITE_FASTAPI_URL = "https://api-c7vfuj25a-fuaadabdullahs-projects.vercel.app"
+VITE_GOBLIN_RUNTIME = "fastapi"
+VITE_MOCK_API = "false"
 
-# Settings endpoints
-[[redirects]]
-from = "/settings/*"
-to = "http://localhost:8001/settings/:splat"
-status = 200
-
-# Routing endpoints
-[[redirects]]
-from = "/routing/*"
-to = "http://localhost:8001/routing/:splat"
-status = 200
-
-# Execute endpoints
-[[redirects]]
-from = "/execute/*"
-to = "http://localhost:8001/execute/:splat"
-status = 200
-
-# API keys endpoints
-[[redirects]]
-from = "/api-keys/*"
-to = "http://localhost:8001/api-keys/:splat"
-status = 200
-
-# Auth endpoints
-[[redirects]]
-from = "/auth/*"
-to = "http://localhost:8001/auth/:splat"
-status = 200
-
-# Search endpoints
-[[redirects]]
-from = "/search/*"
-to = "http://localhost:8001/search/:splat"
-status = 200
-
-# Parse endpoints
-[[redirects]]
-from = "/parse/*"
-to = "http://localhost:8001/parse/:splat"
-status = 200
-
-# Root endpoint
-[[redirects]]
-from = "/api"
-to = "http://localhost:8001/"
-status = 200
-
-# Frontend SPA fallback
+# Redirect rules for SPA
 [[redirects]]
 from = "/*"
 to = "/index.html"
 status = 200
 
-[functions]
-directory = "backend"
+# Security headers
+[[headers]]
+for = "/*"
+[headers.values]
+X-Frame-Options = "DENY"
+X-XSS-Protection = "1; mode=block"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets
+[[headers]]
+for = "/assets/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache other static files
+[[headers]]
+for = "/*.js"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*.css"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+# API routes (if needed)
+[[redirects]]
+from = "/api/*"
+to = "https://api.goblin-assistant.com/api/:splat"
+status = 200

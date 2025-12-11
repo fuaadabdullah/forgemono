@@ -1,10 +1,15 @@
-fastapi>=0.122.0
-uvicorn>=0.38.0
-httpx>=0.28.1
-pytest>=9.0.1
-pytest-asyncio>=0.23.0
-python-jose[cryptography]>=3.3.0
-bcrypt>=4.0.1
-python-dotenv>=1.0.0
-pydantic>=2.0.0
-cryptography>=42.0.0
+Flask==2.3.3
+flask-cors==4.0.0
+flask-sqlalchemy==3.1.1
+sqlalchemy>=2.0.25
+python-dotenv==1.0.0
+gunicorn==23.0.0
+
+# Google Drive integration for Ollama models
+google-api-python-client==2.110.0
+google-auth-httplib2==0.1.1
+google-auth-oauthlib==1.2.0
+
+# FastAPI for routing (if needed)
+fastapi==0.104.1
+uvicorn==0.24.0

@@ -71,6 +71,7 @@ The provisioning script supports optional conversion and quantization flags:
 Examples:
 
 ```bash
+
 # Dry-run to verify conversion/quantization steps
 ./goblin-assistant/tools/provision_local_model.sh --model facebook/llama-2-7b --dry-run --auto-convert --quantize q4
 ```
@@ -89,7 +90,7 @@ Quick-start runtimes
   - Pull: `ollama pull <model>`
 
 - llama.cpp (for GGUF/GGML):
-  - Build: `git clone https://github.com/ggerganov/llama.cpp && cmake -B build && cmake --build build`.
+  - Build: `git clone <https://github.com/ggerganov/llama.cpp> && cmake -B build && cmake --build build`.
   - Run: `./build/bin/llama-server -m models/<model>.gguf --port 8080`.
 
 - LM Studio: download and use its GUI to serve models locally.

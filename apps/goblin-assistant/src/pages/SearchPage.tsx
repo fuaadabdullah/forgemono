@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCollections, useSearchDocuments } from '../hooks/api/useSearch';
+import { env } from '../config/env';
 
 interface SearchResult {
   id: string;
@@ -47,7 +48,8 @@ const SearchPage: React.FC = () => {
       // If no numeric id, bail with message (backend mismatch)
       if (collectionId === undefined) {
         // Fallback: query directly via temporary fetch until api supports name-based searchDocuments
-        const baseUrl = import.meta.env.VITE_FASTAPI_URL || 'http://127.0.0.1:8001';
+        const IS_VERCEL = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
+        const baseUrl = IS_VERCEL ? '' : (env.fastApiUrl || 'http://127.0.0.1:8001');
         const response = await fetch(`${baseUrl}/search/query`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

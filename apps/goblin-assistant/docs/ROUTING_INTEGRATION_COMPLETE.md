@@ -100,6 +100,7 @@ POST /chat/completions
 ```
 
 **Request:**
+
 ```json
 {
   "messages": [
@@ -113,6 +114,7 @@ POST /chat/completions
 
 **Response:**
 ```json
+
 {
   "id": "uuid",
   "model": "mistral:7b",
@@ -170,7 +172,8 @@ response = requests.post("http://localhost:8000/chat/completions", json={
 ### Quick Status Check
 
 ```python
-response = requests.post("http://localhost:8000/chat/completions", json={
+
+response = requests.post("<http://localhost:8000/chat/completions",> json={
     "messages": [
         {"role": "user", "content": "Is the service up?"}
     ],
@@ -197,7 +200,8 @@ response = requests.post("http://localhost:8000/chat/completions", json={
 ### Code Generation
 
 ```python
-response = requests.post("http://localhost:8000/chat/completions", json={
+
+response = requests.post("<http://localhost:8000/chat/completions",> json={
     "messages": [
         {"role": "user", "content": "Write a binary search function"}
     ]
@@ -251,6 +255,7 @@ The routing system uses the following tables:
 ### Run Routing Logic Tests
 
 ```bash
+
 cd backend
 python test_local_routing.py
 ```
@@ -265,48 +270,54 @@ python test_chat_api.py
 ### Test Individual Endpoints
 
 ```bash
+
 # Start the server
 uvicorn main:app --reload
 
 # Test chat completions
-curl -X POST http://localhost:8000/chat/completions \
+curl -X POST <http://localhost:8000/chat/completions> \
   -H "Content-Type: application/json" \
   -d '{
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
 
 # List models
-curl http://localhost:8000/chat/models
+curl <http://localhost:8000/chat/models>
 
 # Get routing info
-curl http://localhost:8000/chat/routing-info
+curl <http://localhost:8000/chat/routing-info>
 ```
 
 ## 📈 Benefits
 
 ### 1. **Zero-Cost Inference**
+
 - Self-hosted models = $0 per request
 - Unlimited usage, no rate limits
 - Monthly savings: $110-240 vs cloud
 
 ### 2. **Intelligent Selection**
+
 - Automatic model selection based on task
 - Optimized parameters per use case
 - Transparent routing explanations
 
 ### 3. **Performance Optimized**
+
 - Ultra-fast for status checks (gemma:2b)
 - Low-latency for chat (phi3:3.8b)
 - High-quality for code/creative (mistral:7b)
 - Long context for RAG (qwen2.5:3b)
 
 ### 4. **Developer Friendly**
+
 - Simple API - just send messages
 - Auto-detects intent from content
 - Comprehensive documentation
 - Full OpenAPI/Swagger support
 
 ### 5. **Production Ready**
+
 - Error handling and fallbacks
 - Request logging for analytics
 - Health monitoring integration
@@ -315,6 +326,7 @@ curl http://localhost:8000/chat/routing-info
 ## 🔮 Future Enhancements
 
 Potential improvements:
+
 1. **ML-based intent classification** (currently keyword-based)
 2. **Multi-model verification** for critical operations
 3. **Streaming responses** support
@@ -329,7 +341,7 @@ Potential improvements:
 - [Full Routing Guide](./LOCAL_LLM_ROUTING.md)
 - [Quick Reference Card](./LOCAL_LLM_ROUTING_QUICKREF.md)
 - [Kamatera Deployment Guide](./KAMATERA_LLM_DEPLOYMENT.md)
-- OpenAPI Docs: http://localhost:8000/docs
+- OpenAPI Docs: <http://localhost:8000/docs>
 
 ## 🎓 Key Learnings
 
@@ -342,6 +354,7 @@ Potential improvements:
 ## ✨ Summary
 
 The intelligent routing system successfully:
+
 - ✅ Integrates with existing FastAPI backend
 - ✅ Automatically selects optimal models
 - ✅ Provides transparent routing explanations

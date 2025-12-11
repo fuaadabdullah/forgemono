@@ -83,6 +83,14 @@ All production monitoring features have been successfully implemented:
 - Correlate frontend errors with backend traces using `X-Correlation-ID` to map user actions to backend issues.
 - Collect SPA-specific metrics (page load, LCP, CLS, FID) with web vitals and store in the analytics provider.
 - Ensure no PII or tokens are sent to telemetry; sanitize logs and error messages.
+
+## Privacy & Vector DB / RAG (Guidance)
+
+- Do not embed PII or secrets into vector stores (Chroma) or pass them as raw prompts to external providers. Apply a sanitization step and an explicit consent check before creating embeddings. If a document is flagged as sensitive, it must not be embedded.
+- Implement a TTL for vector DB documents and short-lived conversation context (e.g., 1h default for KV chat context); add automated purge jobs or TTL-indexed deletes where supported.
+- For inference logs and diagnostic artifacts: record only minimal metadata (provider, model, latency, hashed identifiers) — never raw user text or secrets. If a snippet of user text must be kept, mask or pseudonymize it and mark it as sensitive in metadata.
+- RAG citations: expose only permitted source metadata and chunk references when returning answers; avoid showing internal IDs or private repository data absent explicit authorization.
+- Coordinate with Security/Keepers on changes that introduce long-term retention of user data or increase exposure.
 	- Auth login: < 500ms p95, 20 RPS
 - **Test Scenarios**: 8 different user behaviors with weighted distribution
 
@@ -104,9 +112,12 @@ All production monitoring features have been successfully implemented:
 ### 1. Install Dependencies
 
 ```bash
+
 cd apps/goblin-assistant/backend
 pip install python-json-logger prometheus-client
+
 # Optional for load testing:
+
 # pip install locust
 ```
 
@@ -121,6 +132,7 @@ CORS_ORIGINS=http://localhost:3000,https://yourdomain.com
 ### 3. Start Backend
 
 ```bash
+
 uvicorn main:app --host 0.0.0.0 --port 8001
 ```
 
@@ -143,6 +155,7 @@ locust -f tests/load_test.py --host=http://localhost:8001
 Run the test script to verify all features:
 
 ```bash
+
 cd backend
 ./test_monitoring.sh
 ```

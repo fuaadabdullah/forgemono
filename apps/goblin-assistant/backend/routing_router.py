@@ -2,14 +2,17 @@
 Routing router with real provider discovery, health monitoring, and intelligent task routing.
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 
 from database import get_db
 from services.routing import RoutingService
-from tasks.provider_probe_worker import ProviderProbeWorker
+from services.enhanced_routing import EnhancedRoutingService
+from auth.policies import AuthScope
+from auth_service import get_auth_service
 import os
 
 # Get encryption key from environment
@@ -19,7 +22,7 @@ if not ROUTING_ENCRYPTION_KEY:
 
 # Initialize services
 routing_service = None
-probe_worker = None
+enhanced_routing_service = None
 
 
 def get_routing_service(db: Session = Depends(get_db)) -> RoutingService:
@@ -30,15 +33,49 @@ def get_routing_service(db: Session = Depends(get_db)) -> RoutingService:
     return routing_service
 
 
-def get_probe_worker() -> ProviderProbeWorker:
-    """Dependency to get probe worker instance."""
-    global probe_worker
-    if probe_worker is None:
-        probe_worker = ProviderProbeWorker(ROUTING_ENCRYPTION_KEY)
-    return probe_worker
+def get_enhanced_routing_service(
+    db: Session = Depends(get_db),
+) -> EnhancedRoutingService:
+    """Dependency to get enhanced routing service instance."""
+    global enhanced_routing_service
+    if enhanced_routing_service is None:
+        enhanced_routing_service = EnhancedRoutingService(db, ROUTING_ENCRYPTION_KEY)
+    return enhanced_routing_service
 
 
 router = APIRouter(prefix="/routing", tags=["routing"])
+
+# Security schemes
+security = HTTPBearer()
+
+
+def require_scope(required_scope: AuthScope):
+    """Dependency to require a specific scope."""
+
+    def scope_checker(
+        credentials: HTTPAuthorizationCredentials = Security(security),
+    ) -> List[str]:
+        auth_service = get_auth_service()
+
+        # Try JWT token first
+        token = credentials.credentials
+        claims = auth_service.validate_access_token(token)
+
+        if claims:
+            # Convert AuthScope enums back to strings
+            scopes = auth_service.get_user_scopes(claims)
+            scope_values = [scope.value for scope in scopes]
+
+            if required_scope.value not in scope_values:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Insufficient permissions. Required scope: {required_scope.value}",
+                )
+            return scope_values
+
+        raise HTTPException(status_code=401, detail="Invalid authentication")
+
+    return scope_checker
 
 
 class RouteRequest(BaseModel):
@@ -46,6 +83,17 @@ class RouteRequest(BaseModel):
     requirements: Optional[Dict[str, Any]] = None
     prefer_cost: Optional[bool] = False
     max_retries: Optional[int] = 2
+
+
+class EnhancedRouteRequest(BaseModel):
+    capability: str
+    requirements: Optional[Dict[str, Any]] = None
+    sla_target_ms: Optional[float] = None
+    cost_budget: Optional[float] = None
+    latency_priority: Optional[str] = None
+    user_region: Optional[str] = None
+    conversation_history: Optional[List[Dict[str, Any]]] = None
+    request_content: Optional[str] = None
 
 
 class ProviderInfo(BaseModel):
@@ -62,6 +110,7 @@ class ProviderInfo(BaseModel):
 @router.get("/providers", response_model=List[ProviderInfo])
 async def get_available_providers(
     service: RoutingService = Depends(get_routing_service),
+    scopes: List[str] = Depends(require_scope(AuthScope.READ_MODELS)),
 ):
     """Get list of all configured providers with their capabilities and status"""
     try:
@@ -75,7 +124,9 @@ async def get_available_providers(
 
 @router.get("/providers/{capability}", response_model=List[ProviderInfo])
 async def get_providers_for_capability(
-    capability: str, service: RoutingService = Depends(get_routing_service)
+    capability: str,
+    service: RoutingService = Depends(get_routing_service),
+    scopes: List[str] = Depends(require_scope(AuthScope.READ_MODELS)),
 ):
     """Get providers that support a specific capability"""
     try:
@@ -96,7 +147,9 @@ async def get_providers_for_capability(
 
 @router.post("/route")
 async def route_request(
-    request: RouteRequest, service: RoutingService = Depends(get_routing_service)
+    request: RouteRequest,
+    service: RoutingService = Depends(get_routing_service),
+    scopes: List[str] = Depends(require_scope(AuthScope.WRITE_CONVERSATIONS)),
 ):
     """Route a request to the best available provider"""
     try:
@@ -108,8 +161,41 @@ async def route_request(
         raise HTTPException(status_code=500, detail=f"Routing failed: {str(e)}")
 
 
+@router.post("/route/enhanced")
+async def route_request_enhanced(
+    request: EnhancedRouteRequest,
+    service: EnhancedRoutingService = Depends(get_enhanced_routing_service),
+    scopes: List[str] = Depends(require_scope(AuthScope.WRITE_CONVERSATIONS)),
+):
+    """
+    Route a request using enhanced multi-factor decision algorithm.
+
+    Includes advanced factors like time-of-day weighting, user tier prioritization,
+    conversation context analysis, regional latency optimization, and more.
+    """
+    try:
+        result = await service.select_provider_enhanced(
+            capability=request.capability,
+            requirements=request.requirements,
+            sla_target_ms=request.sla_target_ms,
+            cost_budget=request.cost_budget,
+            latency_priority=request.latency_priority,
+            user_region=request.user_region,
+            conversation_history=request.conversation_history,
+            request_content=request.request_content,
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Enhanced routing failed: {str(e)}"
+        )
+
+
 @router.get("/health")
-async def routing_health(service: RoutingService = Depends(get_routing_service)):
+async def routing_health(
+    service: RoutingService = Depends(get_routing_service),
+    scopes: List[str] = Depends(require_scope(AuthScope.READ_USER)),
+):
     """Check if the routing system is operational"""
     try:
         providers = await service.discover_providers()

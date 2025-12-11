@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { apiClient } from '../api/client';
+import { apiClient } from '../api/client-axios';
 import { Button, Alert } from './ui';
 
 interface OrchestrationStep {
@@ -10,7 +10,7 @@ interface OrchestrationStep {
   batch: number;
 }
 
-interface OrchestrationPlan {
+interface LocalOrchestrationPlan {
   steps: OrchestrationStep[];
   total_batches: number;
   max_parallel: number;
@@ -20,7 +20,7 @@ interface OrchestrationPlan {
 const Orchestration = () => {
   const [input, setInput] = useState('');
   const [defaultGoblin, setDefaultGoblin] = useState('docs-writer');
-  const [plan, setPlan] = useState<OrchestrationPlan | null>(null);
+  const [plan, setPlan] = useState<LocalOrchestrationPlan | null>(null);
   const [executionId, setExecutionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [executing, setExecuting] = useState(false);
@@ -43,7 +43,7 @@ const Orchestration = () => {
         default_goblin: defaultGoblin,
       });
 
-      setPlan(result);
+      setPlan(result as any);
     } catch (err) {
       setError('Failed to parse orchestration');
       console.error('Parse orchestration error:', err);
@@ -63,7 +63,7 @@ const Orchestration = () => {
       const planId = `plan_${Date.now()}`;
       const result = await apiClient.executeOrchestration(planId);
 
-      setExecutionId(result.execution_id);
+      setExecutionId((result as any).execution_id);
     } catch (err) {
       setError('Failed to execute orchestration');
       console.error('Execute orchestration error:', err);

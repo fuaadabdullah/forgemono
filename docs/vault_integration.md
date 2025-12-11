@@ -3,6 +3,7 @@
 This document describes how to integrate HashiCorp Vault with Goblin Assistant for secrets management, how to rotate provider API keys, and how to run Vault in dev and production.
 
 ## Goals
+
 - Secure secret storage for API keys and sensitive configuration.
 - Centralize provider keys under `secret/goblin-assistant/providers/<provider>`.
 - Provide one-click rotation automation for dev/prod secrets.
@@ -22,6 +23,7 @@ export VAULT_TOKEN=root
 2. Store provider API keys for a provider (example `local-llama`):
 
 ```bash
+
 vault kv put secret/goblin-assistant/providers/local-llama api_key=demo api_secret=demo
 ```
 
@@ -37,6 +39,7 @@ source .env.vault  # if created by load_env_from_vault
 The `vault_client.py` helper is available at the repo root. Typical usage:
 
 ```python
+
 from vault_client import get_api_key
 key = get_api_key('openai-gpt4')
 ```
@@ -46,6 +49,7 @@ Use `VaultClient.get_provider_keys(provider)` to fetch a dictionary with the pro
 ## Rotation Script (tools/rotate_vault_keys.py)
 
 A small rotation script is available in `tools/rotate_vault_keys.py` that performs safe rotation:
+
 - Back up current key value to `secret/goblin-assistant/backups/<provider>/<timestamp>`.
 - Store new key value under `secret/goblin-assistant/providers/<provider>`.
 - Optionally, log the change to a 'rotations' path and set an expiration tag (if supported by production vault policies).
@@ -82,7 +86,9 @@ Note: The rotation script **does not** integrate with external provider APIs to 
 In CI, rotate keys by calling provider API and writing new values to Vault. Use short-lived Vault dynamic tokens with a limited scope so the CI identity can only write to the path needed.
 
 ```yaml
+
 # Example GitHub Actions step (pseudocode)
+
 - name: Rotate openai key
   uses: actions/checkout@v3
   env:
@@ -93,10 +99,12 @@ In CI, rotate keys by calling provider API and writing new values to Vault. Use 
 ```
 
 ## Troubleshooting
+
 - If developer cannot access vault from CI, check `VAULT_ADDR` and `VAULT_TOKEN` and then `vault kv get secret/goblin-assistant/providers/<provider>` manually.
 - Use `vault audit` to trace calls during rotations.
 
 ## Best Practices
+
 - Never keep secrets in git.
 - Use Vault to store and audit all provider keys.
 - Rotate keys regularly (quarterly for production keys, monthly for dev keys).

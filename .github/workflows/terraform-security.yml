@@ -59,3 +59,16 @@ jobs:
         with:
           sarif_file: ./checkov-results.sarif
           category: checkov
+
+  supabase-rls:
+    name: Supabase RLS Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Supabase RLS Check
+        run: |
+          chmod +x scripts/ops/supabase_rls_check.sh
+          ./scripts/ops/supabase_rls_check.sh --ci apps/goblin-assistant/backend

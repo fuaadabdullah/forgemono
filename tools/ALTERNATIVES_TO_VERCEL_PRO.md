@@ -5,6 +5,7 @@ This file summarizes practical, low-cost alternatives to upgrading to the Vercel
 
 Important security step — exposed API key
 ----------------------------------------
+
 - You must revoke/regenerate any API keys that have been posted or leaked. The token in your conversation appears to be a Google-style API key.
 - Steps to rotate/revoke:
   - Google Cloud Console: Menu → APIs & Services → Credentials → find the key → Delete/Regenerate.
@@ -23,7 +24,7 @@ Do not commit secrets to the repository. Use Vercel env variables or CI secrets 
 
 1) Best short-term: Host your backend externally and keep static front end on Vercel
 -------------------------------------------------------------------------
-- Quick win: Host your entire API server (FastAPI) to Render / Railway / Fly / DigitalOcean App Platform / Cloud Run and point your Vercel frontend at the external URL via environment variables.
+- Quick win: Host your entire API server (FastAPI) to Render / Fly / DigitalOcean App Platform / Cloud Run and point your Vercel frontend at the external URL via environment variables.
 - This reduces Vercel's serverless function usage to zero and keeps Vercel free for static hosting.
 
 Advantages:
@@ -33,23 +34,26 @@ Advantages:
 
 Render example (FastAPI):
 1. Create a Render account and a new Web Service
-2. Connect the repo and configure the `start` command (like `uvicorn backend.app:app --host 0.0.0.0 --port $PORT`)
-3. Add environment variables under Render's dashboard: `VITE_FASTAPI_URL` etc.
-4. Update Vercel project env variable `VITE_FASTAPI_URL` to the Render URL (via UI or CLI):
+1. Connect the repo and configure the `start` command (like `uvicorn backend.app:app --host 0.0.0.0 --port $PORT`)
+1. Add environment variables under Render's dashboard: `VITE_FASTAPI_URL` etc.
+1. Update Vercel project env variable `VITE_FASTAPI_URL` to the Render URL (via UI or CLI):
 
 ```bash
-vercel env add VITE_FASTAPI_URL https://your-backend.onrender.com --prod --team "YourTeam"
+
+vercel env add VITE_FASTAPI_URL <https://your-backend.onrender.com> --prod --team "YourTeam"
 ```
 
 2) Consolidate many Vercel Serverless Functions into one or a few functions (technical approach)
 ---------------------------------------------------------------------------------------------
+
 - If your Vercel deployment uses many serverless function files under `/api` (each file counts), you can combine them into a single file router to reduce the count drastically.
-- Keep your existing logic in small modules (handlers) and import them into a single `api/index.js|ts` route that maps paths to handlers.
+- Keep your existing logic in small modules (handlers) and import them into a single `api/index.js | ts` route that maps paths to handlers.
 
 High-level steps:
+
 1. Move all small handlers into `lib/handlers/<name>.ts` or similar
-2. Create `api/index.ts` that inspects `req.url` and `req.method` and dispatches to the proper handler
-3. Deploy the single function — it can handle all existing endpoints internally
+1. Create `api/index.ts` that inspects `req.url` and `req.method` and dispatches to the proper handler
+1. Deploy the single function — it can handle all existing endpoints internally
 
 Sample `api` router (Node/TypeScript) — put in your target Vercel project's `/api/index.ts` (example only):
 
@@ -85,7 +89,7 @@ Cons:
 --------------------------------------------------------------------------
 - Netlify: Netlify has function limits on hobby, but it often provides free tiers. Additional functions cost money.
 - Render: Provides both web services and background workers; free tier for backend web services; easy to deploy and configure.
-- Railway: Good for fast prototypes; free tier and easy deployment.
+-- Railway: (Removed) — we no longer maintain Railway deployment guidance. Use Render, Fly, or Cloud Run instead.
 - Fly.io: Deploys containers; you can run a single container for many endpoints.
 - Cloud Run / Cloud Functions: Pay-as-you-go; can be cheap for small loads; unlimited endpoints via a single server container
 

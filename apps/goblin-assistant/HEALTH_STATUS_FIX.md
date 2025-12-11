@@ -3,6 +3,7 @@
 ## Summary
 
 Fixed the "degraded" status display issue. The services were actually healthy, but the dashboard showed incorrect status due to:
+
 1. API endpoint mismatches between frontend and backend
 2. Misinterpretation of health check responses
 3. AI provider network checks failing (expected when offline)
@@ -10,6 +11,7 @@ Fixed the "degraded" status display issue. The services were actually healthy, b
 ## What Was Actually Wrong
 
 ### Services Status (ACTUAL)
+
 - ✅ **Backend**: Running on port 8001, fully healthy
 - ✅ **Vector DB (ChromaDB)**: File exists, service healthy (0 collections, 0 documents)
 - ✅ **Sandbox**: Healthy (0 active jobs, 0 queue)
@@ -20,6 +22,7 @@ Fixed the "degraded" status display issue. The services were actually healthy, b
 
 ### Why It Showed "Degraded"
 The overall health endpoint returns "degraded" when ANY check fails, including external AI provider network tests. This is technically correct but confusing because:
+
 - Core services (DB, vector DB, sandbox) were all healthy
 - Only the external AI provider APIs were unreachable
 
@@ -27,6 +30,7 @@ The overall health endpoint returns "degraded" when ANY check fails, including e
 
 ### 1. Fixed API Client Endpoints (`src/api/client-axios.ts`)
 Updated all health check endpoints to match backend routes:
+
 - `/health/chroma` → `/health/chroma/status`
 - `/health/mcp` → `/health/mcp/status`
 - Added `/health/raptor/status` for RAG indexer
@@ -37,11 +41,13 @@ Updated all health check endpoints to match backend routes:
 - `/health/retest` → `/health/retest/{service}` (POST)
 
 ### 2. Fixed Dashboard Status Interpretation (`src/components/EnhancedDashboard.tsx`)
+
 - RAG status: Check for `rag.status === 'healthy'` OR `rag.running` (was only checking for 'running')
 - MCP servers: Handle servers as array (was treating as number)
 - RAG metrics: Show "Running" status and config file instead of non-existent fields
 
 ### 3. Backend Already Running Correctly
+
 - Process ID: 6300
 - Port: 8001
 - All endpoints responding correctly
@@ -50,6 +56,7 @@ Updated all health check endpoints to match backend routes:
 ## Current State
 
 ### Backend Health Check Response
+
 ```json
 {
   "status": "degraded",
@@ -89,20 +96,23 @@ This is NORMAL when:
 
 **To verify network connectivity:**
 ```bash
+
 # Test if you can reach OpenAI
-curl -I https://api.openai.com
+curl -I <https://api.openai.com>
 
 # Test if you can reach Anthropic
-curl -I https://api.anthropic.com
+curl -I <https://api.anthropic.com>
 ```
 
 If you CAN reach these APIs but health checks still fail, check your API keys in:
+
 - `apps/goblin-assistant/backend/.env`
 
 ### Optional: Disable Provider Health Checks
 If you want to work offline without seeing "degraded" status:
 
 Edit `apps/goblin-assistant/backend/.env` and add:
+
 ```bash
 ANTHROPIC_ENABLED=false
 OPENAI_ENABLED=false
@@ -112,6 +122,7 @@ GEMINI_ENABLED=false
 
 Then restart the backend:
 ```bash
+
 # Kill existing backend
 ps aux | grep "uvicorn.*8001" | grep -v grep | awk '{print $2}' | xargs kill
 
@@ -123,23 +134,26 @@ nohup venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8001 --env-file 
 ## Verification Commands
 
 ### Check Backend is Running
+
 ```bash
 curl -s http://localhost:8001/health/all | python3 -m json.tool
 ```
 
 ### Check Individual Services
 ```bash
+
 # Vector DB
-curl -s http://localhost:8001/health/chroma/status | python3 -m json.tool
+curl -s <http://localhost:8001/health/chroma/status> | python3 -m json.tool
 
 # Sandbox
-curl -s http://localhost:8001/health/sandbox/status | python3 -m json.tool
+curl -s <http://localhost:8001/health/sandbox/status> | python3 -m json.tool
 
 # Cost Tracking
-curl -s http://localhost:8001/health/cost-tracking | python3 -m json.tool
+curl -s <http://localhost:8001/health/cost-tracking> | python3 -m json.tool
 ```
 
 ### Check Frontend is Running
+
 ```bash
 ps aux | grep "vite.*3000" | grep -v grep
 ```

@@ -85,6 +85,7 @@ Paste into files exactly as shown.
 ## 3.1 PlayerController2D.cs
 
 ```csharp
+
 using UnityEngine;
 
 public class PlayerController2D : MonoBehaviour
@@ -145,6 +146,7 @@ public class NPCInteractable : MonoBehaviour
 ## 3.3 ChatUIManager.cs
 
 ```csharp
+
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -244,6 +246,7 @@ public class BackendClient : MonoBehaviour
 Place this in your Python folder as `main.py`.
 
 ```python
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 

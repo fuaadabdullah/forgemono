@@ -106,6 +106,7 @@ apps/goblin-assistant/
 
 #### Old Pattern (Fetch)
 ```tsx
+
 const [data, setData] = useState(null);
 const [loading, setLoading] = useState(true);
 
@@ -118,6 +119,7 @@ useEffect(() => {
 ```
 
 #### New Pattern (React Query)
+
 ```tsx
 import { useChatModels } from './hooks/api/useChat';
 
@@ -127,6 +129,7 @@ const { data, isLoading, error, refetch } = useChatModels();
 
 #### Old Auth (localStorage)
 ```tsx
+
 const token = localStorage.getItem('token');
 if (token) {
   // Manual token management
@@ -134,6 +137,7 @@ if (token) {
 ```
 
 #### New Auth (Zustand)
+
 ```tsx
 import { useAuthStore } from './store/authStore';
 
@@ -144,6 +148,7 @@ const { token, isAuthenticated, setAuth, clearAuth } = useAuthStore();
 ### ✅ Build Verification
 
 ```bash
+
 $ pnpm build
 > tsc && vite build
 ✓ built in 294ms
@@ -164,6 +169,7 @@ $ pnpm build
 ### 📝 Next Steps for Developers
 
 1. **Migrate Components**: Update existing components to use new hooks
+
    ```tsx
    // Example: Update ChatPage to use useChatCompletion hook
    import { useChatCompletion } from './hooks/api/useChat';
@@ -174,12 +180,14 @@ $ pnpm build
 
 2. **Use Feature Flags**: Conditionally render UI based on flags
    ```tsx
+
    import { isFeatureEnabled } from './config/features';
 
    {isFeatureEnabled('ragEnabled') && <SearchButton />}
    ```
 
 3. **Leverage Caching**: Use React Query's cache for better UX
+
    ```tsx
    const { data: models } = useChatModels();
    // Models cached for 5min, no refetch needed!
@@ -187,6 +195,7 @@ $ pnpm build
 
 4. **Auth Integration**: Use Zustand store in components
    ```tsx
+
    const { isAuthenticated, logout } = useAuthStore();
    if (!isAuthenticated) return <LoginForm />;
    ```

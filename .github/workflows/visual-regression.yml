@@ -2,9 +2,13 @@ name: Visual Regression Tests
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+    branches: [main]
+    paths:
+      - 'apps/goblin-assistant/src/**'
+      - 'apps/goblin-assistant/**/*.stories.*'
+      - 'apps/goblin-assistant/package.json'
+      - '.github/workflows/visual-regression.yml'
+  workflow_dispatch:
 
 jobs:
   chromatic:
@@ -28,18 +32,35 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Setup Bitwarden CLI
+        run: |
+          curl -s https://vault.bitwarden.com/download/?app=cli&platform=linux -o bw.zip
+          unzip bw.zip
+          sudo mv bw /usr/local/bin/bw
+
+      - name: Login to Bitwarden
+        run: |
+          bw login --apikey --clientid ${{ secrets.BW_CLIENT_ID }} --clientsecret ${{ secrets.BW_CLIENT_SECRET }}
+          BW_SESSION=$(bw unlock --passwordenv BW_PASSWORD --raw)
+          echo "BW_SESSION=$BW_SESSION" >> $GITHUB_ENV
+
+      - name: Fetch Chromatic Token
+        run: |
+          CHROMATIC_TOKEN=$(bw get password goblin-prod-chromatic-token --session $BW_SESSION)
+          echo "CHROMATIC_PROJECT_TOKEN=$CHROMATIC_TOKEN" >> $GITHUB_ENV
+
       - name: Build Storybook
         run: npm run build-storybook
 
       - name: Run Chromatic
         uses: chromaui/action@latest
         with:
-          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-          workingDir: ./apps/goblin-assistant
+          projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
           buildScriptName: build-storybook
-          exitZeroOnChanges: true # Don't fail build on visual changes
-          autoAcceptChanges: main # Auto-accept changes on main branch
-          onlyChanged: true # Only test changed stories (faster)
+          workingDir: ./apps/goblin-assistant
+          exitZeroOnChanges: true
+          autoAcceptChanges: main
+          onlyChanged: true
 
       - name: Comment PR with results
         if: github.event_name == 'pull_request'

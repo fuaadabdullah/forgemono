@@ -1,0 +1,36 @@
+[Unit]
+Description=Goblin DocQA RQ Worker
+After=network.target redis.service
+Requires=redis.service
+PartOf=goblin-docqa.service
+
+[Service]
+User=docqa
+Group=docqa
+WorkingDirectory=/opt/goblinmini-docqa
+RuntimeDirectory=goblinmini-docqa
+EnvironmentFile=/etc/default/goblin-docqa
+Environment=DOCQA_ROOT=/mnt/allowed
+ExecStart=/opt/goblinmini-docqa/venv/bin/python /opt/goblinmini-docqa/worker.py
+Restart=on-failure
+RestartSec=5
+
+# Prevent multiple worker instances
+PIDFile=/run/goblin-docqa-worker.pid
+ExecStartPre=/bin/bash -c 'exec 200>/run/goblinmini-docqa-worker.lock || exit 1'
+ExecStartPre=/bin/bash -c 'flock -n 200 || { echo "Another worker instance is running"; exit 1; }'
+
+# Resource limits
+MemoryLimit=2G
+CPUQuota=40%
+Nice=10
+
+# Security hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/goblinmini-docqa /run/goblinmini-docqa-worker.pid /run/goblinmini-docqa-worker.lock
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

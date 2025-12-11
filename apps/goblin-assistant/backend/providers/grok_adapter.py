@@ -8,21 +8,33 @@ from typing import Dict, List, Optional, Any
 from openai import OpenAI
 import logging
 
+from .base_adapter import AdapterBase
+from .provider_registry import ProviderRegistry
+
 logger = logging.getLogger(__name__)
 
 
-class GrokAdapter:
+class GrokAdapter(AdapterBase):
     """Adapter for Grok/xAI API provider operations."""
 
-    def __init__(self, api_key: str, base_url: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
         """Initialize Grok adapter.
 
         Args:
-            api_key: xAI API key
+            api_key: xAI API key (optional, will use registry config)
             base_url: Optional custom base URL
         """
+        # Get provider config from registry
+        provider_config = ProviderRegistry.get_provider_config("grok")
+        api_key = api_key or provider_config.api_key
+        base_url = base_url or provider_config.base_url or "https://api.x.ai/v1"
+
+        if not api_key:
+            raise ValueError("API key is required for Grok adapter")
+
+        super().__init__(provider_name="grok")
         self.api_key = api_key
-        self.base_url = base_url or "https://api.x.ai/v1"
+        self.base_url = base_url
         self.client = OpenAI(api_key=api_key, base_url=base_url)
 
     async def health_check(self) -> Dict[str, Any]:
@@ -266,3 +278,76 @@ class GrokAdapter:
                 "error": str(e),
                 "model": model,
             }
+
+    async def generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Generate completion using Grok API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters (model, temperature, max_tokens, etc.)
+
+        Returns:
+            Dict containing response data
+        """
+        model = kwargs.get("model", "grok-beta")
+        temperature = kwargs.get("temperature", 0.7)
+        max_tokens = kwargs.get("max_tokens", 1024)
+        top_p = kwargs.get("top_p", 1.0)
+        stream = kwargs.get("stream", False)
+
+        def _sync_call():
+            return self.client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                stream=stream,
+            )
+
+        response = await self._call_with_circuit_breaker(_sync_call)
+
+        content = ""
+        if response.choices and len(response.choices) > 0:
+            content = response.choices[0].message.content or ""
+
+        # Extract token usage from response
+        usage = response.usage
+        input_tokens = usage.prompt_tokens if usage else 0
+        output_tokens = usage.completion_tokens if usage else 0
+        total_tokens = usage.total_tokens if usage else (input_tokens + output_tokens)
+
+        # Log cost using provider config
+        self._log_cost(input_tokens, output_tokens)
+
+        finish_reason = "stop"
+        if response.choices and len(response.choices) > 0:
+            finish_reason = response.choices[0].finish_reason or "stop"
+
+        return {
+            "content": content,
+            "usage": {
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "total_tokens": total_tokens,
+            },
+            "model": model,
+            "finish_reason": finish_reason,
+        }
+
+    async def a_generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Async generate completion using Grok API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters
+
+        Returns:
+            Dict containing response data
+        """
+        # For Grok, async and sync are the same
+        return await self.generate(messages, **kwargs)

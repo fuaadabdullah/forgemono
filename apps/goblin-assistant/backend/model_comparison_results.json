@@ -1,0 +1,161 @@
+{
+  "test_date": "2025-12-01",
+  "tests": {
+    "factual": [
+      {
+        "model": "gemma:2b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 43.12
+      },
+      {
+        "model": "phi3:3.8b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 23.36
+      },
+      {
+        "model": "qwen2.5:3b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 25.41
+      },
+      {
+        "model": "mistral:7b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 20.6
+      }
+    ],
+    "code": [
+      {
+        "model": "gemma:2b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 16.81
+      },
+      {
+        "model": "phi3:3.8b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 25.22
+      },
+      {
+        "model": "qwen2.5:3b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 24.75
+      },
+      {
+        "model": "mistral:7b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 20.83
+      }
+    ],
+    "creative": [
+      {
+        "model": "gemma:2b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 21.76
+      },
+      {
+        "model": "phi3:3.8b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 27.66
+      },
+      {
+        "model": "qwen2.5:3b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 24.35
+      },
+      {
+        "model": "mistral:7b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 17.56
+      }
+    ],
+    "ambiguous": [
+      {
+        "model": "gemma:2b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 16.7
+      },
+      {
+        "model": "phi3:3.8b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 24.44
+      },
+      {
+        "model": "qwen2.5:3b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 23.83
+      },
+      {
+        "model": "mistral:7b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 21.79
+      }
+    ],
+    "technical": [
+      {
+        "model": "gemma:2b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 50.65
+      },
+      {
+        "model": "phi3:3.8b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 17.97
+      },
+      {
+        "model": "qwen2.5:3b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 19.06
+      },
+      {
+        "model": "mistral:7b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 27.58
+      }
+    ],
+    "fictional": [
+      {
+        "model": "gemma:2b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 23.93
+      },
+      {
+        "model": "phi3:3.8b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 20.32
+      },
+      {
+        "model": "qwen2.5:3b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 21.57
+      },
+      {
+        "model": "mistral:7b",
+        "success": false,
+        "error": "HTTP 404: {\"detail\":\"Not Found\"}",
+        "latency_ms": 20.28
+      }
+    ]
+  }
+}

@@ -1,13 +1,13 @@
 # Goblin Assistant Production Deployment Guide
 
-This guide covers deploying the Goblin Assistant application to production using Fly.io (backend) and Netlify (frontend).
+This guide covers deploying the Goblin Assistant application to production using Fly.io (backend) and Vercel (frontend).
 
 ## 🚀 Quick Start
 
 1. **Prerequisites**
    - Node.js 18+ and npm
    - Python 3.11+
-      - Accounts: Fly.io, Netlify, Supabase
+   - Accounts: Fly.io, Vercel, Supabase
    - API keys for AI providers (Anthropic, DeepSeek, Google Gemini, xAI Grok)
 
 2. **Environment Setup**
@@ -21,8 +21,8 @@ This guide covers deploying the Goblin Assistant application to production using
 3. **Deploy Backend**
 
    ```bash
+
    ./deploy-backend.sh fly
-   # Or: ./deploy-backend.sh render (deprecated)
    ```
 
 4. **Deploy Frontend**
@@ -38,6 +38,7 @@ This guide covers deploying the Goblin Assistant application to production using
 Create `.env.production` from the template:
 
 ```bash
+
 cp .env.production.example .env.production
 ```
 
@@ -69,6 +70,7 @@ cp .env.production.example .env.production
 #### Option A: Fly.io (Recommended)
 
 ```bash
+
 ./deploy-backend.sh fly
 ```
 
@@ -98,25 +100,26 @@ cp .env.production.example .env.production
 4. Set secrets: `fly secrets set KEY=value` for each env var
 5. Deploy: `fly deploy`
 
-### Step 4: Frontend Deployment (Netlify)
+### Step 4: Frontend Deployment (Vercel)
 
 ```bash
-./deploy-frontend.sh
+
+./deploy-vercel.sh
 ```
 
 **Manual Setup:**
 
-1. Install Netlify CLI: `npm install -g netlify-cli`
-2. Login: `netlify login`
-3. Initialize: `netlify init`
-4. Set environment variables:
+1. Install Vercel CLI: `npm install -g vercel`
+2. Login: `vercel login`
+3. Link or initialize project: `vercel link` (or use dashboard)
+4. Set environment variables in Vercel dashboard or via CLI:
 
    ```bash
-   netlify env:set VITE_FASTAPI_URL https://your-backend-url
-   netlify env:set VITE_APP_ENV production
+   vercel env add VITE_FASTAPI_URL production
+   vercel env add VITE_APP_ENV production
    ```
 
-5. Build and deploy: `netlify deploy --prod --dir=dist`
+5. Build and deploy: `vercel --prod`
 
 ### Step 5: Post-Deployment Configuration
 
@@ -127,15 +130,15 @@ cp .env.production.example .env.production
 2. **Test the Application**
 
    ```bash
+
    # Test health endpoint
-   curl https://your-backend-url/health
+   curl <https://your-backend-url/health>
 
    # Test frontend
-   open https://your-frontend-url
+   open <https://your-frontend-url>
    ```
 
 3. **Set up Monitoring (Optional)**
-   - Configure Datadog dashboards
    - Set up error tracking with Sentry
    - Enable analytics with PostHog
 
@@ -145,7 +148,7 @@ cp .env.production.example .env.production
 
 **Port Configuration:**
 
-- Render/Fly.io automatically assign ports
+- Fly.io automatically assigns ports
 - Application uses `PORT` environment variable
 
 **Database Connection:**
@@ -170,6 +173,7 @@ curl https://your-backend-url/api/health/db
 **Build Failures:**
 
 ```bash
+
 # Clear cache and rebuild
 rm -rf node_modules/.vite
 npm run build
@@ -192,13 +196,13 @@ npm run build
 
 - **Fly.io**: View in dashboard or use CLI: `fly logs`
 - **Fly.io**: `fly logs`
-- **Netlify**: View in dashboard or use CLI: `netlify logs`
+- **Vercel**: View in dashboard or use CLI: `vercel logs`
 
 ### Scaling
 
 - **Fly.io**: Configure scaling via `flyctl scale` or fly.toml settings
 - **Fly.io**: Configure in `fly.toml`
-- **Netlify**: Automatic for static frontend
+- **Vercel**: Automatic for static frontend
 
 ## 🔒 Security Considerations
 
@@ -213,7 +217,7 @@ npm run build
 Set up automatic deployments on push to main branch:
 
 - **Fly.io**: Configure auto-deploy with `flyctl`/CI (recommended) or dashboard
-- **Netlify**: Enable in site settings
+- **Vercel**: Enable in project settings
 - **Fly.io**: Use GitHub Actions with flyctl
 
 ## 📞 Support
@@ -228,6 +232,6 @@ If you encounter issues:
 ---
 
 **Last Updated**: November 2025
-**Platforms**: Fly.io (Backend), Netlify (Frontend)
+**Platforms**: Fly.io (Backend), Vercel (Frontend)
 **Database**: Supabase PostgreSQL
 

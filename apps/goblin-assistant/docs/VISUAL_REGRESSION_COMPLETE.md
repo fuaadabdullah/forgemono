@@ -7,6 +7,7 @@ Visual regression testing has been successfully implemented for the Goblin Assis
 ## ✅ What Was Installed
 
 ### Storybook 8.6.14
+
 - **@storybook/react-vite** - Vite-powered React framework
 - **@storybook/addon-essentials** - Core addons (docs, controls, actions, viewport)
 - **@storybook/addon-interactions** - Component interaction testing
@@ -15,6 +16,7 @@ Visual regression testing has been successfully implemented for the Goblin Assis
 - **chromatic@11.29.0** - Cloud visual regression testing
 
 ### Configuration Files
+
 - `.storybook/main.ts` - Storybook configuration with React/Vite setup
 - `.storybook/preview.tsx` - Global decorators (ContrastModeProvider, BrowserRouter, theme)
 
@@ -53,8 +55,10 @@ npx storybook dev -p 6006 --config-dir apps/goblin-assistant/.storybook
 ### Build Static Storybook
 
 ```bash
+
 cd apps/goblin-assistant
 npm run build-storybook
+
 # Output: storybook-static/
 ```
 
@@ -71,8 +75,11 @@ npm run chromatic
 ### 1. Create Chromatic Project (5 minutes)
 
 ```bash
+
 # Sign up at https://www.chromatic.com
+
 # Connect GitHub repo
+
 # Get project token
 
 # Run initial baseline
@@ -97,6 +104,7 @@ The workflow file is already created at:
 ```
 
 It will automatically:
+
 - ✅ Run on every PR
 - ✅ Compare against baseline
 - ✅ Comment with visual diff results
@@ -120,6 +128,7 @@ test('Button snapshot', () => {
 
 Update snapshots:
 ```bash
+
 npm test -- -u
 ```
 
@@ -127,6 +136,7 @@ npm test -- -u
 
 ### 1. Auto-Generated Documentation
 Every component has auto-docs with:
+
 - Props table
 - Interactive controls
 - Live preview
@@ -134,6 +144,7 @@ Every component has auto-docs with:
 
 ### 2. Accessibility Testing (addon-a11y)
 Automatic checks for:
+
 - Color contrast (WCAG AA/AAA)
 - ARIA attributes
 - Keyboard navigation
@@ -143,6 +154,7 @@ View in the "Accessibility" tab for each story.
 
 ### 3. Responsive Testing
 Test components at different viewports:
+
 - Mobile (375px)
 - Tablet (768px)
 - Desktop (1024px+)
@@ -203,6 +215,7 @@ import { Button } from './Button';
 ### Start Storybook
 
 ```bash
+
 # From monorepo root
 npx storybook dev -p 6006 --config-dir apps/goblin-assistant/.storybook
 ```

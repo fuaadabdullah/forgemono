@@ -20,6 +20,7 @@ Make it private (default). If you want public access for the models, restrict to
 Step 2 — Create a service account (optional, or for automation)
 
 ```bash
+
 gcloud iam service-accounts create colab-reader --display-name="Colab GCS Reader"
 gcloud projects add-iam-policy-binding $PROJECT_ID \\
   --member="serviceAccount:colab-reader@$PROJECT_ID.iam.gserviceaccount.com" \\
@@ -74,6 +75,7 @@ If you prefer Google Drive for quick sharing or Colab workflows instead of GCS, 
 2. Option 1 (Service Account): Create a service account, share the folder with the service account email, set `GOOGLE_APPLICATION_CREDENTIALS` to the service account JSON and run:
 
 ```bash
+
 python tools/llm_storage/upload_model_gdrive.py --folder-id <FOLDER_ID> --src ./models/7b
 ```
 
@@ -81,6 +83,7 @@ python tools/llm_storage/upload_model_gdrive.py --folder-id <FOLDER_ID> --src ./
 2. In Colab, download files using `tools/llm_storage/colab_download_gdrive.py --folder-id <FOLDER_ID>` after setting `GOOGLE_APPLICATION_CREDENTIALS` or by using shared URLs.
 
 Notes:
+
 - Public sharing: Use `--share public` to set permission to `anyone with link` on uploaded files.
 - Service Account: Keep the JSON file private and only use least-privilege roles.
 - Licenses: Use `--licenses` to upload a directory of license files under the `licenses/` subfolder in the model folder.

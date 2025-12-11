@@ -18,6 +18,7 @@ If your server has a public URL, configure the firewall to allow Atlassian IP ad
 
 ### Option 2: Locked Gateway (More Secure)
 Create a secure gateway using the [sample reverse proxy configuration](https://github.com/atlassian/github-for-jira/blob/main/docs/sample-reverse-proxy-nginx.conf). You'll need:
+
 - Server URL for the locked gateway
 - HTTP request header name
 - API key value
@@ -40,6 +41,7 @@ Create a secure gateway using the [sample reverse proxy configuration](https://g
 ## Step 4: Create a GitHub App
 
 ### Automatic Creation (Recommended)
+
 1. Select **Automatic app creation**
 2. You'll be redirected to GitHub to create the app
 3. Give it a unique name and click **Create GitHub App**
@@ -61,6 +63,7 @@ To connect branches, commits, and PRs to Jira issues:
 ## Migration from Legacy DVCS Connector
 
 If using the old DVCS connector:
+
 1. Ensure all organizations are connected to GitHub for Atlassian
 2. Go to Jira Settings > Apps > DVCS Accounts
 3. Disconnect legacy connections

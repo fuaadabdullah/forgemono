@@ -7,6 +7,7 @@ All WebAuthn passkey features have been implemented and are ready for production
 ## 🎯 What Was Built
 
 ### 1. **Full WebAuthn Verification** ✅
+
 - Complete cryptographic signature verification
 - COSE public key parsing (ES256 algorithm)
 - Authenticator data parsing and validation
@@ -15,6 +16,7 @@ All WebAuthn passkey features have been implemented and are ready for production
 - Origin validation
 
 ### 2. **Production-Ready Challenge Storage** ✅
+
 - **Abstraction Layer**: `ChallengeStore` abstract base class
 - **In-Memory Storage**: `InMemoryChallengeStore` (development)
 - **Redis Storage**: `RedisChallengeStore` (production)
@@ -22,11 +24,13 @@ All WebAuthn passkey features have been implemented and are ready for production
 - **One-Time Use**: Challenges are deleted after verification
 
 ### 3. **Background Tasks** ✅
+
 - Automatic challenge cleanup every 10 minutes
 - Graceful shutdown handling
 - Error recovery
 
 ### 4. **Comprehensive Testing** ✅
+
 - End-to-end test suite (`auth/tests/test_passkey_e2e.py`)
 - Challenge expiration tests
 - One-time use validation tests
@@ -38,6 +42,7 @@ All WebAuthn passkey features have been implemented and are ready for production
 ### Prerequisites
 
 1. **Install Redis** (production only):
+
    ```bash
    # macOS
    brew install redis
@@ -53,6 +58,7 @@ All WebAuthn passkey features have been implemented and are ready for production
 
 2. **Install Python Dependencies**:
    ```bash
+
    cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend
    pip install -r requirements.txt
    ```
@@ -82,6 +88,7 @@ JWT_SECRET_KEY=your-super-secret-jwt-key-change-in-production
 ### Start the Server
 
 ```bash
+
 cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
@@ -89,13 +96,15 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 ### Verify Deployment
 
 1. **Check Health**:
+
    ```bash
    curl http://localhost:8000/
    ```
 
 2. **Test Challenge Generation**:
    ```bash
-   curl -X POST http://localhost:8000/auth/passkey/challenge \
+
+   curl -X POST <http://localhost:8000/auth/passkey/challenge> \
      -H "Content-Type: application/json" \
      -d '{"email": "test@example.com"}'
    ```
@@ -141,6 +150,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 ## 🔒 Security Features
 
 ### ✅ Implemented
+
 - Challenge-response protocol (prevents replay attacks)
 - Challenge expiration (5-minute TTL)
 - One-time use challenges (deleted after verification)
@@ -150,6 +160,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 - Public key format validation
 
 ### 🔄 Recommended Enhancements
+
 1. **Rate Limiting**: Add rate limits to prevent brute force
 2. **Audit Logging**: Log all authentication attempts
 3. **User-Agent Verification**: Additional security layer
@@ -160,6 +171,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 ## 📝 API Endpoints
 
 ### 1. Request Challenge
+
 ```http
 POST /auth/passkey/challenge
 Content-Type: application/json
@@ -171,12 +183,14 @@ Content-Type: application/json
 
 **Response:**
 ```json
+
 {
   "challenge": "base64url-encoded-challenge"
 }
 ```
 
 ### 2. Register Passkey
+
 ```http
 POST /auth/passkey/register
 Content-Type: application/json
@@ -190,6 +204,7 @@ Content-Type: application/json
 
 ### 3. Authenticate with Passkey
 ```http
+
 POST /auth/passkey/auth
 Content-Type: application/json
 
@@ -203,6 +218,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": "jwt-token",
@@ -219,11 +235,13 @@ Content-Type: application/json
 
 ### Run Tests
 ```bash
+
 cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend
 pytest auth/tests/test_passkey_e2e.py -v
 ```
 
 ### Test Coverage
+
 - ✅ Complete passkey registration and authentication flow
 - ✅ Challenge expiration handling
 - ✅ One-time use validation
@@ -233,6 +251,7 @@ pytest auth/tests/test_passkey_e2e.py -v
 ## 🎛️ Configuration Options
 
 ### Development Mode (In-Memory Storage)
+
 ```bash
 USE_REDIS_CHALLENGES=false
 FRONTEND_URL=http://localhost:3000
@@ -246,15 +265,17 @@ FRONTEND_URL=http://localhost:3000
 
 ### Production Mode (Redis Storage)
 ```bash
+
 USE_REDIS_CHALLENGES=true
 REDIS_HOST=your-redis-host
 REDIS_PORT=6379
 REDIS_PASSWORD=your-password
 REDIS_SSL=true
-FRONTEND_URL=https://your-production-domain.com
+FRONTEND_URL=<https://your-production-domain.com>
 ```
 
 **Characteristics:**
+
 - ✅ Persistent across server restarts
 - ✅ Scalable across multiple server instances
 - ✅ Automatic TTL expiration
@@ -267,6 +288,7 @@ FRONTEND_URL=https://your-production-domain.com
 **Problem:** `"No challenge found or challenge expired"`
 
 **Solutions:**
+
 1. Ensure challenge was requested before authentication
 2. Check challenge expiration (5 minutes default)
 3. Verify email matches between challenge and auth requests
@@ -276,15 +298,17 @@ FRONTEND_URL=https://your-production-domain.com
 **Problem:** `"Passkey verification failed"`
 
 **Solutions:**
+
 1. Verify `FRONTEND_URL` matches your frontend domain exactly
 2. Check browser's origin in client_data_json
 3. Ensure no trailing slashes in FRONTEND_URL
-4. For localhost, use `http://localhost:PORT` (not 127.0.0.1)
+4. For localhost, use `<http://localhost:PORT`> (not 127.0.0.1)
 
 ### Redis Connection Error
 **Problem:** `"Failed to connect to Redis"`
 
 **Solutions:**
+
 1. Verify Redis is running: `redis-cli ping` (should return PONG)
 2. Check REDIS_HOST, REDIS_PORT, REDIS_PASSWORD in .env
 3. Test connection: `redis-cli -h HOST -p PORT -a PASSWORD ping`
@@ -294,6 +318,7 @@ FRONTEND_URL=https://your-production-domain.com
 **Problem:** `ModuleNotFoundError: No module named 'redis'`
 
 **Solutions:**
+
 1. Install dependencies: `pip install -r requirements.txt`
 2. Activate virtual environment if using one
 3. Verify redis package: `pip show redis`
@@ -324,6 +349,7 @@ Before deploying to production:
 ## 🎉 Success!
 
 Your WebAuthn passkey authentication is now production-ready with:
+
 - ✅ Complete cryptographic verification
 - ✅ Production-grade challenge storage (Redis)
 - ✅ Automatic cleanup and maintenance

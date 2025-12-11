@@ -35,6 +35,7 @@ Create a PAT at [github.com/settings/tokens/new](https://github.com/settings/tok
 ### 4. Terraform Cloud Setup
 
 Your HCP Terraform Cloud should already be configured:
+
 - **Organization**: `GoblinOS`
 - **Workspaces**:
   - `GoblinOSAssistant` (dev)
@@ -126,18 +127,22 @@ Set up in **GitHub → Settings → Branches → main**:
 ## Troubleshooting
 
 ### "Context not found"
+
 - Create the context in Organization Settings
 - Ensure the context name matches exactly (`terraform-cloud`, `docker-ghcr`)
 
 ### "Terraform init failed"
+
 - Check `TF_TOKEN` is set correctly
 - Ensure Terraform Cloud workspaces exist
 
 ### "Docker push failed"
+
 - Verify `GHCR_TOKEN` has `write:packages` scope
 - Check `GHCR_USER` is correct (case-sensitive)
 
 ### "Tests failing"
+
 - Check `apps/goblin-assistant/tests/` for broken tests
 - Tests run with `--tb=short` for concise output
 

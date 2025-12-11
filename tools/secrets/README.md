@@ -40,5 +40,6 @@ Review baseline changes carefully and have Magnolia + Sentenial sign-off before 
 
 Tips
 ----
+
 - Install developer prerequisites for best local experience: `pip install detect-secrets trufflehog` and `brew install gitleaks` (macOS).
 - CI installs tools as part of the workflow; local installs are recommended for fast feedback.

@@ -39,6 +39,7 @@ vercel
 ? What’s your project’s name? my-new-project
 ? In which directory is your code located? my-new-project/
 Auto-detected project settings (Next.js):
+
 - Build Command: \`next build\` or \`build\` from \`package.json\`
 - Output Directory: Next.js default
 - Development Command: next dev --port $PORT

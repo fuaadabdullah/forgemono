@@ -20,9 +20,14 @@
   },
   "devDependencies": {
     "@axe-core/puppeteer": "^4.11.0",
+    "@mermaid-js/mermaid-cli": "^11.12.0",
     "axe-core": "^4.11.0",
     "chrome-launcher": "^1.2.1",
     "lighthouse": "^13.0.1",
+    "markdown-link-check": "^3.14.2",
+    "markdownlint-cli": "^0.46.0",
+    "prettier": "^3.7.4",
+    "puppeteer": "^24.28.0",
     "puppeteer-core": "^24.31.0"
   },
   "pnpm": {
@@ -30,5 +35,17 @@
       "react": "18.3.1",
       "react-dom": "18.3.1"
     }
-  }
+  },
+  "dependencies": {
+    "@sentry/node": "^10.29.0"
+  },
+  "version": "1.0.0",
+  "description": "--- description: \"README\" ---",
+  "main": ".dependency-cruiser.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

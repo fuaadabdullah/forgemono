@@ -33,8 +33,11 @@ alembic upgrade head
 ### 2. Redis Setup (5 min)
 
 ```bash
+
 # Sign up at upstash.com
+
 # Create Redis database
+
 # Add to .env.production:
 USE_REDIS_CHALLENGES=true
 REDIS_HOST=your-host.upstash.io
@@ -50,21 +53,16 @@ cd apps/goblin-assistant
 ./deploy-backend.sh render  # or fly
 
 # Frontend
-./deploy-frontend.sh
+# Frontend deployment steps are maintained in the frontend repo: apps/goblin-assistant/PRODUCTION_DEPLOYMENT.md.
+# Example: ./deploy-frontend.sh
 
-# Update FRONTEND_URL in backend env vars
-FRONTEND_URL=https://your-production-domain.com
+# Update FRONTEND_URL in backend env vars (after frontend deploy)
+# FRONTEND_URL=https://your-production-domain.com
 ```
 
 ## 🎯 Frontend Security (Production)
 
-Before publishing the frontend:
-
-- [ ] Ensure session tokens are stored in HttpOnly, Secure cookies instead of `localStorage`.
-- [ ] Verify no `VITE_` env contains secrets — only public non-secret config belongs in `VITE_`.
-- [ ] Authenticate SSE/EventSource using cookies or short-lived signed stream tokens — do not pass secrets in URLs.
-- [ ] Add CSP (Content Security Policy) headers and sanitize model outputs if you render HTML from LLM responses.
-- [ ] Verify CORS and allowed origins match the production frontend domain.
+Frontend security and hardening guidance is maintained in the canonical frontend docs: `apps/goblin-assistant/PRODUCTION_DEPLOYMENT.md` and `apps/goblin-assistant/docs/THEME_AND_ACCESSIBILITY_VERIFICATION.md`.
 
 ---
 
@@ -84,19 +82,20 @@ Before deploying, verify:
 ## 🧪 Test Production
 
 ```bash
+
 # Health check
-curl https://your-backend/health
+curl <https://your-backend/health>
 
 # Database
-curl https://your-backend/api/health/db
+curl <https://your-backend/api/health/db>
 
 # Test task execution
-curl -X POST https://your-backend/execute \
+curl -X POST <https://your-backend/execute> \
   -H "Content-Type: application/json" \
   -d '{"goblin": "test-goblin", "task": "test", "dry_run": true}'
 
 # Raptor status
-curl https://your-backend/raptor/status
+curl <https://your-backend/raptor/status>
 ```
 
 ---
@@ -105,8 +104,8 @@ curl https://your-backend/raptor/status
 
 - **Supabase Dashboard**: <https://supabase.com/dashboard>
 - **Upstash Console**: <https://console.upstash.com>
-- **Render Dashboard**: <https://dashboard.render.com>
-- **Netlify Dashboard**: <https://app.netlify.com>
+- **Fly.io Dashboard**: <https://fly.io/dashboard>
+- **Vercel Dashboard**: <https://vercel.com/dashboard>
 
 ---
 

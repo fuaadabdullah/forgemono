@@ -62,11 +62,12 @@ sudo mv argocd /usr/local/bin/
 ### Install Argo CD
 
 ```bash
+
 # Create namespace
 kubectl create namespace argocd
 
 # Install Argo CD
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -n argocd -f <https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml>
 
 # Wait for pods to be ready
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s
@@ -85,6 +86,7 @@ kubectl rollout restart deployment argocd-repo-server -n argocd
 ### Access Argo CD UI
 
 ```bash
+
 # Port forward
 kubectl port-forward svc/argocd-server -n argocd 8080:443
 
@@ -92,7 +94,7 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 argocd admin initial-password -n argocd
 
 # Open browser
-open https://localhost:8080
+open <https://localhost:8080>
 
 # Login (username: admin, password from above)
 argocd login localhost:8080
@@ -109,6 +111,7 @@ argocd account update-password
 ### Deploy Overmind Dev Environment
 
 ```bash
+
 # Apply Application manifest
 kubectl apply -f infra/gitops/applications/overmind-dev.yaml
 
@@ -142,6 +145,7 @@ argocd app get overmind-prod --refresh
 **File:** `applications/overmind-dev.yaml`
 
 ```yaml
+
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -150,17 +154,18 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/your-org/ForgeMonorepo.git
+    repoURL: <https://github.com/your-org/ForgeMonorepo.git>
     targetRevision: main
     path: infra/overlays/dev
   destination:
-    server: https://kubernetes.default.svc
+    server: <https://kubernetes.default.svc>
     namespace: overmind-dev
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
+
     - CreateNamespace=true
 ```
 
@@ -198,6 +203,7 @@ spec:
 **File:** `argocd/argocd-repo-server-ksops-patch.yaml`
 
 ```yaml
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -207,37 +213,48 @@ spec:
   template:
     spec:
       volumes:
+
       - name: custom-tools
         emptyDir: {}
+
       - name: sops-age
         secret:
           secretName: sops-age
       initContainers:
+
       - name: install-ksops
         image: viaductoss/ksops:v4.3.2
         command: ["/bin/sh", "-c"]
         args:
+
         - echo "Installing KSOPS...";
           cp ksops /custom-tools/;
           cp $GOPATH/bin/kustomize /custom-tools/;
           echo "Done.";
         volumeMounts:
+
         - mountPath: /custom-tools
           name: custom-tools
       containers:
+
       - name: argocd-repo-server
         volumeMounts:
+
         - mountPath: /usr/local/bin/ksops
           name: custom-tools
           subPath: ksops
+
         - mountPath: /usr/local/bin/kustomize
           name: custom-tools
           subPath: kustomize
+
         - mountPath: /home/argocd/.config/sops/age
           name: sops-age
         env:
+
         - name: XDG_CONFIG_HOME
           value: /home/argocd/.config
+
         - name: SOPS_AGE_KEY_FILE
           value: /home/argocd/.config/sops/age/keys.txt
 ```
@@ -259,6 +276,7 @@ kubectl get secret sops-age -n argocd
 Use sync waves to control deployment order:
 
 ```yaml
+
 apiVersion: v1
 kind: Secret
 metadata:
@@ -293,9 +311,9 @@ metadata:
   name: argocd-cm
   namespace: argocd
 data:
-  resource.customizations: |
+  resource.customizations: | 
     apps/Deployment:
-      health.lua: |
+      health.lua: | 
         hs = {}
         if obj.status ~= nil then
           if obj.status.availableReplicas == obj.spec.replicas then
@@ -322,6 +340,7 @@ data:
 For managing multiple environments with less duplication:
 
 ```yaml
+
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -329,11 +348,14 @@ metadata:
   namespace: argocd
 spec:
   generators:
+
   - list:
       elements:
+
       - env: dev
         revision: main
         namespace: overmind-dev
+
       - env: prod
         revision: release/v1.0
         namespace: overmind-prod
@@ -343,11 +365,11 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/your-org/ForgeMonorepo.git
+        repoURL: <https://github.com/your-org/ForgeMonorepo.git>
         targetRevision: '{{revision}}'
         path: 'infra/overlays/{{env}}'
       destination:
-        server: https://kubernetes.default.svc
+        server: <https://kubernetes.default.svc>
         namespace: '{{namespace}}'
       syncPolicy:
         automated:
@@ -373,28 +395,30 @@ argocd app rollback overmind-prod 0  # Latest
 ### Via UI
 
 1. Navigate to application
-2. Click "History and Rollback"
-3. Select previous successful sync
-4. Click "Rollback"
+1. Click "History and Rollback"
+1. Select previous successful sync
+1. Click "Rollback"
 
 ## Notifications
 
 ### Slack Integration
 
 ```yaml
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-notifications-cm
   namespace: argocd
 data:
-  service.slack: |
+  service.slack: | 
     token: $slack-token
-  template.app-deployed: |
-    message: |
+  template.app-deployed: | 
+    message: | 
       Application {{.app.metadata.name}} deployed to {{.app.spec.destination.namespace}}
       Revision: {{.app.status.sync.revision}}
-  trigger.on-deployed: |
+  trigger.on-deployed: | 
+
     - when: app.status.operationState.phase in ['Succeeded']
       send: [app-deployed]
 ```
@@ -402,13 +426,13 @@ data:
 ## Best Practices
 
 1. **Use Git as source of truth** - All changes via Git commits
-2. **Enable auto-sync cautiously** - Start manual, automate when confident
-3. **Use sync waves** - Control deployment order
-4. **Encrypt secrets with SOPS** - Never commit plain secrets
-5. **Monitor sync status** - Set up alerts for failed syncs
-6. **Use ApplicationSets** - Reduce duplication across environments
-7. **Tag production releases** - Use semantic versioning
-8. **Test in dev first** - Validate changes before production
+1. **Enable auto-sync cautiously** - Start manual, automate when confident
+1. **Use sync waves** - Control deployment order
+1. **Encrypt secrets with SOPS** - Never commit plain secrets
+1. **Monitor sync status** - Set up alerts for failed syncs
+1. **Use ApplicationSets** - Reduce duplication across environments
+1. **Tag production releases** - Use semantic versioning
+1. **Test in dev first** - Validate changes before production
 
 ## Monitoring
 
@@ -445,6 +469,7 @@ kubectl logs -n overmind-dev deployment/overmind-api
 ### "Sync failed: SOPS decryption error"
 
 ```bash
+
 # Verify age key secret exists
 kubectl get secret sops-age -n argocd
 
