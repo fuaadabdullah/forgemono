@@ -1,5 +1,4 @@
 # Exclude backend API code from Vercel deployment
-backend-api/
 backend/
 requirements.txt
 fly.toml

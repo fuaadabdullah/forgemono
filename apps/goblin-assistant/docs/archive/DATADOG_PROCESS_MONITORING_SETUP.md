@@ -165,7 +165,7 @@ service:goblin-assistant AND env:production
 service:goblin-assistant AND component:backend
 
 # By container
-service:goblin-assistant AND container_name:goblin-backend-api
+service:goblin-assistant AND container_name:goblin-backend
 ```
 
 ## 🎓 Key Concepts
