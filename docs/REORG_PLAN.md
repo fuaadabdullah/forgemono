@@ -1,3 +1,26 @@
+## Repo Reorganization Plan (short-term)
+
+This document records the initial changes performed to consolidate the monorepo and improve security and stability.
+
+What was done (2025-12-11):
+- Added .gitignore patterns to ignore database files, redis dumps, logs, and backups.
+- Archived sensitive files into `.archive/removed-secrets/` and removed them from Git tracking.
+- Created `docs/` structure and moved a subset of root-level documentation into the canonical `docs/` folders (deployments, automation, integrations, systems).
+- Consolidated deployment scripts by moving root-level deploy scripts into `scripts/deploy/`.
+- Archived `apps/goblin-assistant/backend-api/` to `apps/goblin-assistant/backend-api-archive-20251211/` and added a README redirect to the canonical `backend/` folder.
+
+Next steps / Recommendations:
+1. Perform a duplicate-content review between `backend/` and the archived `backend-api-archive-20251211/` and merge any functional differences into `backend/`.
+2. Update any CI/CD references or environment configurations that point to `backend-api` to use `backend/`.
+3. Migrate any required deploy scripts into `infra/deployments/*` or `scripts/deploy/` with clear platform-level directories (e.g. `scripts/deploy/kamatera`, `scripts/deploy/fly`, `scripts/deploy/vercel`).
+4. Schedule a Git history cleaning (BFG/git-filter-repo) to remove secrets that were previously committed. This is a sensitive operation and must be handled carefully.
+5. Add more symbolic redirect stubs at the old locations during a 2-week migration window.
+
+If you need assistance executing steps 1 or 4 above, ask for a separate migration plan and we'll implement it with tests to confirm nothing breaks.
+
+---
+
+This is a living document. Update as the reorganization progresses.
 ---
 description: "REORG_PLAN"
 ---
