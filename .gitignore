@@ -51,3 +51,16 @@ artifacts/
 # Local Netlify folder
 .netlify
 .vercel
+
+# Additional cleanup / sensitive files
+dump.rdb
+*.rdb
+.env.backup
+*.report.*
+lighthouse-report.*
+*.bak
+*.old
+*.moved-*
+
+# Local archive for removed secrets (ignored so files can be moved here temporarily)
+.archive/
