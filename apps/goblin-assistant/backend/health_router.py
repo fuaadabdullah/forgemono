@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, text
 import os
 import httpx
 import socket
@@ -12,8 +12,387 @@ from datetime import datetime, timedelta
 
 from database import get_db
 from models.routing import ProviderMetric, RoutingProvider
+from config import settings
+
+# Import auth components for health checks
+try:
+    from auth.challenge_store import get_challenge_store_instance
+
+    challenge_store_available = True
+except ImportError:
+    challenge_store_available = False
+
+# Import session cache for health checks
+try:
+    from cache.session_cache import get_session_cache
+
+    session_cache_available = True
+except ImportError:
+    session_cache_available = False
+
+# Import LLM adapters for health checks
+try:
+    from providers.ollama_adapter import OllamaAdapter
+    from providers.openai_adapter import OpenAIAdapter
+    from providers.anthropic_adapter import AnthropicAdapter
+    from providers.grok_adapter import GrokAdapter
+    from providers.deepseek_adapter import DeepSeekAdapter
+except ImportError:
+    # Adapters may not be available in all environments
+    OllamaAdapter = None
+    OpenAIAdapter = None
+    AnthropicAdapter = None
+    GrokAdapter = None
+    DeepSeekAdapter = None
+
+
+async def check_database_health(db_url: str) -> Dict[str, Any]:
+    """Perform comprehensive database health check."""
+    try:
+        # Parse database URL
+        if db_url.startswith("postgres") or db_url.startswith("postgresql"):
+            # PostgreSQL connection
+            import re
+
+            m = re.search(r"@([\w\-\.]+)(?::(\d+))?", db_url)
+            if m:
+                host = m.group(1)
+                port = int(m.group(2)) if m.group(2) else 5432
+
+                # Test TCP connectivity
+                s = socket.socket()
+                s.settimeout(5)
+                s.connect((host, port))
+                s.close()
+
+                # Test actual database connection and query
+                db = next(get_db())
+                try:
+                    # Simple query to test database connectivity
+                    result = db.execute(text("SELECT 1 as health_check")).fetchone()
+                    db.close()
+
+                    if result and result[0] == 1:
+                        return {
+                            "status": "healthy",
+                            "type": "postgresql",
+                            "host": host,
+                            "port": port,
+                            "connection_test": "passed",
+                            "query_test": "passed",
+                        }
+                    else:
+                        return {
+                            "status": "degraded",
+                            "type": "postgresql",
+                            "host": host,
+                            "port": port,
+                            "connection_test": "passed",
+                            "query_test": "failed",
+                        }
+                except Exception as e:
+                    db.close()
+                    return {
+                        "status": "degraded",
+                        "type": "postgresql",
+                        "host": host,
+                        "port": port,
+                        "connection_test": "passed",
+                        "query_test": "failed",
+                        "error": str(e),
+                    }
+            else:
+                return {
+                    "status": "unhealthy",
+                    "error": "Could not parse PostgreSQL URL",
+                }
+        else:
+            return {"status": "unhealthy", "error": "Unsupported database type"}
+
+    except socket.timeout:
+        return {"status": "unhealthy", "error": "Database connection timeout"}
+    except socket.gaierror:
+        return {"status": "unhealthy", "error": "Database host resolution failed"}
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": f"Database health check failed: {str(e)}",
+        }
+
+
+async def check_llm_provider_health(
+    provider_name: str, api_key: str, base_url: str
+) -> Dict[str, Any]:
+    """Perform comprehensive health check for LLM provider."""
+    try:
+        if provider_name.lower() == "ollama" and OllamaAdapter:
+            # Test Ollama connectivity with detailed checks
+            adapter = OllamaAdapter(api_key, base_url)
+            models = await adapter.list_models()
+
+            if models and len(models) > 0:
+                # Test a simple inference call to verify functionality
+                test_model = models[0].get("id", "")
+                if test_model:
+                    try:
+                        # Quick test with minimal tokens to verify inference works
+                        test_response = await adapter.chat(
+                            model=test_model,
+                            messages=[{"role": "user", "content": "Hello"}],
+                            max_tokens=5,
+                            temperature=0.0,
+                        )
+                        if test_response and len(test_response.strip()) > 0:
+                            return {
+                                "status": "healthy",
+                                "models_available": len(models),
+                                "sample_models": [m.get("id", "") for m in models[:3]],
+                                "inference_test": "passed",
+                                "response_time_ms": None,  # Could add timing here
+                            }
+                        else:
+                            return {
+                                "status": "degraded",
+                                "models_available": len(models),
+                                "inference_test": "failed",
+                                "error": "Empty response from inference test",
+                            }
+                    except Exception as e:
+                        return {
+                            "status": "degraded",
+                            "models_available": len(models),
+                            "inference_test": "failed",
+                            "error": f"Inference test failed: {str(e)}",
+                        }
+                else:
+                    return {
+                        "status": "degraded",
+                        "models_available": len(models),
+                        "inference_test": "skipped",
+                        "error": "No valid model ID found",
+                    }
+            else:
+                return {"status": "unhealthy", "error": "No models available"}
+
+        elif provider_name.lower() == "openai" and OpenAIAdapter:
+            # Test OpenAI connectivity with models list and basic inference
+            adapter = OpenAIAdapter(api_key, base_url)
+            models = await adapter.list_models()
+
+            if models and len(models) > 0:
+                # Test inference with a simple model
+                try:
+                    test_response = await adapter.chat(
+                        model="gpt-3.5-turbo",
+                        messages=[{"role": "user", "content": "Hello"}],
+                        max_tokens=5,
+                        temperature=0.0,
+                    )
+                    return {
+                        "status": "healthy",
+                        "models_available": len(models),
+                        "inference_test": "passed",
+                    }
+                except Exception as e:
+                    return {
+                        "status": "degraded",
+                        "models_available": len(models),
+                        "inference_test": "failed",
+                        "error": str(e),
+                    }
+            else:
+                return {"status": "unhealthy", "error": "No models available"}
+
+        elif provider_name.lower() == "anthropic" and AnthropicAdapter:
+            # Test Anthropic connectivity
+            adapter = AnthropicAdapter(api_key, base_url)
+            try:
+                # Test with Claude model
+                test_response = await adapter.chat(
+                    model="claude-3-haiku-20240307",
+                    messages=[{"role": "user", "content": "Hello"}],
+                    max_tokens=5,
+                    temperature=0.0,
+                )
+                return {"status": "healthy", "inference_test": "passed"}
+            except Exception as e:
+                return {"status": "unhealthy", "error": str(e)}
+
+        else:
+            # Fallback to basic HTTP connectivity test
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(f"{base_url}/health", timeout=5)
+                if response.status_code < 400:
+                    return {"status": "healthy", "http_status": response.status_code}
+                else:
+                    return {"status": "unhealthy", "http_status": response.status_code}
+
+    except httpx.TimeoutException:
+        return {"status": "unhealthy", "error": "Request timeout"}
+    except httpx.ConnectError:
+        return {"status": "unhealthy", "error": "Connection failed"}
+    except Exception as e:
+        return {"status": "unhealthy", "error": f"Health check failed: {str(e)}"}
+
 
 router = APIRouter(prefix="/health", tags=["health"])
+
+
+class ComprehensiveHealthResponse(BaseModel):
+    """Comprehensive health check response with environment awareness"""
+
+    status: str  # 'healthy', 'degraded', 'unhealthy'
+    timestamp: str
+    environment: str
+    components: Dict[str, Any]
+
+
+@router.get("/", response_model=ComprehensiveHealthResponse)
+async def comprehensive_health_check(db: Session = Depends(get_db)):
+    """
+    Comprehensive health check with environment-aware status reporting.
+
+    Checks critical components: Redis, database, auth routes, and environment safety.
+    """
+    checks = {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "environment": settings.environment,
+        "components": {},
+    }
+
+    # Redis/Challenge Store check
+    if challenge_store_available:
+        try:
+            challenge_store = get_challenge_store_instance()
+            redis_health = await challenge_store.health_check()
+
+            checks["components"]["redis"] = {
+                "status": "healthy" if redis_health["redis_available"] else "degraded",
+                "fallback_active": redis_health["fallback_mode"],
+                "safe_for_environment": redis_health["safe_for_production"],
+            }
+
+            # Alert on fallback in production multi-instance
+            if redis_health["fallback_mode"] and settings.should_alert_on_fallback:
+                checks["components"]["redis"]["alert"] = (
+                    "CRITICAL: Memory fallback active in production multi-instance"
+                )
+
+        except Exception as e:
+            checks["components"]["redis"] = {"status": "unhealthy", "error": str(e)}
+            checks["status"] = "unhealthy"
+    else:
+        checks["components"]["redis"] = {
+            "status": "unhealthy",
+            "error": "Challenge store not available",
+        }
+        checks["status"] = "unhealthy"
+
+    # Session Cache check
+    if session_cache_available:
+        try:
+            session_cache = get_session_cache()
+            cache_health = session_cache.health_check()
+
+            checks["components"]["session_cache"] = {
+                "status": "healthy" if cache_health["available"] else "degraded",
+                "memory_used": cache_health.get("memory_used", "unknown"),
+                "session_cache_ttl": cache_health.get("session_cache_ttl", "unknown"),
+            }
+
+        except Exception as e:
+            checks["components"]["session_cache"] = {
+                "status": "unhealthy",
+                "error": str(e),
+            }
+            checks["status"] = "unhealthy"
+    else:
+        checks["components"]["session_cache"] = {
+            "status": "unhealthy",
+            "error": "Session cache not available",
+        }
+        checks["status"] = "unhealthy"
+
+    # Database check
+    try:
+        # Simple connectivity test
+        result = db.execute(text("SELECT 1")).fetchone()
+        if result:
+            checks["components"]["database"] = {"status": "healthy"}
+        else:
+            checks["components"]["database"] = {
+                "status": "degraded",
+                "message": "Database query returned no results",
+            }
+    except Exception as e:
+        checks["components"]["database"] = {"status": "unhealthy", "error": str(e)}
+        checks["status"] = "unhealthy"
+
+    # Auth routes check
+    try:
+        from main import app  # Import the main FastAPI app
+
+        auth_routes = [
+            r for r in app.routes if hasattr(r, "path") and r.path.startswith("/auth")
+        ]
+        checks["components"]["auth_routes"] = {
+            "status": "healthy" if len(auth_routes) > 0 else "unhealthy",
+            "count": len(auth_routes),
+            "routes": [r.path for r in auth_routes[:5]],  # Show first 5 routes
+        }
+        if len(auth_routes) == 0:
+            checks["status"] = "unhealthy"
+    except Exception as e:
+        checks["components"]["auth_routes"] = {
+            "status": "unhealthy",
+            "error": f"Failed to check routes: {str(e)}",
+        }
+        checks["status"] = "unhealthy"
+
+    # Configuration validation
+    config_issues = []
+    if settings.is_production and not settings.database_url:
+        config_issues.append("DATABASE_URL required in production")
+
+    if (
+        settings.is_production
+        and settings.allow_memory_fallback
+        and settings.is_multi_instance
+    ):
+        config_issues.append("Memory fallback not allowed in multi-instance production")
+
+    checks["components"]["configuration"] = {
+        "status": "healthy" if not config_issues else "unhealthy",
+        "issues": config_issues,
+        "environment": settings.environment,
+        "multi_instance": settings.is_multi_instance,
+    }
+
+    if config_issues:
+        checks["status"] = "unhealthy"
+
+    # Overall status determination
+    component_statuses = [
+        c.get("status", "unknown") for c in checks["components"].values()
+    ]
+
+    if "unhealthy" in component_statuses:
+        checks["status"] = "unhealthy"
+    elif "degraded" in component_statuses:
+        checks["status"] = "degraded"
+    # Otherwise remains 'healthy'
+
+    return checks
+
+
+@router.get("/health", response_model=ComprehensiveHealthResponse)
+async def simple_health_check(db: Session = Depends(get_db)):
+    """
+    Simple health check endpoint for load balancers and monitoring systems.
+    Same as comprehensive check but accessible at /health path.
+    """
+    return await comprehensive_health_check(db)
 
 
 class HealthCheckResponse(BaseModel):
@@ -49,6 +428,12 @@ class SandboxStatusResponse(BaseModel):
     last_check: str
 
 
+class SchedulerStatusResponse(BaseModel):
+    status: str
+    jobs: List[Dict[str, Any]]
+    last_check: str
+
+
 class CostTrackingResponse(BaseModel):
     total_cost: float
     cost_today: float
@@ -78,41 +463,10 @@ async def health_all():
     """Perform full health checks: database, vector DB, and providers"""
     checks: Dict[str, Any] = {}
 
-    # DB check (Supabase / Postgres)
+    # DB check with comprehensive testing
     db_url = os.getenv("DATABASE_URL") or os.getenv("SUPABASE_URL")
     if db_url:
-        try:
-            # Simple TCP connect test for DB host:port
-            # Accept URL formats: postgres://user:pass@host:port/db
-            host = None
-            port = None
-            if db_url.startswith("postgres") or db_url.startswith("postgresql"):
-                # parse host and port
-                import re
-
-                m = re.search(r"@([\w\-\.]+)(?::(\d+))?", db_url)
-                if m:
-                    host = m.group(1)
-                    port = int(m.group(2)) if m.group(2) else 5432
-            else:
-                # If SUPABASE_URL is given (https), try TCP connect to its host/443
-                parsed = urllib.parse.urlparse(db_url)
-                host = parsed.hostname
-                port = parsed.port or (443 if parsed.scheme == "https" else 80)
-
-            if host:
-                s = socket.socket()
-                s.settimeout(2)
-                s.connect((host, port))
-                s.close()
-                checks["database"] = {"status": "healthy", "host": host, "port": port}
-            else:
-                checks["database"] = {
-                    "status": "skipped",
-                    "reason": "Could not parse database URL",
-                }
-        except Exception as e:
-            checks["database"] = {"status": "unhealthy", "error": str(e)}
+        checks["database"] = await check_database_health(db_url)
     else:
         checks["database"] = {
             "status": "skipped",
@@ -125,7 +479,13 @@ async def health_all():
         if not chroma_path:
             # default path in repo
             chroma_path = os.path.join(
-                os.path.dirname(__file__), "..", "..", "chroma_db", "chroma.sqlite3"
+                os.path.dirname(__file__),
+                "..",
+                "..",
+                "data",
+                "vector",
+                "chroma",
+                "chroma.sqlite3",
             )
         chroma_file = pathlib.Path(chroma_path).resolve()
         if chroma_file.exists():
@@ -164,31 +524,47 @@ async def health_all():
     except Exception as e:
         checks["vector_db"] = {"status": "unhealthy", "error": str(e)}
 
-    # Providers check (basic connectivity)
+    # Providers check (enhanced with detailed LLM testing)
     providers = []
     try:
         providers_config = [
+            {
+                "name": "Ollama (Kamatera)",
+                "env_key": "KAMATERA_LLM_API_KEY",
+                "base_url": os.getenv("KAMATERA_LLM_URL", "http://66.55.77.147:8000"),
+                "is_primary": True,
+            },
+            {
+                "name": "Ollama (Local)",
+                "env_key": "OLLAMA_API_KEY",
+                "base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+                "is_primary": False,
+            },
             {
                 "name": "Anthropic",
                 "env_key": "ANTHROPIC_API_KEY",
                 "base_url": os.getenv(
                     "ANTHROPIC_BASE_URL", "https://api.anthropic.com"
                 ),
+                "is_primary": False,
             },
             {
                 "name": "OpenAI",
                 "env_key": "OPENAI_API_KEY",
                 "base_url": os.getenv("OPENAI_BASE_URL", "https://api.openai.com"),
+                "is_primary": False,
             },
             {
                 "name": "Groq",
                 "env_key": "GROQ_API_KEY",
                 "base_url": os.getenv("GROQ_BASE_URL", "https://api.groq.com"),
+                "is_primary": False,
             },
             {
                 "name": "DeepSeek",
                 "env_key": "DEEPSEEK_API_KEY",
                 "base_url": os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.ai"),
+                "is_primary": False,
             },
             {
                 "name": "Gemini",
@@ -196,43 +572,60 @@ async def health_all():
                 "base_url": os.getenv(
                     "GEMINI_BASE_URL", "https://generative.googleapis.com"
                 ),
+                "is_primary": False,
             },
         ]
 
-        async with httpx.AsyncClient(timeout=3) as client:
-            for p in providers_config:
-                # Allow explicit disabling per-provider via <PROVIDER>_ENABLED env var (false/0/no -> disabled)
-                enabled_override = os.getenv(f"{p['name'].upper()}_ENABLED")
-                if enabled_override is not None and enabled_override.lower() in (
-                    "0",
-                    "false",
-                    "no",
-                ):
-                    result = {"enabled": False}
-                    providers.append({p["name"]: result})
-                    continue
-
-                key = os.getenv(p["env_key"]) if p["env_key"] else None
-                result = {"enabled": bool(key)}
-                if key:
-                    try:
-                        # Try DNS resolution first
-                        parsed = urllib.parse.urlparse(p["base_url"])
-                        dns_host = parsed.hostname
-                        try:
-                            socket.getaddrinfo(dns_host, 0)
-                        except Exception as de:
-                            raise Exception(f"DNS lookup failed for {dns_host}: {de}")
-                        # Try a lightweight request to the base_url
-                        r = await client.get(p["base_url"], timeout=3)
-                        result["status_code"] = r.status_code
-                        result["status"] = (
-                            "reachable" if r.status_code < 400 else "unreachable"
-                        )
-                    except Exception as e:
-                        result["status"] = "unreachable"
-                        result["error"] = str(e)
+        for p in providers_config:
+            # Allow explicit disabling per-provider via <PROVIDER>_ENABLED env var (false/0/no -> disabled)
+            enabled_override = os.getenv(
+                f"{p['name'].upper().replace(' ', '_').replace('(', '').replace(')', '')}_ENABLED"
+            )
+            if enabled_override is not None and enabled_override.lower() in (
+                "0",
+                "false",
+                "no",
+            ):
+                result = {
+                    "enabled": False,
+                    "is_primary": p.get("is_primary", False),
+                }
                 providers.append({p["name"]: result})
+                continue
+
+            key = os.getenv(p["env_key"]) if p["env_key"] else None
+            result = {
+                "enabled": bool(key),
+                "is_primary": p.get("is_primary", False),
+            }
+
+            if key:
+                try:
+                    # Enhanced LLM provider health check
+                    provider_health = await check_llm_provider_health(
+                        p["name"].split()[0],
+                        key,
+                        p[
+                            "base_url"
+                        ],  # Extract provider name (e.g., "Ollama" from "Ollama (Kamatera)")
+                    )
+                    result.update(provider_health)
+
+                    # Mark as healthy only if both connectivity and inference work
+                    if provider_health.get("status") == "healthy":
+                        result["status"] = "healthy"
+                    elif provider_health.get("status") == "degraded":
+                        result["status"] = "degraded"
+                    else:
+                        result["status"] = "unhealthy"
+
+                except Exception as e:
+                    result["status"] = "unhealthy"
+                    result["error"] = str(e)
+            else:
+                result["status"] = "disabled"
+
+            providers.append({p["name"]: result})
 
         checks["providers"] = providers
     except Exception as e:
@@ -265,7 +658,13 @@ async def get_chroma_status():
         chroma_path = os.getenv("CHROMA_DB_PATH")
         if not chroma_path:
             chroma_path = os.path.join(
-                os.path.dirname(__file__), "..", "..", "chroma_db", "chroma.sqlite3"
+                os.path.dirname(__file__),
+                "..",
+                "..",
+                "data",
+                "vector",
+                "chroma",
+                "chroma.sqlite3",
             )
 
         chroma_file = pathlib.Path(chroma_path).resolve()
@@ -391,7 +790,7 @@ async def get_sandbox_status():
 
         # Try Redis-backed task queue
         try:
-            from task_queue import get_task_meta
+            from celery_task_queue import get_task_meta
             import redis
 
             REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -434,6 +833,25 @@ async def get_sandbox_status():
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to get sandbox status: {str(e)}"
+        )
+
+
+@router.get("/scheduler/status", response_model=SchedulerStatusResponse)
+async def get_scheduler_status():
+    """Get APScheduler status and job information"""
+    try:
+        from scheduler import get_scheduler_status
+
+        scheduler_info = get_scheduler_status()
+
+        return SchedulerStatusResponse(
+            status=scheduler_info.get("status", "unknown"),
+            jobs=scheduler_info.get("jobs", []),
+            last_check=datetime.now().isoformat(),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get scheduler status: {str(e)}"
         )
 
 

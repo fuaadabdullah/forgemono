@@ -37,7 +37,7 @@ Please update any references or links to point to the new location.
 - [ ] Set backend timeout (60s recommended)
 - [ ] Add rate limiting middleware
 - [ ] Configure structured logging (JSON)
-- [ ] Set up monitoring/alerting (Datadog, Sentry)
+- [ ] Set up monitoring/alerting (Sentry)
 - [ ] Verify all `VITE_*` env vars in frontend `.env.production`
 - [ ] Verify all backend env vars in `backend/.env` or secrets manager
 - [ ] Test API keys (OpenAI, Anthropic, etc.) are valid
@@ -74,7 +74,6 @@ GROK_API_KEY=...
 
 # Optional but recommended
 SENTRY_DSN=...
-DATADOG_API_KEY=...
 LOG_LEVEL=INFO
 PORT=8001
 ```
@@ -96,7 +95,7 @@ gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker \
 # Build
 npm run build
 
-# Serve with static server (or deploy to Vercel/Netlify)
+# Serve with static server (or deploy to Vercel)
 npx serve -s dist -l 3000
 ```
 
@@ -170,7 +169,7 @@ npx serve -s dist -l 3000
 
 1. **Immediate**: Update CORS configuration for production domains
 2. **High Priority**: Add rate limiting and structured logging
-3. **Medium Priority**: Set up monitoring/alerting (Datadog, Sentry)
+3. **Medium Priority**: Set up monitoring/alerting (Sentry)
 4. **Before Deploy**: Run full integration test suite
 5. **Post-Deploy**: Monitor error rates and latency in first 24h
 

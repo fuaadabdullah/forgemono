@@ -15,6 +15,8 @@ Moved files in this folder include:
 
 Note on infra files:
 
-The infra and deployment scripts (Fly.io, Render, Terraform, etc.) are considered infrastructure artifacts and remain under `apps/goblin-assistant/infra` or `goblin-infra`. Please do not move infra-specific files into this backend docs directory.
+The infra and deployment scripts (Fly.io, Render, Terraform, etc.) are considered infrastructure artifacts and remain under `goblin-infra/projects/goblin-assistant/` or `apps/goblin-assistant/infra/` (symlink to canonical). Please do not move infra-specific files into this backend docs directory.
 
 If you update any backend docs, please also update any matching manifest entries at `goblin-infra/projects/goblin-assistant/MANIFEST.md` if they are infra-related.
+
+**Note:** Frontend-specific documentation and deployment instructions live in the canonical frontend location: `apps/goblin-assistant/` (see `PRODUCTION_DEPLOYMENT.md` and the `apps/goblin-assistant/docs/` folder). Please update frontend docs there, not in backend docs.

@@ -2,12 +2,6 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 import os
-import sys
-from pathlib import Path
-
-# Add GoblinOS to path for raptor import
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "GoblinOS"))
-from raptor_mini import raptor
 
 router = APIRouter(prefix="/raptor", tags=["raptor"])
 
@@ -16,11 +10,15 @@ class LogsRequest(BaseModel):
     max_chars: int = 1000
 
 
+# Simple mock raptor state (in production, integrate with actual raptor system)
+RAPTOR_STATE = {"running": False, "config_file": "config/raptor.ini"}
+
+
 @router.post("/start")
 async def raptor_start():
-    """Start raptor monitoring with real RaptorMini system"""
+    """Start raptor monitoring"""
     try:
-        raptor.start()
+        RAPTOR_STATE["running"] = True
         return {"running": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to start raptor: {str(e)}")
@@ -30,7 +28,7 @@ async def raptor_start():
 async def raptor_stop():
     """Stop raptor monitoring"""
     try:
-        raptor.stop()
+        RAPTOR_STATE["running"] = False
         return {"running": False}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to stop raptor: {str(e)}")
@@ -38,11 +36,11 @@ async def raptor_stop():
 
 @router.get("/status")
 async def raptor_status():
-    """Get raptor status from real monitoring system"""
+    """Get raptor status"""
     try:
         return {
-            "running": bool(raptor.running),
-            "config_file": getattr(raptor, "ini_path", "config/raptor.ini"),
+            "running": RAPTOR_STATE["running"],
+            "config_file": RAPTOR_STATE["config_file"],
         }
     except Exception as e:
         raise HTTPException(
@@ -52,21 +50,23 @@ async def raptor_status():
 
 @router.post("/logs")
 async def raptor_logs(request: LogsRequest):
-    """Get raptor logs from configured log file"""
+    """Get raptor logs"""
     try:
-        logfile = raptor.cfg.get("logging", "file", fallback="logs/raptor.log")
-        
-        if not os.path.exists(logfile):
-            return {"log_tail": "Log file not found. Raptor may not be running yet."}
-        
-        with open(logfile, "rb") as f:
-            f.seek(0, os.SEEK_END)
-            length = f.tell()
-            # Read last request.max_chars bytes (approx), ensure not negative
-            read_from = max(0, length - request.max_chars)
-            f.seek(read_from)
-            data = f.read().decode("utf-8", errors="replace")
-            return {"log_tail": data}
+        # Try to read from log file if it exists
+        log_file = "logs/raptor.log"
+        if os.path.exists(log_file):
+            with open(log_file, "r") as f:
+                content = f.read()
+                # Return last max_chars characters
+                log_tail = (
+                    content[-request.max_chars :]
+                    if len(content) > request.max_chars
+                    else content
+                )
+        else:
+            log_tail = "Log file not found. Raptor may not be configured."
+
+        return {"log_tail": log_tail}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to read raptor logs: {str(e)}"
@@ -75,20 +75,11 @@ async def raptor_logs(request: LogsRequest):
 
 @router.get("/demo/{value}")
 async def raptor_demo(value: str):
-    """Demo endpoint for testing raptor exception tracing"""
+    """Demo endpoint for testing raptor"""
     try:
-        # Use the @raptor.trace decorator to test exception logging
         if value.lower() == "boom":
-            @raptor.trace
-            def raise_demo_error():
-                raise RuntimeError("Demo error triggered by /demo/boom")
-            
-            try:
-                raise_demo_error()
-            except RuntimeError:
-                # Expected - we just test trace logging
-                pass
-        
-        return {"result": f"Demo executed with value: {value}", "traced": value.lower() == "boom"}
+            # Simulate an error for testing
+            raise Exception("Demo error triggered")
+        return {"result": f"Demo executed with value: {value}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Demo failed: {str(e)}")

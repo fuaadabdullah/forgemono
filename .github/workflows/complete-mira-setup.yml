@@ -1,0 +1,44 @@
+# .github/workflows/complete-mira-setup.yml
+name: Complete Mira Integration
+
+on:
+  workflow_dispatch:  # Manual trigger
+  push:
+    branches: [main]
+    paths: ['mira-linker-config.yml']
+
+jobs:
+  complete-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install requests pyyaml
+
+      - name: Complete Mira setup
+        env:
+          MIRA_API_KEY: ${{ secrets.MIRA_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 .github/scripts/mira_console_automation.py
+
+      - name: Verify setup
+        run: |
+          ./verify_mira_setup.sh
+
+      - name: Create test PR
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          # Create a test PR to verify integration
+          gh pr create \
+            --title "TEST: JIRA-123 Mira Integration Test" \
+            --body "Automated test PR for Mira Linker verification" \
+            --base main \
+            --head test/mira-integration

@@ -32,6 +32,16 @@ jobs:
             ssh-keyscan -H github.com >> ~/.ssh/known_hosts
             ssh-keyscan -H gitlab.com >> ~/.ssh/known_hosts 2>/dev/null || true
       - run:
+          name: Security Check - Monitor .env Files
+          command: |
+            echo "🔍 Running .env file security monitor..."
+            chmod +x ../../../tools/monitor-env-files.sh
+            ../../../tools/monitor-env-files.sh
+            if [ $? -ne 0 ]; then
+              echo "❌ Security violation: Unauthorized .env files found!"
+              exit 1
+            fi
+      - run:
           name: Fetch Production Secrets
           command: ./.circleci/fetch_secrets.sh
       - run:
@@ -46,9 +56,9 @@ jobs:
       - run:
           name: Deploy to Fly.io
           command: |
-            echo "🌐 Deploying to Fly.io..."
-            echo "$FLY_TOKEN" | flyctl auth login --stdin
-            flyctl deploy --remote-only --yes
+            echo "🌐 Deploying to Fly.io using deployment script..."
+            chmod +x ../../scripts/deploy/deploy-backend.sh
+            ../../scripts/deploy/deploy-backend.sh --platform flyio --env production --ci
       - run:
           name: Health Check
           command: |

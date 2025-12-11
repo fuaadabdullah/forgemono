@@ -1,0 +1,92 @@
+name: CI Usage Monitor
+
+on:
+  schedule:
+    # Run daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor-usage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check GitHub Actions usage
+        id: usage
+        run: |
+          # Get current billing period usage
+          response=$(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/runs)
+
+          # Extract included and used minutes
+          included_minutes=$(echo "$response" | jq -r '.total_count // 0')
+          used_minutes=$(echo "$response" | jq -r '.workflow_runs | map(.run_duration_ms // 0) | add // 0' | awk '{print int($1/60000)}')
+
+          # Calculate per-workflow minutes (Documentation CI & Backend CI)
+          docs_minutes=$(echo "$response" | jq -r '.workflow_runs | map(select(.name=="Documentation CI") | .run_duration_ms // 0) | add // 0' | awk '{print int($1/60000)}')
+          backend_minutes=$(echo "$response" | jq -r '.workflow_runs | map(select(.name=="Backend CI") | .run_duration_ms // 0) | add // 0' | awk '{print int($1/60000)}')
+          frontend_minutes=$(echo "$response" | jq -r '.workflow_runs | map(select(.name=="Frontend Deploy (Vercel)" or .name=="Frontend Deploy (Preview)" or .name=="Frontend Deploy (Production)" or .name=="Frontend Deploy (Staging)") | .run_duration_ms // 0) | add // 0' | awk '{print int($1/60000)}')
+
+          echo "included_minutes=$included_minutes" >> $GITHUB_OUTPUT
+          echo "used_minutes=$used_minutes" >> $GITHUB_OUTPUT
+          echo "docs_minutes=$docs_minutes" >> $GITHUB_OUTPUT
+          echo "backend_minutes=$backend_minutes" >> $GITHUB_OUTPUT
+          echo "frontend_minutes=$frontend_minutes" >> $GITHUB_OUTPUT
+
+          # Calculate percentage used
+          if [ "$included_minutes" -gt 0 ]; then
+            percentage=$(( used_minutes * 100 / included_minutes ))
+            echo "percentage=$percentage" >> $GITHUB_OUTPUT
+          else
+            echo "percentage=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send alert if approaching limit
+        if: steps.usage.outputs.percentage >= 80
+        run: |
+          percentage="${{ steps.usage.outputs.percentage }}"
+          used="${{ steps.usage.outputs.used_minutes }}"
+          included="${{ steps.usage.outputs.included_minutes }}"
+
+          echo "⚠️ GitHub Actions usage alert!" >> $GITHUB_STEP_SUMMARY
+          echo "Used: $used minutes ($percentage% of $included minutes)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Consider:" >> $GITHUB_STEP_SUMMARY
+          echo "- Moving checks to pre-commit hooks" >> $GITHUB_STEP_SUMMARY
+          echo "- Reducing visual regression test frequency" >> $GITHUB_STEP_SUMMARY
+          echo "- Optimizing Docker layer caching" >> $GITHUB_STEP_SUMMARY
+          echo "- Adding better path filtering" >> $GITHUB_STEP_SUMMARY
+
+          # Create issue if usage is critical (>90%)
+          if [ "$percentage" -gt 90 ]; then
+            echo "🚨 Critical: Over 90% of monthly minutes used!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Log usage for monitoring
+        run: |
+          echo "GitHub Actions Usage Report" >> usage.log
+          echo "Date: $(date)" >> usage.log
+          echo "Used: ${{ steps.usage.outputs.used_minutes }} minutes" >> usage.log
+          echo "Included: ${{ steps.usage.outputs.included_minutes }} minutes" >> usage.log
+          echo "Percentage: ${{ steps.usage.outputs.percentage }}%" >> usage.log
+          echo "---" >> usage.log
+
+      - name: Generate performance report
+        run: |
+          mkdir -p .ci-monitoring
+          chmod +x scripts/monitoring/monitor_ci_performance.sh
+          ./scripts/monitoring/monitor_ci_performance.sh --report > .ci-monitoring/report.txt
+          echo "\nPer-workflow minutes:" >> .ci-monitoring/report.txt
+          echo "Docs CI minutes: ${{ steps.usage.outputs.docs_minutes }}" >> .ci-monitoring/report.txt
+          echo "Backend CI minutes: ${{ steps.usage.outputs.backend_minutes }}" >> .ci-monitoring/report.txt
+
+      - name: Upload performance report
+        uses: actions/upload-artifact@v3
+        with:
+          name: ci-performance-report
+          path: .ci-monitoring/report.txt
+          retention-days: 30

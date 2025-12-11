@@ -1,0 +1,44 @@
+[Unit]
+Description=Goblin DocQA service
+After=network.target goblin-docqa.socket
+Requires=goblin-docqa.socket
+
+[Service]
+User=docqa
+Group=docqa
+WorkingDirectory=/opt/goblinmini-docqa
+RuntimeDirectory=goblinmini-docqa
+EnvironmentFile=/etc/default/goblin-docqa
+Environment=DOCQA_ROOT=/mnt/allowed
+ExecStart=/opt/goblinmini-docqa/venv/bin/uvicorn app.server:app --uds /run/goblinmini-docqa.sock --workers 1 --log-level info
+# ExecStart can point to a wrapper script that ensures the python env is correct
+Restart=on-failure
+RestartSec=5
+
+# Prevent multiple listener instances using a simple flock-based lock
+PIDFile=/run/goblinmini-docqa.pid
+ExecStartPre=/bin/bash -c 'exec 200>/run/goblinmini-docqa.lock || exit 1'
+ExecStartPre=/bin/bash -c 'flock -n 200 || { echo "Another instance is running"; exit 1; }'
+
+# Resource limits (tune for your VM)
+LimitNOFILE=32768
+MemoryLimit=4G
+CPUQuota=50%
+
+# Enable structured logging to journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=goblin-docqa
+
+[Install]
+WantedBy=multi-user.target
+
+# Security hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/goblinmini-docqa /run/goblinmini-docqa.pid /run/goblinmini-docqa.lock /run/goblinmini-docqa.sock
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

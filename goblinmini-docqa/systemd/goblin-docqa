@@ -1,0 +1,26 @@
+### Production environment file for Goblin Mini DocQA
+# This file should be placed at /etc/default/goblin-docqa
+# Ensure this file is owned by root and readable only by the service user.
+# sudo chown root:root /etc/default/goblin-docqa
+# sudo chmod 640 /etc/default/goblin-docqa
+
+# --- Security Critical ---
+# API token used by the server for requests.
+# Replace this with a securely generated token.
+# Generate one with: python3 -c "import secrets; print(secrets.token_urlsafe(64))"
+DOCQA_TOKEN=YOUR_GENERATED_SECURE_TOKEN_HERE
+
+# Root directory for allowed file access (mounted or local)
+DOCQA_ROOT=/mnt/allowed
+
+# Server port for health checks and metrics
+DOCQA_PORT=9000
+
+# Enable the local model adapter for analysis. Set to false to disable.
+DOCQA_ENABLE_LOCAL_MODEL=true
+
+# --- Performance Tuning ---
+# As per the architecture guide, use a single inference worker to avoid model duplication.
+MAX_INFERENCE_WORKERS=1
+# The bounded queue size for backpressure, as mentioned in the README.
+MAX_QUEUE_SIZE=8

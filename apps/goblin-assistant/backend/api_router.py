@@ -4,9 +4,104 @@ from typing import Optional, Dict, Any
 import uuid
 import asyncio
 import time
+import os
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Stream, StreamChunk, SearchCollection, SearchDocument
+
+# Background task imports
+from fastapi import BackgroundTasks
+import redis
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Redis client for background tasks
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+redis_client = redis.from_url(REDIS_URL)
+
+
+# Background task functions with Redis locking
+def simple_cleanup_task(task_id: str, cleanup_type: str = "general"):
+    """
+    FastAPI background task for simple cleanup operations.
+
+    Uses Redis locking to prevent duplicate execution across instances.
+    Suitable for small, request-triggered cleanup tasks.
+    """
+    lock_key = f"cleanup:{task_id}:{cleanup_type}"
+
+    # Try to acquire Redis lock (60 second TTL)
+    if not redis_client.set(lock_key, "1", nx=True, ex=60):
+        logger.info(f"Cleanup task {task_id} already running, skipping")
+        return
+
+    try:
+        logger.info(f"Starting cleanup task {task_id} (type: {cleanup_type})")
+
+        if cleanup_type == "session":
+            # Clean up expired user sessions
+            _cleanup_expired_sessions()
+        elif cleanup_type == "cache":
+            # Clean up old cache entries
+            _cleanup_old_cache()
+        elif cleanup_type == "logs":
+            # Clean up old log files
+            _cleanup_old_logs()
+        else:
+            # General cleanup
+            _general_cleanup()
+
+        logger.info(f"Completed cleanup task {task_id}")
+
+    except Exception as e:
+        logger.error(f"Error in cleanup task {task_id}: {e}")
+        raise
+    finally:
+        # Always release the lock
+        redis_client.delete(lock_key)
+
+
+def _cleanup_expired_sessions():
+    """Clean up expired user sessions from database."""
+    try:
+        # This would typically clean up expired sessions
+        # For now, just simulate the work
+        time.sleep(0.1)  # Simulate quick database operation
+        logger.debug("Cleaned up expired sessions")
+    except Exception as e:
+        logger.error(f"Session cleanup failed: {e}")
+
+
+def _cleanup_old_cache():
+    """Clean up old cache entries."""
+    try:
+        # This would typically clean up expired cache entries
+        time.sleep(0.05)  # Simulate quick cache cleanup
+        logger.debug("Cleaned up old cache entries")
+    except Exception as e:
+        logger.error(f"Cache cleanup failed: {e}")
+
+
+def _cleanup_old_logs():
+    """Clean up old log files."""
+    try:
+        # This would typically clean up old log files
+        time.sleep(0.02)  # Simulate quick file cleanup
+        logger.debug("Cleaned up old log files")
+    except Exception as e:
+        logger.error(f"Log cleanup failed: {e}")
+
+
+def _general_cleanup():
+    """General cleanup operations."""
+    try:
+        # This would do general maintenance tasks
+        time.sleep(0.01)  # Simulate very quick operation
+        logger.debug("Completed general cleanup")
+    except Exception as e:
+        logger.error(f"General cleanup failed: {e}")
+
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -312,3 +407,77 @@ async def get_orchestration_plan(plan_id: str):
         "total_duration_ms": 1500,
         "created_at": time.time() - 3600,
     }
+
+
+# FastAPI Background Task Endpoints
+
+
+class CleanupRequest(BaseModel):
+    cleanup_type: str = "general"  # "general", "session", "cache", "logs"
+    priority: Optional[str] = "normal"  # "low", "normal", "high"
+
+
+class CleanupResponse(BaseModel):
+    task_id: str
+    status: str
+    cleanup_type: str
+    message: str
+
+
+@router.post("/cleanup", response_model=CleanupResponse)
+async def trigger_cleanup(request: CleanupRequest, background_tasks: BackgroundTasks):
+    """
+    Trigger a background cleanup task with Redis locking.
+
+    This endpoint demonstrates FastAPI background tasks + Redis locks
+    for request-triggered, lightweight cleanup operations.
+
+    The task will run in the background and use Redis locking to prevent
+    duplicate execution across multiple instances.
+    """
+    task_id = str(uuid.uuid4())
+
+    # Add the cleanup task to background tasks
+    background_tasks.add_task(simple_cleanup_task, task_id, request.cleanup_type)
+
+    logger.info(f"Scheduled cleanup task {task_id} (type: {request.cleanup_type})")
+
+    return CleanupResponse(
+        task_id=task_id,
+        status="scheduled",
+        cleanup_type=request.cleanup_type,
+        message="Cleanup task scheduled with Redis locking",
+    )
+
+
+@router.get("/cleanup/status/{task_id}")
+async def get_cleanup_status(task_id: str):
+    """
+    Check if a cleanup task is currently running.
+
+    Returns whether the task is locked (running) or available.
+    """
+    # Check if the task has any active locks
+    lock_keys = redis_client.keys(f"cleanup:{task_id}:*")
+
+    active_locks = []
+    for key in lock_keys:
+        # Check if lock still exists (not expired)
+        if redis_client.exists(key):
+            lock_type = key.decode().split(":")[-1]  # Extract cleanup type from key
+            active_locks.append(lock_type)
+
+    if active_locks:
+        return {
+            "task_id": task_id,
+            "status": "running",
+            "active_cleanup_types": active_locks,
+            "message": f"Task is currently running cleanup types: {', '.join(active_locks)}",
+        }
+    else:
+        return {
+            "task_id": task_id,
+            "status": "available",
+            "active_cleanup_types": [],
+            "message": "Task is not currently running",
+        }

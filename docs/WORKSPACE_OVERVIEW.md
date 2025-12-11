@@ -8,7 +8,7 @@ This monorepo contains GoblinOS (primary platform), infra tooling, utilities, an
 
 ## Structure
 
-- `apps/` — Polyglot applications (Python apps moved to dedicated repositories).
+- `apps/` — Active polyglot applications and projects (Python, Node.js, etc.)
 - `GoblinOS/` — TypeScript/pnpm workspace for the Goblin platform, agents, and automation.
 - `infra/` — Devcontainer, docker-compose, and deployment scaffolding.
 - `tools/` — Dev scripts, release helpers, TUIs.
@@ -93,13 +93,13 @@ See `docs/backend/API_KEYS_STATUS.md`. Checklist:
 
 - Write in Markdown (`.md`)
 - Place docs in the relevant `docs/` subfolder
-- Follow the style in `CONTRIBUTING.md`
+- Follow the style in `docs/development/CONTRIBUTING.md`
 - Submit a PR for review
 
 ### Support / Contact
 
 - For help, open an issue or email `goblinosrep@gmail.com`
-- See `CONTRIBUTING.md` for more support channels
+- See `docs/development/CONTRIBUTING.md` for more support channels
 
 ### Error Handling Strategy (Example)
 

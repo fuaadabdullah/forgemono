@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+LOCKDIR="/tmp/goblinmini-docqa"
+PIDFILE="$LOCKDIR/goblin.pid"
+if [ -f "$PIDFILE" ]; then
+  pid=$(cat "$PIDFILE")
+  echo "Stopping pid $pid"
+  kill "$pid" || true
+  rm -f "$PIDFILE"
+else
+  echo "No PID found. Nothing to stop."
+fi

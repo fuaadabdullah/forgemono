@@ -24,6 +24,40 @@ Cross-repository scripts, generators, and utilities. Ownership per guild/goblin 
 - `comment-out-forge-lite-in-workflows.sh` - Comment out any lines that reference 'forge-lite' in .github/workflows to prevent CI from running on archived content (backs up files).
 - `safe-remove-forge-lite-references.sh` - Conservative, backup-first tool to comment out and/or sanitize remaining references in non-workflow files; review backups before committing.
 
+## AI Tools
+
+Specialized AI-powered tools for development automation and analysis.
+
+### Documentation Quality (`doc-quality/`)
+AI-powered documentation quality analysis and automated checking.
+
+**Features:**
+- Automated quality scoring using advanced language models
+- CI/CD integration with quality gates
+- Batch processing for large documentation sets
+- Detailed reporting and improvement suggestions
+
+**Quick Start:**
+```bash
+cd doc-quality
+python3 doc_quality_check.py --ci --min-score 70
+```
+
+### Raptor Mini (`raptor-mini/`)
+Lightweight AI analysis and diagnostics system.
+
+**Features:**
+- FastAPI-based document analysis API
+- Local deployment with ngrok tunneling
+- CPU/memory monitoring and exception tracing
+- Google Colab integration for cloud deployment
+
+**Quick Start:**
+```bash
+cd raptor-mini
+python3 raptor_mini_local.py
+```
+
 ## Usage
 
 Scripts should be run from the repository root:

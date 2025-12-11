@@ -342,3 +342,9 @@ locust -f backend/tests/load_test.py --host=http://localhost:8001 \
    - Implement API key authentication for sensitive endpoints
    - Add request size limits
    - Enable CORS only for trusted origins
+
+  ### Privacy & Vector DB / RAG (Guidance)
+
+  - Do NOT embed PII or secrets into vector stores (Chroma) or include them in prompts to third-party LLM providers. Sanitize and check consent before creating embeddings.
+  - Apply TTLs for conversation context and vector DB entries, and implement automated purge or deletion paths for sensitive data.
+  - Store only hashed/anonymized metadata in logs; avoid logging raw user messages or secrets. If a snippet is necessary for debugging, mask or pseudonymize it and keep it under strict access controls.

@@ -5,7 +5,7 @@
 | Service | URL | Purpose |
 |---------|-----|---------|
 | Frontend (Vercel) | https://goblin-assistant.vercel.app | React UI, Static Assets |
-| Backend (Render) | https://goblin-assistant-backend.onrender.com | FastAPI Server, Database |
+| Backend (Fly.io) | https://goblin-assistant.fly.dev | FastAPI Server, Database |
 | LLM Server (Kamatera) | http://45.61.60.3:8002 | Local Ollama Models |
 
 ## Quick Deploy Commands
@@ -19,12 +19,12 @@ npm run build
 vercel --prod
 ```
 
-### Backend to Render
+### Backend to Fly.io
 ```bash
 cd apps/goblin-assistant
-./deploy-render-prep.sh
-# Then push to GitHub - Render auto-deploys
-git push origin main
+./deploy-fly.sh
+# Or manually:
+fly deploy
 ```
 
 ### Kamatera LLM Server
@@ -46,14 +46,14 @@ curl http://45.61.60.3:8002/health
 
 ### Vercel (Frontend)
 ```bash
-VITE_API_URL=https://goblin-assistant-backend.onrender.com
+VITE_API_URL=https://goblin-assistant.fly.dev
 VITE_FRONTEND_URL=https://goblin-assistant.vercel.app
 VITE_GOOGLE_CLIENT_ID=<your-google-client-id>
 ```
 
-### Render (Backend)
+### Fly.io (Backend)
 ```bash
-DATABASE_URL=<from-render-postgres>
+DATABASE_URL=<from-supabase>
 LOCAL_LLM_PROXY_URL=http://45.61.60.3:8002
 LOCAL_LLM_API_KEY=<kamatera-api-key>
 FRONTEND_URL=https://goblin-assistant.vercel.app
@@ -76,13 +76,13 @@ ANTHROPIC_API_KEY=<your-key>
 curl https://goblin-assistant.vercel.app
 
 # Backend
-curl https://goblin-assistant-backend.onrender.com/health
+curl https://goblin-assistant.fly.dev/health
 
 # LLM Server
 curl http://45.61.60.3:8002/health
 
 # Test full chain
-curl -X POST https://goblin-assistant-backend.onrender.com/api/chat/completions \
+curl -X POST https://goblin-assistant.fly.dev/api/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <your-jwt-token>" \
   -d '{
@@ -102,10 +102,13 @@ vercel rollback <deployment-url>
 # Deployments → Select previous → Promote to Production
 ```
 
-### Backend (Render)
+### Backend (Fly.io)
 ```bash
-# Via Dashboard only
-# Services → Select service → Deploys → Redeploy previous
+# Via CLI
+fly deploy --image <previous-image-id>
+
+# Via Dashboard
+# Apps → Select app → Activity → Scale previous deployment
 ```
 
 ### LLM Server (Kamatera)
@@ -129,12 +132,12 @@ ollama pull gemma:2b --force
 **Fix**: Increase timeout in backend or warm up models on Kamatera
 
 ### Issue: Database connection error
-**Fix**: Verify DATABASE_URL in Render and PostgreSQL service is running
+**Fix**: Verify DATABASE_URL in Fly.io and Supabase is running
 
 ## Monitoring
 
 - **Vercel**: https://vercel.com/dashboard
-- **Render**: https://dashboard.render.com
+- **Fly.io**: https://fly.io/dashboard
 - **Kamatera**: SSH access + `systemctl status ollama`
 
 ## Cost Summary
@@ -142,14 +145,14 @@ ollama pull gemma:2b --force
 | Service | Plan | Monthly Cost |
 |---------|------|--------------|
 | Vercel | Hobby | $0 |
-| Render (Web Service) | Starter | $7 |
-| Render (PostgreSQL) | Starter | $7 |
+| Fly.io (Web Service) | Free | $0 |
+| Supabase (PostgreSQL) | Free | $0 |
 | Kamatera (VPS) | Custom | $20-50 |
-| **Total** | | **$34-64** |
+| **Total** | | **$20-50** |
 
 ## Support Resources
 
 - **Full Guide**: See `DEPLOYMENT_ARCHITECTURE.md`
 - **GoblinOS Docs**: `/GoblinOS/docs/`
 - **Vercel Docs**: https://vercel.com/docs
-- **Render Docs**: https://render.com/docs
+- **Fly.io Docs**: https://fly.io/docs

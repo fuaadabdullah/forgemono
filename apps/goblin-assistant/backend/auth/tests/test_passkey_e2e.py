@@ -24,15 +24,14 @@ import hashlib
 import sys
 import os
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-
-from main import app
-from auth.passkeys import WebAuthnPasskey
-from database import get_db, engine
-from models import Base, User
-
-# Test client
-client = TestClient(app)
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+)
+# Allow in-memory fallbacks for tests that don't require Redis
+os.environ.setdefault("ALLOW_MEMORY_FALLBACK", "true")
+from backend.auth.passkeys import WebAuthnPasskey
+from backend.database import get_db, engine
+from backend.models_base import Base, User
 
 
 @pytest.fixture(scope="function")
@@ -41,6 +40,18 @@ def setup_database():
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(scope="function")
+def client(setup_database):
+    """Create a TestClient with only the auth router to limit import surface."""
+    from fastapi import FastAPI
+    from backend.auth.auth_router import router as auth_router
+
+    app = FastAPI()
+    app.include_router(auth_router)
+
+    return TestClient(app)
 
 
 def generate_test_passkey_data(challenge: str):
@@ -111,7 +122,7 @@ def generate_test_passkey_data(challenge: str):
 class TestPasskeyE2E:
     """End-to-end passkey authentication tests"""
 
-    def test_complete_passkey_flow(self, setup_database):
+    def test_complete_passkey_flow(self, setup_database, client):
         """Test the complete passkey registration and authentication flow"""
         test_email = "test@example.com"
 
@@ -178,7 +189,7 @@ class TestPasskeyE2E:
         assert token_data["token_type"] == "bearer"
         assert token_data["user"]["email"] == test_email
 
-    def test_challenge_expiration(self, setup_database):
+    def test_challenge_expiration(self, setup_database, client):
         """Test that expired challenges are rejected"""
         test_email = "expire@example.com"
 
@@ -213,7 +224,7 @@ class TestPasskeyE2E:
 
         # Manually expire the challenge (simulate time passing)
         # Access the challenge store directly
-        from auth.router import challenge_store
+        from backend.auth.auth_router import challenge_store
 
         if test_email in challenge_store:
             challenge_store[test_email]["expires"] = datetime.utcnow() - timedelta(
@@ -237,7 +248,7 @@ class TestPasskeyE2E:
         assert auth_response.status_code == 401
         assert "expired" in auth_response.json()["detail"].lower()
 
-    def test_challenge_one_time_use(self, setup_database):
+    def test_challenge_one_time_use(self, setup_database, client):
         """Test that challenges can only be used once"""
         test_email = "onetime@example.com"
 

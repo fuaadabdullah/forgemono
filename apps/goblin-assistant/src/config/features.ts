@@ -3,6 +3,9 @@
  * Controls which features are enabled in the application
  */
 
+import { env } from './env';
+import { devLog } from '../utils/dev-log';
+
 export interface FeatureFlags {
   ragEnabled: boolean;
   multiProvider: boolean;
@@ -14,17 +17,8 @@ export interface FeatureFlags {
   debugMode: boolean;
 }
 
-// Load from environment variables with sensible defaults
-export const featureFlags: FeatureFlags = {
-  ragEnabled: import.meta.env.VITE_FEATURE_RAG_ENABLED === 'true',
-  multiProvider: import.meta.env.VITE_FEATURE_MULTI_PROVIDER === 'true',
-  passkeyAuth: import.meta.env.VITE_FEATURE_PASSKEY_AUTH === 'true',
-  googleAuth: import.meta.env.VITE_FEATURE_GOOGLE_AUTH === 'true',
-  orchestration: import.meta.env.VITE_FEATURE_ORCHESTRATION === 'true',
-  sandbox: import.meta.env.VITE_FEATURE_SANDBOX === 'true',
-  analytics: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',
-  debugMode: import.meta.env.VITE_DEBUG_MODE === 'true',
-};
+// Load from centralized environment configuration
+export const featureFlags: FeatureFlags = env.features;
 
 // Helper function to check if a feature is enabled
 export const isFeatureEnabled = (feature: keyof FeatureFlags): boolean => {
@@ -32,6 +26,6 @@ export const isFeatureEnabled = (feature: keyof FeatureFlags): boolean => {
 };
 
 // Log enabled features in development
-if (featureFlags.debugMode) {
-  console.log('🚩 Feature Flags:', featureFlags);
+if (env.isDevelopment && featureFlags.debugMode) {
+  devLog('🚩 Feature Flags:', featureFlags);
 }

@@ -82,27 +82,37 @@ All endpoint mismatches have been fixed and the build passes. The frontend API c
 curl http://localhost:8001/health/all | jq
 ```
 
-### Frontend Build
+### Frontend Build & Local Start
+
+All canonical frontend documentation is maintained in the frontend repository at `apps/goblin-assistant` (see `PRODUCTION_DEPLOYMENT.md` and `start-dev.sh`).
+
+Example (production build):
+
 
 ```bash
 cd apps/goblin-assistant
 npm run build
 ```
+
 Expected: ✓ built in ~6s
 
 ### Integration Test
+
+### Run backend and frontend locally following the canonical frontend and backend docs (Example local)
+
 
 ```bash
 # Start backend
 cd apps/goblin-assistant/backend
 uvicorn main:app --host 0.0.0.0 --port 8001 --env-file .env
 
-# Start frontend
+# Start frontend (use the helper `apps/goblin-assistant/start-dev.sh`)
 cd apps/goblin-assistant
-npm run dev
+./start-dev.sh
 
 # Open browser
 open http://localhost:3000
+
 ```
 
 ---

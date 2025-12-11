@@ -1,236 +1,137 @@
 """
-Challenge Store Service for WebAuthn Passkey Authentication
+Challenge store for passkey challenges and temporary values.
 
-Provides an abstraction layer for challenge storage with support for:
-- In-memory storage (development)
-- Redis storage (production)
-- Automatic TTL/expiration
-- Thread-safe operations
+Provides an async API with two concrete implementations:
+- Redis-backed (if USE_REDIS_CHALLENGES=true and REDIS_URL configured)
+- In-memory fallback (for local dev & tests)
+
+Public factory: get_challenge_store_instance()
 """
 
-from typing import Optional, Dict
-from datetime import datetime, timedelta
-from abc import ABC, abstractmethod
+from __future__ import annotations
+
 import os
+import asyncio
+import time
+from typing import Dict, Optional
+
+try:
+    # redis-py 4.x exposes asyncio support under redis.asyncio
+    import redis.asyncio as aioredis
+except Exception:  # pragma: no cover - redis optional
+    aioredis = None
 
 
-class ChallengeStore(ABC):
-    """Abstract base class for challenge storage"""
-
-    @abstractmethod
+class BaseChallengeStore:
     async def set_challenge(
-        self, email: str, challenge: str, ttl_minutes: int = 5
+        self, email: str, challenge: str, expires_seconds: int
     ) -> None:
-        """
-        Store a challenge for a user with expiration.
+        raise NotImplementedError()
 
-        Args:
-            email: User's email address (key)
-            challenge: Base64url-encoded challenge string
-            ttl_minutes: Time-to-live in minutes
-        """
-        pass
-
-    @abstractmethod
     async def get_challenge(self, email: str) -> Optional[str]:
-        """
-        Retrieve a challenge for a user.
+        raise NotImplementedError()
 
-        Args:
-            email: User's email address
+    async def delete_challenge(self, email: str) -> None:
+        raise NotImplementedError()
 
-        Returns:
-            Challenge string if exists and not expired, None otherwise
-        """
-        pass
-
-    @abstractmethod
-    async def delete_challenge(self, email: str) -> bool:
-        """
-        Delete a challenge (for one-time use).
-
-        Args:
-            email: User's email address
-
-        Returns:
-            True if challenge existed and was deleted, False otherwise
-        """
-        pass
-
-    @abstractmethod
     async def cleanup_expired(self) -> int:
-        """
-        Remove expired challenges (for storage backends without auto-expiration).
-
-        Returns:
-            Number of expired challenges removed
-        """
-        pass
+        """Return number of cleaned entries."""
+        raise NotImplementedError()
 
 
-class InMemoryChallengeStore(ChallengeStore):
-    """
-    In-memory challenge storage for development.
-
-    WARNING: Not suitable for production use:
-    - Data lost on server restart
-    - Not thread-safe without locks
-    - Not scalable across multiple server instances
-    """
-
+class InMemoryChallengeStore(BaseChallengeStore):
     def __init__(self):
-        self._store: Dict[str, Dict[str, any]] = {}
+        # store: email -> (challenge, expires_at)
+        self._store: Dict[str, Dict] = {}
+        self._lock = asyncio.Lock()
 
     async def set_challenge(
-        self, email: str, challenge: str, ttl_minutes: int = 5
+        self, email: str, challenge: str, expires_seconds: int
     ) -> None:
-        expires = datetime.utcnow() + timedelta(minutes=ttl_minutes)
-        self._store[email] = {"challenge": challenge, "expires": expires}
+        expires_at = time.time() + int(expires_seconds)
+        async with self._lock:
+            self._store[email] = {"challenge": challenge, "expires_at": expires_at}
 
     async def get_challenge(self, email: str) -> Optional[str]:
-        if email not in self._store:
-            return None
+        async with self._lock:
+            entry = self._store.get(email)
+            if not entry:
+                return None
+            if entry["expires_at"] < time.time():
+                # expired
+                del self._store[email]
+                return None
+            return entry["challenge"]
 
-        data = self._store[email]
-        if datetime.utcnow() > data["expires"]:
-            # Expired, remove it
-            del self._store[email]
-            return None
-
-        return data["challenge"]
-
-    async def delete_challenge(self, email: str) -> bool:
-        if email in self._store:
-            del self._store[email]
-            return True
-        return False
+    async def delete_challenge(self, email: str) -> None:
+        async with self._lock:
+            self._store.pop(email, None)
 
     async def cleanup_expired(self) -> int:
-        """Remove expired challenges"""
-        now = datetime.utcnow()
-        expired_keys = [
-            email for email, data in self._store.items() if now > data["expires"]
-        ]
-        for email in expired_keys:
-            del self._store[email]
-        return len(expired_keys)
+        now = time.time()
+        removed = 0
+        async with self._lock:
+            keys = list(self._store.keys())
+            for k in keys:
+                entry = self._store.get(k)
+                if entry and entry.get("expires_at", 0) < now:
+                    del self._store[k]
+                    removed += 1
+        return removed
 
 
-class RedisChallengeStore(ChallengeStore):
-    """
-    Redis-based challenge storage for production.
-
-    Benefits:
-    - Automatic TTL expiration
-    - Thread-safe operations
-    - Scalable across multiple server instances
-    - Persistent across server restarts
-    """
-
-    def __init__(
-        self,
-        host: str = "localhost",
-        port: int = 6379,
-        db: int = 0,
-        password: Optional[str] = None,
-        ssl: bool = False,
-        key_prefix: str = "passkey:challenge:",
-    ):
-        """
-        Initialize Redis connection.
-
-        Args:
-            host: Redis host
-            port: Redis port
-            db: Redis database number
-            password: Redis password (if required)
-            ssl: Use SSL connection
-            key_prefix: Prefix for Redis keys
-        """
-        import redis
-
-        self.key_prefix = key_prefix
-        self.redis = redis.Redis(
-            host=host,
-            port=port,
-            db=db,
-            password=password if password else None,
-            ssl=ssl,
-            decode_responses=True,  # Decode bytes to strings
-        )
-
-        # Test connection
-        try:
-            self.redis.ping()
-        except redis.ConnectionError as e:
-            raise ConnectionError(f"Failed to connect to Redis: {e}")
-
-    def _make_key(self, email: str) -> str:
-        """Generate Redis key for email"""
-        return f"{self.key_prefix}{email}"
+class RedisChallengeStore(BaseChallengeStore):
+    def __init__(self, url: str = "redis://localhost:6379/0"):
+        if aioredis is None:
+            raise RuntimeError("redis.asyncio is not available")
+        self._client = aioredis.from_url(url, decode_responses=True)
 
     async def set_challenge(
-        self, email: str, challenge: str, ttl_minutes: int = 5
+        self, email: str, challenge: str, expires_seconds: int
     ) -> None:
-        key = self._make_key(email)
-        # Store challenge with automatic expiration
-        self.redis.setex(key, timedelta(minutes=ttl_minutes), challenge)
+        if not self._client:
+            raise RuntimeError("redis client not available")
+        await self._client.set(email, challenge, ex=int(expires_seconds))
 
     async def get_challenge(self, email: str) -> Optional[str]:
-        key = self._make_key(email)
-        challenge = self.redis.get(key)
-        return challenge if challenge else None
+        if not self._client:
+            return None
+        return await self._client.get(email)
 
-    async def delete_challenge(self, email: str) -> bool:
-        key = self._make_key(email)
-        result = self.redis.delete(key)
-        return result > 0
+    async def delete_challenge(self, email: str) -> None:
+        if not self._client:
+            return
+        await self._client.delete(email)
 
     async def cleanup_expired(self) -> int:
-        """
-        Redis automatically removes expired keys, so this is a no-op.
-
-        Returns:
-            0 (Redis handles expiration automatically)
-        """
+        # Redis expiry is automatic; return 0 to indicate no local cleanup
         return 0
 
 
-def get_challenge_store() -> ChallengeStore:
-    """
-    Factory function to get the appropriate challenge store based on environment.
+_singleton_store: Optional[BaseChallengeStore] = None
 
-    Returns:
-        ChallengeStore instance (InMemory for dev, Redis for production)
+
+def get_challenge_store_instance() -> BaseChallengeStore:
+    """Factory for a challenge store instance.
+
+    Uses the environment variable USE_REDIS_CHALLENGES to decide whether to
+    create a Redis-backed store. Falls back to an in-memory store.
+    Returns the singleton instance.
     """
+    global _singleton_store
+    if _singleton_store is not None:
+        return _singleton_store
+
     use_redis = os.getenv("USE_REDIS_CHALLENGES", "false").lower() == "true"
+    if use_redis and aioredis:
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        try:
+            _singleton_store = RedisChallengeStore(redis_url)
+            return _singleton_store
+        except Exception:  # pragma: no cover - runtime-dependent
+            # Fall back to in-memory if redis init fails
+            _singleton_store = InMemoryChallengeStore()
+            return _singleton_store
 
-    if use_redis:
-        # Production: Use Redis
-        return RedisChallengeStore(
-            host=os.getenv("REDIS_HOST", "localhost"),
-            port=int(os.getenv("REDIS_PORT", "6379")),
-            db=int(os.getenv("REDIS_DB", "0")),
-            password=os.getenv("REDIS_PASSWORD", None),
-            ssl=os.getenv("REDIS_SSL", "false").lower() == "true",
-        )
-    else:
-        # Development: Use in-memory
-        return InMemoryChallengeStore()
-
-
-# Singleton instance
-_challenge_store: Optional[ChallengeStore] = None
-
-
-def get_challenge_store_instance() -> ChallengeStore:
-    """
-    Get singleton challenge store instance.
-
-    Returns:
-        Shared ChallengeStore instance
-    """
-    global _challenge_store
-    if _challenge_store is None:
-        _challenge_store = get_challenge_store()
-    return _challenge_store
+    _singleton_store = InMemoryChallengeStore()
+    return _singleton_store

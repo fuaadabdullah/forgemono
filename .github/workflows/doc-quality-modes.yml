@@ -1,0 +1,96 @@
+name: Documentation Quality Modes
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+
+jobs:
+  fast-check:
+    name: Fast local Phi-3 check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install -r tools/doc-quality/requirements.txt
+          python -m pip install -r tools/raptor-mini/requirements.txt
+      - name: Run unit tests
+        run: |
+          python -m pytest tools/raptor-mini/tests tools/doc-quality/tests -q
+
+      - name: Start Phi-3 (local) via Docker Compose
+        run: |
+          cd tools/raptor-mini
+          docker-compose up -d phi3-mini
+
+      - name: Run Phi-only checks (fast)
+        env:
+          DOC_QUALITY_SOFT_FALLBACK: ${{ secrets.DOC_QUALITY_SOFT_FALLBACK }}
+        run: |
+          python3 tools/doc-quality/doc_quality_check.py --path docs/ --mode phi_only --ci $(
+            if [ "${DOC_QUALITY_SOFT_FALLBACK}" = "true" ]; then echo "--soft-fallback"; fi
+          )
+
+  polish-check:
+    name: Polish check (dual: phi -> raptor)
+    runs-on: ubuntu-latest
+    needs: fast-check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install -r tools/doc-quality/requirements.txt
+          python -m pip install -r tools/raptor-mini/requirements.txt
+      - name: Run unit tests
+        run: |
+          python -m pytest tools/raptor-mini/tests tools/doc-quality/tests -q
+
+      - name: Start Phi-3 (local)
+        run: |
+          cd tools/raptor-mini
+          docker-compose up -d phi3-mini
+
+      - name: Run dual polishing
+        env:
+          RAPTOR_API_URL: ${{ secrets.RAPTOR_API_URL }}
+        run: |
+          python3 tools/doc-quality/doc_quality_check.py --path docs/ --mode dual --polish --ci
+
+  production-check:
+    name: CI/Production Raptor-only check
+    runs-on: ubuntu-latest
+    needs: polish-check
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install -r tools/doc-quality/requirements.txt
+          python -m pip install -r tools/raptor-mini/requirements.txt
+      - name: Run unit tests
+        run: |
+          python -m pytest tools/raptor-mini/tests tools/doc-quality/tests -q
+
+      - name: Run Raptor API checks (prod)
+        env:
+          RAPTOR_API_URL: ${{ secrets.RAPTOR_API_URL }}
+        run: |
+          python3 tools/doc-quality/doc_quality_check.py --path docs/ --mode raptor_only --ci

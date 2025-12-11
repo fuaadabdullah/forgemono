@@ -1,0 +1,45 @@
+name: Require Jira Key
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+env:
+  JIRA_PROJECT_KEYS: ${{ vars.JIRA_PROJECT_KEYS || '(PROJ|GOB|INF)' }}
+
+jobs:
+  require-jira-key:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Jira key in PR title, branch, or body
+        run: |
+          # Use configurable project keys (default: PROJ, GOB, INF)
+          JIRA_PATTERN="${JIRA_PROJECT_KEYS}-\d+"
+
+          echo "🔍 Checking for Jira keys: $JIRA_PATTERN"
+
+          # Check PR title
+          if echo "${{ github.event.pull_request.title }}" | grep -qE "$JIRA_PATTERN"; then
+            echo "✅ Jira key found in PR title: ${{ github.event.pull_request.title }}"
+            exit 0
+          fi
+
+          # Check PR body
+          if echo "${{ github.event.pull_request.body }}" | grep -qE "$JIRA_PATTERN"; then
+            echo "✅ Jira key found in PR body"
+            exit 0
+          fi
+
+          # Check branch name
+          if echo "${{ github.event.pull_request.head.ref }}" | grep -qE "$JIRA_PATTERN"; then
+            echo "✅ Jira key found in branch name: ${{ github.event.pull_request.head.ref }}"
+            exit 0
+          fi
+
+          # If no Jira key found, fail the check
+          echo "❌ No Jira key ($JIRA_PATTERN) found in PR title, body, or branch name"
+          echo "Please include a valid Jira ticket key in your PR title, description, or branch name."
+          echo "Examples: PROJ-123, GOB-456, INF-789"
+          echo ""
+          echo "To configure different project keys, set the JIRA_PROJECT_KEYS repository variable:"
+          echo "Repository Settings → Variables → Add JIRA_PROJECT_KEYS with value like '(PROJ|GOB|INF)'"
+          exit 1

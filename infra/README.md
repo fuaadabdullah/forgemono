@@ -47,10 +47,10 @@ For decentralized processing with orchestration:
    - Namespace: `goblinos-ai`
    - Replicas: 3 for distributed processing
 
-2. **Telemetry Monitoring**:
-   - Prometheus: `deployments/prometheus.yaml` - Metrics collection
-   - Grafana: `deployments/grafana.yaml` - Visualization dashboards
-   - AI Router: `deployments/ai-router.yaml` - Routing policies with embedded telemetry
+2. **Simplified Monitoring**:
+   - Sentry: Error tracking and crash reporting
+   - Vercel Analytics: Frontend performance metrics
+   - Fly.io Metrics: Backend performance metrics (built-in)
 
 ### Setup Instructions
 
@@ -62,16 +62,19 @@ For decentralized processing with orchestration:
 3. Configure endpoints:
    - Replace `<azure-endpoint-url>` and `<gcp-endpoint-url>` in `ollama-k8s.yaml` with actual URLs.
 4. Access services:
-   - Prometheus: `kubectl port-forward svc/prometheus-service 9090:9090`
-   - Grafana: `kubectl port-forward svc/grafana-service 3000:3000` (default login: admin/admin)
-   - AI Router: Via Ingress at `ai.goblinos.local`
+   - Sentry: Configure in app settings
+   - Vercel Analytics: Available in Vercel dashboard
+   - Fly.io Metrics: Available in Fly.io dashboard
 
-### Routing Policies
+### Simplified Monitoring
 
-The AI Router handles request distribution:
-- Routes to Ollama for local inference
-- Fallback to Azure/GCP for cloud-based models
-- Telemetry embedded via Prometheus annotations and Pushgateway integration
+Error tracking and performance monitoring is now handled by integrated platform services:
+
+- **Frontend**: Vercel Analytics for performance metrics
+- **Backend**: Fly.io built-in metrics and logs
+- **Errors**: Sentry for crash reporting and error tracking
+
+No complex Kubernetes monitoring stack required for current scale.
 
 ## Usage
 

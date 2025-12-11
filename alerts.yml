@@ -1,0 +1,40 @@
+apiVersion: 1
+
+groups:
+  - name: goblin-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate({job=~"goblin.*"} |= "ERROR" [5m]) > 0.5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors per second"
+
+      - alert: ServiceDown
+        expr: rate({job=~"goblin.*"} [5m]) == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Service appears to be down"
+          description: "No logs received from {{ $labels.job }} for 10 minutes"
+
+      - alert: AuthFailures
+        expr: rate({job=~"goblin.*"} |= "auth" |= "401" [5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High authentication failure rate"
+          description: "Auth failures: {{ $value }} per second"
+
+      - alert: StoragePressure
+        expr: (1 - (disk_available_bytes / disk_total_bytes)) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High disk usage"
+          description: "Disk usage is {{ $value | humanizePercentage }}"

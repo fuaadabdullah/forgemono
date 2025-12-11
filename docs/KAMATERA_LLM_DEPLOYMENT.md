@@ -97,7 +97,7 @@ ssh -i ~/kamatera_key root@45.61.60.3 "echo 'Connection successful'"
 cd /Users/fuaadabdullah/ForgeMonorepo
 
 # Run deployment script
-bash deploy_llm.sh
+bash deployments/local/deploy_llm.sh
 ```
 
 The script will:
@@ -554,8 +554,8 @@ rclone bandwidth gdrive:
 ## Related Files
 
 ### Deployment Scripts
-- `/deploy_llm.sh` - Main deployment script
-- `/local_deploy.sh` - Alternative local deployment
+- `deployments/local/deploy_llm.sh` - Main deployment script
+- `deployments/local/local_deploy.sh` - Alternative local deployment
 - `/apps/goblin-assistant/backend/bootstrap_llm.sh` - Server bootstrap
 
 ### Service Files
