@@ -20,6 +20,7 @@ Unified workspace for GoblinOS and related projects. This repo houses the Goblin
 - Overmind Agent overview: `docs/agents/overmind.md`
 - GoblinOS Assistant Architecture: `apps/goblin-assistant/docs/ARCHITECTURE_OVERVIEW.md`
 - GoblinOS Assistant Core Identity: `apps/goblin-assistant/docs/CORE_IDENTITY.md`
+- Repository docs: `docs/` (top-level canonical docs)
 
 ## Quick Start
 
