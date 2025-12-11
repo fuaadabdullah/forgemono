@@ -87,7 +87,7 @@ python scripts/doc_cli.py audit docs/
 
 - Start with `docs/WORKSPACE_OVERVIEW.md` for structure and conventions.
 - Follow `docs/ONBOARDING_TARIQ.md` for step-by-step setup to contribute to GoblinOS.
-- See `CONTRIBUTING.md` for branch/PR standards and local checks.
+- See `docs/development/CONTRIBUTING.md` for branch/PR standards and local checks.
 
 ## Notes
 

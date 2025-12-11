@@ -39,7 +39,7 @@ A concise directory of the primary technologies, frameworks, and services used i
   - Evidence: `.circleci/config.yml`, `.circleci/SETUP.md`, `.github/workflows/`
 
 - Deploy targets: Fly.io (backend), Vercel (frontend), Kamatera (VPS local inference)
-  - Evidence: `apps/goblin-assistant/deploy-fly.sh`, `apps/goblin-assistant/deploy-vercel-bw.sh`, `GOBLIN_AI_SYSTEM_DOCS.md`
+  - Evidence: `apps/goblin-assistant/deploy-fly.sh`, `apps/goblin-assistant/deploy-vercel-bw.sh`, `docs/systems/GOBLIN_AI_SYSTEM_DOCS.md`
 
 - Terraform — IaC orchestration
   - Evidence: `.circleci/config.yml` (terraform executor), `infra/` folder
@@ -60,7 +60,7 @@ A concise directory of the primary technologies, frameworks, and services used i
   - Evidence: `apps/goblin-assistant/docs/ARCHITECTURE_OVERVIEW.md`, `GoblinOS/SOURCE_OF_TRUTH.md`, `tools/telemetry/`
 
 - Monitoring & Dashboards: Grafana / Prometheus / Tempo
-  - Evidence: `GOBLIN_AI_SYSTEM_DOCS.md`, `docker-compose.yml` monitoring stack setup
+  - Evidence: `docs/systems/GOBLIN_AI_SYSTEM_DOCS.md`, `docker-compose.yml` monitoring stack setup
 
 - Testing: pytest, pytest-asyncio, ruff, ESLint/Prettier
   - Evidence: `.circleci/config.yml` (pip install pytest), `tests/` where available
@@ -72,6 +72,6 @@ A concise directory of the primary technologies, frameworks, and services used i
 
 - This file is a compact “tech stack” reference. See detailed architecture docs and app README for full context:
   - `apps/goblin-assistant/docs/ARCHITECTURE_OVERVIEW.md`
-  - `GOBLIN_AI_SYSTEM_DOCS.md`
+  - `docs/systems/GOBLIN_AI_SYSTEM_DOCS.md`
   - `*.README.md` files in each app folder
 

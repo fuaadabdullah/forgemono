@@ -70,6 +70,8 @@ class JWTAuthService:
         if additional_scopes:
             scopes.update(additional_scopes)
 
+        # Ensure user_id is serializable (UUID -> str)
+        user_id = str(user_id)
         # Create token payload
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         payload = {
@@ -93,6 +95,8 @@ class JWTAuthService:
         Returns:
             JWT refresh token string
         """
+        # Ensure user_id is serializable
+        user_id = str(user_id)
         expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
         payload = {
             "sub": user_id,

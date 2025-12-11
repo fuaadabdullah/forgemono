@@ -1,6 +1,6 @@
 # Goblin Assistant — Contributing (App-level guidance)
 
-This file adds app-level guidance that complements the root `CONTRIBUTING.md`.
+This file adds app-level guidance that complements the root `docs/development/CONTRIBUTING.md`.
 
 Key responsibilities and canonical doc locations
 
@@ -26,7 +26,7 @@ Before opening a PR that includes documentation:
 1. Check whether the change belongs under frontend/backend/infra. Use the canonical location above.
 2. If you update a doc that affects more than one area, add a note and link to the cross-affected component's canonical doc.
 3. Replace duplicates with links to the canonical file where applicable (e.g., backend docs shouldn't include step-by-step frontend setup—link to `apps/goblin-assistant/PRODUCTION_DEPLOYMENT.md`).
-4. If you add new docs, add a short entry to the top-level `CONTRIBUTING.md` checklist (optional), or open a PR note calling out the canonical location.
+4. If you add new docs, add a short entry to the `docs/development/CONTRIBUTING.md` checklist (optional), or open a PR note calling out the canonical location.
 
 Why this matters
 

@@ -210,3 +210,21 @@ async def get_collection_documents(collection_name: str, db: Session = Depends(g
         raise HTTPException(
             status_code=500, detail=f"Failed to get documents: {str(e)}"
         )
+
+
+@router.get("/suggest", tags=["search"])
+async def search_suggest(q: str = Query("")):
+    """Get search suggestions"""
+    if not q:
+        return {"suggestions": []}
+
+    # Mock suggestions based on common queries
+    suggestions = [
+        f"{q} tutorial",
+        f"{q} best practices",
+        f"{q} examples",
+        f"how to {q}",
+        f"{q} documentation",
+    ]
+
+    return {"suggestions": suggestions}

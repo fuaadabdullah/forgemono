@@ -32,7 +32,7 @@ python3 doc_quality_check.py --path docs/ --mode dual --polish
 
 
 # Generate detailed report
-python3 doc_quality_check.py --report quality_report.md
+python3 doc_quality_check.py --report ../../../docs/reports/quality_report.md
 ```
 
 ## Developer Setup & Tests
@@ -111,7 +111,7 @@ python3 doc_quality_check.py --ci --min-score 70
 
 ### Generate Reports
 ```bash
-python3 doc_quality_check.py --report quality_report.md
+python3 doc_quality_check.py --report ../../../docs/reports/quality_report.md
 ```
 
 ### Debug Mode

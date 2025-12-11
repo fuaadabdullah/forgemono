@@ -267,7 +267,7 @@ main() {
     log_info "        http://localhost:8000/v1/chat/completions"
     echo ""
     log_info "4. Run local verification:"
-    log_info "   ./verify_kamatera_deployment.sh"
+    log_info "   ../../deployments/kamatera/verify_kamatera_deployment.sh"
 }
 
 # Handle command line arguments

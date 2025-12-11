@@ -1,38 +1,16 @@
 #!/usr/bin/env python3
+"""
+This debug script used the legacy Flask-based `api/` app and has been archived.
+Use `apps/goblin-assistant/backend/` for the canonical FastAPI backend. If you need a
+debug helper for the backend, consider running `uvicorn apps.goblin-assistant.backend.main:app --reload`.
+
+This file is kept as an archive placeholder and should not be used to start the
+production or development server.
+"""
+
 import sys
-import os
 
-sys.path.insert(0, "/Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/api")
-
-try:
-    print("Testing imports...")
-    from dotenv import load_dotenv
-
-    load_dotenv()
-    print("✓ dotenv loaded")
-
-    from flask import Flask
-
-    print("✓ Flask imported")
-
-    from flask_sqlalchemy import SQLAlchemy
-
-    print("✓ SQLAlchemy imported")
-
-    print("Testing app import...")
-    from app import app, init_db
-
-    print("✓ App imported successfully")
-
-    print("Testing database initialization...")
-    init_db()
-    print("✓ Database initialized")
-
-    print("All tests passed! Starting server...")
-    app.run(host="0.0.0.0", port=5000, debug=True)
-
-except Exception as e:
-    print(f"❌ Error: {e}")
-    import traceback
-
-    traceback.print_exc()
+print(
+    "This debug script is archived. See apps/goblin-assistant/backend for the current backend."
+)
+sys.exit(0)

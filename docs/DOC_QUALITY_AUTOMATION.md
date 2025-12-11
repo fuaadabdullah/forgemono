@@ -17,7 +17,7 @@ python3 tools/doc-quality/doc_quality_check.py docs/README.md docs/WORKSPACE_OVE
 python3 tools/doc-quality/doc_quality_check.py --ci --min-score 70
 
 # Generate detailed report
-python3 tools/doc-quality/doc_quality_check.py --report quality_report.md
+python3 tools/doc-quality/doc_quality_check.py --report docs/reports/quality_report.md
 ```
 
 ### Installation

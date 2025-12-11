@@ -13,19 +13,42 @@ Exports to OTLP collector for integration with observability backends.
 
 import os
 import logging
-from opentelemetry import trace, metrics
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
-from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from opentelemetry.instrumentation.redis import RedisInstrumentor
-from opentelemetry.distro import distro
+
+try:
+    from opentelemetry import trace, metrics
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (
+        OTLPMetricExporter,
+    )
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+    from opentelemetry.instrumentation.redis import RedisInstrumentor
+    from opentelemetry.distro import distro
+
+    HAS_OPENTELEMETRY = True
+except Exception:
+    # OpenTelemetry not available in test environment - degrade gracefully
+    trace = None
+    metrics = None
+    TracerProvider = None
+    BatchSpanProcessor = None
+    MeterProvider = None
+    PeriodicExportingMetricReader = None
+    Resource = None
+    OTLPSpanExporter = None
+    OTLPMetricExporter = None
+    FastAPIInstrumentor = None
+    HTTPXClientInstrumentor = None
+    SQLAlchemyInstrumentor = None
+    RedisInstrumentor = None
+    distro = None
+    HAS_OPENTELEMETRY = False
 
 
 def create_resource():

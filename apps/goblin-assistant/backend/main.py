@@ -14,7 +14,10 @@ init_opentelemetry()
 
 # Ensure dynamic module paths are available before importing project routers
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "GoblinOS"))
-sys.path.insert(0, str(Path(__file__).parent.parent / "api"))
+# Ensure we do NOT insert the legacy `api/` folder into sys.path as it may
+# shadow the actual backend package (see REORG_PLAN.md). If additional
+# import paths are required for development, add them explicitly and prefer
+# `apps/goblin-assistant/backend/`.
 
 # Import middleware
 from .middleware.rate_limiter import RateLimitMiddleware, limiter
@@ -56,6 +59,9 @@ from .api_router import router as api_router
 from .stream_router import router as stream_router
 from .health_router import router as health_router
 from .dashboard_router import router as dashboard_router
+from .routers.goblins_router import router as goblins_router
+from .routers.cost_router import router as cost_router
+from .routers.user_auth_router import router as user_auth_router
 
 try:
     from .raptor_router import router as raptor_router
@@ -66,7 +72,8 @@ except ImportError:
     raptor_router = APIRouter()
 
 # Database imports
-from .database import create_tables
+from .database import create_tables, SessionLocal
+from .seed import seed_database
 
 # Add GoblinOS to path for raptor
 try:
@@ -196,6 +203,13 @@ async def startup_event():
     await validate_startup_configuration()
 
     create_tables()
+
+    # Seed the database
+    db = SessionLocal()
+    try:
+        seed_database(db)
+    finally:
+        db.close()
 
     # Always start challenge cleanup early (cheap)
     global challenge_cleanup_task
@@ -358,6 +372,9 @@ v1_router.include_router(health_router, tags=["health"])  # Health monitoring en
 v1_router.include_router(
     dashboard_router, tags=["dashboard"]
 )  # Optimized dashboard endpoints
+v1_router.include_router(goblins_router, tags=["goblins"])
+v1_router.include_router(cost_router, tags=["cost"])
+v1_router.include_router(user_auth_router, tags=["auth"])
 
 # Include routers (keeping legacy routes for backward compatibility)
 app.include_router(debugger_router)

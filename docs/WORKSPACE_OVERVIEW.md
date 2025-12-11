@@ -93,13 +93,13 @@ See `docs/backend/API_KEYS_STATUS.md`. Checklist:
 
 - Write in Markdown (`.md`)
 - Place docs in the relevant `docs/` subfolder
-- Follow the style in `CONTRIBUTING.md`
+- Follow the style in `docs/development/CONTRIBUTING.md`
 - Submit a PR for review
 
 ### Support / Contact
 
 - For help, open an issue or email `goblinosrep@gmail.com`
-- See `CONTRIBUTING.md` for more support channels
+- See `docs/development/CONTRIBUTING.md` for more support channels
 
 ### Error Handling Strategy (Example)
 

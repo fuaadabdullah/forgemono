@@ -1211,7 +1211,7 @@ Examples:
   python doc_quality_check.py --ci --min-score 70
 
   # Generate detailed report
-  python doc_quality_check.py --report quality_report.md
+  python doc_quality_check.py --report docs/reports/quality_report.md
 
   # Check with custom API URL
   python doc_quality_check.py --api-url http://localhost:8000

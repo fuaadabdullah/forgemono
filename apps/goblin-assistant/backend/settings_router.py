@@ -1,8 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+from sqlalchemy.orm import Session
 import os
 from dotenv import load_dotenv
+
+from ..database import get_db
+from ..models import Provider, Model
 from config import settings as app_settings
 
 router = APIRouter(prefix="/settings", tags=["settings"])
@@ -11,21 +15,36 @@ router = APIRouter(prefix="/settings", tags=["settings"])
 load_dotenv()
 
 
-class ProviderSettings(BaseModel):
+class ProviderSchema(BaseModel):
     name: str
+    display_name: Optional[str] = None
     api_key: Optional[str] = None
     base_url: Optional[str] = None
-    models: List[str] = []
+    models: Optional[List[str]] = []
     enabled: bool = True
+    is_active: bool = True
+
+    class Config:
+        from_attributes = True
 
 
-class ModelSettings(BaseModel):
+class ModelSchema(BaseModel):
     name: str
     provider: str
     model_id: str
     temperature: Optional[float] = 0.7
-    max_tokens: Optional[int] = None
+    max_tokens: Optional[int] = 4096
     enabled: bool = True
+
+    class Config:
+        from_attributes = True
+
+
+class SettingsResponse(BaseModel):
+    providers: List[ProviderSchema]
+    models: List[ModelSchema]
+    default_provider: Optional[str] = None
+    default_model: Optional[str] = None
 
 
 class SettingsResponse(BaseModel):
@@ -40,126 +59,91 @@ class RAGSettings(BaseModel):
     chroma_path: str = "data/vector/chroma"
 
 
-# Default provider configurations
-DEFAULT_PROVIDERS = [
-    {
-        "name": "OpenAI",
-        "api_key": os.getenv("OPENAI_API_KEY"),
-        "base_url": "https://api.openai.com/v1",
-        "models": ["gpt-4", "gpt-3.5-turbo", "gpt-4-turbo"],
-        "enabled": bool(os.getenv("OPENAI_API_KEY")),
-    },
-    {
-        "name": "Anthropic",
-        "api_key": os.getenv("ANTHROPIC_API_KEY"),
-        "base_url": "https://api.anthropic.com",
-        "models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
-        "enabled": bool(os.getenv("ANTHROPIC_API_KEY")),
-    },
-    {
-        "name": "Groq",
-        "api_key": os.getenv("GROQ_API_KEY"),
-        "base_url": "https://api.groq.com/openai/v1",
-        "models": ["llama2-70b-4096", "mixtral-8x7b-32768", "gemma-7b-it"],
-        "enabled": bool(os.getenv("GROQ_API_KEY")),
-    },
-    {
-        "name": "Local LLM",
-        "api_key": None,
-        "base_url": "http://localhost:8000/v1",
-        "models": ["local-model"],
-        "enabled": True,
-    },
-]
-
-DEFAULT_MODELS = [
-    {
-        "name": "GPT-4",
-        "provider": "OpenAI",
-        "model_id": "gpt-4",
-        "temperature": 0.7,
-        "max_tokens": 4096,
-        "enabled": True,
-    },
-    {
-        "name": "Claude 3 Sonnet",
-        "provider": "Anthropic",
-        "model_id": "claude-3-sonnet-20240229",
-        "temperature": 0.7,
-        "max_tokens": 4096,
-        "enabled": True,
-    },
-    {
-        "name": "Llama 2 70B (Groq)",
-        "provider": "Groq",
-        "model_id": "llama2-70b-4096",
-        "temperature": 0.7,
-        "max_tokens": 4096,
-        "enabled": True,
-    },
-]
-
-
 @router.get("/", response_model=SettingsResponse)
-async def get_settings():
-    """Get current provider and model settings"""
+async def get_settings(db: Session = Depends(get_db)):
+    """Get current provider and model settings from the database"""
     try:
-        # In a real app, these would be stored in a database
-        # For now, we'll return the default configurations
+        providers_db = db.query(Provider).all()
+        models_db = db.query(Model).all()
+
+        providers_response = [ProviderSchema.from_orm(p) for p in providers_db]
+        models_response = [ModelSchema.from_orm(m) for m in models_db]
+
         return SettingsResponse(
-            providers=DEFAULT_PROVIDERS,
-            models=DEFAULT_MODELS,
-            default_provider="OpenAI",
-            default_model="GPT-4",
+            providers=providers_response,
+            models=models_response,
+            default_provider=None,  # Or logic to determine default
+            default_model=None,  # Or logic to determine default
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get settings: {str(e)}")
 
 
 @router.put("/providers/{provider_name}")
-async def update_provider_settings(provider_name: str, settings: ProviderSettings):
-    """Update settings for a specific provider"""
+async def update_provider_settings(
+    provider_name: str, settings: ProviderSchema, db: Session = Depends(get_db)
+):
+    """Update settings for a specific provider in the database"""
     try:
-        # In a real app, this would update the database
-        # For now, we'll just validate the input
-        if not settings.name:
-            raise HTTPException(status_code=400, detail="Provider name is required")
+        provider = db.query(Provider).filter(Provider.name == provider_name).first()
+        if not provider:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Provider {provider_name} not found",
+            )
+
+        # Update provider fields
+        for field, value in settings.dict(exclude_unset=True).items():
+            setattr(provider, field, value)
+
+        db.commit()
+        db.refresh(provider)
 
         return {
             "status": "success",
             "message": f"Settings updated for provider: {provider_name}",
-            "settings": settings.dict(),
+            "settings": ProviderSchema.from_orm(provider),
         }
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to update provider settings: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update provider settings: {str(e)}",
         )
 
 
 @router.put("/models/{model_name}")
-async def update_model_settings(model_name: str, settings: ModelSettings):
-    """Update settings for a specific model"""
+async def update_model_settings(
+    model_name: str, settings: ModelSchema, db: Session = Depends(get_db)
+):
+    """Update settings for a specific model in the database"""
     try:
-        # In a real app, this would update the database
-        # For now, we'll just validate the input
-        if not settings.name or not settings.provider or not settings.model_id:
+        model = db.query(Model).filter(Model.name == model_name).first()
+        if not model:
             raise HTTPException(
-                status_code=400,
-                detail="Model name, provider, and model_id are required",
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Model {model_name} not found",
             )
+
+        # Update model fields
+        for field, value in settings.dict(exclude_unset=True).items():
+            setattr(model, field, value)
+
+        db.commit()
+        db.refresh(model)
 
         return {
             "status": "success",
             "message": f"Settings updated for model: {model_name}",
-            "settings": settings.dict(),
+            "settings": ModelSchema.from_orm(model),
         }
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to update model settings: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update model settings: {str(e)}",
         )
 
 

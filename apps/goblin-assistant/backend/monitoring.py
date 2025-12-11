@@ -8,8 +8,16 @@ Integrated with OpenTelemetry for unified observability.
 import os
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
-from sentry_sdk.integrations.sqlalchemy import SqlAlchemyIntegration
-from sentry_sdk.integrations.redis import RedisIntegration
+
+try:
+    from sentry_sdk.integrations.sqlalchemy import SqlAlchemyIntegration
+except Exception:
+    SqlAlchemyIntegration = None
+
+try:
+    from sentry_sdk.integrations.redis import RedisIntegration
+except Exception:
+    RedisIntegration = None
 
 # Try to import OpenTelemetry for integration
 try:
@@ -35,8 +43,8 @@ def init_sentry():
                     transaction_style="endpoint",
                     http_methods_to_capture=["GET", "POST", "PUT", "DELETE", "PATCH"],
                 ),
-                SqlAlchemyIntegration(),
-                RedisIntegration(),
+                *([SqlAlchemyIntegration()] if SqlAlchemyIntegration else []),
+                *([RedisIntegration()] if RedisIntegration else []),
             ],
             # Performance monitoring
             traces_sample_rate=0.1,  # Capture 10% of transactions for performance

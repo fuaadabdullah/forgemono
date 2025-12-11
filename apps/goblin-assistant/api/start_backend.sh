@@ -37,15 +37,14 @@ fi
 echo "📋 Verifying available models..."
 ollama list
 
-# Start the Flask backend
-echo "🌐 Starting Flask backend..."
-export FLASK_APP=app.py
-export FLASK_ENV=development
+# Start the canonical FastAPI backend
+echo "🌐 Starting FastAPI backend (canonical)..."
+cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend
 
 if [ "$1" = "prod" ]; then
-    echo "🏭 Starting in production mode..."
-    gunicorn --bind 0.0.0.0:5000 --workers 4 app:app
+    echo "🏭 Starting in production mode with Uvicorn..."
+    exec uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
 else
-    echo "🛠️  Starting in development mode..."
-    python3 app.py
+    echo "🛠️  Starting in development mode (reload enabled)..."
+    exec uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 fi

@@ -8,9 +8,11 @@ What was done (2025-12-11):
 - Created `docs/` structure and moved a subset of root-level documentation into the canonical `docs/` folders (deployments, automation, integrations, systems).
 - Consolidated deployment scripts by moving root-level deploy scripts into `scripts/deploy/`.
 - Archived `apps/goblin-assistant/backend-api/` to `apps/goblin-assistant/backend-api-archive-20251211/` and added a README redirect to the canonical `backend/` folder.
+- Archived `apps/goblin-assistant/backend-api/` to `apps/goblin-assistant/backend-api-archive-20251211/` and added a README redirect to the canonical `backend/` folder.
+- Added an archival README to `apps/goblin-assistant/api/`, updated startup scripts (`start_server.sh`, `start_server_script.sh`) to point to `apps/goblin-assistant/backend/`, and removed the legacy `api/` copy step from `tools/migrate-to-multirepo.sh`.
 
 Next steps / Recommendations:
-1. Perform a duplicate-content review between `backend/` and the archived `backend-api-archive-20251211/` and merge any functional differences into `backend/`.
+1. ✅ **Completed**: Performed duplicate-content review between `backend/` and the archived `api/` folder. No functional differences found to migrate — `backend/` already contains the consolidated and updated FastAPI code, while `api/` contains legacy Flask mocks and stubs. No code migration needed.
 2. Update any CI/CD references or environment configurations that point to `backend-api` to use `backend/`.
 3. Migrate any required deploy scripts into `infra/deployments/*` or `scripts/deploy/` with clear platform-level directories (e.g. `scripts/deploy/kamatera`, `scripts/deploy/fly`, `scripts/deploy/vercel`).
 4. Schedule a Git history cleaning (BFG/git-filter-repo) to remove secrets that were previously committed. This is a sensitive operation and must be handled carefully.
