@@ -212,6 +212,7 @@ This roster is auto-generated from `GoblinOS/goblins.yaml`. Update the YAML and 
 All projects should integrate with GoblinOS automation where applicable:
 
 ```bash
+
 PORTFOLIO_DIR=/path/to/project bash tools/portfolio_env.sh dev
 ```
 
@@ -274,12 +275,15 @@ on PR validation workflows.
 
 - CircleCI setup and onboarding: `.circleci/SETUP.md` — follow this to register the repo, configure
   contexts, and validate local pipelines.
+
 - Deploy and secret handling: for Goblin Assistant the pipeline uses
   `apps/goblin-assistant/.circleci/fetch_secrets.sh` (Bitwarden) and
   `apps/goblin-assistant/.circleci/config.yml` to fetch secrets and deploy to Fly.io per
   `apps/goblin-assistant/docs/PRODUCTION_PIPELINE.md`.
+
 - Validation: Use `circleci config validate` and `circleci pipeline trigger --branch main` for
   testing pipelines locally.
+
 - Secret management: Use Bitwarden + CircleCI contexts. Do NOT commit secrets into the repo; follow
   `docs/SECRETS_HANDLING.md`.
 
@@ -313,27 +317,35 @@ We use Supabase (Postgres) as our canonical persistent data store and Auth provi
 
 - Core uses: Postgres storage for users, sessions, inference logs, feature flags, and other business
   data - not for large vector embeddings (see `chroma_db` for vectors).
+
 - Authentication & Authorization: Use Supabase Auth for signups/logins (client libraries in
   `apps/gaslight` and others). For tenant or user-scoped data, always use Row Level Security (RLS)
   policies and a minimal set of Postgres roles.
+
 - Migrations: Use the Supabase CLI to create and apply migrations (`supabase migration new <name>`).
   Commit SQL migration files. Keep migrations idempotent where possible and include RLS enable
   statements:
+
   - `ALTER TABLE public.<table> ENABLE ROW LEVEL SECURITY;`
 - RLS Audit: Run the repository's simple RLS audit script before merging DB migrations:
   `scripts/ops/supabase_rls_check.sh` (or pass the Supabase folder when relevant). This checks that
   `CREATE TABLE` statements are accompanied by explicit RLS enablement and flags missing policies.
+
 - Local dev: Use `supabase start` (Supabase CLI) for a local Postgres instance for development, or
   connect to staging Supabase project for testing. The Supabase CLI is mentioned in
   `apps/goblin-assistant/backend/README.md`.
+
 - Secrets: Never commit `service_role` keys or admin keys. Store them securely in Bitwarden and pass
   to CI via CircleCI contexts. Use `apps/goblin-assistant/.circleci/fetch_secrets.sh` to populate
   environment variables in pipelines.
+
 - CI: CI pipelines should validate database migrations and run the RLS audit as part of PR checks.
   Add migration and policy review to PRs that change DB schemas.
+
 - Backups & compliance: Ensure regular database backups and export paths for compliance requests. If
   using Supabase hosted plans, use their snapshot/backups. For self-managed Postgres, use
   `pg_dump`/`pg_restore` or managed snapshots.
+
 - Data privacy: Do not store PII in vector stores or logs without consent; enforce data deletion and
   TTLs where required.
 
@@ -386,6 +398,7 @@ Mini API. This tool helps maintain high-quality documentation standards across t
 **Basic Quality Check:**
 
 ```bash
+
 # Check all documentation files
 python3 tools/doc-quality/doc_quality_check.py
 
@@ -430,6 +443,7 @@ The tool analyzes documentation for:
 **Git Pre-commit Hook:**
 
 ```bash
+
 # Install hook to check docs before commits
 cp pre-commit-doc-check.sh .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
@@ -486,6 +500,7 @@ The tool is particularly useful for:
 - Purpose: The Goblin Assistant backend processes and stores conversational context, user
   preferences, telemetry, inference logs, and optional RAG sources. All code suggestions and
   generated changes must treat this data as sensitive and follow the rules below.
+
 - Data categories:
   - Conversation context (KV/short-lived storage), session metadata, and user preferences.
   - Inference logs (provider, model, cost, latency) and audit logs.
@@ -494,18 +509,23 @@ The tool is particularly useful for:
 - Safety rules (must follow):
   - Minimize: Use only the minimum data needed in prompts and code paths. Avoid including entire
     transcripts unless necessary.
+
   - Sanitize: Remove PII, secrets, API keys, tokens, and other sensitive identifiers before sending
     data to external providers, saving to logs, or adding to embeddings.
+
   - Embeddings / Vector DB: Do NOT embed documents that include PII or secrets. Add a
     sanitization/consent check before creating embeddings. Store a document metadata flag for
     sensitivity and apply a TTL or explicit deletion policy.
+
   - Conversation TTL: Keep conversation context ephemeral. Use Cloudflare KV with a short TTL (e.g.,
     1h) by default. For persistent chat history, obtain explicit user consent and store encrypted
     server-side with strict RBAC and audit logs.
+
   - Supabase RLS & retention: When storing user/tenant-scoped data in Supabase/Postgres, always
     enable Row Level Security and define minimal `CREATE POLICY` statements; use TTL policies where
     needed for retention/deletion. Run `scripts/ops/supabase_rls_check.sh` before merging DB
     changes.
+
   - Logging & telemetry: Do not log raw messages or secrets. Track inference metrics (model,
     provider, latency, cost) while redacting or hashing message content. In production, these
     metrics and traces are ingested into Datadog — follow
@@ -513,30 +533,40 @@ The tool is particularly useful for:
     redact/sampling practices, and `apps/goblin-assistant/PRODUCTION_MONITORING.md` for how we
     configure Datadog (agents, API keys, SLOs). Also see
     `apps/goblin-assistant/datadog/DATADOG_SLOS.md` for the canonical SLO and monitor examples.
+
   - Access Control & Encryption: Use RBAC and least-privilege for all storage; encrypt data at rest
     and in transit, and store keys in Bitwarden or a managed secrets store (see
     `docs/SECRETS_HANDLING.md`).
+
   - RAG / Sources: When returning generated answers with citations, only include permitted data and
     add `source` metadata. If a source is flagged as restricted, avoid showing it in answers or
     embedding it.
+
   - Data Deletion / Retention: Implement TTLs and retention schedules (inference logs, vector DB
     TTLs) and support data export/delete workflows for user requests; reference
     `MONITORING_IMPLEMENTATION.md`.
+
   - Compliance: Follow local legal/regulatory requirements (GDPR/CCPA) for data processing, export,
     and deletion. When proposing code for handling user data, include data export and erasure
     functionality.
+
 - Developer guidance for Copilot & code generation:
   - Don’t include real secrets or emails in examples; use placeholders like `REDACTED` or
     `example@domain.com`.
+
   - If generating code that persists user data, include a sanitization step and explicit consent
     check: `sanitize_input_for_model()`, `is_sensitive_content()`, or `mask_sensitive()` (suggest
     these helpers and add tests if not present).
+
   - To create embeddings or long-term storage, add a pre-check to ensure content is not PII, and
     implement a TTL or a deletion path for removal on user request.
+
   - For logging, add redaction (e.g., `redactSensitiveFields()`), and ensure logs sent to telemetry
     providers are stripped of PII and sensitive tokens.
+
   - For telemetry sampling: use aggregated metrics for analytics and alerts; don’t send raw user
     messages.
+
   - When suggesting architecture or implementation changes, include instructions for monitoring,
     retention, and privacy checks required to push the change to production.
 

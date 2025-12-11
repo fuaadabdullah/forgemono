@@ -35,14 +35,15 @@ For production deployments, **CSP must be set via server headers** (not meta tag
 #### Backend Implementation (Recommended)
 
 ```typescript
+
 // Express.js example
 app.use((req, res, next) => {
   // Content Security Policy
   res.setHeader('Content-Security-Policy',
     "default-src 'self'; " +
-    "script-src 'self' https://challenges.cloudflare.com; " +
+    "script-src 'self' <https://challenges.cloudflare.com;> " +
     "style-src 'self' 'unsafe-inline'; " +
-    "connect-src 'self' https://goblin-backend.fly.dev https://api.goblin.fuaad.ai;"
+    "connect-src 'self' <https://goblin-backend.fly.dev> <https://api.goblin.fuaad.ai;">
   );
 
   // Additional Security Headers
@@ -74,6 +75,7 @@ For Fly.io deployments, add security headers in `fly.toml`:
 For Vercel deployments, add headers in `vercel.json`:
 
 ```json
+
 {
   "headers": [
     {
@@ -81,7 +83,7 @@ For Vercel deployments, add headers in `vercel.json`:
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://goblin-backend.fly.dev https://api.goblin.fuaad.ai;"
+          "value": "default-src 'self'; script-src 'self' <https://challenges.cloudflare.com;> style-src 'self' 'unsafe-inline'; connect-src 'self' <https://goblin-backend.fly.dev> <https://api.goblin.fuaad.ai;">
         },
         {
           "key": "X-Content-Type-Options",
@@ -108,10 +110,10 @@ For Vercel deployments, add headers in `vercel.json`:
 ### CSP Policy Explanation
 
 - **`default-src 'self'`**: Only allow resources from the same origin
-- **`script-src 'self' https://challenges.cloudflare.com`**: Allow scripts from self and Cloudflare Turnstile
+- **`script-src 'self' <https://challenges.cloudflare.com`**:> Allow scripts from self and Cloudflare Turnstile
 - **`style-src 'self' 'unsafe-inline'`**: Allow styles from self and inline styles (required for some UI libraries)
-- **`connect-src 'self' https://goblin-backend.fly.dev`**: Allow API connections to backend
-- **`frame-src https://challenges.cloudflare.com`**: Allow Turnstile widget iframe
+- **`connect-src 'self' <https://goblin-backend.fly.dev`**:> Allow API connections to backend
+- **`frame-src <https://challenges.cloudflare.com`**:> Allow Turnstile widget iframe
 - **`img-src 'self' data: https:`**: Allow images from self, data URIs, and HTTPS sources
 - **`font-src 'self' data:`**: Allow fonts from self and data URIs
 - **`base-uri 'self'`**: Restrict base URI to same origin
@@ -128,6 +130,7 @@ For Vercel deployments, add headers in `vercel.json`:
 
 1. **Development**: CSP headers are automatically applied by Vite
 2. **Production**: Verify headers are set by the server:
+
    ```bash
    curl -I https://your-domain.com
    ```

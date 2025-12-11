@@ -27,9 +27,9 @@ infra/deployments/ecs/
 ## Prerequisites
 
 1. **AWS Account** with appropriate permissions
-2. **AWS CLI** installed and configured
-3. **GitHub Repository** with secrets configured
-4. **Docker** for local testing
+1. **AWS CLI** installed and configured
+1. **GitHub Repository** with secrets configured
+1. **Docker** for local testing
 
 ### Required AWS Permissions
 
@@ -54,6 +54,7 @@ export ENVIRONMENT=staging  # or production
 ### 2. Run Infrastructure Setup
 
 ```bash
+
 # From the repository root
 ./tools/setup-aws-ecs.sh
 ```
@@ -70,7 +71,7 @@ This script will:
 ### 3. Configure GitHub Secrets
 
 The setup script outputs required GitHub secrets. Add them to:
-`https://github.com/your-org/your-repo/settings/secrets/actions`
+`<https://github.com/your-org/your-repo/settings/secrets/actions`>
 
 Required secrets:
 
@@ -111,14 +112,15 @@ Defines the container configuration:
 **Stages:**
 
 1. **Build**: Docker image build and ECR push
-2. **Deploy**: ECS service update with new image
-3. **Verify**: Health check and smoke tests
+1. **Deploy**: ECS service update with new image
+1. **Verify**: Health check and smoke tests
 
 ## Environment Management
 
 ### Staging Environment
 
 ```bash
+
 ENVIRONMENT=staging ./tools/setup-aws-ecs.sh
 ```
 
@@ -141,6 +143,7 @@ ENVIRONMENT=production ./tools/setup-aws-ecs.sh
 ### Check Service Status
 
 ```bash
+
 ./tools/test-ecs-deployment.sh status
 ```
 
@@ -160,6 +163,7 @@ aws logs tail /ecs/forge-lite-api --region us-east-1 --follow
 ### Test API Health
 
 ```bash
+
 ./tools/test-ecs-deployment.sh health
 ```
 
@@ -172,6 +176,7 @@ aws logs tail /ecs/forge-lite-api --region us-east-1 --follow
 ### Scale Service
 
 ```bash
+
 # Scale to 2 tasks
 ./tools/test-ecs-deployment.sh scale 2
 ```
@@ -181,18 +186,20 @@ aws logs tail /ecs/forge-lite-api --region us-east-1 --follow
 For production deployments, add an Application Load Balancer:
 
 1. Create ALB in AWS Console
-2. Create target group (port 8000, health check path `/health`)
-3. Update ECS service to use load balancer
-4. Update security groups for ALB access
+1. Create target group (port 8000, health check path `/health`)
+1. Update ECS service to use load balancer
+1. Update security groups for ALB access
 
 ## Cost Optimization
 
 ### Fargate Pricing
+
 - **CPU**: $0.04048 per vCPU-hour
 - **Memory**: $0.004445 per GB-hour
 - **Data Transfer**: $0.09 per GB
 
 ### Cost Saving Tips
+
 - Use smaller instance sizes for dev/staging
 - Scale to zero when not in use (requires custom setup)
 - Use Spot Instances for non-critical workloads
@@ -201,16 +208,19 @@ For production deployments, add an Application Load Balancer:
 ## Security Considerations
 
 ### Network Security
+
 - Tasks run in private subnets
 - Security groups restrict access to port 8000
 - Use VPC endpoints for AWS services
 
 ### Container Security
+
 - Non-root user execution
 - Minimal base image (python:3.11-slim)
 - Regular security scanning with ECR
 
 ### Secrets Management
+
 - Use AWS Secrets Manager or Parameter Store
 - Never store secrets in environment variables
 - Rotate credentials regularly
@@ -218,6 +228,7 @@ For production deployments, add an Application Load Balancer:
 ## Troubleshooting Common Issues
 
 ### Service Won't Start
+
 ```bash
 # Check task definition
 aws ecs describe-task-definition --task-definition forge-lite-api-staging
@@ -228,14 +239,16 @@ aws ecs describe-services --cluster forge-lite-staging --services forge-lite-api
 
 ### Health Check Failures
 ```bash
+
 # Check container logs
 aws logs tail /ecs/forge-lite-api --region us-east-1
 
 # Verify health endpoint locally
-curl http://localhost:8000/health
+curl <http://localhost:8000/health>
 ```
 
 ### Deployment Failures
+
 ```bash
 # Check GitHub Actions logs
 # Look for ECR push or ECS update failures
@@ -249,6 +262,7 @@ aws ecs update-service --cluster forge-lite-staging --service forge-lite-api-sta
 To remove all resources:
 
 ```bash
+
 # Delete service
 aws ecs delete-service --cluster forge-lite-staging --service forge-lite-api-staging --force
 
@@ -259,16 +273,18 @@ aws ecs delete-cluster --cluster forge-lite-staging
 aws ecr delete-repository --repository-name forge-lite-api --force
 
 # Delete VPC resources (if created by script)
+
 # Note: Manual cleanup required for VPC, subnets, security groups
 ```
 
 ## Support
 
 For issues:
+
 1. Check AWS service health dashboard
-2. Review CloudWatch logs
-3. Check GitHub Actions workflow runs
-4. Consult AWS ECS documentation
+1. Review CloudWatch logs
+1. Check GitHub Actions workflow runs
+1. Consult AWS ECS documentation
 
 ## Related Documentation
 

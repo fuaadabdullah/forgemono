@@ -18,6 +18,7 @@ cat ~/.ssh/kamatera_raptor.pub
 On your **Kamatera server** (66.55.77.147), add the key to authorized_keys:
 
 ```bash
+
 # SSH into your Kamatera server first (using password)
 ssh root@66.55.77.147
 
@@ -52,6 +53,7 @@ If the automated script doesn't work, deploy manually:
 ### On Kamatera Server (66.55.77.147):
 
 ```bash
+
 # Update system and install dependencies
 apt update && apt install -y docker.io git curl
 
@@ -60,8 +62,9 @@ mkdir -p /opt/raptor-mini
 cd /opt/raptor-mini
 
 # Clone or copy the raptor-mini code
+
 # (You'll need to upload the files or use git)
-git clone https://github.com/your-repo/raptor-mini.git .  # Adjust URL
+git clone <https://github.com/your-repo/raptor-mini.git> .  # Adjust URL
 
 # Generate API key
 API_KEY=$(openssl rand -hex 32)
@@ -83,12 +86,13 @@ docker run -d --name raptor-mini \
 
 # Wait and test
 sleep 10
-curl -f http://127.0.0.1:8080/health
+curl -f <http://127.0.0.1:8080/health>
 ```
 
 ## Step 4: Verify Deployment
 
 ### Test Health Check:
+
 ```bash
 # On Kamatera server
 curl http://127.0.0.1:8080/health
@@ -97,14 +101,16 @@ curl http://127.0.0.1:8080/health
 
 ### Test API Generation:
 ```bash
+
 # On Kamatera server
-curl -X POST "http://127.0.0.1:8080/v1/generate" \
+curl -X POST "<http://127.0.0.1:8080/v1/generate"> \
   -H "X-API-Key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Hello world", "max_tokens": 50}'
 ```
 
 ### Check Logs:
+
 ```bash
 # On Kamatera server
 docker logs raptor-mini
@@ -115,6 +121,7 @@ docker logs raptor-mini
 The inference client is already configured to use your existing Kamatera setup. Make sure these environment variables are set in your Goblin backend:
 
 ```bash
+
 # These should already be configured
 KAMATERA_HOST=66.55.77.147
 KAMATERA_LLM_API_KEY=goblin-llm-hrDD-3IO83-YpusDBHXV_V0r7Lx9sMtvEs4CWBnF2kE
@@ -136,6 +143,7 @@ print(result)
 
 ### SSH Issues:
 ```bash
+
 # Test SSH connection
 ssh -i ~/.ssh/kamatera_raptor root@66.55.77.147 "echo 'Connection successful'"
 
@@ -144,6 +152,7 @@ ssh root@66.55.77.147 "tail -f /var/log/auth.log"
 ```
 
 ### Docker Issues:
+
 ```bash
 # Check Docker status
 ssh root@66.55.77.147 "systemctl status docker"
@@ -154,8 +163,9 @@ ssh root@66.55.77.147 "docker ps -a"
 
 ### API Issues:
 ```bash
+
 # Check if service is responding
-ssh root@66.55.77.147 "curl http://127.0.0.1:8080/health"
+ssh root@66.55.77.147 "curl <http://127.0.0.1:8080/health">
 
 # Check container logs
 ssh root@66.55.77.147 "docker logs raptor-mini"

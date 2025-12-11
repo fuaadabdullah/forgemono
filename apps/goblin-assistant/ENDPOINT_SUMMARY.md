@@ -3,6 +3,7 @@ This document has moved into the canonical backend documentation folder:
 - apps/goblin-assistant/backend/docs/ENDPOINT_SUMMARY.md
 
 Please update any references or links to point to the new location.
+
 # Endpoint Audit Summary - December 2, 2025
 
 ## ✅ Status: Production Ready
@@ -87,6 +88,7 @@ curl http://localhost:8001/health/all | jq
 ### Frontend Build
 
 ```bash
+
 cd apps/goblin-assistant
 npm run build
 ```

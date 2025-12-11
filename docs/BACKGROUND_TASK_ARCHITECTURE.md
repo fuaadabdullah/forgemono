@@ -11,11 +11,13 @@ Goblin Assistant uses a multi-tier background task system designed to prevent co
 **Location**: `apps/goblin-assistant/backend/scheduler.py`
 **Use Case**: Health checks, cleanup jobs, provider probing
 **Benefits**:
+
 - Redis distributed locks prevent duplicate execution across replicas
 - Runs within app process (no external containers)
 - Automatic startup/shutdown with app lifecycle
 
 **Active Jobs**:
+
 - `system_health_check_job` - Every minute (system resource monitoring)
 - `probe_all_providers_job` - Every 5 minutes (provider health checks)
 - `cleanup_expired_data_job` - Every hour (database cleanup)
@@ -25,6 +27,7 @@ Goblin Assistant uses a multi-tier background task system designed to prevent co
 **Location**: `apps/goblin-assistant/backend/celery_app.py`
 **Use Case**: ML model training, heavy data processing
 **Benefits**:
+
 - Dedicated worker processes
 - Horizontal scaling
 - Complex workflow orchestration
@@ -36,12 +39,14 @@ Goblin Assistant uses a multi-tier background task system designed to prevent co
 **Location**: Various route handlers
 **Use Case**: Email sending, webhook processing
 **Benefits**:
+
 - Request lifecycle management
 - Automatic cleanup on app shutdown
 
 ## Anti-Patterns (Blocked by CI)
 
 ### ❌ Multiple Schedulers for Same Job
+
 ```python
 # BAD: Same job in both APScheduler and Celery
 scheduler.add_job(health_check_job, 'interval', minutes=1)  # APScheduler
@@ -50,12 +55,14 @@ app.conf.beat_schedule['health-check'] = {...}  # Celery - DUPLICATE!
 
 ### ❌ Kubernetes CronJobs
 ```yaml
+
 # BAD: External cron conflicts with in-app scheduling
 apiVersion: batch/v1
 kind: CronJob  # BLOCKED BY CI
 ```
 
 ### ❌ Uncoordinated Background Tasks
+
 ```python
 # BAD: No coordination between replicas
 asyncio.create_task(health_check())  # Runs on every replica
@@ -72,6 +79,7 @@ asyncio.create_task(health_check())  # Runs on every replica
 
 2. **Use Redis Locks for APScheduler**:
    ```python
+
    @with_redis_lock('my-job-lock', timeout=30)
    def my_job():
        # Your job logic here
@@ -79,6 +87,7 @@ asyncio.create_task(health_check())  # Runs on every replica
    ```
 
 3. **Register in Scheduler**:
+
    ```python
    # In scheduler.py register_jobs()
    scheduler.add_job(
@@ -91,6 +100,7 @@ asyncio.create_task(health_check())  # Runs on every replica
 
 4. **Test Locally**:
    ```bash
+
    # Run scheduler manually
    python -c "from backend.scheduler import start_scheduler; start_scheduler()"
    ```
@@ -104,6 +114,7 @@ The repository includes automated checks to prevent duplicate tasks:
 - **Detection**: Scans for duplicate job names across schedulers
 
 Run manually:
+
 ```bash
 python scripts/ci/check_background_tasks.py
 ```

@@ -26,7 +26,7 @@
 ### ✅ Dashboard Page
 
 **Score**: 100/100
-**URL**: `http://localhost:3000/`
+**URL**: `<http://localhost:3000/`>
 **Violations**: 0 | **Passed**: 21 checks
 **Timestamp**: 2025-12-02T09:00:55.616Z
 
@@ -42,7 +42,7 @@
 ### ✅ Chat Page
 
 **Score**: 100/100
-**URL**: `http://localhost:3000/chat`
+**URL**: `<http://localhost:3000/chat`>
 **Violations**: 0 | **Passed**: 21 checks
 **Timestamp**: 2025-12-02T09:00:58.326Z
 
@@ -58,7 +58,7 @@
 ### ✅ Search Page
 
 **Score**: 100/100
-**URL**: `http://localhost:3000/search`
+**URL**: `<http://localhost:3000/search`>
 **Violations**: 0 | **Passed**: 21 checks
 **Timestamp**: 2025-12-02T09:01:01.020Z
 
@@ -74,7 +74,7 @@
 ### ✅ Settings Page
 
 **Score**: 100/100
-**URL**: `http://localhost:3000/settings`
+**URL**: `<http://localhost:3000/settings`>
 **Violations**: 0 | **Passed**: 21 checks
 **Timestamp**: 2025-12-02T09:01:03.729Z
 
@@ -90,7 +90,7 @@
 ### ✅ Providers Page
 
 **Score**: 100/100
-**URL**: `http://localhost:3000/providers`
+**URL**: `<http://localhost:3000/providers`>
 **Violations**: 0 | **Passed**: 21 checks
 **Timestamp**: 2025-12-02T09:01:06.459Z
 
@@ -106,7 +106,7 @@
 ### ✅ Logs Page
 
 **Score**: 100/100
-**URL**: `http://localhost:3000/logs`
+**URL**: `<http://localhost:3000/logs`>
 **Violations**: 0 | **Passed**: 21 checks
 **Timestamp**: 2025-12-02T09:01:09.183Z
 
@@ -122,7 +122,7 @@
 ### ✅ Sandbox Page
 
 **Score**: 100/100
-**URL**: `http://localhost:3000/sandbox`
+**URL**: `<http://localhost:3000/sandbox`>
 **Violations**: 0 | **Passed**: 21 checks
 **Timestamp**: 2025-12-02T09:01:11.904Z
 
@@ -156,6 +156,7 @@ All tested pages meet WCAG 2.1 Level AA standards according to axe-core automate
 | **axe-core** | WCAG compliance | ~21+ rules | ✅ 0 violations |
 
 **Why both?**
+
 - Lighthouse: Quick broad assessment, performance-focused
 - axe-core: Deep WCAG validation, more detailed error reporting
 - Combined: ~80% automated coverage (manual testing still needed)
@@ -177,16 +178,19 @@ Your application passes automated accessibility testing. Recommended actions:
 ### Recommended Manual Testing
 
 **Screen Readers**:
+
 - macOS: VoiceOver (Cmd+F5)
 - Windows: NVDA (free) or JAWS
 - Test: Navigation, forms, dynamic content
 
 **Keyboard Navigation**:
+
 - Tab through all interactive elements
 - Test dropdown menus, modals, dialogs
 - Verify focus visible at all times
 
 **Browser Testing**:
+
 - Safari, Firefox, Edge
 - Verify high-contrast mode
 - Test reduced motion preferences

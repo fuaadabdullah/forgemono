@@ -19,22 +19,26 @@ This frontend follows best practices for modern React applications with TypeScri
 To reduce complexity and maintenance overhead, Goblin Assistant uses a streamlined deployment approach:
 
 #### ✅ Active Platforms
+
 - **Backend**: Fly.io - Primary backend deployment with global edge network
 - **Frontend**: Vercel - Optimized for React/Vite with global CDN
 
 #### ❌ Archived Platforms
+
 - **Render** - Config removed (render.yaml deleted)
 - **Railway** - Config removed (railway.toml deleted)
 - **Netlify** - Config removed (netlify.toml deleted)
 - **Kubernetes + Helm + GitOps** - Deferred until 100k+ users (charts/ and gitops/ archived)
 
 #### Benefits
+
 - **Reduced config drift** - Only 2 platforms to maintain
 - **Lower testing overhead** - Validate on Fly.io + Vercel only
 - **Simplified debugging** - Fewer deployment environments
 - **Cost savings** - ~40 hours/month maintenance time
 
 #### Deployment Files
+
 - `fly.toml` - Fly.io backend configuration
 - `vercel.json` - Vercel frontend configuration
 - Archived configs in `goblin-infra/projects/goblin-assistant/infra/archive/`
@@ -46,6 +50,7 @@ To reduce complexity and maintenance overhead, Goblin Assistant uses a streamlin
 To reduce infrastructure sprawl from 15+ components, Goblin Assistant uses a minimal, integrated approach:
 
 #### ✅ Active Infrastructure
+
 - **Observability**:
   - Sentry - Error tracking and crash reporting
   - Vercel Analytics - Frontend performance metrics
@@ -58,17 +63,20 @@ To reduce infrastructure sprawl from 15+ components, Goblin Assistant uses a min
   - Terraform - Kamatera VM provisioning
 
 #### ❌ Archived Infrastructure
+
 - **Complex Observability** - Prometheus, Grafana, Loki, Tempo, Datadog (overkill for current scale)
 - **Complex Secrets** - SOPS, KMS (unnecessary complexity)
 - **GitOps** - ArgoCD, Helm charts (deferred until scale requires it)
 
 #### Benefits
+
 - **Reduced complexity** - From 15+ to 6 core components
 - **Lower maintenance** - Integrated platform services
 - **Cost effective** - Free/built-in monitoring
 - **Simpler operations** - No complex Kubernetes monitoring stack
 
 #### Configuration
+
 - Sentry: Configure DSN in environment variables
 - Vercel Analytics: Enabled in Vercel dashboard
 - Fly.io Metrics: Available in Fly.io dashboard
@@ -91,6 +99,7 @@ To reduce infrastructure sprawl from 15+ components, Goblin Assistant uses a min
 **Query Keys**: Centralized in `queryKeys` object for consistent cache management
 
 **Example Usage**:
+
 ```tsx
 import { useChatModels } from './hooks/api/useChat';
 
@@ -113,6 +122,7 @@ function MyComponent() {
 
 **Example Usage**:
 ```tsx
+
 import { useAuthStore } from './store/authStore';
 
 function MyComponent() {
@@ -126,6 +136,7 @@ function MyComponent() {
 **Client**: `src/api/client-axios.ts`
 
 **Features**:
+
 - Typed requests and responses
 - Request/response interceptors
 - Automatic auth token injection
@@ -134,6 +145,7 @@ function MyComponent() {
 - 401 handling (auto logout)
 
 **Example**:
+
 ```tsx
 import { apiClient } from './api/client-axios';
 
@@ -160,6 +172,7 @@ const models = await apiClient.getAvailableModels();
 
 **Environment Variables** (`.env.example`):
 ```bash
+
 VITE_FEATURE_RAG_ENABLED=true
 VITE_FEATURE_MULTI_PROVIDER=true
 VITE_FEATURE_PASSKEY_AUTH=true
@@ -169,6 +182,7 @@ VITE_FEATURE_SANDBOX=false
 ```
 
 **Usage**:
+
 ```tsx
 import { isFeatureEnabled } from './config/features';
 
@@ -253,10 +267,12 @@ src/
 
 **Required**:
 ```bash
-VITE_FASTAPI_URL=http://127.0.0.1:8001  # Backend API URL
+
+VITE_FASTAPI_URL=<http://127.0.0.1:8001>  # Backend API URL
 ```
 
 **Optional** (see `.env.example` for full list):
+
 - Feature flags (`VITE_FEATURE_*`)
 - Provider API keys (status display only)
 - Analytics config
@@ -290,6 +306,7 @@ Use one of the following secure patterns for EventSource streaming:
 ### Development
 
 **Start Dev Server**:
+
 ```bash
 cd apps/goblin-assistant
 pnpm dev  # Runs on localhost:3000
@@ -297,10 +314,12 @@ pnpm dev  # Runs on localhost:3000
 
 **Build**:
 ```bash
+
 pnpm build  # TypeScript + Vite production build
 ```
 
 **Lint**:
+
 ```bash
 pnpm lint  # ESLint checks
 ```
@@ -310,6 +329,7 @@ pnpm lint  # ESLint checks
 **Old → New API Usage**:
 
 ```tsx
+
 // ❌ Old: Manual fetch, no caching
 const [data, setData] = useState(null);
 useEffect(() => {

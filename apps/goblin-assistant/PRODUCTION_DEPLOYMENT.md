@@ -21,6 +21,7 @@ This guide covers deploying the Goblin Assistant application to production using
 3. **Deploy Backend**
 
    ```bash
+
    ./deploy-backend.sh fly
    ```
 
@@ -37,6 +38,7 @@ This guide covers deploying the Goblin Assistant application to production using
 Create `.env.production` from the template:
 
 ```bash
+
 cp .env.production.example .env.production
 ```
 
@@ -68,6 +70,7 @@ cp .env.production.example .env.production
 #### Option A: Fly.io (Recommended)
 
 ```bash
+
 ./deploy-backend.sh fly
 ```
 
@@ -100,6 +103,7 @@ cp .env.production.example .env.production
 ### Step 4: Frontend Deployment (Vercel)
 
 ```bash
+
 ./deploy-vercel.sh
 ```
 
@@ -126,11 +130,12 @@ cp .env.production.example .env.production
 2. **Test the Application**
 
    ```bash
+
    # Test health endpoint
-   curl https://your-backend-url/health
+   curl <https://your-backend-url/health>
 
    # Test frontend
-   open https://your-frontend-url
+   open <https://your-frontend-url>
    ```
 
 3. **Set up Monitoring (Optional)**
@@ -168,6 +173,7 @@ curl https://your-backend-url/api/health/db
 **Build Failures:**
 
 ```bash
+
 # Clear cache and rebuild
 rm -rf node_modules/.vite
 npm run build

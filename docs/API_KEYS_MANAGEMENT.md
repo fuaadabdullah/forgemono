@@ -27,6 +27,7 @@ cp GoblinOS/.env.example GoblinOS/.env
 Example `.env` file structure:
 
 ```bash
+
 # API Keys
 OPENAI_API_KEY=sk-your-key-here
 ANTHROPIC_API_KEY=sk-ant-your-key-here
@@ -63,6 +64,7 @@ For sensitive local development keys, use system keychains:
 **macOS Keychain:**
 
 ```bash
+
 # Store a secret
 security add-generic-password -s "myapp-api-key" -a "myapp" -w "secret-value"
 
@@ -97,6 +99,7 @@ secrets:
 For Kubernetes deployments, use Secret resources:
 
 ```yaml
+
 apiVersion: v1
 kind: Secret
 metadata:
@@ -125,13 +128,17 @@ env:
 For services supporting automated rotation:
 
 ```bash
+
 # AWS IAM access keys
 aws iam create-access-key --user-name my-user
 aws iam delete-access-key --user-name my-user --access-key-id OLD_KEY_ID
 
 # GitHub personal access tokens
+
 # 1. Create new token in GitHub UI
+
 # 2. Update all applications
+
 # 3. Revoke old token
 ```
 
@@ -189,6 +196,7 @@ validate_config()
 **Environment variables not loading:**
 
 ```bash
+
 # Check if .env file exists
 ls -la .env
 

@@ -36,6 +36,7 @@ Created in `goblin-infra/projects/goblin-assistant/infra/observability/datadog/`
 ### 3. Security Measures
 
 **Sensitive Word Scrubbing** - Configured to hide:
+
 - `api_key`, `apikey`, `*_key`
 - `token`, `auth_token`, `access_token`, `bearer`, `jwt`
 - `password`, `passwd`
@@ -44,6 +45,7 @@ Created in `goblin-infra/projects/goblin-assistant/infra/observability/datadog/`
 - Provider-specific keys (`openai_api_key`, `anthropic_api_key`, `groq_api_key`)
 
 **Permissions**:
+
 - Agent runs as dedicated `dd-agent` user
 - System-probe requires elevated privileges (CAP_SYS_ADMIN, CAP_SYS_PTRACE)
 - Proper file permissions (0640) on config files
@@ -68,6 +70,7 @@ sudo ./setup-datadog-processes.sh
 #### Option B: Docker Compose (For Containers)
 
 ```bash
+
 # 1. Set environment
 cd goblin-infra/projects/goblin-assistant/infra/observability/datadog
 ./setup-env.sh production
@@ -99,6 +102,7 @@ kubectl get pods -n goblin-assistant -l app=datadog-agent
 ### Available Metrics
 
 ```python
+
 # CPU usage by process
 system.processes.cpu.pct{service:goblin-assistant}
 
@@ -158,6 +162,7 @@ top(avg:system.processes.cpu.pct{service:goblin-assistant} by {process}, 10, 'me
 ### Filter by Tags
 
 ```python
+
 # Production only
 service:goblin-assistant AND env:production
 
@@ -173,6 +178,7 @@ service:goblin-assistant AND container_name:goblin-backend
 ### Optimized Process Collection
 
 For Datadog Agent v7.53.0+, process collection runs in the core agent instead of a separate process-agent, reducing:
+
 - CPU usage by 30-50%
 - Memory usage by 100-200 MB
 - Container overhead
@@ -180,6 +186,7 @@ For Datadog Agent v7.53.0+, process collection runs in the core agent instead of
 ### System Probe
 
 Requires elevated privileges but provides:
+
 - Detailed I/O statistics (read/write bytes/ops)
 - Open file descriptor tracking
 - Network connection monitoring
@@ -188,6 +195,7 @@ Requires elevated privileges but provides:
 ### Sensitive Data Scrubbing
 
 Protects credentials in two ways:
+
 1. **Pattern Matching**: Hides values for known sensitive arguments
 2. **Custom Words**: Add your own patterns (wildcards supported)
 3. **Strip All**: Option to hide all arguments (max security)
@@ -195,12 +203,14 @@ Protects credentials in two ways:
 ## 📈 Performance Impact
 
 **Agent Resource Usage:**
+
 - CPU: 0.5-2% (optimized mode)
 - Memory: 200-500 MB
 - Network: ~50 KB/s per 1000 processes
 - Disk: Minimal (logs only)
 
 **Collection Overhead:**
+
 - Process data collected every 10s (configurable)
 - System-probe adds <1% CPU overhead
 - Container monitoring adds <0.5% overhead
@@ -221,6 +231,7 @@ process_config:
 ### Adjust Collection Frequency
 
 ```yaml
+
 # Collect less frequently
 process_config:
   intervals:
@@ -246,12 +257,14 @@ service_monitoring_config:
 
 **Issue: No processes visible in UI**
 ```bash
+
 # Check if enabled
 grep -A5 "process_config:" /etc/datadog-agent/datadog.yaml
 sudo systemctl restart datadog-agent
 ```
 
 **Issue: No I/O statistics**
+
 ```bash
 # Verify system-probe is running
 ps aux | grep system-probe
@@ -260,14 +273,18 @@ sudo systemctl restart datadog-agent
 
 **Issue: Sensitive data visible**
 ```bash
+
 # Enable scrubbing
 sudo vi /etc/datadog-agent/datadog.yaml
+
 # Set: scrub_args: true
+
 # Add custom_sensitive_words
 sudo systemctl restart datadog-agent
 ```
 
 **Issue: High agent CPU**
+
 ```bash
 # Enable optimized mode (v7.53.0+)
 echo "process_config:

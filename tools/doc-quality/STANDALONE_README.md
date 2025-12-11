@@ -19,7 +19,7 @@ The standalone mode follows this priority order:
    - Provides AI-powered quality analysis
    - Runs completely offline
 
-2. **Heuristic Analysis** (fallback)
+1. **Heuristic Analysis** (fallback)
    - Rule-based quality scoring
    - No external dependencies
    - Always available
@@ -39,7 +39,9 @@ pip install llama-cpp-python aiohttp
 ### Without Local LLMs (Minimal)
 
 ```bash
+
 # Just Python - no additional dependencies required
+
 # Will use heuristic analysis automatically
 python3 tools/doc-quality/doc_quality_check.py --standalone
 ```
@@ -79,13 +81,13 @@ The standalone analyzer evaluates documentation based on:
 
 ## Comparison with Full Version
 
-| Feature | Standalone Mode | Full Version |
+ | Feature | Standalone Mode | Full Version | 
 |---------|----------------|--------------|
-| Dependencies | None | Virtual env + APIs |
-| Speed | Instant | Network-dependent |
-| Accuracy | Heuristic-based | AI-powered analysis |
-| Setup | Just Python | Complex infrastructure |
-| Reliability | Always works | Requires external services |
+ | Dependencies | None | Virtual env + APIs | 
+ | Speed | Instant | Network-dependent | 
+ | Accuracy | Heuristic-based | AI-powered analysis | 
+ | Setup | Just Python | Complex infrastructure | 
+ | Reliability | Always works | Requires external services | 
 
 ## Use Cases
 
@@ -124,9 +126,11 @@ The standalone mode uses built-in heuristics and doesn't require configuration f
 ### CI/CD Integration
 
 ```yaml
+
 # GitHub Actions example
+
 - name: Check Documentation Quality
-  run: |
+  run: | 
     python3 tools/doc-quality/doc_quality_check.py --standalone --ci --min-score 70
 ```
 
@@ -148,9 +152,9 @@ The standalone mode uses built-in heuristics and doesn't require configuration f
 The standalone analyzer uses simple, maintainable heuristics. To improve scoring accuracy:
 
 1. Analyze failing cases
-2. Adjust scoring weights in `StandaloneQualityChecker`
-3. Test with diverse documentation samples
-4. Ensure backward compatibility
+1. Adjust scoring weights in `StandaloneQualityChecker`
+1. Test with diverse documentation samples
+1. Ensure backward compatibility
 
 ## License
 

@@ -24,6 +24,7 @@ To reduce complexity and maintenance overhead, Goblin Assistant uses a streamlin
 ```
 
 **Previous Platforms (Archived)**:
+
 - ❌ Render - Config removed, database migrated to Supabase
 - ❌ Railway - Config removed
 - ❌ Netlify - Config removed
@@ -57,7 +58,7 @@ To eliminate infrastructure sprawl, Goblin Assistant has consolidated from 15+ c
 ### 1. Frontend - Vercel
 
 **Service**: Static Site Hosting
-**URL**: `https://goblin-assistant.vercel.app`
+**URL**: `<https://goblin-assistant.vercel.app`>
 
 **Why Vercel?**
 
@@ -78,7 +79,7 @@ To eliminate infrastructure sprawl, Goblin Assistant has consolidated from 15+ c
 ### 2. Backend - Fly.io
 
 **Service**: Web Service (Python)
-**URL**: `https://goblin-assistant.fly.dev`
+**URL**: `<https://goblin-assistant.fly.dev`>
 
 **Why Fly.io?**
 
@@ -163,6 +164,7 @@ deepseek-coder  - Code generation (776MB)
 ### 1. User Request Flow
 
 ```text
+
 User Browser
     ↓
 Vercel (Static UI)
@@ -195,6 +197,7 @@ User → Vercel UI → Google OAuth
 1. **Install Vercel CLI** (if not already installed):
 
    ```bash
+
    npm install -g vercel
    ```
 
@@ -207,6 +210,7 @@ User → Vercel UI → Google OAuth
 3. **Deploy from project root**:
 
    ```bash
+
    cd apps/goblin-assistant
    vercel --prod
    ```
@@ -232,6 +236,7 @@ User → Vercel UI → Google OAuth
 2. **Create Fly App**:
 
    ```bash
+
    cd apps/goblin-assistant
    fly launch --name goblin-assistant-backend
    ```
@@ -251,6 +256,7 @@ User → Vercel UI → Google OAuth
 5. **Deploy**:
 
    ```bash
+
    fly deploy
    ```
 
@@ -265,16 +271,19 @@ User → Vercel UI → Google OAuth
 ### Configure Kamatera LLM Server
 
 1. **SSH into VPS**:
+
    ```bash
    ssh root@45.61.60.3
    ```
 
 2. **Install Ollama**:
    ```bash
-   curl https://ollama.ai/install.sh | sh
+
+   curl <https://ollama.ai/install.sh> | sh
    ```
 
 3. **Pull Required Models**:
+
    ```bash
    ollama pull gemma:2b
    ollama pull phi3:3.8b
@@ -284,6 +293,7 @@ User → Vercel UI → Google OAuth
 
 4. **Start Ollama Service**:
    ```bash
+
    systemctl start ollama
    systemctl enable ollama
    ```
@@ -298,6 +308,7 @@ User → Vercel UI → Google OAuth
 6. **Configure Firewall**:
 
    ```bash
+
    ufw allow 8002/tcp
    ufw enable
    ```
@@ -428,10 +439,12 @@ User → Vercel UI → Google OAuth
 ### Frontend Rollback (Vercel)
 
 ```bash
+
 # Revert to previous deployment
 vercel rollback <deployment-url>
 
 # Or via dashboard:
+
 # Deployments → Select working deployment → Promote to Production
 ```
 
@@ -447,6 +460,7 @@ fly deploy --image <previous-image-id>
 
 ### Database Migrations
 ```bash
+
 # Rollback Alembic migration
 alembic downgrade -1
 ```
@@ -476,11 +490,11 @@ alembic downgrade -1
 
 For deployment issues:
 
-- Vercel: https://vercel.com/support
-- Fly.io: https://fly.io/docs/getting-help/
+- Vercel: <https://vercel.com/support>
+- Fly.io: <https://fly.io/docs/getting-help/>
 - Kamatera: support@kamatera.com
 
 For code issues:
 
-- GitHub Issues: https://github.com/fuaadabdullah/forgemono/issues
+- GitHub Issues: <https://github.com/fuaadabdullah/forgemono/issues>
 - GoblinOS Docs: `/GoblinOS/docs/`

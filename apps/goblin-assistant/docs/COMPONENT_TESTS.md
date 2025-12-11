@@ -8,6 +8,7 @@
 Comprehensive test coverage for Goblin Assistant UI components using **Vitest**, **React Testing Library**, and **Storybook** for visual regression testing.
 
 ### Testing Stack
+
 - **Unit Tests**: Vitest 2.1.9 + React Testing Library 16.3.0 (69 tests)
 - **Visual Tests**: Storybook 8.6.14 + Chromatic (68 stories, 150+ states)
 - **Accessibility**: @storybook/addon-a11y (automated WCAG checks)
@@ -17,6 +18,7 @@ Comprehensive test coverage for Goblin Assistant UI components using **Vitest**,
 ### UI Component Library (`src/components/ui/`)
 
 #### ✅ Button.test.tsx
+
 - Renders with default variant and size
 - Renders with different variants (primary, secondary, danger, ghost)
 - Renders with different sizes (sm, md, lg)
@@ -27,6 +29,7 @@ Comprehensive test coverage for Goblin Assistant UI components using **Vitest**,
 - Forwards aria-label
 
 #### ✅ Badge.test.tsx
+
 - Renders with success variant styling
 - Renders with warning variant styling
 - Renders with danger variant styling
@@ -37,6 +40,7 @@ Comprehensive test coverage for Goblin Assistant UI components using **Vitest**,
 - Renders with accessible role and aria-live
 
 #### ✅ IconButton.test.tsx
+
 - Renders with icon and accessible label
 - Handles click events
 - Can be disabled
@@ -44,6 +48,7 @@ Comprehensive test coverage for Goblin Assistant UI components using **Vitest**,
 - Requires aria-label for accessibility
 
 #### ✅ Grid.test.tsx
+
 - Renders children in a grid layout
 - Applies default grid classes
 - Renders with different gap sizes (sm, md, lg)
@@ -53,6 +58,7 @@ Comprehensive test coverage for Goblin Assistant UI components using **Vitest**,
 - Combines all props correctly
 
 #### ✅ Alert.test.tsx
+
 - Renders with info variant by default
 - Renders with different variants (success, warning, danger)
 - Renders with optional title
@@ -63,6 +69,7 @@ Comprehensive test coverage for Goblin Assistant UI components using **Vitest**,
 - Has proper ARIA attributes (role="alert", aria-live="assertive")
 
 #### ✅ Tooltip.test.tsx
+
 - Renders trigger element
 - Shows tooltip on hover
 - Hides tooltip on mouse leave
@@ -75,6 +82,7 @@ Comprehensive test coverage for Goblin Assistant UI components using **Vitest**,
 ### Feature Components (`src/components/`)
 
 #### ✅ StatusCard.test.tsx
+
 - Renders with title and healthy status
 - Renders with degraded status and warning styling
 - Renders with down status and error styling
@@ -87,26 +95,32 @@ Comprehensive test coverage for Goblin Assistant UI components using **Vitest**,
 #### ✅ LoadingSkeleton.test.tsx
 
 **StatusCardSkeleton:**
+
 - Renders with loading accessibility attributes
 - Displays animated skeleton elements
 
 **StatCardSkeleton:**
+
 - Renders with loading label
 - Has aria-busy attribute
 
 **ListSkeleton:**
+
 - Renders default number of items (5)
 - Renders custom number of items
 - Each item has aria-busy attribute
 
 **ListItemSkeleton:**
+
 - Renders with loading label
 
 **ProviderCardSkeleton:**
+
 - Renders with loading label
 - Displays multiple skeleton elements
 
 **DashboardSkeleton:**
+
 - Renders dashboard loading state
 - Renders multiple status card skeletons
 - Renders stat card skeletons
@@ -168,18 +182,22 @@ describe('Component', () => {
 
 **Evidence**:
 ```bash
+
 # Existing test also fails
 npm test -- src/test/Navigation.test.tsx
+
 # Result: Same React version error
 ```
 
 **Status**: Project-wide testing environment issue
 
 **Resolution Required**:
+
 1. Check for multiple React installations: `npm ls react react-dom`
 2. Clear node_modules and reinstall: `rm -rf node_modules && npm install`
 3. Update vitest.config.ts to handle React correctly
 4. Possibly add to vitest.config.ts:
+
    ```typescript
    resolve: {
      dedupe: ['react', 'react-dom'],
@@ -204,21 +222,25 @@ npm test -- src/test/Navigation.test.tsx
 
 ### Run All Component Tests
 ```bash
+
 cd apps/goblin-assistant
 npm test -- src/components/
 ```
 
 ### Run Specific Test File
+
 ```bash
 npm test -- src/components/ui/Button.test.tsx
 ```
 
 ### Run Tests in Watch Mode
 ```bash
+
 npm test -- --watch
 ```
 
 ### Generate Coverage Report
+
 ```bash
 npm test -- --coverage
 ```
@@ -270,6 +292,7 @@ All tested components now have visual stories:
 ### Running Visual Tests
 
 ```bash
+
 # Start Storybook (from monorepo root)
 npx storybook dev -p 6006 --config-dir apps/goblin-assistant/.storybook
 
@@ -289,11 +312,13 @@ These tests follow the **Testing Library** philosophy:
 > "The more your tests resemble the way your software is used, the more confidence they can give you."
 
 **Focus on**:
+
 - ✅ User behavior (clicks, typing, navigation)
 - ✅ Accessibility (screen readers, keyboard)
 - ✅ Visual feedback (what users see)
 
 **Avoid**:
+
 - ❌ Testing implementation details
 - ❌ Shallow rendering
 - ❌ Testing internal state directly

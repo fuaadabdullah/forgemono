@@ -25,8 +25,10 @@ python3 tools/doc-quality/doc_quality_check.py --report docs/reports/quality_rep
 1. Ensure Python 3.9+ is installed
 2. Install dependencies:
    ```bash
+
    pip install requests pyyaml
    ```
+
 3. The Raptor Mini API should be running (default: ngrok URL)
 
 ## 📊 Quality Metrics
@@ -70,6 +72,7 @@ files:
 Automatically check documentation quality before commits:
 
 ```bash
+
 # Install the hook
 cp pre-commit-doc-check.sh .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
@@ -139,6 +142,7 @@ The quality checker includes comprehensive debugging tools to help with developm
 ### Debug Options
 
 ```bash
+
 # Enable general debug mode
 python3 tools/doc-quality/doc_quality_check.py --debug
 
@@ -175,11 +179,14 @@ python3 tools/doc-quality/doc_quality_check.py
 Save raw API responses for detailed analysis:
 
 ```bash
+
 # Save responses to a directory
 python3 tools/doc-quality/doc_quality_check.py --save-responses ./debug_responses
 
 # Each API call creates a timestamped JSON file with:
+
 # - Request details (method, URL, payload)
+
 # - Response details (status, headers, body, timing)
 ```
 
@@ -203,7 +210,7 @@ python3 tools/doc-quality/doc_quality_check.py --save-responses ./debug_response
 
 **API Debug:**
 ```
-🐛 Debug: API Request #2: POST https://api.example.com/analyze/file
+🐛 Debug: API Request #2: POST <https://api.example.com/analyze/file>
 🐛 Debug: Request payload: {"file_path": "/path/to/file.md", "analysis_type": "quality_score"}
 🐛 Debug: Response status: 200
 🐛 Debug: Response time: 0.123s
@@ -242,6 +249,7 @@ When adding new documentation:
 ## 📞 Support
 
 For issues with:
+
 - **API connectivity**: Check Raptor Mini server status
 - **Quality scoring**: Review the analysis output for specific suggestions
 - **Configuration**: Validate YAML syntax in `tools/doc-quality/doc_quality_config.yaml`

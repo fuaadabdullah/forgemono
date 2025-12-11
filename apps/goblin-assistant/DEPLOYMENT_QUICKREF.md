@@ -4,13 +4,14 @@
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| Frontend (Vercel) | https://goblin-assistant.vercel.app | React UI, Static Assets |
-| Backend (Fly.io) | https://goblin-assistant.fly.dev | FastAPI Server, Database |
-| LLM Server (Kamatera) | http://45.61.60.3:8002 | Local Ollama Models |
+| Frontend (Vercel) | <https://goblin-assistant.vercel.app> | React UI, Static Assets |
+| Backend (Fly.io) | <https://goblin-assistant.fly.dev> | FastAPI Server, Database |
+| LLM Server (Kamatera) | <http://45.61.60.3:8002> | Local Ollama Models |
 
 ## Quick Deploy Commands
 
 ### Frontend to Vercel
+
 ```bash
 cd apps/goblin-assistant
 ./deploy-vercel.sh
@@ -21,13 +22,16 @@ vercel --prod
 
 ### Backend to Fly.io
 ```bash
+
 cd apps/goblin-assistant
 ./deploy-fly.sh
+
 # Or manually:
 fly deploy
 ```
 
 ### Kamatera LLM Server
+
 ```bash
 # SSH into server
 ssh root@45.61.60.3
@@ -46,12 +50,14 @@ curl http://45.61.60.3:8002/health
 
 ### Vercel (Frontend)
 ```bash
-VITE_API_URL=https://goblin-assistant.fly.dev
-VITE_FRONTEND_URL=https://goblin-assistant.vercel.app
+
+VITE_API_URL=<https://goblin-assistant.fly.dev>
+VITE_FRONTEND_URL=<https://goblin-assistant.vercel.app>
 VITE_GOOGLE_CLIENT_ID=<your-google-client-id>
 ```
 
 ### Fly.io (Backend)
+
 ```bash
 DATABASE_URL=<from-supabase>
 LOCAL_LLM_PROXY_URL=http://45.61.60.3:8002
@@ -64,8 +70,11 @@ ANTHROPIC_API_KEY=<your-key>
 
 ### Kamatera (LLM Server)
 ```bash
+
 # No special env vars needed
+
 # Ollama runs as system service
+
 # API proxy handles authentication
 ```
 
@@ -95,14 +104,17 @@ curl -X POST https://goblin-assistant.fly.dev/api/chat/completions \
 
 ### Frontend (Vercel)
 ```bash
+
 # Via CLI
 vercel rollback <deployment-url>
 
 # Via Dashboard
+
 # Deployments → Select previous → Promote to Production
 ```
 
 ### Backend (Fly.io)
+
 ```bash
 # Via CLI
 fly deploy --image <previous-image-id>
@@ -113,6 +125,7 @@ fly deploy --image <previous-image-id>
 
 ### LLM Server (Kamatera)
 ```bash
+
 # Restart Ollama
 systemctl restart ollama
 
@@ -136,8 +149,8 @@ ollama pull gemma:2b --force
 
 ## Monitoring
 
-- **Vercel**: https://vercel.com/dashboard
-- **Fly.io**: https://fly.io/dashboard
+- **Vercel**: <https://vercel.com/dashboard>
+- **Fly.io**: <https://fly.io/dashboard>
 - **Kamatera**: SSH access + `systemctl status ollama`
 
 ## Cost Summary
@@ -154,5 +167,5 @@ ollama pull gemma:2b --force
 
 - **Full Guide**: See `DEPLOYMENT_ARCHITECTURE.md`
 - **GoblinOS Docs**: `/GoblinOS/docs/`
-- **Vercel Docs**: https://vercel.com/docs
-- **Fly.io Docs**: https://fly.io/docs
+- **Vercel Docs**: <https://vercel.com/docs>
+- **Fly.io Docs**: <https://fly.io/docs>

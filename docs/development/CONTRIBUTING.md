@@ -29,6 +29,7 @@ Run checks at the top of each major area:
 - Python projects:
 
   ```bash
+
   # Example
   python -m venv .venv && source .venv/bin/activate
   pip install -r requirements.txt

@@ -39,6 +39,7 @@ await fetch('/auth/passkey/register', {
 ## Authentication Example (React / Browser)
 
 ```javascript
+
 // 1. Request challenge
 const { challenge } = await fetch('/auth/passkey/challenge', {
   method: 'POST',

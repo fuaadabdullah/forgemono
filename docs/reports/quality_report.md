@@ -2,6 +2,7 @@
 Generated: 2025-12-11 17:34:40
 
 ## Summary Statistics
+
 - **Total Files**: 75
 - **Successfully Analyzed**: 75
 - **Average Score**: 0.0/100
@@ -11,6 +12,7 @@ Generated: 2025-12-11 17:34:40
 - **Low Quality (<60)**: 75
 
 ## Top Performing Files
+
 1. **20251209_docs_test-documentation_md.md**: 0/100 - unknown
 2. **20251209_emergency_deployment_procedures.md**: 0/100 - unknown
 3. **20251209_local_development_setup.md**: 0/100 - unknown
@@ -18,6 +20,7 @@ Generated: 2025-12-11 17:34:40
 5. **20251209_test__goblin_docs_system_working.md**: 0/100 - unknown
 
 ## Files Needing Improvement
+
 - **20251209_docs_test-documentation_md.md** (0/100): unknown
 - **20251209_emergency_deployment_procedures.md** (0/100): unknown
 - **20251209_local_development_setup.md** (0/100): unknown
@@ -95,6 +98,7 @@ Generated: 2025-12-11 17:34:40
 - **vercel-telemetry.md** (0/100): unknown
 
 ## Individual File Results
+
 - **20251209_docs_test-documentation_md.md**: ❌ Error - Network error: Cannot connect to host thomasena-auxochromic-joziah.ngrok-free.dev:443 ssl:True [SSLCertVerificationError: (1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1032)')]
 - **20251209_emergency_deployment_procedures.md**: ❌ Error - Network error: Cannot connect to host thomasena-auxochromic-joziah.ngrok-free.dev:443 ssl:True [SSLCertVerificationError: (1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1032)')]
 - **20251209_local_development_setup.md**: ❌ Error - Network error: Cannot connect to host thomasena-auxochromic-joziah.ngrok-free.dev:443 ssl:True [SSLCertVerificationError: (1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1032)')]

@@ -19,10 +19,12 @@ This interactive script will guide you through setting up all required secrets f
 
 **Set via CLI**:
 ```bash
+
 gh secret set FLY_API_TOKEN --repo fuaadabdullah/goblin-assistant-backend
 ```
 
 **Verify**:
+
 ```bash
 gh secret list --repo fuaadabdullah/goblin-assistant-backend
 ```
@@ -38,6 +40,7 @@ gh secret list --repo fuaadabdullah/goblin-assistant-backend
 
 **Set via CLI**:
 ```bash
+
 gh secret set VERCEL_TOKEN --repo fuaadabdullah/goblin-assistant-frontend
 gh secret set VERCEL_ORG_ID --repo fuaadabdullah/goblin-assistant-frontend
 gh secret set VERCEL_PROJECT_ID --repo fuaadabdullah/goblin-assistant-frontend
@@ -46,6 +49,7 @@ gh secret set CHROMATIC_PROJECT_TOKEN --repo fuaadabdullah/goblin-assistant-fron
 ```
 
 **Verify**:
+
 ```bash
 gh secret list --repo fuaadabdullah/goblin-assistant-frontend
 ```
@@ -58,11 +62,13 @@ gh secret list --repo fuaadabdullah/goblin-assistant-frontend
 
 **Set via CLI**:
 ```bash
+
 gh secret set NPM_TOKEN --repo fuaadabdullah/goblin-assistant-contracts
 gh secret set PYPI_TOKEN --repo fuaadabdullah/goblin-assistant-contracts
 ```
 
 **Verify**:
+
 ```bash
 gh secret list --repo fuaadabdullah/goblin-assistant-contracts
 ```
@@ -77,6 +83,7 @@ gh secret list --repo fuaadabdullah/goblin-assistant-contracts
 
 **Set via CLI**:
 ```bash
+
 gh secret set AWS_ACCESS_KEY_ID --repo fuaadabdullah/goblin-assistant-infra
 gh secret set AWS_SECRET_ACCESS_KEY --repo fuaadabdullah/goblin-assistant-infra
 
@@ -89,6 +96,7 @@ cat ~/.kube/production-config | base64 | tr -d '\n' | \
 ```
 
 **Verify**:
+
 ```bash
 gh secret list --repo fuaadabdullah/goblin-assistant-infra
 ```
@@ -104,11 +112,13 @@ These secrets are shared across all repositories:
 
 **Set via CLI**:
 ```bash
+
 gh secret set SLACK_WEBHOOK_URL --org fuaadabdullah
 gh secret set INFRACOST_API_KEY --org fuaadabdullah
 ```
 
 **Verify**:
+
 ```bash
 gh secret list --org fuaadabdullah
 ```
@@ -140,6 +150,7 @@ gh secret list --org fuaadabdullah
 After configuring secrets, test with a dummy commit:
 
 ```bash
+
 # Backend
 cd /tmp/goblin-repos/goblin-assistant-backend
 git checkout -b test-ci
@@ -160,6 +171,7 @@ git add . && git commit -m "test: secrets" && git push origin test-ci
 ## 🚨 Common Issues
 
 ### "Secret not found"
+
 ```bash
 # Re-add the secret
 echo "your-value" | gh secret set SECRET_NAME --repo owner/repo
@@ -172,6 +184,7 @@ echo "your-value" | gh secret set SECRET_NAME --repo owner/repo
 
 ### "Base64 decode error"
 ```bash
+
 # Remove newlines from base64 encoding
 cat file | base64 | tr -d '\n' | gh secret set SECRET_NAME --repo owner/repo
 ```
@@ -181,6 +194,7 @@ cat file | base64 | tr -d '\n' | gh secret set SECRET_NAME --repo owner/repo
 ## 📚 Full Documentation
 
 For detailed step-by-step instructions, see:
+
 - **Complete Guide**: `docs/GITHUB_SECRETS_SETUP.md`
 - **Automated Script**: `tools/configure-github-secrets.sh`
 

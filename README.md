@@ -47,12 +47,14 @@ Complete documentation pipeline with AI analysis, diagram generation, and CI val
 ### Setup
 
 ```bash
+
 # Install dependencies
 pip install frontmatter click requests
 npm install -g markdownlint-cli markdown-link-check prettier @mermaid-js/mermaid-cli
 
 # Configure Raptor Mini (Colab deployment)
 cp .env.example .env
+
 # Edit .env with your Colab Raptor endpoint URL
 ```
 

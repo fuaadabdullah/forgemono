@@ -53,6 +53,7 @@ path "database/creds/goblin-assistant" {
 ### Recommended Solution: OpenTelemetry + Datadog
 
 ```python
+
 # opentelemetry_config.py (enhanced)
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
@@ -112,6 +113,7 @@ API_AVAILABILITY_SLO = 0.999   # 99.9%
 ### Recommended Solution: PostgreSQL + Redis Only
 
 ```sql
+
 -- Enable pgvector for embeddings
 CREATE EXTENSION IF NOT EXISTS vector;
 
@@ -160,6 +162,7 @@ CREATE TABLE conversation_cache (
 ## Priority 4: Infrastructure Complexity Reduction 🏗️ MEDIUM IMPACT
 
 ### Current Problems
+
 - **Multiple Deployment Targets**: Fly.io, Kubernetes, Vercel, Netlify, Render
 - **IaC Complexity**: Terraform + Helm + Kustomize + GitOps
 - **Cost Inefficiency**: Multiple cloud providers for similar services
@@ -210,6 +213,7 @@ spec:
 ### Recommended Solution: Multi-Cloud Cost Intelligence
 
 ```python
+
 # monitoring/cost_optimization.py
 from dataclasses import dataclass
 from typing import Dict, List
@@ -244,12 +248,14 @@ class CostOptimizer:
 ```
 
 ### Implementation Steps
+
 1. **Cost Monitoring**: Implement CloudHealth or native cloud cost APIs
 2. **Provider Analytics**: Track cost per request, latency, and success rates
 3. **Auto-Optimization**: Implement intelligent routing based on cost metrics
 4. **Budget Alerts**: Set up cost anomaly detection and budget alerts
 
 ### Benefits
+
 - ✅ 20-40% cost reduction through intelligent routing
 - ✅ Better resource utilization
 - ✅ Proactive cost management
@@ -258,26 +264,31 @@ class CostOptimizer:
 ## Implementation Timeline
 
 ### Week 1-2: Foundation
+
 - Set up HashiCorp Vault
 - Deploy OTLP Collector to Kubernetes
 - Begin secret migration
 
 ### Week 3-4: Observability
+
 - Implement OpenTelemetry instrumentation
 - Define and implement SLOs
 - Set up centralized alerting
 
 ### Month 2: Database Consolidation
+
 - Implement pgvector for embeddings
 - Begin D1/KV migration planning
 - Set up Redis Cluster
 
 ### Month 3: Infrastructure Simplification
+
 - Migrate remaining Fly.io services to Kubernetes
 - Implement GitOps for all deployments
 - Standardize on single frontend hosting platform
 
 ### Ongoing: Cost Optimization
+
 - Implement cost monitoring
 - Build provider cost analytics
 - Deploy intelligent routing

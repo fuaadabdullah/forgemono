@@ -7,38 +7,44 @@ A lightweight diagnostics and AI-powered documentation analysis system for the F
 Raptor Mini provides two main capabilities:
 
 1. **AI Documentation Analysis API**: FastAPI-based server for analyzing documentation quality using advanced language models
-2. **Lightweight Diagnostics**: CPU/memory monitoring and exception tracing for Python applications
+1. **Lightweight Diagnostics**: CPU/memory monitoring and exception tracing for Python applications
 
 ## Components
 
 ### API Server (`raptor_mini_local.py`)
+
 - FastAPI-based local deployment equivalent to Colab notebook
 - REST API for document quality analysis
 - Automatic ngrok tunneling for external access
 - Package management and dependency installation
 
 ### API Client (`use_raptor_api.py`)
+
 - Python client library for interacting with Raptor Mini API
 - Health checks, single/batch document analysis
 - Error handling and timeout management
 - Command-line interface for testing
 
 ### Diagnostics Module (`../../GoblinOS/raptor_mini.py`)
+
 - Lightweight monitoring system integrated with GoblinOS
 - INI file configuration (`config/raptor.ini`)
 - CPU/memory sampling and exception tracing
 - FastAPI integration decorators
 
 ### Colab Notebooks
+
 - `raptor_mini_colab.ipynb` - Original Google Colab implementation
 - `updated_raptor_mini_colab.ipynb` - Token-configured version
 
 ### Automation (`automate_raptor_colab.py`)
+
 - Automated Colab notebook deployment
 - ngrok authentication token management
 - Alternative to Google Drive upload approach
 
 ### Tests
+
 - `test_raptor.py` - Basic API functionality tests
 - `test_raptor_optimization.py` - Performance optimization tests
 - `test_raptor_ready.py` - Readiness validation tests
@@ -51,7 +57,7 @@ Raptor Mini provides two main capabilities:
 # Start local Raptor Mini server
 python3 raptor_mini_local.py
 
-# The server will automatically:
+# The server will automatically
 # - Install required dependencies
 # - Set up ngrok tunneling
 # - Start FastAPI server on localhost
@@ -61,6 +67,7 @@ python3 raptor_mini_local.py
 ### Using the API Client
 
 ```python
+
 from use_raptor_api import RaptorMiniClient
 
 client = RaptorMiniClient()
@@ -89,6 +96,7 @@ Modes:
 
 Quick start:
 ```bash
+
 # Start Phi-3 local model
 docker-compose up -d phi3-mini
 export RAPTOR_MODE=phi_only
@@ -108,6 +116,7 @@ python3 ../doc-quality/doc_quality_check.py --path ../../docs/ --mode phi_only -
 Configuration (persist across runs):
 
 ```yaml
+
 models:
   phi3:
     soft_fallback: true
@@ -159,11 +168,13 @@ Content-Type: application/json
 ### API Configuration
 Default settings in `use_raptor_api.py`:
 ```python
-base_url = "https://thomasena-auxochromic-joziah.ngrok-free.dev"
+
+base_url = "<https://thomasena-auxochromic-joziah.ngrok-free.dev">
 ```
 
 ### Diagnostics Configuration
 Create `config/raptor.ini`:
+
 ```ini
 [logging]
 level = INFO
@@ -184,6 +195,7 @@ enable_dev_flags = false
 ### FastAPI Application Integration
 
 ```python
+
 from GoblinOS.raptor_mini import raptor
 
 app = FastAPI()
@@ -229,28 +241,33 @@ def critical_function():
 
 ### Automated Setup
 ```bash
+
 python3 automate_raptor_colab.py raptor_mini_colab.ipynb YOUR_NGROK_TOKEN
 ```
 
 ### Manual Setup
+
 1. Open `raptor_mini_colab.ipynb` in Google Colab
-2. Replace `YOUR_NGROK_AUTH_TOKEN` with your token
-3. Run all cells in sequence
-4. Note the public ngrok URL for API access
+1. Replace `YOUR_NGROK_AUTH_TOKEN` with your token
+1. Run all cells in sequence
+1. Note the public ngrok URL for API access
 
 ## Testing
 
 ### Run All Tests
+
 ```bash
 python3 -m pytest test_raptor*.py -v
 ```
 
 ### API Connectivity Test
 ```bash
+
 python3 test_raptor.py
 ```
 
 ### Performance Tests
+
 ```bash
 python3 test_raptor_optimization.py
 ```

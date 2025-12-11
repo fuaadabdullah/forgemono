@@ -45,6 +45,7 @@
 ## Implementation Patterns
 
 ### APScheduler Pattern
+
 ```python
 @with_redis_lock("task_name", ttl=300)
 def my_task():
@@ -60,6 +61,7 @@ scheduler.add_job(my_task, "interval", minutes=5)
 
 ### Celery Pattern
 ```python
+
 @app.task(bind=True, max_retries=3)
 def my_task(self):
     try:
@@ -76,6 +78,7 @@ my_task.delay()
 ```
 
 ### K8s CronJob Pattern
+
 ```yaml
 apiVersion: batch/v1
 kind: CronJob

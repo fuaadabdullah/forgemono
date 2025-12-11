@@ -11,7 +11,7 @@
 
 Production environment variables configured in `.env.production`:
 
-- `VITE_FASTAPI_URL=https://api.goblin-assistant.com`
+- `VITE_FASTAPI_URL=<https://api.goblin-assistant.com`>
 - `VITE_GOBLIN_RUNTIME=fastapi`
 - `VITE_MOCK_API=false`
 - `ENV=production`
@@ -32,6 +32,7 @@ vercel --prod
 **Netlify:**
 
 ```bash
+
 npm i -g netlify-cli
 netlify deploy --prod --dir=dist
 ```
@@ -46,6 +47,7 @@ aws s3 sync dist/ s3://your-bucket-name --delete
 **GitHub Pages:**
 
 ```bash
+
 npm i -g gh-pages
 gh-pages -d dist
 ```
@@ -53,7 +55,7 @@ gh-pages -d dist
 ### 2. Backend Requirements
 
 Ensure your FastAPI backend is deployed and accessible at:
-`https://api.goblin-assistant.com`
+`<https://api.goblin-assistant.com`>
 
 Required backend endpoints:
 
@@ -77,6 +79,7 @@ VITE_MOCK_API=false
 ### 4. Testing Production Build
 
 ```bash
+
 # Test locally
 npx vite preview --port 4173
 

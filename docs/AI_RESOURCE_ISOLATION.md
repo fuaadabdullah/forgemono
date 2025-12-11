@@ -17,12 +17,14 @@ The resource isolation system provides:
 ### 1. Swap and Zram Setup (`setup_resource_isolation.sh`)
 
 **Features:**
+
 - 16GB swapfile for memory overflow protection
 - 8GB zram with LZ4 compression for fast compressed swap
 - Optimized swappiness (10%) to prefer RAM over swap
 - EarlyOOM protection (kills processes at 10% memory remaining)
 
 **Usage:**
+
 ```bash
 sudo ./setup_resource_isolation.sh
 ```
@@ -45,12 +47,14 @@ sudo ./setup_resource_isolation.sh
 
 **Usage:**
 ```bash
+
 sudo ./configure_systemd_cgroups.sh
 ```
 
 ### 3. Resource Monitoring (`ai-resource-monitor.sh`)
 
 **Capabilities:**
+
 - Real-time CPU, memory, disk, and swap monitoring
 - Service-specific resource usage tracking
 - Alert system for threshold violations
@@ -58,6 +62,7 @@ sudo ./configure_systemd_cgroups.sh
 - JSON output for integration
 
 **Usage:**
+
 ```bash
 # Collect metrics
 ./ai-resource-monitor.sh --collect
@@ -91,6 +96,7 @@ sudo ./configure_systemd_cgroups.sh
 
 **Usage:**
 ```bash
+
 sudo ./create_resource_management_service.sh
 ```
 
@@ -106,6 +112,7 @@ sudo ./create_resource_management_service.sh
 | Monitor | 128MB | 0.1 | 50 | Hardened |
 
 **Features:**
+
 - CPU affinity and pinning
 - Memory limits with swap control
 - Block IO throttling
@@ -132,6 +139,7 @@ The resource isolation is automatically integrated into the LLM deployment proce
 ### Real-time Monitoring
 
 ```bash
+
 # View current resource usage
 ai-resource-monitor.sh --display
 
@@ -201,6 +209,7 @@ systemctl show ollama -p MemoryCurrent,CPUUsageNSec
 ### High Memory Usage
 
 ```bash
+
 # Check memory usage
 ai-resource-monitor.sh --display
 
@@ -230,6 +239,7 @@ ps aux | grep -E "(ollama|llama)" | head -10
 ### Service Failures
 
 ```bash
+
 # Check service status
 systemctl status ollama
 
@@ -266,6 +276,7 @@ du -sh /srv/models/*
 ### Regular Monitoring
 
 ```bash
+
 # Daily resource check
 ai-resource-monitor.sh --collect
 
@@ -273,8 +284,11 @@ ai-resource-monitor.sh --collect
 journalctl -u ai-resource-manager --since "1 week ago"
 
 # Monthly cleanup
+
 # Check for resource leaks
+
 # Verify limits are still effective
+
 # Update monitoring thresholds if needed
 ```
 
@@ -291,6 +305,7 @@ When updating AI services:
 ### Backup and Recovery
 
 Resource configuration is backed up automatically:
+
 - Service files: `/etc/systemd/system/*.backup.*`
 - Configuration: `/etc/default/zramswap.backup`
 - Scripts: Version controlled in repository
@@ -300,6 +315,7 @@ Resource configuration is backed up automatically:
 ### Cloudflare Edge
 
 Resource isolation prevents local inference from affecting:
+
 - API response times
 - Edge worker performance
 - Global routing decisions
@@ -307,6 +323,7 @@ Resource isolation prevents local inference from affecting:
 ### Fly.io Backend
 
 Memory limits ensure:
+
 - Consistent API performance
 - Predictable scaling behavior
 - Cost-effective resource usage
@@ -314,6 +331,7 @@ Memory limits ensure:
 ### Monitoring Stack
 
 Integrates with existing monitoring:
+
 - Prometheus metrics export
 - Alert manager integration
 - Grafana dashboards

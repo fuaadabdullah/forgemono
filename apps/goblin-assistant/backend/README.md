@@ -24,6 +24,7 @@ Core languages & frameworks:
 
 1. Create Python venv:
 ```bash
+
 cd apps/goblin-assistant/backend
 python3 -m venv ../venv
 source ../venv/bin/activate
@@ -31,6 +32,7 @@ pip install -r requirements.txt
 ```
 
 2. **Configure environment:**
+
 ```bash
 cp .env.example .env
 # Edit .env with your configuration:
@@ -44,10 +46,12 @@ cp .env.example .env
 
 3. Start the backend:
 ```bash
+
 uvicorn main:app --reload --port 8001
 ```
 
 4. Verify the health endpoint:
+
 ```bash
 curl http://localhost:8001/health
 ```
@@ -92,6 +96,7 @@ For local development only you may continue to use a local proxy. Gate it behind
 
 ## Tests
 ```bash
+
 cd apps/goblin-assistant/backend
 pytest -v
 ```
@@ -108,6 +113,7 @@ These tests require a local LLM runtime. To run them:
 2. Start a local runtime:
 
 ```bash
+
 # Ollama local server (example)
 ollama run raptor-mini
 
@@ -175,6 +181,7 @@ This repository contains all the functionality for Supabase CLI.
 Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
+
 npm i supabase --save-dev
 ```
 
@@ -199,6 +206,7 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
   Available via [Homebrew](https://brew.sh). To install:
 
   ```sh
+
   brew install supabase/tap/supabase
   ```
 
@@ -212,6 +220,7 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
   To upgrade:
 
   ```sh
+
   brew upgrade supabase
   ```
 </details>
@@ -229,6 +238,7 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
   To upgrade:
 
   ```powershell
+
   scoop update supabase
   ```
 </details>
@@ -249,6 +259,7 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
   To upgrade:
 
   ```sh
+
   brew upgrade supabase
   ```
 
@@ -261,6 +272,7 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
   ```
 
   ```sh
+
   sudo dpkg -i <...>.deb
   ```
 
@@ -269,6 +281,7 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
   ```
 
   ```sh
+
   sudo pacman -U <...>.pkg.tar.zst
   ```
 </details>
@@ -285,6 +298,7 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
   Add a symlink to the binary in `$PATH` for easier access:
 
   ```sh
+
   ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
   ```
 
@@ -307,6 +321,7 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
 ### Run the CLI
 
 ```bash
+
 supabase bootstrap
 ```
 
@@ -333,6 +348,7 @@ However, due to dependencies on other service images, we cannot guarantee that s
 To run from source:
 
 ```sh
+
 # Go >= 1.22
 go run . help
 ```

@@ -5,6 +5,7 @@ This demonstrates the complete JWT authentication flow for users to authenticate
 ## API Endpoints
 
 ### 1. User Registration
+
 ```http
 POST /auth/register
 Content-Type: application/json
@@ -18,6 +19,7 @@ Content-Type: application/json
 
 **Response:**
 ```json
+
 {
   "message": "User registered successfully",
   "user_id": "uuid-string"
@@ -25,6 +27,7 @@ Content-Type: application/json
 ```
 
 ### 2. User Login
+
 ```http
 POST /auth/login
 Content-Type: application/json
@@ -37,6 +40,7 @@ Content-Type: application/json
 
 **Response:**
 ```json
+
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -46,6 +50,7 @@ Content-Type: application/json
 ```
 
 ### 3. Refresh Access Token
+
 ```http
 POST /auth/refresh
 Content-Type: application/json
@@ -57,6 +62,7 @@ Content-Type: application/json
 
 **Response:**
 ```json
+
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "token_type": "bearer",
@@ -65,6 +71,7 @@ Content-Type: application/json
 ```
 
 ### 4. Get Current User Info
+
 ```http
 GET /auth/me
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -72,6 +79,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Response:**
 ```json
+
 {
   "id": "uuid-string",
   "email": "user@example.com",
@@ -83,6 +91,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ### 5. Logout
+
 ```http
 POST /auth/logout
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -90,6 +99,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Response:**
 ```json
+
 {
   "message": "Logged out successfully"
 }

@@ -43,6 +43,7 @@ This document provides comprehensive documentation for all environment variables
 ## Database Configuration
 
 ### DATABASE_URL
+
 - **Type**: String
 - **Default**: None
 - **Required**: Yes (if not using SUPABASE_URL)
@@ -50,15 +51,17 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `DATABASE_URL=postgresql://user:password@localhost:5432/goblin_assistant`
 
 ### SUPABASE_URL
+
 - **Type**: String
 - **Default**: None
 - **Required**: Yes (if not using DATABASE_URL)
 - **Description**: Supabase database connection URL
-- **Example**: `SUPABASE_URL=https://your-project.supabase.co`
+- **Example**: `SUPABASE_URL=<https://your-project.supabase.co`>
 
 ## LLM Providers
 
 ### KAMATERA_LLM_API_KEY
+
 - **Type**: String
 - **Default**: None
 - **Required**: No (but recommended for production)
@@ -66,13 +69,15 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `KAMATERA_LLM_API_KEY=your-api-key-here`
 
 ### KAMATERA_LLM_URL
+
 - **Type**: String
-- **Default**: `http://66.55.77.147:8000`
+- **Default**: `<http://66.55.77.147:8000`>
 - **Required**: No
 - **Description**: Base URL for Kamatera-hosted LLM service
-- **Example**: `KAMATERA_LLM_URL=http://66.55.77.147:8000`
+- **Example**: `KAMATERA_LLM_URL=<http://66.55.77.147:8000`>
 
 ### LOCAL_LLM_API_KEY
+
 - **Type**: String
 - **Default**: Empty string
 - **Required**: No
@@ -80,20 +85,23 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `LOCAL_LLM_API_KEY=your-local-api-key`
 
 ### LOCAL_LLM_PROXY_URL
+
 - **Type**: String
-- **Default**: `http://45.61.60.3:8002`
+- **Default**: `<http://45.61.60.3:8002`>
 - **Required**: No
 - **Description**: Base URL for local LLM proxy service
-- **Example**: `LOCAL_LLM_PROXY_URL=http://localhost:8002`
+- **Example**: `LOCAL_LLM_PROXY_URL=<http://localhost:8002`>
 
 ### OLLAMA_BASE_URL
+
 - **Type**: String
-- **Default**: `http://localhost:11434`
+- **Default**: `<http://localhost:11434`>
 - **Required**: No
 - **Description**: Base URL for Ollama service
-- **Example**: `OLLAMA_BASE_URL=http://localhost:11434`
+- **Example**: `OLLAMA_BASE_URL=<http://localhost:11434`>
 
 ### OLLAMA_API_KEY
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
@@ -101,6 +109,7 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `OLLAMA_API_KEY=your-ollama-key`
 
 ### USE_LOCAL_LLM
+
 - **Type**: Boolean (true/false)
 - **Default**: `false`
 - **Required**: No
@@ -108,6 +117,7 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `USE_LOCAL_LLM=true`
 
 ### OPENAI_API_KEY
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
@@ -115,13 +125,15 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `OPENAI_API_KEY=sk-your-openai-key`
 
 ### OPENAI_BASE_URL
+
 - **Type**: String
-- **Default**: `https://api.openai.com`
+- **Default**: `<https://api.openai.com`>
 - **Required**: No
 - **Description**: Base URL for OpenAI API
-- **Example**: `OPENAI_BASE_URL=https://api.openai.com`
+- **Example**: `OPENAI_BASE_URL=<https://api.openai.com`>
 
 ### ANTHROPIC_API_KEY
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
@@ -129,13 +141,15 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `ANTHROPIC_API_KEY=sk-ant-your-anthropic-key`
 
 ### ANTHROPIC_BASE_URL
+
 - **Type**: String
-- **Default**: `https://api.anthropic.com`
+- **Default**: `<https://api.anthropic.com`>
 - **Required**: No
 - **Description**: Base URL for Anthropic API
-- **Example**: `ANTHROPIC_BASE_URL=https://api.anthropic.com`
+- **Example**: `ANTHROPIC_BASE_URL=<https://api.anthropic.com`>
 
 ### GROQ_API_KEY
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
@@ -143,13 +157,15 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `GROQ_API_KEY=gsk-your-groq-key`
 
 ### GROQ_BASE_URL
+
 - **Type**: String
-- **Default**: `https://api.groq.com`
+- **Default**: `<https://api.groq.com`>
 - **Required**: No
 - **Description**: Base URL for Groq API
-- **Example**: `GROQ_BASE_URL=https://api.groq.com`
+- **Example**: `GROQ_BASE_URL=<https://api.groq.com`>
 
 ### DEEPSEEK_API_KEY
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
@@ -157,13 +173,15 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `DEEPSEEK_API_KEY=sk-deepseek-your-key`
 
 ### DEEPSEEK_BASE_URL
+
 - **Type**: String
-- **Default**: `https://api.deepseek.ai`
+- **Default**: `<https://api.deepseek.ai`>
 - **Required**: No
 - **Description**: Base URL for DeepSeek API
-- **Example**: `DEEPSEEK_BASE_URL=https://api.deepseek.ai`
+- **Example**: `DEEPSEEK_BASE_URL=<https://api.deepseek.ai`>
 
 ### GEMINI_API_KEY
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
@@ -171,13 +189,15 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `GEMINI_API_KEY=your-gemini-key`
 
 ### GEMINI_BASE_URL
+
 - **Type**: String
-- **Default**: `https://generative.googleapis.com`
+- **Default**: `<https://generative.googleapis.com`>
 - **Required**: No
 - **Description**: Base URL for Google Gemini API
-- **Example**: `GEMINI_BASE_URL=https://generative.googleapis.com`
+- **Example**: `GEMINI_BASE_URL=<https://generative.googleapis.com`>
 
 ### GROK_API_KEY
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
@@ -187,6 +207,7 @@ This document provides comprehensive documentation for all environment variables
 ## Authentication & Security
 
 ### ROUTING_ENCRYPTION_KEY
+
 - **Type**: String
 - **Default**: None
 - **Required**: Yes
@@ -194,6 +215,7 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `ROUTING_ENCRYPTION_KEY=your-32-char-encryption-key`
 
 ### SECRET_KEY
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
@@ -203,6 +225,7 @@ This document provides comprehensive documentation for all environment variables
 ## Logging & Monitoring
 
 ### DATADOG_API_KEY
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
@@ -210,6 +233,7 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `DATADOG_API_KEY=your-datadog-key`
 
 ### DATADOG_APP_KEY
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
@@ -217,6 +241,7 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `DATADOG_APP_KEY=your-datadog-app-key`
 
 ### REDIS_URL
+
 - **Type**: String
 - **Default**: `redis://localhost:6379/0`
 - **Required**: No
@@ -226,13 +251,15 @@ This document provides comprehensive documentation for all environment variables
 ## CORS & Networking
 
 ### CORS_ORIGINS
+
 - **Type**: String (comma-separated)
 - **Default**: `*`
 - **Required**: No
 - **Description**: Allowed CORS origins for the API
-- **Example**: `CORS_ORIGINS=https://goblin.fuaad.ai,https://localhost:3000`
+- **Example**: `CORS_ORIGINS=<https://goblin.fuaad.ai,https://localhost:3000`>
 
 ### HOST
+
 - **Type**: String
 - **Default**: `0.0.0.0`
 - **Required**: No
@@ -240,6 +267,7 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `HOST=0.0.0.0`
 
 ### PORT
+
 - **Type**: Integer
 - **Default**: `8000`
 - **Required**: No
@@ -249,6 +277,7 @@ This document provides comprehensive documentation for all environment variables
 ## Feature Flags
 
 ### OLLAMA_ENABLED
+
 - **Type**: Boolean (0/false/no or 1/true/yes)
 - **Default**: Based on API key presence
 - **Required**: No
@@ -256,6 +285,7 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `OLLAMA_ENABLED=true`
 
 ### ANTHROPIC_ENABLED
+
 - **Type**: Boolean (0/false/no or 1/true/yes)
 - **Default**: Based on API key presence
 - **Required**: No
@@ -263,6 +293,7 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `ANTHROPIC_ENABLED=false`
 
 ### OPENAI_ENABLED
+
 - **Type**: Boolean (0/false/no or 1/true/yes)
 - **Default**: Based on API key presence
 - **Required**: No
@@ -270,6 +301,7 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `OPENAI_ENABLED=true`
 
 ### GROQ_ENABLED
+
 - **Type**: Boolean (0/false/no or 1/true/yes)
 - **Default**: Based on API key presence
 - **Required**: No
@@ -277,6 +309,7 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `GROQ_ENABLED=true`
 
 ### DEEPSEEK_ENABLED
+
 - **Type**: Boolean (0/false/no or 1/true/yes)
 - **Default**: Based on API key presence
 - **Required**: No
@@ -284,6 +317,7 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `DEEPSEEK_ENABLED=false`
 
 ### GEMINI_ENABLED
+
 - **Type**: Boolean (0/false/no or 1/true/yes)
 - **Default**: Based on API key presence
 - **Required**: No
@@ -293,6 +327,7 @@ This document provides comprehensive documentation for all environment variables
 ## External Services
 
 ### CHROMA_DB_PATH
+
 - **Type**: String
 - **Default**: Auto-generated path
 - **Required**: No
@@ -300,29 +335,33 @@ This document provides comprehensive documentation for all environment variables
 - **Example**: `CHROMA_DB_PATH=/app/data/vector/chroma`
 
 ### QDRANT_URL
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
 - **Description**: URL for Qdrant vector database
-- **Example**: `QDRANT_URL=http://localhost:6333`
+- **Example**: `QDRANT_URL=<http://localhost:6333`>
 
 ### CHROMA_API_URL
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
 - **Description**: URL for Chroma API server
-- **Example**: `CHROMA_API_URL=http://localhost:8001`
+- **Example**: `CHROMA_API_URL=<http://localhost:8001`>
 
 ### MCP_SERVER_URL
+
 - **Type**: String
 - **Default**: None
 - **Required**: No
 - **Description**: URL for MCP (Model Context Protocol) server
-- **Example**: `MCP_SERVER_URL=http://localhost:3001`
+- **Example**: `MCP_SERVER_URL=<http://localhost:3001`>
 
 ## Environment File Examples
 
 ### Development (.env)
+
 ```bash
 # Core
 LOG_LEVEL=DEBUG
@@ -351,17 +390,18 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 
 ### Production (.env)
 ```bash
+
 # Core
 LOG_LEVEL=INFO
 SKIP_RAPTOR_INIT=0
 SKIP_PROBE_INIT=0
 
 # Database
-SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_URL=<https://your-project.supabase.co>
 
 # Production LLM (Kamatera)
 KAMATERA_LLM_API_KEY=your-production-kamatera-key
-KAMATERA_LLM_URL=http://66.55.77.147:8000
+KAMATERA_LLM_URL=<http://66.55.77.147:8000>
 
 # Cloud Providers
 OPENAI_API_KEY=sk-your-openai-key
@@ -378,7 +418,7 @@ DATADOG_APP_KEY=your-datadog-app-key
 REDIS_URL=redis://your-redis-host:6379/0
 
 # CORS
-CORS_ORIGINS=https://goblin.fuaad.ai,https://api.goblin.fuaad.ai
+CORS_ORIGINS=<https://goblin.fuaad.ai,https://api.goblin.fuaad.ai>
 
 # Vector Database
 CHROMA_DB_PATH=/app/data/vector/chroma

@@ -3,6 +3,7 @@ This document has moved into the canonical backend documentation folder:
 - apps/goblin-assistant/backend/docs/MONITORING_IMPLEMENTATION.md
 
 Please update any references or links to point to the new location.
+
 # Production Monitoring Setup - Summary
 
 ## ✅ Implementation Complete
@@ -106,9 +107,12 @@ All production monitoring features have been successfully implemented:
 ### 1. Install Dependencies
 
 ```bash
+
 cd apps/goblin-assistant/backend
 pip install python-json-logger prometheus-client
+
 # Optional for load testing:
+
 # pip install locust
 ```
 
@@ -123,6 +127,7 @@ CORS_ORIGINS=http://localhost:3000,https://yourdomain.com
 ### 3. Start Backend
 
 ```bash
+
 uvicorn main:app --host 0.0.0.0 --port 8001
 ```
 
@@ -145,6 +150,7 @@ locust -f tests/load_test.py --host=http://localhost:8001
 Run the test script to verify all features:
 
 ```bash
+
 cd backend
 ./test_monitoring.sh
 ```

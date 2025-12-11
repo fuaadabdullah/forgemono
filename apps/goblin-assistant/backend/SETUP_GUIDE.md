@@ -31,7 +31,8 @@ This script will:
 1. **Open Supabase Dashboard:**
 
    ```text
-   https://supabase.com/dashboard/project/dhxoowakvmobjxsffpst/settings/database
+
+<https://supabase.com/dashboard/project/dhxoowakvmobjxsffpst/settings/database>
    ```
 
 2. **Get/Reset Database Password:**
@@ -57,6 +58,7 @@ This script will:
 Your .env file should now contain:
 
 ```bash
+
 # PostgreSQL (Supabase):
 DATABASE_URL=postgresql://postgres.dhxoowakvmobjxsffpst:[PASSWORD]@aws-0-us-west-2.pooler.supabase.com:6543/postgres
 ```
@@ -95,6 +97,7 @@ DATABASE_URL=postgresql://postgres.dhxoowakvmobjxsffpst:[PASSWORD]@aws-0-us-west
 Update these lines in `.env`:
 
 ```bash
+
 # Redis Configuration
 USE_REDIS_CHALLENGES=true  # ← Change to true
 REDIS_HOST=your-endpoint.upstash.io  # ← Your endpoint
@@ -133,6 +136,7 @@ alembic upgrade head
 ### Expected Output
 
 ```text
+
 INFO  [alembic.runtime.migration] Context impl PostgreSQLImpl.
 INFO  [alembic.runtime.migration] Will assume transactional DDL.
 INFO  [alembic.runtime.migration] Running upgrade  -> 0ae54fa82ef0, Initial schema with all models
@@ -197,6 +201,7 @@ else:
 If you see this error, your tables already exist. You can:
 
 ```bash
+
 # Mark current state as baseline
 alembic stamp head
 ```

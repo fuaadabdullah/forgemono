@@ -7,6 +7,7 @@
 ### Option 1: Deploy via Render Dashboard (Recommended)
 
 1. **Push your code to GitHub** (if not already done)
+
    ```bash
    cd /Users/fuaadabdullah/ForgeMonorepo
    git add .
@@ -26,6 +27,7 @@
    In the Render dashboard, add these **required** variables:
 
    ```bash
+
    # AI Provider API Keys (REQUIRED)
    ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
    DEEPSEEK_API_KEY=sk-your-key-here
@@ -43,7 +45,7 @@
 4. **Deploy!**
    - Click **"Create Blueprint"**
    - Wait 5-10 minutes for deployment
-   - Your app will be live at: `https://goblin-assistant-backend.onrender.com`
+   - Your app will be live at: `<https://goblin-assistant-backend.onrender.com`>
 
 ### Option 2: Deploy via Script
 
@@ -85,10 +87,12 @@ https://goblin-assistant-backend.onrender.com
 ### 2. Test the Backend
 
 ```bash
+
 # Health check
-curl https://your-backend-url/health
+curl <https://your-backend-url/health>
 
 # Should return:
+
 # {"status":"healthy","timestamp":...}
 ```
 
@@ -143,10 +147,12 @@ VITE_FASTAPI_URL=https://goblin-assistant-backend.onrender.com
 
 **Check build logs:**
 ```bash
+
 # In Render dashboard: Services → Your Service → Logs
 ```
 
 **Common issues:**
+
 - Missing dependencies in `requirements.txt` ✅ Already fixed
 - Database connection errors → Check `DATABASE_URL`
 - Missing API keys → Add in Render dashboard
@@ -229,13 +235,16 @@ Available in Render dashboard:
 Render automatically deploys when you push to your main branch!
 
 ```bash
+
 git add .
 git commit -m "Update feature"
 git push origin main
+
 # Render automatically deploys! 🚀
 ```
 
 To disable auto-deploy:
+
 - Service Settings → Auto-Deploy → OFF
 
 ---
@@ -243,12 +252,14 @@ To disable auto-deploy:
 ## Security Notes
 
 ✅ **Included in Deployment:**
+
 - HTTPS/SSL certificates (automatic)
 - Environment variable encryption
 - Managed PostgreSQL with backups
 - DDoS protection
 
 ⚠️ **Remember:**
+
 - Never commit `.env` files with real secrets
 - Rotate API keys regularly
 - Use Render's secret management
@@ -258,9 +269,9 @@ To disable auto-deploy:
 
 ## Support
 
-- **Render Docs**: https://render.com/docs
-- **Status Page**: https://status.render.com
-- **Community**: https://community.render.com
+- **Render Docs**: <https://render.com/docs>
+- **Status Page**: <https://status.render.com>
+- **Community**: <https://community.render.com>
 
 ---
 

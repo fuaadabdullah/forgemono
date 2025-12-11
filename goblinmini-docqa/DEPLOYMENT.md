@@ -5,16 +5,19 @@ This document outlines how to deploy Goblin Mini DocQA to prevent multiple liste
 ## Single Instance Architecture
 
 Goblin Mini DocQA follows a **single listener rule**:
+
 - Only **one instance** of the web server should run at a time
 - Large models are loaded once, not duplicated across workers
 - For scaling, use separate inference services instead of multiple web server replicas
 
 ## Socket-Based Deployment (Recommended)
+
 ## Recommendation: Where “prod” should live
 
 I recommend deploying `prod` as a Single VM / Bare Metal instance using systemd + UDS + resource caps when you run local LLM models or need predictable, high-performance inference.
 
 Why:
+
 - Deterministic: single listener avoids duplication of expensive local model loads and prevents memory/cpu contention from multiple server processes.
 - Low latency: UDS eliminates extra network hops, which matters for local model inference.
 - Resource caps: systemd provides robust platform-level enforcement (MemoryLimit/CPUQuota) for predictable service behavior.
@@ -43,6 +46,7 @@ ExecStartPre=/bin/bash -c 'flock -n 200 || { echo "Another instance is running";
 To start the service with systemd socket activation and ensure it starts on boot:
 
 ```bash
+
 sudo systemctl enable --now goblin-docqa.socket
 sudo systemctl enable --now goblin-docqa.service
 ```
@@ -51,6 +55,7 @@ This ensures the socket is owned by systemd and the service is started safely on
 
 #### systemd drop-ins (recommended)
 Place custom service options (timeouts/start-limit) into the repo `systemd/dropins/` directory and the `deploy_units.sh` script will copy them into `/etc/systemd/system/<unit>.service.d/` during deployment. We include safe defaults for:
+
 - `TimeoutStartSec` / `TimeoutStopSec`
 - `StartLimitIntervalSec` / `StartLimitBurst`
 
@@ -105,6 +110,7 @@ Keep `DOCQA_ENABLE_LOCAL_MODEL=false` in development to avoid accidental heavy l
 
 1) Add env variables to `/etc/default/goblin-docqa`:
 ```ini
+
 DOCQA_ENABLE_LOCAL_MODEL=true
 MODEL_PATH=/opt/goblinmini-docqa/models
 MODEL_NAME=Phi-3-mini-4k.gguf
@@ -112,6 +118,7 @@ MODEL_QUANTIZATION=auto
 ```
 
 2) Install `llama-cpp-python` (preferred for CPU):
+
 ```bash
 sudo apt-get update && sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev
 sudo -H -u docqa /opt/goblinmini-docqa/venv/bin/python -m pip install --upgrade pip
@@ -120,11 +127,13 @@ sudo -H -u docqa /opt/goblinmini-docqa/venv/bin/python -m pip install llama-cpp-
 
 If you prefer PyTorch-based local models (GPU/torch), install it inside the venv with the correct CUDA variant. Some third-party packages may have specific NumPy compatibility constraints; install the correct NumPy/CUDA combination per package documentation if needed:
 ```bash
+
 # Example (CPU-only torch, check the official install instructions for CUDA if using GPU)
 sudo -H -u docqa /opt/goblinmini-docqa/venv/bin/python -m pip install torch torchvision
 ```
 
 3) Add model files to `MODEL_PATH` (GGUF for llama-cpp or TF/PyTorch weights for torch-based backends):
+
 ```bash
 sudo mkdir -p /opt/goblinmini-docqa/models
 sudo chown -R docqa:docqa /opt/goblinmini-docqa/models
@@ -133,8 +142,10 @@ sudo chown -R docqa:docqa /opt/goblinmini-docqa/models
 
 4) Restart systemd unit(s) or re-run preflight/deploy:
 ```bash
+
 sudo systemctl restart goblin-docqa.service
 sudo systemctl restart goblin-docqa-worker.service
+
 # Check service and inference logs in journal
 sudo journalctl -u goblin-docqa.service -f
 ```
@@ -182,6 +193,7 @@ The script (`bin/start-docqa.sh`) implements robust locking:
 3. **Run the monitoring setup script:**
 
 ```bash
+
 # Automated setup (includes Prometheus, Grafana, Loki)
 sudo ./setup-monitoring.sh
 
@@ -197,14 +209,17 @@ cd monitoring && docker-compose up -d
 The application exposes comprehensive metrics at `/metrics`:
 
 **Process Metrics:**
+
 - `goblin_docqa_process_memory_bytes{type="rss|vms"}` - Process memory usage
 - `goblin_docqa_process_cpu_seconds_total` - Total CPU time used
 
 **Inference Metrics:**
+
 - `goblin_docqa_inference_queue_length` - Current inference queue length
 - `goblin_docqa_inference_latency_seconds` - Inference request latency
 
 **Request Metrics:**
+
 - `goblin_docqa_requests_total{method,endpoint,status_code}` - Total HTTP requests
 - `goblin_docqa_requests_429_total{method,endpoint}` - HTTP 429 responses
 
@@ -226,9 +241,12 @@ scrape_configs:
 Key alerts are configured in `prometheus/alerting_rules.yml`:
 
 ```yaml
+
 groups:
+
 - name: docqa.rules
   rules:
+
   - alert: DocQAHighQueue
     expr: docqa_job_queue_length > 0.8 * docqa_job_queue_capacity
     for: 2m
@@ -236,6 +254,7 @@ groups:
     annotations:
       summary: "Goblin Mini queue >80% capacity"
       description: "Queue length is {{ $value }}. Scale workers or throttle agents."
+
   - alert: DocQAMemoryHigh
     expr: process_resident_memory_bytes{job="docqa"} > 0.8 * machine_memory_bytes
     for: 1m
@@ -243,6 +262,7 @@ groups:
     annotations:
       summary: "High memory usage"
       description: "Memory >80% for >1m. Consider evicting nodes or restarting worker."
+
   - alert: DocQARestarting
     expr: increase(process_start_time_seconds{job="docqa"}[5m]) > 0
     for: 0m
@@ -289,6 +309,7 @@ export COPILOT_TOKEN_BUDGET_DAILY=50000    # Set daily token limit
 
 **systemd/journald** (recommended for Linux):
 ```bash
+
 # View logs
 sudo journalctl -u goblin-docqa.service -f
 
@@ -297,6 +318,7 @@ sudo journalctl -u goblin-docqa.service --since "1 hour ago" --output json | jq 
 ```
 
 **Grafana Loki** setup:
+
 ```yaml
 # Add to loki config
 scrape_configs:
@@ -350,6 +372,7 @@ If job completion times stay <0.2s and you need real stress testing:
 
 1. **Simulate slow jobs** by adding artificial delays in the worker:
    ```python
+
    # In worker.py, add temporary delay for testing
    import time
    time.sleep(2)  # Add 2-5s artificial delay
@@ -361,6 +384,7 @@ If job completion times stay <0.2s and you need real stress testing:
    - Test queue depth alerts fire correctly
 
 3. **Load testing commands**:
+
    ```bash
    # Use tools like hey or siege for load testing
    hey -n 1000 -c 10 http://your-domain.com/api/query
@@ -377,6 +401,7 @@ If job completion times stay <0.2s and you need real stress testing:
 
 **Option 1: HashiCorp Vault**
 ```bash
+
 # Store secrets in Vault
 vault kv put secret/goblinmini-docqa \
   github_token="ghp_..." \
@@ -388,6 +413,7 @@ EnvironmentFile=/etc/vault.d/goblinmini-docqa.env
 ```
 
 **Option 2: GitHub Secrets (for CI/CD)**
+
 ```yaml
 # In GitHub Actions workflow
 - name: Deploy
@@ -399,6 +425,7 @@ EnvironmentFile=/etc/vault.d/goblinmini-docqa.env
 
 **Option 3: OS Secret Store**
 ```bash
+
 # Linux (systemd credential storage)
 sudo systemd-creds encrypt --name=goblinmini-docqa /path/to/secrets.json /etc/credstore/goblinmini-docqa.cred
 
@@ -427,6 +454,7 @@ ExecStartPre=/bin/mount --bind -o ro /opt/goblinmini-docqa/models /opt/goblinmin
 **Always sanitize file content before sending to proxy services**:
 
 ```python
+
 # Example sanitization in your code
 def sanitize_content(content: str) -> str:
     """Remove sensitive data before sending to external APIs"""
@@ -445,6 +473,7 @@ proxy_response = await call_proxy_api(sanitized)
 ```
 
 **Security Checklist:**
+
 - ✅ Secrets stored in secure vaults, not .env files
 - ✅ File system mounts are read-only where possible
 - ✅ Content sanitization applied before external API calls
@@ -459,6 +488,7 @@ proxy_response = await call_proxy_api(sanitized)
 #### Installation
 
 1. Create the goblin user:
+
 ```bash
 sudo useradd -m -s /bin/bash goblin
 sudo usermod -aG goblin goblin
@@ -466,12 +496,14 @@ sudo usermod -aG goblin goblin
 
 2. Set up the application directory:
 ```bash
+
 sudo mkdir -p /opt/goblinmini-docqa
 sudo chown goblin:goblin /opt/goblinmini-docqa
 sudo chmod 755 /opt/goblinmini-docqa
 ```
 
 3. Copy application files:
+
 ```bash
 sudo cp -r /path/to/goblinmini-docqa/* /opt/goblinmini-docqa/
 cd /opt/goblinmini-docqa
@@ -479,11 +511,13 @@ cd /opt/goblinmini-docqa
 
 4. Create virtual environment:
 ```bash
+
 sudo -u goblin python3 -m venv venv
 sudo -u goblin venv/bin/pip install -r requirements.txt
 ```
 
 5. Configure environment:
+
 ```bash
 sudo -u goblin cp .env.example .env
 # Edit .env with your configuration
@@ -492,13 +526,18 @@ sudo -u goblin nano .env
 
 6. Install systemd services (automatic helper script):
 ```bash
+
 # Optionally ensure a 'docqa' system user and set ownership of /opt/goblinmini-docqa first
 sudo ENSURE_USER=true ENSURE_MODELS_DIR=true ENSURE_PIP_INSTALL=true ./systemd/deploy_units.sh
 
 # Optional: run post-deploy smoke tests automatically after deployment
+
 # Set RUN_POST_DEPLOY_TEST=true to run a lightweight health & analysis smoke test.
+
 # If you also want to test model load (may be slow), set POST_DEPLOY_MODEL_NAME=your_model_name
+
 # Example:
+
 ```bash
 sudo RUN_POST_DEPLOY_TEST=true POST_DEPLOY_MODEL_NAME=Phi-3-mini-4k.gguf ./systemd/deploy_units.sh
 ```
@@ -507,6 +546,7 @@ sudo RUN_POST_DEPLOY_TEST=true POST_DEPLOY_MODEL_NAME=Phi-3-mini-4k.gguf ./syste
 If you plan to use `llama-cpp-python` (recommended for CPU-only local inference), install these packages:
 
 ```bash
+
 sudo apt-get update && sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev pkg-config libopenblas-dev
 sudo -H -u docqa /opt/goblinmini-docqa/venv/bin/python -m pip install --upgrade pip
 sudo -H -u docqa /opt/goblinmini-docqa/venv/bin/python -m pip install llama-cpp-python
@@ -522,11 +562,13 @@ sudo -H -u docqa /opt/goblinmini-docqa/venv/bin/python -m pip install "numpy<2" 
 
 7. Create required directories:
 ```bash
+
 sudo mkdir -p /run/goblinmini-docqa
 sudo chown goblin:goblin /run/goblinmini-docqa
 ```
 
 8. Start services:
+
 ```bash
 sudo systemctl enable goblinmini-docqa
 sudo systemctl enable goblinmini-docqa-worker
@@ -545,6 +587,7 @@ sudo systemctl start goblinmini-docqa-worker
 #### Management Commands
 
 ```bash
+
 # Check status
 sudo systemctl status goblinmini-docqa
 sudo systemctl status goblinmini-docqa-worker
@@ -567,6 +610,7 @@ sudo systemctl stop goblinmini-docqa-worker
 If something goes sideways:
 
 **For systemd socket activation:**
+
 ```bash
 sudo systemctl stop goblin-docqa.service
 sudo systemctl stop goblin-docqa.socket
@@ -577,6 +621,7 @@ sudo systemctl start goblin-docqa.service
 
 **For regular systemd services:**
 ```bash
+
 sudo systemctl stop goblinmini-docqa
 sudo systemctl stop goblinmini-docqa-worker
 sudo rm -f /run/goblinmini-docqa.lock
@@ -606,6 +651,7 @@ WantedBy=sockets.target
 #### Service Unit (`/etc/systemd/system/goblin-docqa.service`)
 
 ```ini
+
 [Unit]
 Description=Goblin DocQA service
 After=network.target
@@ -654,11 +700,13 @@ WantedBy=multi-user.target
 Use the provided deployment script:
 
 ```bash
+
 # Run as root from project directory
 sudo ./deploy-systemd-socket.sh
 ```
 
 The script will:
+
 - Create `docqa` user and group
 - Set up `/opt/goblin-docqa` directory
 - Copy application files
@@ -703,6 +751,7 @@ sudo systemctl enable --now goblin-docqa-worker.service
 #### Testing Socket Activation
 
 ```bash
+
 # Check socket is listening
 sudo ss -l | grep goblinmini-docqa.sock
 
@@ -713,7 +762,7 @@ sudo systemctl status goblin-docqa.service
 sudo journalctl -u goblin-docqa.service -f
 
 # Test connection
-curl -s -H "Authorization: Bearer YOUR_TOKEN" --unix-socket /run/goblinmini-docqa.sock http://localhost/health
+curl -s -H "Authorization: Bearer YOUR_TOKEN" --unix-socket /run/goblinmini-docqa.sock <http://localhost/health>
 ```
 
 ### Option 2: Docker Compose
@@ -721,6 +770,7 @@ curl -s -H "Authorization: Bearer YOUR_TOKEN" --unix-socket /run/goblinmini-docq
 #### Quick Start
 
 1. Set environment variables:
+
 ```bash
 export DOCQA_TOKEN="your-secure-token-here"
 export COPILOT_API_URL="https://api.github.com/copilot"
@@ -729,6 +779,7 @@ export COPILOT_API_KEY="your-copilot-key"
 
 2. Start services:
 ```bash
+
 cd docker
 docker compose up -d
 ```
@@ -736,16 +787,19 @@ docker compose up -d
 #### Docker Resource Limits
 
 **Main Application (docqa)**:
+
 - CPU: 2 cores maximum, 0.5 reserved
 - Memory: 4GB maximum, 1GB reserved
 - Replicas: 1 (single instance)
 
 **Worker Process (worker)**:
+
 - CPU: 1 core maximum, 0.2 reserved
 - Memory: 2GB maximum, 512MB reserved
 - Replicas: 1 (single instance)
 
 **Redis**:
+
 - CPU: 0.5 cores maximum, 0.1 reserved
 - Memory: 512MB maximum, 128MB reserved
 
@@ -782,11 +836,13 @@ Both deployment methods include resource caps to prevent:
 
 **Docker**:
 ```bash
+
 docker stats
 docker compose exec docqa ps aux
 ```
 
 **systemd**:
+
 ```bash
 sudo systemctl status goblinmini-docqa
 sudo journalctl -u goblinmini-docqa | grep -i memory
@@ -814,6 +870,7 @@ sudo journalctl -u goblinmini-docqa | grep -i memory
 
 **systemd**:
 ```bash
+
 # Check for existing processes
 ps aux | grep uvicorn
 sudo lsof -i :8000
@@ -824,6 +881,7 @@ sudo systemctl restart goblinmini-docqa
 ```
 
 **Docker**:
+
 ```bash
 # Check for multiple containers
 docker ps | grep docqa
@@ -837,6 +895,7 @@ docker compose up -d
 
 **Increase limits if needed**:
 ```yaml
+
 # docker-compose.yml
 deploy:
   resources:
@@ -846,6 +905,7 @@ deploy:
 ```
 
 **systemd**:
+
 ```ini
 # /etc/systemd/system/goblin-docqa.service
 MemoryLimit=8G
@@ -856,11 +916,13 @@ CPUQuota=400%
 
 **Check port usage**:
 ```bash
+
 sudo lsof -i :8000
 sudo netstat -tlnp | grep :8000
 ```
 
 **Change port**:
+
 ```bash
 # .env
 DOCQA_PORT=8001
@@ -888,6 +950,7 @@ ports:
 
 - [ ] **Build production image**:
   ```bash
+
   # Build and tag with date
   export TAG=prod-$(date +%Y%m%d)
   docker build -t goblin/docqa:$TAG -t goblin/docqa:latest .
@@ -898,6 +961,7 @@ ports:
   ```
 
 - [ ] **Verify image integrity**:
+
   ```bash
   # Check image size and layers
   docker inspect goblin/docqa:$TAG | jq '.Size'
@@ -914,6 +978,7 @@ ports:
 
 - [ ] **Deploy single canary instance**:
   ```bash
+
   # Kubernetes example
   kubectl set image deployment/goblinmini-docqa goblinmini-docqa=goblin/docqa:$TAG
   kubectl scale deployment goblinmini-docqa --replicas=1
@@ -928,6 +993,7 @@ ports:
 ### Smoke Tests (Must Pass All)
 
 - [ ] **Health endpoint test**:
+
   ```bash
   curl -f https://api.goblinmini-docqa.com/health
   # Should return 200 with JSON: {"status": "healthy", "queue_depth": 0, ...}
@@ -935,11 +1001,13 @@ ports:
 
 - [ ] **Metrics endpoint test**:
   ```bash
-  curl -f https://api.goblinmini-docqa.com/metrics | grep -E "(docqa_|process_|redis_)"
+
+  curl -f <https://api.goblinmini-docqa.com/metrics> | grep -E "(docqa_|process_|redis_)"
   # Should return Prometheus metrics with non-zero values
   ```
 
 - [ ] **Submit 10 sample jobs**:
+
   ```bash
   # Test script for submitting sample jobs
   for i in {1..10}; do
@@ -954,8 +1022,9 @@ ports:
 
 - [ ] **Verify job processing**:
   ```bash
+
   # Check queue metrics
-  curl https://api.goblinmini-docqa.com/metrics | grep docqa_job_queue_length
+  curl <https://api.goblinmini-docqa.com/metrics> | grep docqa_job_queue_length
   # Should show queue processing (length decreasing)
 
   # Check for completed jobs in logs
@@ -965,6 +1034,7 @@ ports:
 ### Monitoring Phase (5-10 minutes)
 
 - [ ] **Monitor queue depth**:
+
   ```bash
   # Watch queue metrics
   watch -n 10 'curl -s https://api.goblinmini-docqa.com/metrics | grep docqa_job_queue_length'
@@ -973,12 +1043,14 @@ ports:
 
 - [ ] **Monitor memory usage**:
   ```bash
+
   # Watch memory metrics
-  watch -n 10 'curl -s https://api.goblinmini-docqa.com/metrics | grep -E "process_resident_memory_bytes|docqa_.*_memory"'
+  watch -n 10 'curl -s <https://api.goblinmini-docqa.com/metrics> | grep -E "process_resident_memory_bytes|docqa_.*_memory"'
   # Should stay within limits, no memory leaks
   ```
 
 - [ ] **Monitor error rates**:
+
   ```bash
   # Check for 5xx errors
   curl -s https://api.goblinmini-docqa.com/metrics | grep -E "docqa_requests_total.*[5-9][0-9][0-9]"
@@ -987,6 +1059,7 @@ ports:
 
 - [ ] **Check logs for anomalies**:
   ```bash
+
   # Recent error logs
   kubectl logs --tail=50 deployment/goblinmini-docqa | grep -i error
 
@@ -1006,6 +1079,7 @@ ports:
 ### Full Rollout (If Canary Passes)
 
 - [ ] **Scale to full production replicas**:
+
   ```bash
   # Kubernetes
   kubectl scale deployment goblinmini-docqa --replicas=3
@@ -1019,6 +1093,7 @@ ports:
 
 - [ ] **Verify full rollout**:
   ```bash
+
   # Wait for all replicas to be ready
   kubectl wait --for=condition=available --timeout=300s deployment/goblinmini-docqa
 
@@ -1030,6 +1105,7 @@ ports:
 ### Post-Mortem Stress Testing
 
 - [ ] **Spike workload test**:
+
   ```bash
   # Submit burst of requests to test rate limiting
   for i in {1..50}; do
@@ -1043,16 +1119,18 @@ ports:
 
 - [ ] **Verify 429 behavior**:
   ```bash
+
   # Check metrics for 429 responses
-  curl https://api.goblinmini-docqa.com/metrics | grep docqa_requests_429_total
+  curl <https://api.goblinmini-docqa.com/metrics> | grep docqa_requests_429_total
   # Should show some 429s during spike
 
   # Check queue depth during spike
-  curl https://api.goblinmini-docqa.com/metrics | grep docqa_job_queue_length
+  curl <https://api.goblinmini-docqa.com/metrics> | grep docqa_job_queue_length
   # Should show queue filling up
   ```
 
 - [ ] **Test retry logic** (if implemented):
+
   ```bash
   # Submit request that should trigger retry
   curl -X POST https://api.goblinmini-docqa.com/api/query \
@@ -1068,6 +1146,7 @@ ports:
 
 - [ ] **Immediate rollback commands**:
   ```bash
+
   # Rollback to previous image
   kubectl rollout undo deployment/goblinmini-docqa
 
@@ -1296,6 +1375,7 @@ jobs:
 For local development and testing of the deployment pipeline:
 
 ```yaml
+
 # docker-compose.deploy.yml
 version: '3.8'
 
@@ -1306,14 +1386,17 @@ services:
       dockerfile: Dockerfile
     image: goblinmini-docqa:${TAG:-latest}
     ports:
+
       - "8000:8000"
     environment:
+
       - DOCQA_ENV=production
       - REDIS_URL=redis://redis:6379
     depends_on:
+
       - redis
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "<http://localhost:8000/health"]>
       interval: 30s
       timeout: 10s
       retries: 3
@@ -1323,8 +1406,10 @@ services:
   redis:
     image: redis:7-alpine
     ports:
+
       - "6379:6379"
     volumes:
+
       - redis_data:/data
     command: redis-server --appendonly yes
 
@@ -1357,7 +1442,9 @@ maxmemory-policy allkeys-lru
 **Automated Redis backups**:
 
 ```bash
+
 #!/bin/bash
+
 # backup-redis.sh
 BACKUP_DIR="/opt/backups/redis"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -1408,7 +1495,9 @@ ExecStart=/opt/goblinmini-docqa/backup-redis.sh
 **Snapshot model artifacts** with checksums for reproducibility:
 
 ```bash
+
 #!/bin/bash
+
 # snapshot-models.sh
 MODEL_DIR="/opt/goblinmini-docqa/models"
 SNAPSHOT_DIR="/opt/backups/models"
@@ -1472,10 +1561,12 @@ fi
 **Automated model snapshots**:
 
 ```bash
+
 # Weekly model snapshots (Sundays at 3 AM)
 0 3 * * 0 /opt/goblinmini-docqa/snapshot-models.sh
 
 # After model updates (manual trigger)
+
 # /opt/goblinmini-docqa/snapshot-models.sh
 ```
 
@@ -1512,6 +1603,7 @@ az storage blob upload-batch \
 **Redis data recovery**:
 
 ```bash
+
 # Stop Redis service
 sudo systemctl stop redis
 
@@ -1540,13 +1632,16 @@ sudo systemctl restart goblinmini-docqa
 **Complete system recovery** (from scratch):
 
 ```bash
+
 # 1. Restore from infrastructure as code
 terraform apply
 
 # 2. Restore Redis data
+
 # (Follow Redis recovery steps above)
 
 # 3. Restore model artifacts
+
 # (Follow model recovery steps above)
 
 # 4. Restore application configuration
@@ -1554,7 +1649,7 @@ git checkout main
 ansible-playbook deploy.yml
 
 # 5. Verify system health
-curl https://api.goblinmini-docqa.com/health
+curl <https://api.goblinmini-docqa.com/health>
 ```
 
 ## Scaling Considerations

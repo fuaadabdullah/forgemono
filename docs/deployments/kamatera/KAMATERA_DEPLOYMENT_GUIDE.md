@@ -1,7 +1,8 @@
 ## 🚀 KAMATERA DEPLOYMENT EXECUTION GUIDE
 
 ### Step 1: Access Kamatera Console
-1. Go to: https://console.kamatera.com
+
+1. Go to: <https://console.kamatera.com>
 2. Login with your credentials
 3. Navigate to "My Cloud" → "Servers"
 4. You should see two servers:
@@ -11,6 +12,7 @@
 ### Step 2: Deploy Server 1 (Inference Node - 192.175.23.150)
 
 **In Kamatera Console:**
+
 1. Find server with IP: 192.175.23.150
 2. Click "Actions" → "Access via Console" (opens new window)
 3. In the console, run these commands:
@@ -39,11 +41,12 @@ chmod +x bootstrap_inference.sh
 3. In the console, run these commands:
 
 ```bash
+
 # Update system first
 apt update && apt upgrade -y
 
 # Download bootstrap script
-curl -O https://raw.githubusercontent.com/fuaadabdullah/ForgeMonorepo/develop/bootstrap_router.sh
+curl -O <https://raw.githubusercontent.com/fuaadabdullah/ForgeMonorepo/develop/bootstrap_router.sh>
 
 # Make executable
 chmod +x bootstrap_router.sh
@@ -91,16 +94,22 @@ grep "LOCAL_LLM_API_KEY" /etc/systemd/system/local-llm-proxy.service
 **In Server 2 console (45.61.51.220):**
 
 ```bash
+
 # Get the inference API key from Server 1 and update router config
+
 # Edit the systemd service file
 nano /etc/systemd/system/goblin-router.service
 
 # In the file, replace:
+
 # REPLACE_WITH_INFERENCE_KEY → [paste the key from Server 1]
+
 # INFERENCE_IP_REPLACE → 192.175.23.150
 
 # Example (replace with actual key):
+
 # Environment="INFERENCE_API_KEY=abc123def456..."
+
 # Environment="INFERENCE_URL=http://192.175.23.150:8002"
 
 # Save and exit (Ctrl+X, Y, Enter)
@@ -116,6 +125,7 @@ grep "PUBLIC_API_KEY" /etc/systemd/system/goblin-router.service
 ### Step 6: Verify Infrastructure Setup
 
 **Test Server 1 (192.175.23.150):**
+
 ```bash
 # Health check
 curl http://localhost:8002/health
@@ -129,8 +139,9 @@ journalctl -u local-llm-proxy -n 10 --no-pager
 
 **Test Server 2 (45.61.51.220):**
 ```bash
+
 # Health check
-curl http://localhost:8000/health
+curl <http://localhost:8000/health>
 
 # Service status
 systemctl status goblin-router
@@ -162,6 +173,7 @@ curl http://localhost:8002/health
 **In Server 2 console (45.61.51.220):**
 
 ```bash
+
 # Get the public API key
 PUBLIC_KEY=$(grep "PUBLIC_API_KEY" /etc/systemd/system/goblin-router.service | cut -d'=' -f2)
 
@@ -173,7 +185,7 @@ curl -H "x-api-key: $PUBLIC_KEY" \
     "messages": [{"role": "user", "content": "Hello, how are you?"}],
     "max_tokens": 100
   
-  http://localhost:8000/v1/chat/completions
+<http://localhost:8000/v1/chat/completions>
 ```
 
 **Expected response:** JSON with AI-generated response
@@ -202,6 +214,7 @@ curl -H "x-api-key: $PUBLIC_KEY" \
 
 If bootstrap fails:
 ```bash
+
 # Check logs
 journalctl -n 50 --no-pager
 
@@ -210,6 +223,7 @@ journalctl -n 50 --no-pager
 ```
 
 If services don't start:
+
 ```bash
 # Check service status
 systemctl status local-llm-proxy

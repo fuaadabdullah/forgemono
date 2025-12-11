@@ -13,6 +13,7 @@ curl http://localhost:8001/api/dashboard/status | jq
 Response:
 
 ```json
+
 {
   "backend_api": { "status": "healthy", "latency_ms": 120, "updated": "..." },
   "vector_db": { "status": "healthy", "details": { "collections": 5, "documents": 1234 } },
@@ -34,6 +35,7 @@ curl http://localhost:8001/api/dashboard/costs | jq
 Response:
 
 ```json
+
 {
   "total_cost": 12.45,
   "cost_today": 0.87,
@@ -60,6 +62,7 @@ curl http://localhost:8001/api/dashboard/metrics/backend | jq
 ### Before (6+ API calls)
 
 ```typescript
+
 const [backend, chroma, mcp, rag, sandbox, costs] = await Promise.allSettled([
   apiClient.getHealth(),
   apiClient.getChromaStatus(),
@@ -90,14 +93,15 @@ const [status, costs] = await Promise.allSettled([
 ## Testing Cache
 
 ```bash
+
 # First call (slow - hits DB)
-time curl http://localhost:8001/api/dashboard/costs
+time curl <http://localhost:8001/api/dashboard/costs>
 
 # Second call within 60s (instant - cached)
-time curl http://localhost:8001/api/dashboard/costs
+time curl <http://localhost:8001/api/dashboard/costs>
 
 # Wait 61 seconds, call again (slow - cache expired)
-sleep 61 && time curl http://localhost:8001/api/dashboard/costs
+sleep 61 && time curl <http://localhost:8001/api/dashboard/costs>
 ```
 
 ## Performance Gains

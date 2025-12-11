@@ -16,6 +16,7 @@ The following files were removed from git tracking and moved into `.archive/remo
 - GoblinOS/packages/**/.goblin-memory.db
 
 **Next steps:**
+
 - Move those files from `.archive/removed-secrets/` to a secure location (Vault) and delete them.
 - If these files contained secrets that were committed previously, consider performing a BFG or git-filter-repo history purge to remove credentials from the history (not implemented here).
 

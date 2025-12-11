@@ -15,18 +15,21 @@ After analyzing all Celery tasks, we identified that some tasks are "heavy" (com
 **Use Case**: Periodic tasks that run within the main application process.
 
 **Files**:
+
 - `backend/scheduler.py` - APScheduler configuration and job registration
 - `backend/jobs/provider_health.py` - Provider health checking job
 - `backend/jobs/system_health.py` - System resource monitoring job
 - `backend/jobs/cleanup.py` - Database cleanup job
 
 **Key Features**:
+
 - SQLAlchemy persistence for job schedules
 - AsyncIO execution for non-blocking operations
 - Redis distributed locks to prevent duplicate execution across multiple instances
 - Graceful shutdown handling
 
 **Example Usage**:
+
 ```python
 from backend.scheduler import create_scheduler
 
@@ -51,6 +54,7 @@ scheduler.start()
 
 **Example Usage**:
 ```python
+
 from fastapi import BackgroundTasks
 
 @app.post("/cleanup")
@@ -64,10 +68,12 @@ async def trigger_cleanup(background_tasks: BackgroundTasks):
 **Use Case**: Periodic tasks in containerized environments where you want separate pod lifecycle.
 
 **Files**:
+
 - `backend/probe_worker.py` - Standalone worker script
 - `k8s/provider-probe-cronjob.yaml` - CronJob manifest
 
 **Key Features**:
+
 - Completely separate from main application
 - Independent scaling and resource allocation
 - Built-in Kubernetes scheduling with `concurrencyPolicy: Forbid`
@@ -75,6 +81,7 @@ async def trigger_cleanup(background_tasks: BackgroundTasks):
 - Proper resource limits and deadlines
 
 **Example Usage**:
+
 ```bash
 # Deploy the CronJob
 kubectl apply -f k8s/provider-probe-cronjob.yaml
@@ -100,6 +107,7 @@ All patterns support these environment variables:
 The Redis lock timeout is set to 5 minutes by default, which should be sufficient for most light tasks. Adjust in the code if needed:
 
 ```python
+
 redis_lock = redis_client.lock(
     lock_key,
     timeout=300,  # 5 minutes
@@ -136,6 +144,7 @@ All patterns include structured logging with task execution times and error deta
 ### Metrics
 
 Consider adding metrics for:
+
 - Task execution duration
 - Success/failure rates
 - Lock acquisition times
@@ -143,16 +152,19 @@ Consider adding metrics for:
 ## Deployment Considerations
 
 ### APScheduler Pattern
+
 - Best for single-instance or low-scale deployments
 - Requires Redis for distributed locking
 - Jobs persist across restarts
 
 ### FastAPI Background Tasks Pattern
+
 - Good for request-triggered operations
 - Limited to FastAPI application lifecycle
 - Simple to implement and debug
 
 ### Kubernetes CronJob Pattern
+
 - Ideal for containerized environments
 - Independent scaling from main application
 - Built-in Kubernetes monitoring and logging
@@ -179,6 +191,7 @@ python backend/probe_worker.py
 
 **Old Celery Task:**
 ```python
+
 @celery.task
 def probe_provider(provider_id):
     # do network checks...
@@ -187,6 +200,7 @@ def probe_provider(provider_id):
 **New Patterns:**
 
 **Pattern 1: APScheduler Job**
+
 ```python
 # backend/probe_single_provider.py
 def probe_single_provider_job(provider_id: int):
@@ -197,6 +211,7 @@ def probe_single_provider_job(provider_id: int):
 
 **Pattern 2: CronJob Script**
 ```python
+
 # backend/probe_single_provider.py
 def probe_provider_cronjob(provider_id: int):
     """Standalone wrapper with Redis locking for CronJob."""
@@ -206,10 +221,12 @@ def probe_provider_cronjob(provider_id: int):
 ```
 
 **Usage:**
+
 - **Tiny tasks**: Use APScheduler job or CronJob wrapper
 - **Distributed/scalable**: Keep as Celery if needed
 
 **Files:**
+
 - `backend/probe_single_provider.py` - Minimal wrapper implementation
 - `k8s/single-provider-probe-cronjob.yaml` - CronJob manifest example
 

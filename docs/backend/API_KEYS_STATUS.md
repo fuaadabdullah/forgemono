@@ -33,6 +33,7 @@ Checklist
 Quick commands
 
 ```bash
+
 # Add/update the YAML entry, then regenerate derived artifacts
 cd GoblinOS
 node scripts/generate-roles.js
@@ -90,6 +91,7 @@ All backend scripts should:
 ### Bash Example
 
 ```bash
+
 set -e
 trap 'echo "Error on line $LINENO" | tee -a logs/errors.log' ERR
 

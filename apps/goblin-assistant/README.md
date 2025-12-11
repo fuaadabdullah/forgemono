@@ -89,6 +89,7 @@ Note: Most backend-specific documentation has been consolidated under the canoni
 2. **Install dependencies**:
 
    ```bash
+
    pip install fastapi uvicorn httpx pytest
    ```
 
@@ -116,6 +117,7 @@ Note: Most backend-specific documentation has been consolidated under the canoni
    **Option B: Manual .env (Development Only)**
 
    ```bash
+
    cp backend/.env.example backend/.env.local
    # Edit .env.local with your actual values
    ```
@@ -129,7 +131,8 @@ Note: Most backend-specific documentation has been consolidated under the canoni
 5. **Verify installation**:
 
    ```bash
-   curl http://localhost:8000/health
+
+   curl <http://localhost:8000/health>
    ```
 
 ## API Documentation
@@ -149,6 +152,7 @@ GET /health
 Response:
 
 ```json
+
 {
   "status": "healthy"
 }
@@ -165,6 +169,7 @@ Returns detailed system health including database connectivity, service availabi
 #### All Services Health
 
 ```http
+
 GET /v1/health/all
 ```
 
@@ -189,6 +194,7 @@ Returns API usage costs and budget tracking information.
 #### Latency History
 
 ```http
+
 GET /v1/health/latency-history/{service}
 ```
 
@@ -205,6 +211,7 @@ Returns error analysis and failure patterns for specified services.
 #### Service Retesting
 
 ```http
+
 POST /v1/health/retest/{service}
 ```
 
@@ -220,12 +227,12 @@ The application uses environment variables for configuration. Create the appropr
 
 **Required:**
 
-- `VITE_API_BASE_URL` - Base URL for the API (e.g., `https://api.goblin.fuaad.ai`)
+- `VITE_API_BASE_URL` - Base URL for the API (e.g., `<https://api.goblin.fuaad.ai`)>
 
 **Optional:**
 
-- `VITE_BACKEND_URL` - Backend API URL (default: `http://localhost:8000`)
-- `VITE_FASTAPI_URL` - FastAPI backend URL (default: `http://localhost:8001`)
+- `VITE_BACKEND_URL` - Backend API URL (default: `<http://localhost:8000`)>
+- `VITE_FASTAPI_URL` - FastAPI backend URL (default: `<http://localhost:8001`)>
 - `VITE_ENABLE_DEBUG` - Enable debug mode (`true`/`false`, default: `false`)
 - `VITE_MOCK_API` - Use mock API for development (`true`/`false`, default: `false`)
 
@@ -289,7 +296,7 @@ The application uses environment variables for configuration. Create the appropr
 
 - `GOOGLE_CLIENT_ID` - Google OAuth client ID
 - `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
-- `FRONTEND_URL` - Frontend URL for CORS (default: `http://localhost:5173`)
+- `FRONTEND_URL` - Frontend URL for CORS (default: `<http://localhost:5173`)>
 - `DEBUG_AUTH` - Enable debug authentication (`true`/`false`, default: `false`)
 
 **Raptor Integration (for quick debug tasks):**
@@ -329,6 +336,7 @@ VITE_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
 #### Example `.env` (Backend)
 
 ```bash
+
 ENVIRONMENT=development
 DATABASE_URL=sqlite:///./goblin_assistant.db
 JWT_SECRET_KEY=your-super-secret-jwt-key-change-in-production
@@ -401,6 +409,7 @@ apps/goblin-assistant/
 #### Unit Tests
 
 ```bash
+
 python -m pytest tests/ -v
 ```
 
@@ -413,6 +422,7 @@ python test_debugger.py
 #### All Tests
 
 ```bash
+
 python -m pytest tests/ && python test_debugger.py
 ```
 
@@ -431,6 +441,7 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000
 The frontend is built with React + Vite (TypeScript). Due to compatibility issues with Vite's development server on some systems, we recommend using the production build for local development.
 
 ```bash
+
 # Install dependencies
 npm install
 
@@ -500,6 +511,7 @@ The **villain-level production pipeline** combines Bitwarden CLI, CircleCI, and 
 For testing or emergency deployments:
 
 ```bash
+
 # Load production secrets from Bitwarden
 source scripts/load_env.sh
 
@@ -520,6 +532,7 @@ uvicorn backend.main:app --reload
 #### Docker Deployment
 
 ```dockerfile
+
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -570,6 +583,7 @@ cd apps/goblin-assistant
 **Environment Variables**: Verify `.env.local` exists and contains valid keys:
 
 ```bash
+
 ls -la backend/.env.local
 ```
 
@@ -584,6 +598,7 @@ uvicorn backend.main:app --port 8001
 Enable detailed logging:
 
 ```bash
+
 export PYTHONPATH=/Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant
 python -c "import logging; logging.basicConfig(level=logging.DEBUG)"
 ```

@@ -35,8 +35,11 @@ alembic upgrade head
 ### 2. Redis Setup (5 min)
 
 ```bash
+
 # Sign up at upstash.com
+
 # Create Redis database
+
 # Add to .env.production:
 USE_REDIS_CHALLENGES=true
 REDIS_HOST=your-host.upstash.io
@@ -87,19 +90,20 @@ Before deploying, verify:
 ## 🧪 Test Production
 
 ```bash
+
 # Health check
-curl https://your-backend/health
+curl <https://your-backend/health>
 
 # Database
-curl https://your-backend/api/health/db
+curl <https://your-backend/api/health/db>
 
 # Test task execution
-curl -X POST https://your-backend/execute \
+curl -X POST <https://your-backend/execute> \
   -H "Content-Type: application/json" \
   -d '{"goblin": "test-goblin", "task": "test", "dry_run": true}'
 
 # Raptor status
-curl https://your-backend/raptor/status
+curl <https://your-backend/raptor/status>
 ```
 
 ---
@@ -119,8 +123,10 @@ python3 -c "from database import engine; engine.connect()"
 ### Redis Connection Failed
 
 ```bash
+
 # Verify Redis config
 redis-cli -h <host> -p 6379 -a <password> PING
+
 # Should return: PONG
 ```
 
@@ -137,6 +143,7 @@ bash GoblinOS/goblin-cli.sh list
 ### Migration Failed
 
 ```bash
+
 # Check current version
 alembic current
 

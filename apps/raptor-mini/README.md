@@ -14,6 +14,7 @@ Cloud-hosted Raptor Mini LLM service with local development fallback.
 ### Local Development
 
 1. **Install Ollama and pull model (local)**:
+
   ```bash
   # Install Ollama (if not already installed)
   brew install ollama
@@ -26,11 +27,13 @@ Cloud-hosted Raptor Mini LLM service with local development fallback.
 
 2. **Run locally**:
    ```bash
+
    cd apps/raptor-mini
    docker-compose up --build
    ```
 
 3. **Test the service**:
+
    ```bash
    curl -X POST "http://localhost:8080/v1/generate" \
      -H "Content-Type: application/json" \
@@ -42,12 +45,14 @@ Cloud-hosted Raptor Mini LLM service with local development fallback.
 Your existing Kamatera server at `66.55.77.147` is already configured. Deploy Raptor Mini alongside your existing LLM service:
 
 ```bash
+
 # From your local machine
 cd apps/raptor-mini
 ./deploy-kamatera.sh
 ```
 
 This will:
+
 - SSH into your existing Kamatera server (66.55.77.147)
 - Deploy Raptor Mini on port 8080 (existing LLM service uses port 8000)
 - Configure API key authentication
@@ -71,6 +76,7 @@ This will:
 ### Generate Response
 
 ```json
+
 {
   "ok": true,
   "result": {
@@ -102,12 +108,13 @@ result = await call_raptor("Hello world", max_tokens=50)
 The integration uses your existing environment variables:
 
 ```bash
+
 # Already configured in your setup
 KAMATERA_HOST=66.55.77.147
 KAMATERA_LLM_API_KEY=goblin-llm-hrDD-3IO83-YpusDBHXV_V0r7Lx9sMtvEs4CWBnF2kE
 
 # Optional: override local fallback URL
-LOCAL_RAPTOR_URL=http://127.0.0.1:8080/v1/generate
+LOCAL_RAPTOR_URL=<http://127.0.0.1:8080/v1/generate>
 ```
 
 ## Monitoring
@@ -143,6 +150,7 @@ curl http://localhost:8080/metrics
 ### Model Management
 
 ```bash
+
 # List available models
 ollama list
 

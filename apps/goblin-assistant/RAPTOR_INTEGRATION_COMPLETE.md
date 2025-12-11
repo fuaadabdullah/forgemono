@@ -3,6 +3,7 @@ This document has moved into the canonical backend documentation folder:
 - apps/goblin-assistant/backend/docs/RAPTOR_INTEGRATION_COMPLETE.md
 
 Please update any references or links to point to the new location.
+
 # Raptor Integration - Implementation Complete ✅
 
 ## Overview
@@ -16,6 +17,7 @@ The goblin-assistant backend now integrates with the **real RaptorMini monitorin
 ### 1. **Replaced Mock State with Real RaptorMini System**
 
 **Before:**
+
 ```python
 # Simple mock raptor state
 RAPTOR_STATE = {"running": False, "config_file": "config/raptor.ini"}
@@ -28,6 +30,7 @@ async def raptor_start():
 
 **After:**
 ```python
+
 from raptor_mini import raptor  # Real RaptorMini singleton
 
 @router.post("/start")
@@ -98,6 +101,7 @@ This enables CPU and memory monitoring (gracefully degrades if unavailable).
 Use the `@raptor.trace` decorator on any function:
 
 ```python
+
 @raptor.trace
 def critical_function():
     # If this raises, exception traceback is logged
@@ -105,6 +109,7 @@ def critical_function():
 ```
 
 ### ✅ Structured Logging
+
 - Logs to `logs/raptor.log` (configurable via INI)
 - Log level: INFO (configurable)
 - Format: `%(asctime)s %(levelname)s %(message)s`
@@ -154,6 +159,7 @@ All endpoints are now backed by real monitoring:
 
 ### 1. Start the Backend
 ```bash
+
 cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend
 python start_server.py
 ```
@@ -169,12 +175,14 @@ INFO:     Application startup complete.
 ```
 
 ### 2. Check Status
+
 ```bash
 curl http://localhost:8001/raptor/status
 ```
 
 Response:
 ```json
+
 {
   "running": true,
   "config_file": "config/raptor.ini"
@@ -182,6 +190,7 @@ Response:
 ```
 
 ### 3. View Logs
+
 ```bash
 curl -X POST http://localhost:8001/raptor/logs \
   -H "Content-Type: application/json" \
@@ -190,18 +199,21 @@ curl -X POST http://localhost:8001/raptor/logs \
 
 Response:
 ```json
+
 {
   "log_tail": "2025-01-15 14:30:12,345 INFO RAPTOR MINI ONLINE\n2025-01-15 14:30:12,547 INFO RAPTOR PERF: CPU: 12.3% | MEM: 45.6%\n..."
 }
 ```
 
 ### 4. Test Exception Tracing
+
 ```bash
 curl http://localhost:8001/raptor/demo/boom
 ```
 
 Response:
 ```json
+
 {
   "result": "boom",
   "traced": true
@@ -209,6 +221,7 @@ Response:
 ```
 
 Check logs again to see the exception traceback:
+
 ```bash
 curl -X POST http://localhost:8001/raptor/logs -H "Content-Type: application/json" -d '{"max_chars": 2000}'
 ```
@@ -293,6 +306,7 @@ The monitoring system is designed to be **non-invasive** and will not impact API
 ### 1. **Database Persistence for Metrics** (Future)
 Currently logs to file. Could add:
 ```python
+
 class RaptorMetric(Base):
     __tablename__ = "raptor_metrics"
     id = Column(Integer, primary_key=True)
@@ -303,6 +317,7 @@ class RaptorMetric(Base):
 
 ### 2. **WebSocket Streaming** (Future)
 Real-time log streaming to frontend:
+
 ```python
 @router.websocket("/raptor/logs/stream")
 async def logs_stream(websocket: WebSocket):
@@ -312,10 +327,11 @@ async def logs_stream(websocket: WebSocket):
 
 ### 3. **Alerting Thresholds** (Future)
 ```ini
+
 [alerts]
 cpu_threshold = 90.0
 memory_threshold = 85.0
-webhook_url = https://alerts.example.com
+webhook_url = <https://alerts.example.com>
 ```
 
 ---
@@ -355,12 +371,14 @@ webhook_url = https://alerts.example.com
 
 ### For Fly.io
 The `fly.toml` configuration includes all environment variables. Raptor will:
+
 - ✅ Start automatically on app startup
 - ✅ Log to `logs/raptor.log` (ensure Fly.io has write access)
 - ✅ Use `config/raptor.ini` for configuration
 - ✅ Gracefully handle missing `psutil` if not installed
 
 ### Environment Variables (Optional)
+
 ```bash
 # Override default config path
 RAPTOR_CONFIG=/custom/path/raptor.ini

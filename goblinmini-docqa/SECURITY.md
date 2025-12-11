@@ -57,6 +57,7 @@
 ### Required Variables
 
 ```bash
+
 DOCQA_TOKEN=<secure-64-byte-token>
 DOCQA_ROOT=/mnt/allowed
 REDIS_URL=redis://redis:6379/0

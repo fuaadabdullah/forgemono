@@ -21,6 +21,7 @@ netlify login
 Update your `.env.production` file with actual Datadog credentials:
 
 ```bash
+
 # Datadog RUM Configuration (Frontend)
 VITE_DD_APPLICATION_ID=your_actual_application_id_here
 VITE_DD_CLIENT_TOKEN=your_actual_client_token_here
@@ -28,7 +29,7 @@ VITE_DD_ENV=production
 VITE_DD_VERSION=1.0.0
 
 # Backend Configuration
-VITE_FASTAPI_URL=https://your-api-domain.com
+VITE_FASTAPI_URL=<https://your-api-domain.com>
 VITE_GOBLIN_RUNTIME=fastapi
 VITE_MOCK_API=false
 ```
@@ -48,6 +49,7 @@ VITE_MOCK_API=false
 If you prefer manual deployment:
 
 ```bash
+
 # Build the application
 npm run build
 
@@ -85,6 +87,7 @@ netlify deploy --prod --dir=dist
 ### Staging Deployment
 
 ```bash
+
 # Deploy to staging branch
 ./deploy-netlify.sh --staging
 
@@ -103,16 +106,19 @@ After deployment:
 ## Troubleshooting
 
 ### Build Fails:
+
 - Ensure all environment variables are set
 - Check that `netlify.toml` exists
 - Verify Node.js version (18+ recommended)
 
 ### Datadog Not Working:
+
 - Check environment variables are prefixed with `VITE_`
 - Verify Datadog Application ID and Client Token
 - Check browser console for initialization errors
 
 ### API Not Working:
+
 - Ensure `VITE_FASTAPI_URL` is set correctly
 - Check CORS configuration on your backend
 - Verify backend is deployed and accessible
@@ -120,6 +126,7 @@ After deployment:
 ## Netlify Configuration
 
 The `netlify.toml` file includes:
+
 - Build settings (`npm run build`)
 - Publish directory (`dist`)
 - SPA redirects (handle client-side routing)
@@ -129,6 +136,7 @@ The `netlify.toml` file includes:
 ## Support
 
 For issues:
+
 1. Check Netlify deployment logs
 2. Verify environment variables
 3. Test locally with `./test-datadog.sh`

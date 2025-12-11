@@ -94,6 +94,7 @@ POST /chat/completions
 **Request Body:**
 
 ```json
+
 {
   "messages": [
     {"role": "user", "content": "Your question here"}
@@ -180,6 +181,7 @@ POST /chat/completions
 
 **Error Response:**
 ```json
+
 {
   "error": "Output rejected due to safety or quality concerns",
   "verification": {
@@ -201,6 +203,7 @@ POST /chat/completions
 **Response:** "The capital of France is Paris."
 
 **Verification:**
+
 - ✅ Safe (1.0)
 - ✅ High confidence (0.95)
 
@@ -230,6 +233,7 @@ CRITICAL_THRESHOLD=0.4        # Default: 0.4
 For use cases where speed is critical and safety is less of a concern:
 
 ```json
+
 {
   "messages": [...],
   "enable_verification": false,

@@ -58,17 +58,21 @@ Backend MEM: 0.8% ✅
 ```text
 
 ✅ Database (PostgreSQL):  healthy
+
   - Host: aws-0-us-west-2.pooler.supabase.com:6543
 
 ✅ Vector DB (ChromaDB):   healthy
+
   - Path: /Users/fuaadabdullah/ForgeMonorepo/chroma_db/chroma.sqlite3
   - Collections: 0
   - Documents: 0
 
 ✅ Raptor Monitoring:      running
+
   - Config: config/raptor.ini
 
 ✅ Sandbox:                healthy
+
   - Active jobs: 0
   - Queue size: 0
 ```
@@ -163,6 +167,7 @@ Backend MEM: 0.8% ✅
 ### Start Backend
 
 ```bash
+
 cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend
 source venv/bin/activate
 python -m uvicorn main:app --host 0.0.0.0 --port 8001 --env-file .env
@@ -177,6 +182,7 @@ curl http://localhost:8001/health/all | python3 -m json.tool
 ### View Logs
 
 ```bash
+
 tail -f /tmp/goblin-backend.log
 ```
 

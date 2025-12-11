@@ -31,14 +31,14 @@ scripts/
 
 ### When to Use Scripts vs CI/CD
 
-| Use Case | Use Scripts | Use CI/CD |
+ | Use Case | Use Scripts | Use CI/CD | 
 |----------|-------------|-----------|
-| Local development | ✅ Scripts | ❌ CI/CD |
-| Emergency deployments | ✅ Scripts | ❌ CI/CD |
-| Manual testing/debugging | ✅ Scripts | ❌ CI/CD |
-| Automated PR checks | ❌ Scripts | ✅ CI/CD |
-| Scheduled deployments | ❌ Scripts | ✅ CI/CD |
-| Multi-environment testing | ❌ Scripts | ✅ CI/CD |
+ | Local development | ✅ Scripts | ❌ CI/CD | 
+ | Emergency deployments | ✅ Scripts | ❌ CI/CD | 
+ | Manual testing/debugging | ✅ Scripts | ❌ CI/CD | 
+ | Automated PR checks | ❌ Scripts | ✅ CI/CD | 
+ | Scheduled deployments | ❌ Scripts | ✅ CI/CD | 
+ | Multi-environment testing | ❌ Scripts | ✅ CI/CD | 
 
 ### CI/CD Integration Pattern
 
@@ -129,6 +129,7 @@ CI/CD should **call these scripts** rather than duplicate logic:
 
 ### Local Development
 ```bash
+
 # Start development servers
 ./scripts/dev/start-dev.sh
 
@@ -137,6 +138,7 @@ CI/CD should **call these scripts** rather than duplicate logic:
 ```
 
 ### Pre-commit Hook Setup
+
 ```bash
 # Install pre-commit hook
 echo "#!/bin/bash
@@ -146,6 +148,7 @@ chmod +x .git/hooks/pre-commit
 
 ### Emergency Operations
 ```bash
+
 # Manual deployment
 ./scripts/deploy/deploy-backend.sh --platform flyio --env production
 
@@ -159,6 +162,7 @@ chmod +x .git/hooks/pre-commit
 ## CI/CD Integration Examples
 
 ### GitHub Actions Backend CI
+
 ```yaml
 - name: Run Linting
   run: ./scripts/dev/lint_all.sh
@@ -169,6 +173,7 @@ chmod +x .git/hooks/pre-commit
 
 ### CircleCI Deployment
 ```yaml
+
 - run:
     name: Deploy Backend
     command: ./scripts/deploy/deploy-backend.sh --platform flyio --env $CIRCLE_TAG

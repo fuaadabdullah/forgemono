@@ -9,21 +9,25 @@ All application secrets have been migrated from plain text environment files to 
 The Bitwarden vault is organized into the following collections:
 
 ### Goblin Assistant/Supabase
-- **Supabase URL**: `https://dhxoowakvmobjxsffpst.supabase.co`
+
+- **Supabase URL**: `<https://dhxoowakvmobjxsffpst.supabase.co`>
 - **Supabase Anon Key**: Public anonymous access key
 - **Supabase Service Role Key**: Admin service role key (server-side only)
 - **Database URL**: PostgreSQL connection string
 
 ### Goblin Assistant/Google OAuth
+
 - **Google Client ID**: OAuth 2.0 client identifier
 - **Google Client Secret**: OAuth 2.0 client secret
 
 ### Goblin Assistant/JWT Secrets
+
 - **JWT Secret Key**: Primary JWT signing key
 - **JWT Standby Key**: Backup JWT signing key
 - **JWT Current Key**: Currently active JWT key
 
 ### Goblin Assistant/AI Providers
+
 - **OpenAI API Key**: OpenAI service access
 - **Anthropic API Key**: Anthropic Claude access
 - **DeepSeek API Key**: DeepSeek AI access
@@ -34,6 +38,7 @@ The Bitwarden vault is organized into the following collections:
 - **ElevenLabs API Key**: Text-to-speech service
 
 ### Goblin Assistant/Infrastructure
+
 - **Sentry Admin Token**: Error monitoring admin access
 - **Kamatera Host**: Local LLM server IP
 - **Kamatera LLM URL**: Local LLM API endpoint
@@ -74,10 +79,12 @@ If you need to set up secrets manually:
 
 1. **Install Bitwarden CLI**:
    ```bash
+
    brew install bitwarden-cli
    ```
 
 2. **Login and Setup Vault**:
+
    ```bash
    bw login
    ./setup-bitwarden-secrets.sh
@@ -91,8 +98,11 @@ If you need to set up secrets manually:
 Contains only non-sensitive configuration with Bitwarden references:
 
 ```bash
+
 # Goblin Assistant Frontend Configuration
+
 # Secrets are stored securely in Bitwarden vault
+
 # Retrieve secrets using: bw get item "Item Name"
 
 # Supabase Configuration
@@ -106,6 +116,7 @@ GOOGLE_CLIENT_SECRET=<retrieve from Bitwarden: "Google Client Secret">
 # AI Provider Keys
 OPENAI_API_KEY=<retrieve from Bitwarden: "OpenAI API Key">
 ANTHROPIC_API_KEY=<retrieve from Bitwarden: "Anthropic API Key">
+
 # ... (other AI keys)
 
 # Infrastructure
@@ -179,25 +190,30 @@ After deployment, verify functionality:
 
 **Bitwarden CLI not found**:
 ```bash
+
 brew install bitwarden-cli
 ```
 
 **Login failed**:
+
 ```bash
 bw login
 ```
 
 **Vault unlock failed**:
 ```bash
+
 bw unlock
 ```
 
 **Secret not found**:
+
 - Verify item name in Bitwarden vault
 - Check collection organization
 - Run `./setup-bitwarden-secrets.sh` to recreate structure
 
 **Deployment failed**:
+
 - Check Vercel/Fly.io credentials
 - Verify all secrets are accessible
 - Check deployment logs
@@ -219,6 +235,7 @@ bw unlock
 ✅ **Documentation provided** for team reference
 
 **Next Steps**:
+
 1. Test the deployment process
 2. Remove `.env.backup.*` files after verification
 3. Set up automated secret rotation

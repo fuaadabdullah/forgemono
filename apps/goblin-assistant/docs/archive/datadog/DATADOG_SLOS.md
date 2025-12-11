@@ -26,12 +26,14 @@ This file contains recommended Service Level Objectives (SLOs) and Datadog monit
 - Fallback Rate: monitor fallback rate > 5% for 30 minutes -> severity P2 -> create a ticket.
 
 ## Creating SLOs in Datadog
+
 1. Go to Datadog -> SLOs -> Create SLO.
 2. Choose metric SLO and enter the query above.
 3. Set the target and timeframe.
 4. Add alerting and notifying channels (Ops Slack, email, or on-call rotation).
 
 ## Notes
+
 - For production systems, set SLO targets informed by historical traffic and customer expectations.
 - Adjust p95 threshold depending on model and latency expectations (if local models run slower, increase threshold).
 

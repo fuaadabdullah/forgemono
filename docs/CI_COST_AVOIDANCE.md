@@ -5,37 +5,44 @@ This document outlines optimizations implemented to stay within free tier limits
 ## Implemented Optimizations
 
 ### 1. Docker Layer Caching (CircleCI)
+
 - **Location**: `goblin-infra/.circleci/config.yml` - `build-and-push-backend-image` job
 - **Optimization**: Added `--cache-from` and `--build-arg BUILDKIT_INLINE_CACHE=1` to leverage previous builds
 - **Impact**: Reduces build time by 60-80% for incremental changes
 
 ### 2. Visual Regression Frequency Reduction
+
 - **Location**: `.github/workflows/visual-regression.yml`
 - **Optimization**: Changed from running on every PR to only main branch pushes with path filtering
 - **Impact**: ~90% reduction in Chromatic usage (expensive service)
 
 ### 3. Pre-commit Hooks
+
 - **Location**: `.pre-commit-config.yaml`
 - **Optimization**: Added local linting, formatting, and security checks
 - **Tools**: Black, isort, ruff, ESLint, hadolint, detect-secrets
 - **Impact**: Catches issues before CI runs, reducing failed builds
 
 ### 4. Enhanced Path Filtering
+
 - **Location**: `.github/workflows/docker-ci.yml`
 - **Optimization**: Added exclusions for docs, READMEs, and non-code files
 - **Impact**: Prevents unnecessary Docker builds on documentation changes
 
 ### 5. CI Usage Monitoring
+
 - **Location**: `.github/workflows/ci-usage-monitor.yml`
 - **Optimization**: Daily monitoring with alerts at 80% usage threshold
 - **Impact**: Proactive cost management and optimization triggers
 
 ### 6. Optimized Parallelization
+
 - **Location**: `goblin-infra/.circleci/config.yml` - dev-pipeline workflow
 - **Optimization**: Build/test and Terraform planning now run in parallel
 - **Impact**: Faster feedback loops, better resource utilization
 
 ### 7. Script Organization & CI/CD Integration
+
 - **Location**: `scripts/` directory with organized subdirectories
 - **Optimization**: CI/CD workflows now call scripts instead of duplicating logic
 - **Structure**:

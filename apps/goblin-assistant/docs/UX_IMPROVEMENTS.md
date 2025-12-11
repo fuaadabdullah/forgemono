@@ -9,6 +9,7 @@
 ## Overview
 
 Enhanced status cards with:
+
 - ✅ **Color-coded status chips** with semantic variants (already existed, now with better ARIA)
 - ✅ **Accessible tooltips** explaining status meanings
 - ✅ **Context-specific status details** for degraded/down states
@@ -24,6 +25,7 @@ Enhanced status cards with:
 **Location**: `src/components/ui/Tooltip.tsx`
 
 **Features**:
+
 - Accessible with ARIA attributes (`role="tooltip"`, `aria-describedby`)
 - Shows on hover and keyboard focus
 - Configurable delay (default 300ms)
@@ -34,6 +36,7 @@ Enhanced status cards with:
 - Respects reduced motion preferences
 
 **Usage**:
+
 ```tsx
 import { Tooltip } from './ui';
 
@@ -62,6 +65,7 @@ import { Tooltip } from './ui';
 ### New Props
 
 ```tsx
+
 interface StatusCardProps {
   title: string;
   status: 'healthy' | 'degraded' | 'down' | 'unknown';
@@ -76,6 +80,7 @@ interface StatusCardProps {
 ### Status Configuration
 
 **Before**:
+
 ```tsx
 const statusConfig = {
   healthy: { border: 'border-success', badgeVariant: 'success', icon: '✓' },
@@ -85,6 +90,7 @@ const statusConfig = {
 
 **After**:
 ```tsx
+
 const statusConfig = {
   healthy: {
     border: 'border-success',
@@ -139,6 +145,7 @@ const formatLastCheck = (timestamp?: string) => {
 
 **Example**:
 ```tsx
+
 <StatusCard
   title="Backend API"
   status="healthy"
@@ -150,6 +157,7 @@ const formatLastCheck = (timestamp?: string) => {
 ### Context-Specific Tooltips
 
 **Generic Tooltip** (default):
+
 ```tsx
 <StatusCard
   title="Backend API"
@@ -161,6 +169,7 @@ const formatLastCheck = (timestamp?: string) => {
 
 **Custom Tooltip** (specific details):
 ```tsx
+
 <StatusCard
   title="Vector DB (Chroma)"
   status="down"
@@ -248,6 +257,7 @@ Hover for more information"
 ### ARIA Enhancements
 
 1. **Card-level ARIA**:
+
    ```tsx
    <Card
      role="group"
@@ -259,15 +269,18 @@ Hover for more information"
 
 2. **Badge ARIA**:
    ```tsx
+
    <Badge
      variant={config.badgeVariant}
      aria-label={config.ariaLabel}
    >
    ```
+
    - Semantic status announcement
    - Includes status meaning, not just label
 
 3. **Tooltip ARIA**:
+
    ```tsx
    <div aria-describedby={tooltipId}>
      <Badge>Degraded</Badge>
@@ -310,6 +323,7 @@ Hover for more information"
 
 ### Basic Usage
 ```tsx
+
 <StatusCard
   title="Backend API"
   status="healthy"
@@ -323,6 +337,7 @@ Hover for more information"
 ```
 
 ### With Custom Tooltip
+
 ```tsx
 <StatusCard
   title="Vector DB"
@@ -339,6 +354,7 @@ Hover for more information"
 
 ### Without Timestamp
 ```tsx
+
 <StatusCard
   title="Quick Links"
   status="healthy"
@@ -360,6 +376,7 @@ Hover for more information"
 ✓ Built in 4.03s
 
 Bundle sizes:
+
 - index.js: 66.15 kB (gzip: 18.94 kB) [+3.5 kB raw, +1.45 kB gzip]
 - StatusCard: Includes Tooltip component
 - Tooltip: ~1.2 kB (gzip: ~0.5 kB)
@@ -373,6 +390,7 @@ Bundle sizes:
 ## Testing Checklist
 
 ### Visual Testing
+
 - [x] Tooltips appear on hover with 300ms delay
 - [x] Tooltips show on keyboard focus
 - [x] Last-updated timestamps display correctly
@@ -381,6 +399,7 @@ Bundle sizes:
 - [x] Tooltip arrow points to trigger element
 
 ### Accessibility Testing
+
 - [ ] Screen readers announce full status with context
 - [ ] Tooltips linked via `aria-describedby`
 - [ ] Keyboard users can access all tooltips
@@ -388,6 +407,7 @@ Bundle sizes:
 - [ ] Status communicated without color alone
 
 ### Functional Testing
+
 - [ ] Tooltips dismiss on blur/mouse leave
 - [ ] Multiple tooltips can exist without ID conflicts
 - [ ] Long tooltip text wraps correctly (max-w-xs)
@@ -395,6 +415,7 @@ Bundle sizes:
 - [ ] Custom statusDetails override default descriptions
 
 ### Responsive Testing
+
 - [ ] Tooltips don't overflow viewport edges
 - [ ] Timestamps visible on mobile (375px)
 - [ ] Badge + timestamp layout works on narrow cards
@@ -449,6 +470,7 @@ Bundle sizes:
 **✅ Context-specific details** for degraded/down states
 
 All status cards now provide:
+
 - **Visual clarity**: Timestamps show data freshness
 - **Contextual help**: Tooltips explain status meanings
 - **Accessibility**: Full ARIA support with semantic labels

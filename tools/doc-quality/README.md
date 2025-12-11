@@ -40,6 +40,7 @@ python3 doc_quality_check.py --report ../../../docs/reports/quality_report.md
 Install dependencies for development and tests:
 
 ```bash
+
 python3 -m pip install -r requirements.txt
 python3 -m pip install -r ../raptor-mini/requirements.txt
 ```
@@ -52,11 +53,13 @@ python3 -m pytest -q tools/raptor-mini/tests tools/doc-quality/tests
 ## Installation
 
 1. Ensure Python 3.9+ is installed
-2. Install dependencies:
+1. Install dependencies:
    ```bash
+
    pip install requests pyyaml
    ```
-3. The Raptor Mini API should be running (default: ngrok URL)
+
+1. The Raptor Mini API should be running (default: ngrok URL)
 
 ## Configuration
 
@@ -99,26 +102,31 @@ The tool analyzes documentation for:
 
 ### Basic Quality Check
 ```bash
+
 python3 doc_quality_check.py
 ```
 
 ### CI Mode with Quality Gates
+
 ```bash
 python3 doc_quality_check.py --ci --min-score 70
 ```
 
 ### Generate Reports
 ```bash
+
 python3 doc_quality_check.py --report ../../../docs/reports/quality_report.md
 ```
 
 ### Debug Mode
+
 ```bash
 python3 doc_quality_check.py --debug --debug-api --debug-timing
 ```
 
 ### Save API Responses
 ```bash
+
 python3 doc_quality_check.py --save-responses ./debug_responses
 ```
 
@@ -135,6 +143,7 @@ python3 doc_quality_check.py --mode phi_only --soft-fallback --path docs/
 1. Config (persist across runs):
 
 ```yaml
+
 models:
   phi3:
     soft_fallback: true
@@ -154,6 +163,7 @@ The pre-commit script will pass `--soft-fallback` on the CLI when set.
 ### Git Pre-commit Hook
 
 ```bash
+
 cp pre-commit-doc-check.sh .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
 ```

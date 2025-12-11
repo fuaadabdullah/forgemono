@@ -113,6 +113,7 @@ Comprehensive dashboard showing:
 Run the automated deployment script:
 
 ```bash
+
 chmod +x deploy_observability.sh
 ./deploy_observability.sh
 ```
@@ -138,6 +139,7 @@ This script will:
 2. **Deploy Cloudflare Worker:**
 
    ```bash
+
    cd goblin-infra/projects/goblin-assistant/infra/cloudflare
    wrangler deploy
    ```
@@ -152,6 +154,7 @@ This script will:
 4. **Deploy Monitoring Stack:**
 
    ```bash
+
    cd goblin-infra/projects/goblin-assistant/infra
    docker-compose up -d prometheus grafana jaeger
    ```
@@ -207,11 +210,12 @@ After deployment, access these services:
 ### Environment Variables
 
 ```bash
+
 # Enable OpenTelemetry
 ENABLE_OPENTELEMETRY=true
 
 # OTLP Collector endpoint
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+OTEL_EXPORTER_OTLP_ENDPOINT=<http://localhost:4318>
 
 # Service identification
 OTEL_SERVICE_NAME=goblin-assistant-backend
@@ -263,6 +267,7 @@ API_AVAILABILITY_SLO = 0.999   # 99.9%
 Enable debug logging:
 
 ```bash
+
 export OTEL_LOG_LEVEL=DEBUG
 export OTEL_PYTHON_LOGGING_LEVEL=DEBUG
 ```

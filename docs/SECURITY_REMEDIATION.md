@@ -60,14 +60,15 @@ This document contains recommended steps to remediate exposed secrets, purge sec
 
 ## Tools & Links
 
-- https://github.com/newren/git-filter-repo
-- https://rtyley.github.io/bfg-repo-cleaner/
-- https://github.com/zricethezav/gitleaks
-- https://pre-commit.com
+- <https://github.com/newren/git-filter-repo>
+- <https://rtyley.github.io/bfg-repo-cleaner/>
+- <https://github.com/zricethezav/gitleaks>
+- <https://pre-commit.com>
 
 ## Notes
 
 If you'd like, I can:
+
 - Draft a `git filter-repo` script to purge certain paths.
 - Create a GitHub Action to rotate keys as a follow-up automation (requires provider access).
 - Add pre-commit hooks for local dev.

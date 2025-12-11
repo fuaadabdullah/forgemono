@@ -47,6 +47,7 @@ Prometheus (9090)
 └──────────┘      └──────────┘   └──────────┘
 
 Cost Metrics:
+
 - overmind-dev: CPU, Memory, Network, Storage
 - overmind-prod: CPU, Memory, Network, Storage
 - LiteLLM Gateway: API call costs
@@ -75,12 +76,13 @@ kubectl wait --timeout=5m -n kubecost \
 ### Access UI
 
 ```bash
+
 # Port forward to Kubecost UI
 kubectl port-forward -n kubecost \
   deployment/kubecost-cost-analyzer 9090:9090
 
 # Open browser
-open http://localhost:9090
+open <http://localhost:9090>
 ```
 
 ### View Costs
@@ -107,6 +109,7 @@ curl http://localhost:9090/model/allocation \
 
 **Overmind Production:**
 ```yaml
+
 namespace: overmind-prod
 labels:
   environment: production
@@ -125,6 +128,7 @@ monthly_budget: $2000
 ```
 
 **Overmind Development:**
+
 ```yaml
 namespace: overmind-dev
 labels:
@@ -171,38 +175,42 @@ monthly_budget: $1000
 
 **Get today's costs by namespace:**
 ```bash
-curl -G http://localhost:9090/model/allocation \
+
+curl -G <http://localhost:9090/model/allocation> \
   -d window=today \
   -d aggregate=namespace \
   -d accumulate=true \
-  | jq '.data[] | {name: .name, totalCost: .totalCost}'
+ | jq '.data[] | {name: .name, totalCost: .totalCost}'
 ```
 
 **Get weekly costs by service:**
+
 ```bash
 curl -G http://localhost:9090/model/allocation \
   -d window=7d \
   -d aggregate=service \
   -d filterNamespaces=overmind-prod \
-  | jq '.data[] | {service: .name, cost: .totalCost, cpuCost: .cpuCost, ramCost: .ramCost}'
+ | jq '.data[] | {service: .name, cost: .totalCost, cpuCost: .cpuCost, ramCost: .ramCost}'
 ```
 
 **Get cost breakdown by label:**
 ```bash
-curl -G http://localhost:9090/model/allocation \
+
+curl -G <http://localhost:9090/model/allocation> \
   -d window=month \
   -d aggregate=label:app \
   -d filterNamespaces=overmind-prod \
-  | jq '.data[] | {app: .name, cost: .totalCost}'
+ | jq '.data[] | {app: .name, cost: .totalCost}'
 ```
 
 **Get efficiency metrics:**
+
 ```bash
 curl -G http://localhost:9090/model/allocation \
   -d window=7d \
   -d aggregate=deployment \
   -d filterNamespaces=overmind-prod \
-  | jq '.data[] | {
+ | jq '.data[] | {
       deployment: .name,
       cpuEfficiency: .cpuEfficiency,
       ramEfficiency: .ramEfficiency,
@@ -218,6 +226,7 @@ Kubecost analyzes actual resource usage and recommends optimal requests/limits:
 
 **Example - LiteLLM Gateway:**
 ```yaml
+
 # Current
 resources:
   requests:
@@ -252,7 +261,7 @@ Detects low-utilization resources:
 curl -G http://localhost:9090/model/allocation \
   -d window=7d \
   -d filterNamespaces=overmind-dev,overmind-prod \
-  | jq '.data[] | select(.cpuEfficiency < 0.05) | {
+ | jq '.data[] | select(.cpuEfficiency < 0.05) | {
       name: .name,
       cpuEfficiency: .cpuEfficiency,
       cost: .totalCost
@@ -277,13 +286,14 @@ curl -G http://localhost:9090/model/allocation \
 **File:** `alerts/daily-budget.yaml`
 
 ```yaml
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kubecost-daily-alert
   namespace: kubecost
 data:
-  alert.json: |
+  alert.json: | 
     {
       "type": "budget",
       "threshold": 100,
@@ -308,7 +318,7 @@ metadata:
   name: kubecost-monthly-alert
   namespace: kubecost
 data:
-  alert.json: |
+  alert.json: | 
     {
       "type": "budget",
       "threshold": 2000,
@@ -327,13 +337,14 @@ data:
 **File:** `alerts/efficiency.yaml`
 
 ```yaml
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kubecost-efficiency-alert
   namespace: kubecost
 data:
-  alert.json: |
+  alert.json: | 
     {
       "type": "efficiency",
       "cpuEfficiencyThreshold": 0.5,
@@ -355,6 +366,7 @@ data:
 **File:** `dashboards/cost-overview.json`
 
 Visualizes:
+
 - Total daily/monthly costs
 - Cost breakdown by namespace
 - Cost breakdown by service
@@ -366,6 +378,7 @@ Visualizes:
 **File:** `dashboards/efficiency.json`
 
 Visualizes:
+
 - CPU efficiency by deployment
 - Memory efficiency by deployment
 - Rightsizing recommendations
@@ -376,6 +389,7 @@ Visualizes:
 **File:** `dashboards/allocation.json`
 
 Visualizes:
+
 - Cost per request
 - Cost per user
 - Cost per feature
@@ -400,8 +414,9 @@ curl -X POST http://localhost:9090/model/reports \
 ### Monthly Executive Summary
 
 ```bash
+
 # Generate monthly summary
-curl -X POST http://localhost:9090/model/reports \
+curl -X POST <http://localhost:9090/model/reports> \
   -H 'Content-Type: application/json' \
   -d '{
     "window": "30d",
@@ -437,6 +452,7 @@ spec:
 ### Key Metrics
 
 ```promql
+
 # Total cluster cost
 sum(kubecost_cluster_cost_total)
 
@@ -473,6 +489,7 @@ export:
 ### S3 Export
 
 ```yaml
+
 export:
   s3:
     enabled: true
@@ -498,6 +515,7 @@ kubectl port-forward -n observability svc/prometheus-server 9090:9090
 ### Inaccurate costs
 
 ```bash
+
 # Verify node labels
 kubectl get nodes --show-labels
 
@@ -523,13 +541,13 @@ kubectl get ns overmind-prod -o yaml
 ## Best Practices
 
 1. **Label everything** - Use consistent labels (app, component, environment)
-2. **Set budgets** - Define daily/monthly budgets per namespace
-3. **Review weekly** - Check efficiency metrics and recommendations
-4. **Automate rightsizing** - Use HPA/KEDA for dynamic scaling
-5. **Use spot instances** - For dev/test environments (60-80% savings)
-6. **Monitor trends** - Track cost changes over time
-7. **Export data** - Archive to BigQuery/S3 for long-term analysis
-8. **Act on alerts** - Don't ignore budget overruns
+1. **Set budgets** - Define daily/monthly budgets per namespace
+1. **Review weekly** - Check efficiency metrics and recommendations
+1. **Automate rightsizing** - Use HPA/KEDA for dynamic scaling
+1. **Use spot instances** - For dev/test environments (60-80% savings)
+1. **Monitor trends** - Track cost changes over time
+1. **Export data** - Archive to BigQuery/S3 for long-term analysis
+1. **Act on alerts** - Don't ignore budget overruns
 
 ## Cost Optimization Checklist
 

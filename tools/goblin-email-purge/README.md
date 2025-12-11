@@ -3,6 +3,7 @@
 A developer-oriented tool that scans IMAP inboxes for dating-related messages, identifies candidate services, and generates a safe cleanup plan. Designed to be non-destructive by default (dry run). Use with caution.
 
 Features:
+
 - IMAP scanning for dating provider emails
 - List-Unsubscribe automation (GET/POST with fallback)
 - OAuth token revocation for Google, Facebook, Apple (manual for Apple)
@@ -22,10 +23,10 @@ Files:
 Quickstart:
 
 1. Copy files into a folder and cd there.
-2. python -m venv venv && source venv/bin/activate
-3. pip install -r requirements.txt
-4. Copy `config.example.yaml` -> `config.yaml` and fill required vars
-5. Run the app:
+1. python -m venv venv && source venv/bin/activate
+1. pip install -r requirements.txt
+1. Copy `config.example.yaml` -> `config.yaml` and fill required vars
+1. Run the app:
 
 ```bash
 # Recommended: use the included run.sh to create a venv and install deps
@@ -35,6 +36,7 @@ Quickstart:
 Or run directly if you already have a Python venv:
 
 ```bash
+
 python cli.py audit --config config.yaml
 ```
 
@@ -49,6 +51,7 @@ Examples:
 - Attempt automatic unsubscribes (dry-run unless --force provided):
 
 ```bash
+
 ./run.sh audit --config config.yaml --auto-unsubscribe --force
 
 Advanced tips:
@@ -75,6 +78,7 @@ PyYAML & macOS notes:
 - The included `run.sh` attempts to install `libyaml` via Homebrew to avoid building PyYAML from source on macOS. If you still encounter problems, run:
 
 ```bash
+
 # Install system dependency (macOS)
 brew install libyaml
 python -m pip install --upgrade pip setuptools wheel

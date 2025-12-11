@@ -41,6 +41,7 @@ Content-Type: application/json
 **Response:**
 
 ```json
+
 {
   "challenge": "base64url-encoded-challenge"
 }
@@ -63,6 +64,7 @@ Content-Type: application/json
 **Response:**
 
 ```json
+
 {
   "message": "Passkey registered successfully"
 }
@@ -144,6 +146,7 @@ Content-Type: application/json
 The `WebAuthnPasskey` class provides:
 
 ```python
+
 # Challenge generation
 generate_challenge() -> str
   Frontend integration examples (React/browser) are maintained in the canonical frontend docs: `apps/goblin-assistant/docs/PASSKEY_FRONTEND_INTEGRATION.md`. See the registration and authentication samples there for full examples and utility functions.
@@ -165,11 +168,12 @@ Frontend integration examples (React/browser) are maintained in the canonical fr
 ## Testing
 
 ```bash
+
 # Run passkey verification tests
 pytest backend/auth/tests/test_passkeys.py -v
 
 # Test with curl (after registration)
-curl -X POST http://localhost:8000/auth/passkey/challenge \
+curl -X POST <http://localhost:8000/auth/passkey/challenge> \
   -H "Content-Type: application/json" \
   -d '{"email": "test@example.com"}'
 ```

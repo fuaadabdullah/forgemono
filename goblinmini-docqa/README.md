@@ -47,10 +47,12 @@ make clean-locks
 ### Using Docker
 
 ```bash
+
 # Start the application
 make up
 
 # The API will be available at http://localhost:8000
+
 # CLI is available via: docker-compose exec app goblinmini-docqa --help
 ```
 
@@ -75,6 +77,7 @@ make test
 ### CLI
 
 ```bash
+
 # Analyze a single file
 goblinmini-docqa analyze docs/README.md
 
@@ -143,6 +146,7 @@ Proper cleanup ensures system stability:
 Configure protection features in your `.env` file:
 
 ```bash
+
 # Rate limiting (requests per IP)
 RATE_LIMIT_REQUESTS_PER_MINUTE=10
 RATE_LIMIT_REQUESTS_PER_HOUR=100
@@ -169,16 +173,17 @@ Returns queue sizes, rate limit settings, and backpressure status.
 Create a `.env` file based on `.env.example`:
 
 ```bash
+
 # Analysis method (heuristic, local_llm, copilot_proxy)
 ANALYSIS_METHOD=heuristic
 
 # Local LLM configuration
-LOCAL_LLM_URL=http://localhost:11434
+LOCAL_LLM_URL=<http://localhost:11434>
 LOCAL_LLM_MODEL=llama2
 
 # GitHub Copilot configuration
 GITHUB_TOKEN=your_github_token
-COPILOT_API_URL=https://api.github.com/copilot
+COPILOT_API_URL=<https://api.github.com/copilot>
 
 # Server configuration
 DOCQA_PORT=8000
@@ -224,11 +229,12 @@ This application implements enterprise-grade security measures for production de
 All API endpoints require authentication using a secure token:
 
 ```bash
+
 # Generate a secure token
 python3 -c "import secrets; print(secrets.token_urlsafe(64))"
 
 # Use in API requests
-curl -X POST "http://localhost:8000/analyze" \
+curl -X POST "<http://localhost:8000/analyze"> \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -H "Content-Type: application/json" \
   -d '{"content": "Your documentation content here"}'
@@ -274,6 +280,7 @@ This application enforces **"Deployment rule #1 — one listener only"** with a 
 #### Inference Queue Pattern
 
 ```python
+
 # Single model instance loaded at startup
 model = LocalModelAdapter()
 model.init()  # Loads model once
@@ -308,11 +315,13 @@ LLAMA_N_THREADS = max(1, cpu_count // 2)  # Reserve half for other processes
 
 **Override via environment:**
 ```bash
+
 # Force specific thread count
 LLAMA_N_THREADS=2 make server
 ```
 
 **Health endpoint shows configuration:**
+
 ```json
 {
   "cpu_config": {
@@ -367,6 +376,7 @@ goblinmini-docqa/
 ### Setup
 
 ```bash
+
 # Install development dependencies
 make dev-install
 
@@ -405,6 +415,7 @@ pytest tests/test_heuristics.py
 ### Single Container
 
 ```bash
+
 docker build -t goblinmini-docqa .
 docker run -p 8000:8000 goblinmini-docqa
 ```

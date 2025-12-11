@@ -21,9 +21,10 @@ This directory contains the VS Code Dev Container specification for the ForgeMon
 	- `pip install -r ForgeTM/apps/backend/requirements.txt` for Python dependencies
 
 To use:
+
 1. Open workspace in VS Code
-2. "Reopen in Container" when prompted
-3. Use VS Code tasks for service startup/testing
+1. "Reopen in Container" when prompted
+1. Use VS Code tasks for service startup/testing
 
 See `../docs/WORKSPACE_OVERVIEW.md` and `../docs/API_KEYS_MANAGEMENT.md` for architecture and secrets setup.
 
@@ -47,7 +48,7 @@ For decentralized processing with orchestration:
    - Namespace: `goblinos-ai`
    - Replicas: 3 for distributed processing
 
-2. **Simplified Monitoring**:
+1. **Simplified Monitoring**:
    - Sentry: Error tracking and crash reporting
    - Vercel Analytics: Frontend performance metrics
    - Fly.io Metrics: Backend performance metrics (built-in)
@@ -55,13 +56,14 @@ For decentralized processing with orchestration:
 ### Setup Instructions
 
 1. Ensure Kubernetes cluster is running (e.g., via Minikube, AKS, GKE).
-2. Apply the manifests:
+1. Apply the manifests:
+
    ```bash
    kubectl apply -f deployments/
    ```
-3. Configure endpoints:
+1. Configure endpoints:
    - Replace `<azure-endpoint-url>` and `<gcp-endpoint-url>` in `ollama-k8s.yaml` with actual URLs.
-4. Access services:
+1. Access services:
    - Sentry: Configure in app settings
    - Vercel Analytics: Available in Vercel dashboard
    - Fly.io Metrics: Available in Fly.io dashboard
@@ -81,5 +83,6 @@ No complex Kubernetes monitoring stack required for current scale.
 Start the development stack:
 
 ```bash
+
 docker-compose up -d
 ```

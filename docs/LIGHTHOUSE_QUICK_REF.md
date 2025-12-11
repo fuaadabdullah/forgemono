@@ -8,36 +8,43 @@ Audit 7 pages, record scores, document issues.
 ## 📋 Checklist
 
 ### Dashboard (`/`)
+
 - [ ] Score: ___/100
 - [ ] Passed: ___
 - [ ] Issues: ________________________
 
 ### Chat (`/chat`)
+
 - [ ] Score: ___/100
 - [ ] Passed: ___
 - [ ] Issues: ________________________
 
 ### Search (`/search`)
+
 - [ ] Score: ___/100
 - [ ] Passed: ___
 - [ ] Issues: ________________________
 
 ### Settings (`/settings`)
+
 - [ ] Score: ___/100
 - [ ] Passed: ___
 - [ ] Issues: ________________________
 
 ### Providers (`/providers`)
+
 - [ ] Score: ___/100
 - [ ] Passed: ___
 - [ ] Issues: ________________________
 
 ### Logs (`/logs`)
+
 - [ ] Score: ___/100
 - [ ] Passed: ___
 - [ ] Issues: ________________________
 
 ### Sandbox (`/sandbox`)
+
 - [ ] Score: ___/100
 - [ ] Passed: ___
 - [ ] Issues: ________________________
@@ -69,11 +76,13 @@ Audit 7 pages, record scores, document issues.
 ## 🐛 Common Issues We Might See
 
 ### Likely Issues (Quick Fixes)
+
 - Missing `alt` attributes on decorative icons
 - Button with icon but no accessible name
 - Form input without associated label
 
 ### Unlikely Issues (We Have Good Coverage)
+
 - ✅ Color contrast (16.64:1)
 - ✅ Focus indicators (2px + glow)
 - ✅ Skip link present
@@ -87,6 +96,7 @@ After all 7 audits:
 
 1. Open: `scripts/summarize-lighthouse-results.js`
 2. Fill in the `auditResults` object:
+
    ```javascript
    dashboard: {
      score: 95,

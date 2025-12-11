@@ -38,9 +38,10 @@ cp secrets.yaml.example secrets.yaml
 # Edit secrets.yaml with your actual API keys
 ```
 
-2. **Install the chart**:
+1. **Install the chart**:
 
 ```bash
+
 # Development (default values)
 helm install litellm . -f secrets.yaml
 
@@ -48,21 +49,22 @@ helm install litellm . -f secrets.yaml
 helm install litellm . -f secrets.yaml -f values-prod.yaml
 ```
 
-3. **Verify deployment**:
+1. **Verify deployment**:
 
 ```bash
 kubectl get pods -l app.kubernetes.io/name=litellm
 kubectl logs -l app.kubernetes.io/name=litellm
 ```
 
-4. **Test the gateway**:
+1. **Test the gateway**:
 
 ```bash
+
 # Port-forward for local testing
 kubectl port-forward svc/litellm 4000:4000
 
 # Make a test request
-curl http://localhost:4000/v1/chat/completions \
+curl <http://localhost:4000/v1/chat/completions> \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4-turbo",
@@ -98,11 +100,13 @@ config:
 ### Routing & Fallbacks
 
 ```yaml
+
 config:
   router:
     enabled: true
     routingStrategy: "latency-based-routing"  # or cost-based-routing, simple-shuffle
     fallbacks:
+
       - ["gpt-4-turbo", "gemini-pro"]       # Fallback gpt-4 -> gemini
       - ["gemini-pro", "deepseek-chat"]     # Fallback gemini -> deepseek
       - ["deepseek-chat", "ollama-local"]   # Fallback deepseek -> ollama
@@ -122,10 +126,11 @@ autoscaling:
 ### Observability
 
 ```yaml
+
 config:
   telemetry:
     enabled: true
-    endpoint: "http://jaeger-collector:4318/v1/traces"
+    endpoint: "<http://jaeger-collector:4318/v1/traces">
 
 metrics:
   enabled: true
@@ -149,9 +154,10 @@ env:
     value: "dummy"  # LiteLLM handles auth
 ```
 
-2. **Update code to use OpenAI SDK**:
+1. **Update code to use OpenAI SDK**:
 
 ```typescript
+
 // Node.js / TypeScript
 import OpenAI from 'openai';
 
@@ -184,6 +190,7 @@ response = openai.ChatCompletion.create(
 ### Development (`values-dev.yaml`)
 
 ```yaml
+
 replicaCount: 1
 autoscaling:
   enabled: false
@@ -192,10 +199,11 @@ config:
   logLevel: DEBUG
   setVerbose: true
   models:
+
     - model_name: ollama-local
       litellm_params:
         model: ollama/llama3.2
-        api_base: "http://ollama:11434"
+        api_base: "<http://ollama:11434">
 
 resources:
   limits:
@@ -239,6 +247,7 @@ podDisruptionBudget:
 For GitOps workflows, use Kustomize overlays:
 
 ```bash
+
 infra/
   charts/litellm/
   overlays/
@@ -257,12 +266,13 @@ infra/
 
 ### Metrics Endpoints
 
-- **Prometheus metrics**: `http://litellm:4000/metrics`
-- **Health check**: `http://litellm:4000/health`
+- **Prometheus metrics**: `<http://litellm:4000/metrics`>
+- **Health check**: `<http://litellm:4000/health`>
 
 ### Grafana Dashboard
 
 Import the LiteLLM dashboard (ID: TBD) for visualization of:
+
 - Request rates by model
 - Latency percentiles (p50, p95, p99)
 - Error rates and fallback triggers
@@ -272,6 +282,7 @@ Import the LiteLLM dashboard (ID: TBD) for visualization of:
 ### Distributed Tracing
 
 LiteLLM automatically exports traces to your OTLP endpoint with:
+
 - Provider name and model
 - Token counts (prompt + completion)
 - Latency breakdown
@@ -292,6 +303,7 @@ kubectl logs -l app.kubernetes.io/name=litellm --tail=100
 ### API key errors
 
 ```bash
+
 # Verify secrets exist
 kubectl get secret litellm-secrets -o yaml
 
@@ -319,6 +331,7 @@ helm rollback litellm
 ## Uninstallation
 
 ```bash
+
 helm uninstall litellm
 kubectl delete pvc litellm-data  # If persistence was enabled
 ```
@@ -335,8 +348,8 @@ kubectl delete pvc litellm-data  # If persistence was enabled
 This chart is maintained by GoblinOS. For issues or improvements:
 
 1. Check existing issues in the repository
-2. Submit a PR with changes and updated documentation
-3. Include test results with PR
+1. Submit a PR with changes and updated documentation
+1. Include test results with PR
 
 ## License
 

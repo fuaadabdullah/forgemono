@@ -37,18 +37,22 @@ This document tracks the migration of goblin-assistant from in-memory storage to
 ## Database Models Location
 
 All models are defined in:
+
 - `/apps/goblin-assistant/backend/models_base.py`
 
 Database configuration:
+
 - `/apps/goblin-assistant/backend/database.py`
 
 ## Database Setup
 
 ### Current Configuration
+
 - **Development**: SQLite (`goblin_assistant.db`)
 - **Production**: PostgreSQL (configurable via `DATABASE_URL` env var)
 
 ### Initialize Database
+
 ```bash
 cd apps/goblin-assistant
 python init_db.py

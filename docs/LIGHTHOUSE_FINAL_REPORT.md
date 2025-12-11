@@ -32,9 +32,11 @@
 **Solution**: Added explicit `<main role="main">` wrapper in App.tsx for authenticated routes and wrapped LoginPage in `<main>` tag.
 
 **Files Modified**:
+
 - `/apps/goblin-assistant/src/App.tsx`
 
 **Changes**:
+
 ```tsx
 // Before (line 72):
 <main>
@@ -186,6 +188,7 @@ All success criteria met:
 
 **Re-run Command**:
 ```bash
+
 cd /Users/fuaadabdullah/ForgeMonorepo
 node scripts/run-lighthouse-audit.js
 ```

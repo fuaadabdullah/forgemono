@@ -8,6 +8,7 @@ last_updated: "2025-12-09"
 tags: ["architecture", "fuaad"]
 related: []
 ---
+
 # Test Architecture Document
 
 ## 🎯 Purpose
@@ -20,6 +21,7 @@ related: []
 *Key decisions, diagrams, architecture*
 
 ## 🛠️ Runbook (if applicable)
+
 ```bash
 # Commands that work when copy-pasted
 # Tested in production

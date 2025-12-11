@@ -8,6 +8,7 @@ The Mira Linker integration supports configurable Jira project keys instead of b
 ### Quick Setup
 
 1. **Configure Jira Keys:**
+
    ```bash
    ./configure_jira_keys.sh
    ```
@@ -18,6 +19,7 @@ The Mira Linker integration supports configurable Jira project keys instead of b
 
 3. **Test configuration:**
    ```bash
+
    ./verify_mira_setup.sh
    ```
 
@@ -46,11 +48,13 @@ Matches: PROJ-123, GOB-456, INF-789, DEVOPS-101, SEC-202
 ### Service Accounts & Authentication
 
 #### GitHub Apps (Recommended)
+
 - **Use GitHub Apps over Personal Access Tokens (PATs)** for better security
 - **Least privilege**: Only grant necessary permissions
 - **Organization-level secrets**: Store tokens in org-level secrets/contexts
 
 #### CircleCI Contexts
+
 - **Restrict access**: Limit who can access CircleCI contexts
 - **SSH keys**: For Kamatera deploys, store SSH keys in CircleCI contexts
 - **Rotate regularly**: Implement key rotation policies
@@ -58,11 +62,13 @@ Matches: PROJ-123, GOB-456, INF-789, DEVOPS-101, SEC-202
 ### Token Management
 
 #### Bitwarden Integration
+
 - Store all API tokens in Bitwarden
 - Use `bw` CLI for automated retrieval
 - Never commit tokens to repository
 
 #### Environment Variables
+
 - Use repository variables for non-sensitive config
 - Store secrets in GitHub Secrets or CircleCI contexts
 - Implement token rotation policies
@@ -72,11 +78,13 @@ Matches: PROJ-123, GOB-456, INF-789, DEVOPS-101, SEC-202
 ### Understanding the Difference
 
 #### CODEOWNERS
+
 - **File-based assignment**: Assigns reviewers based on file paths
 - **GitHub native**: Built into GitHub PR reviews
 - **Static configuration**: Defined in `.github/CODEOWNERS` file
 
 #### Mira Auto-Assignment
+
 - **API-based assignment**: Uses Mira's intelligent assignment logic
 - **Dynamic rules**: Can assign based on ticket type, component, etc.
 - **Fallback support**: Uses CODEOWNERS as fallback when Mira can't determine assignee
@@ -102,16 +110,19 @@ autoAssign:
 
 1. **Configure Jira Keys:**
    ```bash
+
    ./configure_jira_keys.sh
    ```
 
 2. **Run Full Automation:**
+
    ```bash
    ./complete_mira_integration.sh
    ```
 
 3. **Verify Setup:**
    ```bash
+
    ./verify_mira_setup.sh
    ```
 
@@ -125,6 +136,7 @@ autoAssign:
 ### Common Issues
 
 #### Jira Key Validation Failing
+
 ```bash
 # Check configured keys
 gh variable get JIRA_PROJECT_KEYS

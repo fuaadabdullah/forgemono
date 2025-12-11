@@ -15,12 +15,14 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 #### CI Workflow (`.github/workflows/ci.yml`)
 **Triggers**: Push to `main`/`develop`, PRs
 **Jobs**:
+
 - **lint**: Black, Ruff, MyPy code quality checks
 - **test**: PyTest with PostgreSQL + Redis services, codecov integration
 - **build**: Docker image build with BuildKit cache
 - **security**: Trivy vulnerability scanning, SARIF upload to GitHub Security
 
 **Dependencies**:
+
 - Python 3.11
 - PostgreSQL 15 (test database)
 - Redis 7 (cache service)
@@ -29,16 +31,19 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 #### Deploy Workflow (`.github/workflows/deploy.yml`)
 **Triggers**: Push to `main`, tags `v*`, manual dispatch
 **Jobs**:
+
 - **build-and-push**: Docker build → GitHub Container Registry (ghcr.io), SBOM generation
 - **deploy-staging**: Fly.io deployment (staging environment)
 - **deploy-production**: Fly.io deployment (production environment)
 - **create-release**: GitHub release with changelog on version tags
 
 **Environments**:
-- Staging: `https://staging-api.goblin.fuaad.ai`
-- Production: `https://api.goblin.fuaad.ai`
+
+- Staging: `<https://staging-api.goblin.fuaad.ai`>
+- Production: `<https://api.goblin.fuaad.ai`>
 
 **Required Secrets**:
+
 - `FLY_API_TOKEN`: Fly.io API authentication
 - `SLACK_WEBHOOK_URL`: Deployment notifications
 
@@ -49,6 +54,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 #### CI Workflow (`.github/workflows/ci.yml`)
 **Triggers**: Push to `main`/`develop`, PRs
 **Jobs**:
+
 - **lint**: ESLint + TypeScript type checking
 - **test**: Vitest unit tests with coverage
 - **storybook**: Build Storybook static site
@@ -58,6 +64,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 - **security**: npm audit for vulnerable dependencies
 
 **Dependencies**:
+
 - Node.js 20
 - npm 10
 - Chromatic for visual regression
@@ -65,16 +72,19 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 #### Deploy Workflow (`.github/workflows/deploy-vercel.yml`)
 **Triggers**: Push to `main`/`develop`, PRs, manual dispatch
 **Jobs**:
+
 - **deploy-preview**: Vercel preview deployments for PRs with comment bot
 - **deploy-staging**: Vercel deployment to staging environment
 - **deploy-production**: Vercel production deployment with Lighthouse CI
 
 **Environments**:
+
 - Preview: Dynamic URLs per PR
-- Staging: `https://staging.goblin.fuaad.ai`
-- Production: `https://goblin.fuaad.ai`
+- Staging: `<https://staging.goblin.fuaad.ai`>
+- Production: `<https://goblin.fuaad.ai`>
 
 **Required Secrets**:
+
 - `VERCEL_TOKEN`: Vercel CLI authentication
 - `VERCEL_ORG_ID`: Organization identifier
 - `VERCEL_PROJECT_ID`: Project identifier
@@ -89,6 +99,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 #### CI Workflow (`.github/workflows/ci.yml`)
 **Triggers**: Push to `main`/`develop`, PRs
 **Jobs**:
+
 - **lint-typescript**: ESLint + TypeScript type checking
 - **lint-python**: Black, Ruff, MyPy validation
 - **test**: Vitest (TS) + PyTest (Python) with codecov
@@ -100,15 +111,18 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 #### Publish Workflow (`.github/workflows/publish.yml`)
 **Triggers**: Tags `v*`, manual dispatch
 **Jobs**:
+
 - **publish-npm**: Build → test → publish to npm registry
 - **publish-pypi**: Build Python package → publish to PyPI
 - **notify**: Create GitHub Issues in dependent repos (`backend`, `frontend`)
 
 **Packages**:
+
 - npm: `@goblin/contracts` (TypeScript types)
 - PyPI: `goblin-contracts` (Python Pydantic models)
 
 **Required Secrets**:
+
 - `NPM_TOKEN`: npm registry authentication
 - `PYPI_TOKEN`: PyPI upload authentication
 
@@ -121,6 +135,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 #### CI Workflow (`.github/workflows/ci.yml`)
 **Triggers**: Push to `main`/`develop`, PRs
 **Jobs**:
+
 - **terraform-lint**: Format check, init, validate (backend/frontend/shared)
 - **terraform-security**: tfsec vulnerability scanning
 - **kubernetes-lint**: kubeval + kube-score validation
@@ -129,6 +144,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 - **cost-estimate**: Infracost PR comments for cloud spend
 
 **Tools**:
+
 - Terraform 1.6.0
 - kubeval, kube-score
 - tfsec, hadolint
@@ -137,6 +153,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 #### Deploy Workflow (`.github/workflows/deploy.yml`)
 **Triggers**: Push to `main` (terraform/** or k8s/**), manual dispatch
 **Jobs**:
+
 - **terraform-plan**: Generate plans for all components (staging + production)
 - **terraform-apply-staging**: Apply shared → backend → frontend (sequential)
 - **kubernetes-deploy-staging**: Apply K8s manifests, wait for rollout
@@ -144,10 +161,12 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 - **kubernetes-deploy-production**: Production K8s deployment with smoke tests
 
 **Environments**:
+
 - Staging: Auto-deploy on `main` push
 - Production: Manual approval required
 
 **Required Secrets**:
+
 - `AWS_ACCESS_KEY_ID`: AWS authentication
 - `AWS_SECRET_ACCESS_KEY`: AWS authentication
 - `KUBE_CONFIG_STAGING`: Kubernetes cluster config (staging)
@@ -160,6 +179,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 ### 5. Dev Orchestration Repository (`goblin-assistant-dev`)
 
 **No CI/CD workflows** - This repo contains:
+
 - `docker-compose.yml` for local development
 - Setup scripts (`setup-*.sh`)
 - Local environment documentation
@@ -308,6 +328,7 @@ KUBE_CONFIG_PRODUCTION
 
 ### Backend
 ```bash
+
 # Install dependencies
 pip install -r requirements.txt
 
@@ -319,6 +340,7 @@ docker build -t goblin-backend:test .
 ```
 
 ### Frontend
+
 ```bash
 # Install dependencies
 npm ci
@@ -335,6 +357,7 @@ npm run build
 
 ### Contracts
 ```bash
+
 # TypeScript
 npm ci
 npm run test
@@ -346,6 +369,7 @@ pytest python/tests/ -v
 ```
 
 ### Infrastructure
+
 ```bash
 # Terraform validation
 cd terraform/backend
@@ -400,6 +424,7 @@ kubeval k8s/*.yaml
 
 **Docker build fails:**
 ```bash
+
 # Check BuildKit cache
 docker buildx prune -f
 
@@ -408,6 +433,7 @@ docker build --no-cache -t image:tag .
 ```
 
 **Terraform apply fails:**
+
 ```bash
 # Check state lock
 terraform force-unlock LOCK_ID
@@ -418,6 +444,7 @@ terraform init -reconfigure
 
 **Vercel deployment fails:**
 ```bash
+
 # Check build logs
 vercel logs <deployment-url>
 
@@ -426,6 +453,7 @@ vercel env ls
 ```
 
 **Kubernetes rollout stuck:**
+
 ```bash
 # Check pod status
 kubectl get pods -n goblin-assistant

@@ -4,8 +4,10 @@ Jira ticket summaries, descriptions, labels, priority and acceptance criteria
 to track missing implementations or environment gaps.
 
 Usage:
+
 - Copy each "Summary" and "Description" into a Jira ticket form or use the
   REST API to create tickets in bulk. Do NOT commit credentials into the repo.
+
 - Suggested labels and assignees are provided as placeholders. Adjust to your
   team's workflow.
 -->
@@ -31,8 +33,10 @@ Suggested labels: `backend`, `auth`, `tests`, `blocked-ci`
 Priority: Major
 
 Acceptance criteria:
+
 - A concrete `auth.challenge_store` module exists and matches the interface
   expected by `tests/test_auth_resilience.py`.
+
 - Unit tests that were previously skipped are re-enabled and pass locally.
 - Add a minimal memory-backed implementation for CI and a production-backed
   implementation (e.g., Redis/Supabase) documented in README.
@@ -53,8 +57,10 @@ Suggested labels: `backend`, `auth`, `supabase`, `tests`
 Priority: Major
 
 Acceptance criteria:
+
 - `SupabaseAuthService` or an equivalent pluggable implementation exists and is
   wireable via configuration for tests.
+
 - Consolidated auth tests can be re-enabled and pass in the CI test matrix.
 
 
@@ -73,6 +79,7 @@ Suggested labels: `backend`, `tests`, `import-fix`
 Priority: Minor
 
 Acceptance criteria:
+
 - Import errors for `models.settings` are resolved in test runs.
 - Tests are re-enabled and validated locally.
 
@@ -92,6 +99,7 @@ Suggested labels: `unit-tests`, `auth`, `backend`
 Priority: Major
 
 Acceptance criteria:
+
 - Unit tests re-enabled and passing with memory-backed test fixture.
 
 
@@ -110,6 +118,7 @@ Suggested labels: `backend`, `chat`, `tests`
 Priority: Minor
 
 Acceptance criteria:
+
 - Chat router imports correctly in tests and validation tests pass locally.
 
 
@@ -128,6 +137,7 @@ Suggested labels: `integration`, `performance`, `tests`
 Priority: Minor
 
 Acceptance criteria:
+
 - Integration test imports succeed and the latency integration test runs in
   the CI matrix (optionally gated to a slower/integration job).
 
@@ -146,6 +156,7 @@ Suggested labels: `scheduler`, `integration`, `redis`, `tests`
 Priority: Minor
 
 Acceptance criteria:
+
 - Local unit tests run without requiring Redis by using a stub or fixture.
 - Integration tests that require Redis are documented and moved to a gated job
   if necessary.
@@ -165,6 +176,7 @@ Suggested labels: `chat`, `integration`, `tests`
 Priority: Minor
 
 Acceptance criteria:
+
 - Chat API tests pass in a local development environment with a documented
   test harness, or are moved to an integration pipeline that supplies mocks.
 
@@ -183,6 +195,7 @@ Suggested labels: `tests`, `cleanup`, `models`
 Priority: Trivial
 
 Acceptance criteria:
+
 - Deprecated tests are removed or replaced. No skipped tests remain for this
   file.
 
@@ -201,6 +214,7 @@ Suggested labels: `auth`, `jwt`, `tests`
 Priority: Minor
 
 Acceptance criteria:
+
 - JWT router unit tests re-enabled and passing with injected mocks.
 
 ---
@@ -218,6 +232,7 @@ Suggested labels: `scheduler`, `tests`, `ci`
 Priority: Minor
 
 Acceptance criteria:
+
 - Scheduler unit tests run in CI using in-memory implementations or mocks.
 
 ---
@@ -235,6 +250,7 @@ Suggested labels: `load-test`, `performance`, `locust`
 Priority: Trivial
 
 Acceptance criteria:
+
 - Load tests are not blocking CI. If kept, they run in a separate performance
   pipeline with required tools installed.
 
@@ -252,6 +268,7 @@ Suggested labels: `providers`, `http`, `tests`
 Priority: Minor
 
 Acceptance criteria:
+
 - Provider client tests run locally and in CI with the HTTP mocking library
   available.
 
@@ -270,6 +287,7 @@ Suggested labels: `providers`, `tests`
 Priority: Minor
 
 Acceptance criteria:
+
 - Provider interface unit tests re-enabled and passing with mocks.
 
 ---
@@ -288,6 +306,7 @@ Suggested labels: `integration`, `auth`, `tests`
 Priority: Major
 
 Acceptance criteria:
+
 - Complete auth flow tests are either reimplemented as unit tests with mocks
   or moved into an integration pipeline with documented preconditions.
 
@@ -306,6 +325,7 @@ Suggested labels: `auth`, `webauthn`, `e2e`, `tests`
 Priority: Major
 
 Acceptance criteria:
+
 - Either the passkey flow is implemented and tests pass, or the test is
   documented and tracked in the backlog with a linked feature ticket.
 
@@ -324,6 +344,7 @@ Suggested labels: `routing`, `integration`, `tests`
 Priority: Minor
 
 Acceptance criteria:
+
 - Routing server tests either run with mocks or are moved to gated
   integration pipelines.
 
@@ -342,6 +363,7 @@ Suggested labels: `rag`, `vector-db`, `tests`
 Priority: Major
 
 Acceptance criteria:
+
 - RAG pipeline unit tests run with an in-memory vector store and pass in CI,
   or the tests are moved to an integration pipeline with preinstalled
   dependencies.
@@ -361,6 +383,7 @@ Suggested labels: `models`, `tests`, `comparison`
 Priority: Minor
 
 Acceptance criteria:
+
 - Model comparison unit tests run with local model stubs and pass in CI.
 
 ---
@@ -378,6 +401,7 @@ Suggested labels: `goblins`, `agents`, `tests`, `ci`
 Priority: Minor
 
 Acceptance criteria:
+
 - Agent-related tests either have their dependencies provided in a separate CI
   stage or are marked as optional and moved out of the fast unit test suite.
 
@@ -389,6 +413,7 @@ Acceptance criteria:
   to call the Jira REST API (don't store credentials in the repo). Example
   fields to fill: project, issue type=Task, summary, description, labels,
   priority, assignee.
+
 - After tickets are created, update each skipped test file to include the
   created Jira issue key (e.g. `pytest.skip("... — JIRA: PROJ-123")`). This
   provides direct traceability from CI to the backlog.

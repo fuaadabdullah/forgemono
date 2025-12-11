@@ -3,12 +3,14 @@
 ## Current State Analysis
 
 ### ✅ What's Working Well
+
 - **Bitwarden Integration**: Mature setup for Goblin Assistant with CLI automation
 - **SOPS Encryption**: Age-encrypted secrets in repo with proper key management
 - **CircleCI Integration**: Automated secret fetching from Bitwarden for deployments
 - **Multi-Environment Support**: Separate secrets for dev/staging/prod environments
 
 ### ⚠️ Current Limitations
+
 - **Fragmented Approach**: Multiple tools (SOPS, Bitwarden, partial Vault) without unified strategy
 - **Repository Secrets**: Some secrets still stored encrypted in repo (SOPS files)
 - **Multi-Cloud Complexity**: No centralized secret management across cloud providers
@@ -18,6 +20,7 @@
 
 ### Primary Secrets Manager: HashiCorp Vault
 **Why Vault for Production:**
+
 - **Multi-cloud native**: Single pane of glass across AWS, GCP, Azure
 - **Advanced RBAC**: Path-based policies, identity-based access
 - **Dynamic secrets**: Auto-rotating credentials (databases, cloud resources)
@@ -26,6 +29,7 @@
 
 ### Secondary Manager: Bitwarden
 **Why Keep Bitwarden:**
+
 - **Developer experience**: Excellent CLI and UI for day-to-day operations
 - **Cost-effective**: Free tier supports most development needs
 - **Team collaboration**: Easy sharing and access management
@@ -57,6 +61,7 @@
 ## Implementation Phases
 
 ### Phase 1: Infrastructure Setup (Week 1-2)
+
 ```bash
 # Deploy Vault cluster (self-hosted or HCP)
 terraform apply -target=module.vault
@@ -68,14 +73,17 @@ terraform apply -target=module.vault
 
 ### Phase 2: Secret Migration (Week 3-4)
 ```bash
+
 # Migrate production secrets from Bitwarden to Vault
 ./scripts/migrate_secrets_to_vault.sh
 
 # Update application code to use Vault client
+
 # Test secret access in all environments
 ```
 
 ### Phase 3: Access Control & Audit (Week 5-6)
+
 ```bash
 # Implement RBAC policies
 vault policy write developer-policy developer.hcl
@@ -88,6 +96,7 @@ vault audit enable file file_path=/vault/logs/audit.log
 
 ### Phase 4: Dynamic Secrets & Rotation (Week 7-8)
 ```bash
+
 # Enable database secret engines
 vault secrets enable database
 
@@ -100,6 +109,7 @@ vault write aws/config/root access_key=... secret_key=...
 ## Migration Strategy
 
 ### Secret Classification
+
 - **Static Secrets**: API keys, tokens → Vault KV v2
 - **Dynamic Secrets**: DB credentials, cloud access → Vault engines
 - **Certificates**: TLS certs → Vault PKI engine
@@ -115,6 +125,7 @@ Production:  Vault (full security, audit)
 ## Code Changes Required
 
 ### 1. Vault Client Enhancement
+
 ```python
 # Enhanced vault_client.py
 class VaultClient:
@@ -128,6 +139,7 @@ class VaultClient:
 
 ### 2. Application Integration
 ```python
+
 # In app startup
 from vault_client import VaultClient
 
@@ -140,6 +152,7 @@ if not secrets:
 ```
 
 ### 3. CI/CD Pipeline Updates
+
 ```yaml
 # .circleci/config.yml
 - run:
@@ -234,6 +247,7 @@ if not secrets:
 ### Phase 4: Secrets Migration (Ready)
 Once Vault is deployed:
 ```bash
+
 ./scripts/migrate_secrets_to_vault.sh all
 ```
 
@@ -255,23 +269,27 @@ Update code to use hybrid Bitwarden+Vault client with Vault primary, Bitwarden f
 Based on codebase analysis, your current setup uses **4 different database technologies**:
 
 #### ✅ **Supabase (PostgreSQL)** - PRIMARY
+
 - **Usage**: Business data, users, tasks, search collections, routing metrics
 - **Size**: Production database with full schema
 - **Access**: SQLAlchemy with connection pooling, Vault integration ready
 - **Status**: ✅ **Keep** - Well-architected and necessary
 
 #### ⚠️ **Chroma (Vector DB)** - QUESTIONABLE
+
 - **Usage**: Embeddings storage for RAG functionality
 - **Size**: 167KB SQLite file (chroma.sqlite3)
 - **Access**: Python chromadb client in dashboard_router.py
 - **Status**: ❌ **Consider Removal** - See analysis below
 
 #### ❌ **Cloudflare D1 (Edge SQLite)** - DISABLED
+
 - **Usage**: Was intended for edge data caching
 - **Current State**: Commented out in wrangler.toml, no active usage
 - **Status**: ✅ **Already Removed** - Good decision
 
 #### ✅ **SQLite (Local Development)** - SECONDARY
+
 - **Usage**: Local dev fallback, test databases
 - **Files**: goblin_assistant.db, test_chat_routing.db
 - **Status**: ✅ **Keep** - Necessary for development
@@ -279,18 +297,21 @@ Based on codebase analysis, your current setup uses **4 different database techn
 ### Chroma Vector Database Analysis
 
 **Current Usage:**
+
 - Only referenced in `dashboard_router.py` for health checks
 - 167KB SQLite file suggests minimal data
 - No active RAG/vector search functionality in production
 - Test file shows Qdrant as alternative option
 
 **Production Readiness Concerns:**
+
 - **Scalability**: SQLite-based Chroma not suitable for production workloads
 - **Persistence**: Local file storage not reliable for containers
 - **Performance**: No clustering, replication, or high availability
 - **Maintenance**: Additional dependency with limited production features
 
 **Business Value Assessment:**
+
 - If RAG/vector search is core to your product → migrate to production-ready solution
 - If experimental/prototype → remove to reduce complexity
 - Current usage suggests it's not actively used
@@ -322,6 +343,7 @@ Based on codebase analysis, your current setup uses **4 different database techn
 If vector search is core to your product:
 
 ```text
+
 ┌─────────────────┐    ┌─────────────────┐
 │   Supabase      │    │  pgvector or    │
 │ (PostgreSQL)    │    │   Pinecone      │
@@ -352,13 +374,16 @@ grep -r "rag\|retrieval" --include="*.py" .
 #### Phase 2: Migration (Next Week)
 
 ```bash
+
 # If keeping vectors: migrate to pgvector
+
 # If removing: clean up Chroma dependencies
 
 # Remove Chroma from requirements
 sed -i '/chromadb/d' requirements.txt
 
 # Remove Chroma health checks
+
 # Update dashboard_router.py
 ```
 
@@ -423,6 +448,7 @@ Based on codebase analysis, your current setup includes **8 different monitoring
 #### Option A: Minimalist Production Setup (Recommended)
 
 ```text
+
 ┌─────────────────┐
 │   Application   │
 │  (OpenTelemetry │
@@ -469,6 +495,7 @@ Based on codebase analysis, your current setup includes **8 different monitoring
 #### Option C: Cloud-Native (AWS/GCP)
 
 ```text
+
 ┌─────────────────┐
 │   Application   │
 │  (OpenTelemetry │
@@ -523,6 +550,7 @@ Based on codebase analysis, your current setup includes **8 different monitoring
 1. **Set Environment Variables**:
 
    ```bash
+
    export DATADOG_API_KEY="your-api-key"
    export DATADOG_APP_KEY="your-app-key"
    ```
@@ -604,17 +632,22 @@ Based on codebase analysis, your application uses **2 different task queue syste
 **Migration Plan:**
 
 ```python
+
 # Replace RQ task_queue.py with Celery equivalents:
 
 # RQ: enqueue_task() → Celery: task.delay()
+
 # RQ: set_task_running() → Celery: task signals/events
+
 # RQ: add_task_log() → Celery: custom logging handler
+
 # RQ: add_task_artifact() → Celery: result storage + custom fields
 ```
 
 #### Option B: Keep RQ for Simplicity
 
 **When to Keep RQ:**
+
 - If current RQ usage is minimal and Celery is overkill
 - If you prefer simpler deployment and monitoring
 - If you're not using advanced Celery features (workflows, scheduling)
@@ -646,6 +679,7 @@ Based on codebase analysis, your application uses **2 different task queue syste
 #### Phase 1: Assessment (This Week)
 
 ```bash
+
 # Analyze current RQ usage
 find . -name "*.py" -exec grep -l "task_queue\|enqueue_task\|RQ" {} \;
 
@@ -660,6 +694,7 @@ redis-cli info | grep -E "(used_memory|connected_clients|total_commands_processe
 #### Phase 2: Choose Strategy (Next Week)
 
 **Decision Criteria:**
+
 - **Task Complexity**: If using Celery workflows → consolidate to Celery
 - **Scale Requirements**: If high throughput → keep Celery
 - **Operational Overhead**: If prefer simplicity → consider RQ or managed service
@@ -679,10 +714,15 @@ redis-cli info | grep -E "(used_memory|connected_clients|total_commands_processe
 **For Managed Service:**
 
 ```bash
+
 # 1. Choose cloud provider (AWS/GCP/Azure)
+
 # 2. Implement queue abstraction layer
+
 # 3. Migrate task handlers to serverless functions
+
 # 4. Update application configuration
+
 # 5. Remove Redis/Celery infrastructure
 ```
 
@@ -742,6 +782,7 @@ docker-compose ps
 #### 2. Start Celery Services (Manual)
 
 ```bash
+
 # Terminal 1: Start Redis
 redis-server
 
@@ -771,12 +812,13 @@ open http://localhost:5555
 #### 4. Test Task Processing
 
 ```bash
+
 # Run the migration test
 cd backend
 python test_celery_migration.py
 
 # Test with actual application
-curl -X POST http://localhost:8001/sandbox/jobs \
+curl -X POST <http://localhost:8001/sandbox/jobs> \
   -H "Content-Type: application/json" \
   -d '{"action": "test", "data": "migration_test"}'
 ```
@@ -801,11 +843,13 @@ curl -X POST http://localhost:8001/sandbox/jobs \
 ### Monitoring & Observability
 
 #### Flower Dashboard
-- **URL**: http://localhost:5555
+
+- **URL**: <http://localhost:5555>
 - **Features**: Real-time task monitoring, worker stats, task history
 - **Authentication**: Configured in docker-compose.yml
 
 #### Celery Monitoring API
+
 - **Port**: 5556
 - **Endpoint**: `/health`
 - **Features**: Health checks, metrics export
@@ -829,6 +873,7 @@ celery -A celery_app inspect registered
 ### Environment Variables
 
 ```bash
+
 # Required for Celery
 CELERY_BROKER_URL=redis://localhost:6379/0
 CELERY_RESULT_BACKEND=redis://localhost:6379/0
@@ -843,6 +888,7 @@ CELERY_TASK_DEFAULT_QUEUE=default
 #### Common Issues
 
 **Workers not connecting to Redis:**
+
 ```bash
 # Check Redis is running
 redis-cli ping
@@ -853,6 +899,7 @@ celery -A celery_app inspect ping
 
 **Tasks not being processed:**
 ```bash
+
 # Check worker logs
 docker-compose logs celery-worker-default
 
@@ -861,6 +908,7 @@ celery -A celery_app inspect active_queues
 ```
 
 **Scheduled tasks not running:**
+
 ```bash
 # Check beat scheduler
 celery -A celery_app inspect scheduled
@@ -872,6 +920,7 @@ docker-compose restart celery-beat
 #### Performance Tuning
 
 ```bash
+
 # Increase worker concurrency
 celery -A celery_app worker --concurrency=8
 
@@ -887,12 +936,14 @@ celery -A celery_app inspect stats | grep -A 5 "pool"
 If issues arise with the Celery migration:
 
 1. **Stop Celery services:**
+
    ```bash
    docker-compose down
    ```
 
 2. **Restore RQ temporarily:**
    ```bash
+
    # Revert imports in affected files
    # Restart RQ worker: python worker.py
    ```
@@ -923,6 +974,7 @@ If issues arise with the Celery migration:
 ### Current Authentication State
 
 **✅ What's Working Well:**
+
 - **Multi-Provider Auth**: JWT, WebAuthn, Google OAuth, and Supabase Auth integration
 - **Supabase Integration**: Built-in user management, RLS policies, and auth flows
 - **WebAuthn Support**: Modern passwordless authentication with hardware security keys
@@ -930,6 +982,7 @@ If issues arise with the Celery migration:
 - **Google OAuth**: Social login integration for user convenience
 
 **⚠️ Current Limitations:**
+
 - **Fragmented Auth Logic**: Multiple auth providers without unified abstraction layer
 - **RBAC Gaps**: Limited role-based access control beyond basic user/admin
 - **Session Management**: No centralized session store or invalidation mechanism
@@ -941,6 +994,7 @@ If issues arise with the Celery migration:
 
 #### Primary Identity Provider: Auth0
 **Why Auth0 for Enterprise Authentication:**
+
 - **Unified Auth Platform**: Single identity provider for all authentication methods
 - **Advanced Security**: Built-in threat detection, anomaly detection, and breach protection
 - **Compliance Ready**: SOC 2, GDPR, HIPAA compliance with audit trails
@@ -950,6 +1004,7 @@ If issues arise with the Celery migration:
 
 #### Secondary Provider: Supabase Auth (Keep for Development)
 **Why Keep Supabase Auth:**
+
 - **Rapid Development**: Perfect for prototyping and development workflows
 - **Database Integration**: Seamless integration with Supabase RLS policies
 - **Cost Effective**: Generous free tier for development and small applications
@@ -976,6 +1031,7 @@ If issues arise with the Celery migration:
 #### Role-Based Access Control (RBAC) Implementation
 
 **Core Roles:**
+
 ```python
 # User roles with hierarchical permissions
 ROLES = {
@@ -988,6 +1044,7 @@ ROLES = {
 
 **Resource-Based Permissions:**
 ```python
+
 # Permission matrix for different resources
 PERMISSIONS = {
     "conversations": {
@@ -1012,6 +1069,7 @@ PERMISSIONS = {
 #### Attribute-Based Access Control (ABAC) for Advanced Scenarios
 
 **Dynamic Authorization Rules:**
+
 ```python
 # ABAC policies based on user attributes and context
 ABAC_POLICIES = [
@@ -1039,6 +1097,7 @@ ABAC_POLICIES = [
 
 **Setup Auth0 Tenant:**
 ```bash
+
 # Create Auth0 tenant and application
 npm install -g auth0-cli
 auth0 login
@@ -1050,6 +1109,7 @@ auth0 flows create "social-login" --template=social
 ```
 
 **Migrate Authentication Logic:**
+
 ```python
 # New unified auth service
 from auth0 import Auth0
@@ -1083,6 +1143,7 @@ class UnifiedAuthService:
 
 **Create Permission System:**
 ```python
+
 from enum import Enum
 from typing import List, Set
 
@@ -1116,6 +1177,7 @@ ROLES = {
 ```
 
 **API Authorization Middleware:**
+
 ```python
 from fastapi import Request, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -1158,6 +1220,7 @@ async def list_users(user: User = Depends(require_permission(Permission.MANAGE_U
 
 **Multi-Factor Authentication (MFA):**
 ```python
+
 # Auth0 MFA configuration
 auth0_mfa = {
     "enabled": True,
@@ -1168,6 +1231,7 @@ auth0_mfa = {
 ```
 
 **Session Management:**
+
 ```python
 class SessionManager:
     def __init__(self, redis_client):
@@ -1224,6 +1288,7 @@ class SessionManager:
 
 **Audit Logging:**
 ```python
+
 class AuthAuditLogger:
     def __init__(self, log_storage):
         self.storage = log_storage
@@ -1260,6 +1325,7 @@ class AuthAuditLogger:
 #### Gradual Rollout Plan
 
 **Week 1-2: Auth0 Setup & Testing**
+
 ```bash
 # 1. Create Auth0 tenant and configure applications
 # 2. Set up authentication flows (passwordless, social, MFA)
@@ -1269,14 +1335,20 @@ class AuthAuditLogger:
 
 **Week 3-4: Backend Integration**
 ```bash
+
 # 1. Implement UnifiedAuthService
+
 # 2. Update all authentication middleware
+
 # 3. Migrate existing JWT logic to Auth0 tokens
+
 # 4. Implement RBAC permission system
+
 # 5. Add audit logging
 ```
 
 **Week 5-6: Frontend Migration**
+
 ```bash
 # 1. Update frontend auth libraries (Auth0 React SDK)
 # 2. Migrate login/logout flows
@@ -1287,9 +1359,13 @@ class AuthAuditLogger:
 
 **Week 7-8: Production Deployment**
 ```bash
+
 # 1. Gradual user migration (feature flags)
+
 # 2. Monitor authentication success rates
+
 # 3. Rollback plan preparation
+
 # 4. Go-live with Auth0 as primary provider
 ```
 
@@ -1304,11 +1380,13 @@ class AuthAuditLogger:
 ### Cost Analysis
 
 **Auth0 Pricing Tiers:**
+
 - **Free**: Up to 7,000 active users, basic features
 - **Essentials**: $0.023/user/month, advanced security features
 - **Professional**: Custom pricing, enterprise features
 
 **Migration Costs:**
+
 - **Setup Time**: 4-6 weeks development effort
 - **Auth0 Setup**: ~$50-100/month for small team
 - **ROI**: Improved security, reduced development time, enterprise scalability
@@ -1316,6 +1394,7 @@ class AuthAuditLogger:
 ### Risk Mitigation
 
 **Rollback Strategy:**
+
 ```bash
 # If Auth0 integration fails, rollback to Supabase Auth
 # 1. Feature flag to disable Auth0
@@ -1326,10 +1405,15 @@ class AuthAuditLogger:
 
 **Data Migration:**
 ```bash
+
 # Migrate existing users from Supabase to Auth0
+
 # 1. Export user data from Supabase
+
 # 2. Import users to Auth0 (preserve passwords via migration API)
+
 # 3. Update user IDs in application database
+
 # 4. Test authentication with migrated accounts
 ```
 
@@ -1480,6 +1564,7 @@ CREATE TABLE audit_logs (
 #### Authentication
 
 ```http
+
 POST /auth/login
 POST /auth/refresh
 POST /auth/logout-all
@@ -1495,6 +1580,7 @@ DELETE /auth/sessions/{session_id}
 #### Audit & Admin
 
 ```http
+
 GET /auth/audit-logs
 ```
 
@@ -1574,14 +1660,15 @@ GET /auth/audit-logs
 #### Health Checks
 
 ```bash
+
 # Auth service health
-curl http://localhost:8000/auth/health
+curl <http://localhost:8000/auth/health>
 
 # Session cleanup status
-curl http://localhost:8000/auth/sessions/cleanup
+curl <http://localhost:8000/auth/sessions/cleanup>
 
 # Audit log integrity
-curl http://localhost:8000/auth/audit/health
+curl <http://localhost:8000/auth/audit/health>
 ```
 
 ### Operational Procedures
@@ -1612,6 +1699,7 @@ curl -X POST -H "Authorization: Bearer <token>" \
 #### Audit & Compliance
 
 ```sql
+
 -- Query recent auth events
 SELECT * FROM audit_logs
 WHERE action IN ('USER_LOGIN', 'SESSION_REVOKED', 'TOKEN_REFRESH')
@@ -1652,16 +1740,19 @@ HAVING count(*) > 5;
 ### Files Modified
 
 #### Backend Implementation
+
 - `auth_service.py` - New consolidated auth service
 - `auth/router.py` - Updated with new endpoints and session management
 - `models_base.py` - Added UserSession, AuditLog, UserRole, UserRoleAssignment models
 - `test_consolidated_auth.py` - Comprehensive test suite
 
 #### Database Migrations
+
 - `20251206163006_consolidated_auth_schema.sql` - Core auth schema
 - `20251206163318_audit_triggers.sql` - Audit logging triggers
 
 #### Documentation
+
 - `SECRETS_MANAGEMENT_IMPROVEMENTS.md` - This implementation guide
 
 ### Next Steps

@@ -172,6 +172,7 @@ All critical endpoint mismatches have been fixed. Backend routes verified and fr
 -- **ACTION REQUIRED**: Add rate limiting middleware for production
 
 ```python
+
     from slowapi import Limiter, _rate_limit_exceeded_handler
     from slowapi.util import get_remote_address
 

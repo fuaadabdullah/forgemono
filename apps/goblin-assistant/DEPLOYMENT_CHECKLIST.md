@@ -34,6 +34,7 @@ git push origin main
 #### Option B: Script
 
 ```bash
+
 cd apps/goblin-assistant
 ./deploy-backend.sh fly
 ```
@@ -66,7 +67,7 @@ In Fly dashboard or using `flyctl`, add:
 
 1. [ ] Watch build logs in Fly dashboard (`fly logs`) or use `flyctl logs`
 2. [ ] Wait for "Deploy succeeded" message (5-10 minutes)
-3. [ ] Note your backend URL: `https://goblin-assistant.fly.dev`
+3. [ ] Note your backend URL: `<https://goblin-assistant.fly.dev`>
 
 ### Step 5: Test Deployment
 
@@ -93,7 +94,8 @@ If deploying frontend separately:
 1. [ ] Update frontend environment variable:
 
    ```bash
-   VITE_FASTAPI_URL=https://goblin-assistant.fly.dev
+
+   VITE_FASTAPI_URL=<https://goblin-assistant.fly.dev>
    ```
 
 2. [ ] Redeploy frontend (Vercel)
@@ -195,7 +197,7 @@ Before building and deploying the frontend, verify these items:
 
  - **Fly Docs**: <https://fly.io/docs>
  - **Fly Status**: <https://status.fly.io/>
-- **Community**: https://fly.io/community/
+- **Community**: <https://fly.io/community/>
 - **GitHub Issues**: Report bugs in your repo
 
 ## ✨ Success Criteria

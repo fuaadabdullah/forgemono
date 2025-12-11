@@ -19,6 +19,7 @@
 ## 🎯 5-Minute Quick Start
 
 ### Step 1: Run Migration Script
+
 ```bash
 cd /Users/fuaadabdullah/ForgeMonorepo
 bash tools/migrate-to-multirepo.sh
@@ -28,6 +29,7 @@ bash tools/migrate-to-multirepo.sh
 
 ### Step 2: Create GitHub Repos
 ```bash
+
 gh repo create YOUR_ORG/goblin-assistant-backend --public
 gh repo create YOUR_ORG/goblin-assistant-frontend --public
 gh repo create YOUR_ORG/goblin-assistant-contracts --public
@@ -36,6 +38,7 @@ gh repo create YOUR_ORG/goblin-assistant-dev --public
 ```
 
 ### Step 3: Push Code + Workflows
+
 ```bash
 # For each repo in /tmp/goblin-migration/
 cd /tmp/goblin-migration/goblin-assistant-backend
@@ -58,6 +61,7 @@ git push -u origin develop
 
 ### Step 5: Test
 ```bash
+
 # Push to develop → triggers staging deployment
 git push origin develop
 
@@ -72,34 +76,40 @@ gh run watch
 ### Get These Before Starting:
 
 #### Backend (Fly.io)
-- [ ] `FLY_API_TOKEN` - https://fly.io/user/personal_access_tokens
+
+- [ ] `FLY_API_TOKEN` - <https://fly.io/user/personal_access_tokens>
 
 #### Frontend (Vercel)
-- [ ] `VERCEL_TOKEN` - https://vercel.com/account/tokens
+
+- [ ] `VERCEL_TOKEN` - <https://vercel.com/account/tokens>
 - [ ] `VERCEL_ORG_ID` - Run `vercel project ls`
 - [ ] `VERCEL_PROJECT_ID` - Run `vercel project ls`
 - [ ] `VITE_API_URL` - Your API URL per environment
-- [ ] `CHROMATIC_PROJECT_TOKEN` - https://www.chromatic.com/
+- [ ] `CHROMATIC_PROJECT_TOKEN` - <https://www.chromatic.com/>
 
 #### Contracts (goblin-assistant-contracts)
-- [ ] `NPM_TOKEN` - https://www.npmjs.com/settings/YOUR_USER/tokens
-- [ ] `PYPI_TOKEN` - https://pypi.org/manage/account/token/
+
+- [ ] `NPM_TOKEN` - <https://www.npmjs.com/settings/YOUR_USER/tokens>
+- [ ] `PYPI_TOKEN` - <https://pypi.org/manage/account/token/>
 
 #### Infrastructure (goblin-assistant-infra)
+
 - [ ] `AWS_ACCESS_KEY_ID` - IAM credentials
 - [ ] `AWS_SECRET_ACCESS_KEY` - IAM credentials
 - [ ] `KUBE_CONFIG_STAGING` - Base64 kubeconfig
 - [ ] `KUBE_CONFIG_PRODUCTION` - Base64 kubeconfig
 
 #### All Repos (Org-Level)
+
 - [ ] `SLACK_WEBHOOK_URL` - Slack incoming webhook
-- [ ] `INFRACOST_API_KEY` - https://www.infracost.io/
+- [ ] `INFRACOST_API_KEY` - <https://www.infracost.io/>
 
 ---
 
 ## 📋 5 Repositories You'll Create
 
 ```
+
 1. goblin-assistant-backend      → FastAPI + PostgreSQL + Redis
 2. goblin-assistant-frontend     → React + TypeScript + Vite
 3. goblin-assistant-contracts    → Shared types (npm + PyPI)
@@ -117,8 +127,9 @@ Push to develop → CI runs → Deploy to staging
 ```
 
 **URLs**:
-- Backend: `https://staging-api.goblin.fuaad.ai`
-- Frontend: `https://staging.goblin.fuaad.ai`
+
+- Backend: `<https://staging-api.goblin.fuaad.ai`>
+- Frontend: `<https://staging.goblin.fuaad.ai`>
 
 ### Production (Manual Approval)
 ```
@@ -126,20 +137,22 @@ Merge develop → main → Tag v1.0.0 → Manual approval → Deploy
 ```
 
 **URLs**:
-- Backend: `https://api.goblin.fuaad.ai`
-- Frontend: `https://goblin.fuaad.ai`
+
+- Backend: `<https://api.goblin.fuaad.ai`>
+- Frontend: `<https://goblin.fuaad.ai`>
 
 ---
 
 ## 🎨 Visual Testing (Chromatic)
 
 Chromatic runs automatically on PRs:
+
 - Captures screenshots of all Storybook stories
 - Compares against baseline
 - Requires approval for visual changes
 - Token required: `CHROMATIC_PROJECT_TOKEN`
 
-Get token: https://www.chromatic.com/start
+Get token: <https://www.chromatic.com/start>
 
 ---
 
@@ -213,14 +226,16 @@ Migration is successful when:
 
 ### If deployment fails:
 ```bash
+
 # Backend (Fly.io)
 fly deploy --remote-only
 
 # Frontend (Vercel)
-vercel rollback https://goblin.fuaad.ai
+vercel rollback <https://goblin.fuaad.ai>
 ```
 
 ### If migration fails:
+
 - Original monorepo still exists at `/Users/fuaadabdullah/ForgeMonorepo`
 - Just point DNS/endpoints back to monorepo deployment
 
@@ -254,6 +269,7 @@ vercel rollback https://goblin.fuaad.ai
 ## 🎯 Next Action
 
 **Option 1: Execute Now**
+
 ```bash
 bash tools/migrate-to-multirepo.sh
 ```
@@ -263,6 +279,7 @@ Read `docs/MIGRATION_READY_TO_EXECUTE.md` for detailed checklist
 
 **Option 3: Test Locally**
 ```bash
+
 bash tools/migrate-to-multirepo.sh --dry-run
 ```
 

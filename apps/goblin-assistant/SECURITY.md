@@ -70,6 +70,7 @@ We appreciate security researchers who help keep our users safe. With your permi
 Goblin Assistant implements multi-layer secret detection and prevention to protect sensitive data:
 
 #### Detection Capabilities
+
 - **API Keys**: OpenAI, Anthropic, Google Cloud, AWS, Azure, and other major providers
 - **Authentication Tokens**: JWT tokens, Bearer tokens, OAuth tokens, API tokens
 - **Passwords**: Common password patterns and credential formats
@@ -79,12 +80,14 @@ Goblin Assistant implements multi-layer secret detection and prevention to prote
 - **Environment Variables**: Sensitive configuration values
 
 #### Security Layers
+
 1. **Request Creation**: Scans user prompts before queuing requests
 2. **Worker Processing**: Double-checks prompts before sending to AI providers
 3. **Document Indexing**: Automatically redacts secrets during ChromaDB indexing
 4. **Audit Logging**: Complete security event logging and monitoring
 
 #### Response to Violations
+
 - **Immediate Blocking**: Requests containing secrets are rejected with clear error messages
 - **Security Metrics**: Comprehensive monitoring of security events with Datadog
 - **Audit Trail**: Detailed logging of detection points and violation types

@@ -35,6 +35,7 @@ export const useChatModels = () => {
 #### 2. Mutations Return Data to Components
 
 ```typescript
+
 // ✅ GOOD: Components handle state updates
 export const useLogin = () => {
   return useMutation({
@@ -77,6 +78,7 @@ export const queryKeys = {
 #### ❌ Direct State Manipulation in Hooks
 
 ```typescript
+
 // ❌ BAD: Tight coupling between server and client state
 export const useLogin = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -124,6 +126,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 #### 2. Store Composition
 
 ```typescript
+
 // ✅ GOOD: Compose related state
 interface UIState {
   theme: 'light' | 'dark';
@@ -160,6 +163,7 @@ interface AppState {
 ### Pattern 1: Server State with Client State Updates
 
 ```typescript
+
 // Component handles both server call and client state update
 const LoginForm = () => {
   const loginMutation = useLogin();
@@ -209,6 +213,7 @@ const ChatModelsList = () => {
 ### Pattern 3: Client State with Server Sync
 
 ```typescript
+
 // Client state that syncs to server when needed
 const ThemeToggle = () => {
   const { theme, setTheme } = useUIStore();
@@ -252,6 +257,7 @@ if (isError) {
 ### Client State Errors
 
 ```typescript
+
 const updateData = useStore((state) => state.updateData);
 
 const handleUpdate = async () => {
@@ -299,6 +305,7 @@ test('useChatModels fetches models', async () => {
 ### Testing Client State
 
 ```typescript
+
 import { renderHook, act } from '@testing-library/react';
 
 test('useAuthStore manages auth state', () => {

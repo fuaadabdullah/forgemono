@@ -3,6 +3,7 @@
 ## 🚀 Quick Start (5 minutes)
 
 ### 1. Install Dependencies
+
 ```bash
 cd /Users/fuaadabdullah/ForgeMonorepo/goblinmini-docqa
 pip install -r requirements.txt
@@ -10,21 +11,26 @@ pip install -r requirements.txt
 
 ### 2. Configure Environment
 ```bash
+
 cp .env.example .env
+
 # Edit .env with your tokens and settings
 ```
 
 ### 3. Start Service (Development Mode)
+
 ```bash
 ./bin/start-dev.sh
 ```
 
 ### 4. Verify Metrics Endpoint
 ```bash
-curl http://localhost:9000/metrics
+
+curl <http://localhost:9000/metrics>
 ```
 
 ### 5. Start Monitoring Stack (Optional)
+
 ```bash
 cd docker
 docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
@@ -56,8 +62,10 @@ docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
 
 ## 🐳 Docker Development
 ```bash
+
 cd docker
 docker-compose up -d
+
 # Service will be available at http://localhost:8000
 ```
 
@@ -75,6 +83,7 @@ pre-commit run --all-files
 If you want to run local models (e.g., CPU/GPU-backed inference), install the optional dependencies:
 
 ```bash
+
 # Option A: Use the local requirements file (includes torch + llama-cpp-python)
 python3 -m pip install -r requirements-local.txt
 

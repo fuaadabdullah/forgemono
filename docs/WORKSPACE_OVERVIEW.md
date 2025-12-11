@@ -106,6 +106,7 @@ See `docs/backend/API_KEYS_STATUS.md`. Checklist:
 - **Bash:**
 
   ```bash
+
   set -e
   trap 'echo "Error on line $LINENO"' ERR
   ```
@@ -125,6 +126,7 @@ See `docs/backend/API_KEYS_STATUS.md`. Checklist:
 See `docs/backend/DATA_FLOW_DIAGRAM.md` for the latest diagram. Example (Mermaid):
 
 ```mermaid
+
 graph TD;
   User-->Frontend;
   Frontend-->API;

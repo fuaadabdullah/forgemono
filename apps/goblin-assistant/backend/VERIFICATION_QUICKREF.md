@@ -33,6 +33,7 @@ gemma:2b → phi3:3.8b → qwen2.5:3b → mistral:7b
 ### Disable (For Speed)
 
 ```json
+
 {
   "messages": [...],
   "enable_verification": false,
@@ -78,6 +79,7 @@ gemma:2b → phi3:3.8b → qwen2.5:3b → mistral:7b
 ## Testing
 
 ```bash
+
 python test_verification_scoring.py
 ```
 

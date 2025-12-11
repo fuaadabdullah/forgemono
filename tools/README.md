@@ -32,12 +32,14 @@ Specialized AI-powered tools for development automation and analysis.
 AI-powered documentation quality analysis and automated checking.
 
 **Features:**
+
 - Automated quality scoring using advanced language models
 - CI/CD integration with quality gates
 - Batch processing for large documentation sets
 - Detailed reporting and improvement suggestions
 
 **Quick Start:**
+
 ```bash
 cd doc-quality
 python3 doc_quality_check.py --ci --min-score 70
@@ -54,6 +56,7 @@ Lightweight AI analysis and diagnostics system.
 
 **Quick Start:**
 ```bash
+
 cd raptor-mini
 python3 raptor_mini_local.py
 ```
@@ -74,6 +77,7 @@ The `mac-undervolt.sh` script provides a safe interface for temporary undervolti
 **Setup (one-time):**
 
 ```bash
+
 # Download and build VoltageShift
 bash tools/setup-voltageshift.sh
 ```
@@ -91,14 +95,15 @@ bash tools/mac-undervolt.sh
 
 This directory contains helper scripts for workspace maintenance.
 
-### How to refresh the workspace:
+### How to refresh the workspace
 
 ```bash
+
 # From repo root
 bash tools/refresh-workspace.sh
 ```
 
-### How to archive Forge Lite (if not already done):
+### How to archive Forge Lite (if not already done)
 
 ```bash
 bash tools/archive-forge-lite.sh
@@ -106,9 +111,10 @@ bash tools/archive-forge-lite.sh
 
 If you need to reverse an archive, restore the files from Git history and re-add the workspace entries to pnpm-workspace.yaml/package.json.
 
-### How to find and remove 'forge-lite' references:
+### How to find and remove 'forge-lite' references
 
 ```bash
+
 # Run the find script to generate a report
 bash tools/find-forge-lite-references.sh
 

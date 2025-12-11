@@ -29,6 +29,7 @@ python3 setup_production.py
 ### Step 2: Test Connections (1 min)
 
 ```bash
+
 python3 test_db_connection.py
 ```
 
@@ -51,6 +52,7 @@ INFO  [alembic] Running upgrade  -> 0ae54fa82ef0, Initial schema
 
 **Verify:**
 ```bash
+
 python3 -c "
 from database import engine
 from sqlalchemy import inspect
@@ -64,13 +66,15 @@ print(f'✅ Created {len(tables)} tables')
 ## 📋 What You'll Need
 
 ### For PostgreSQL (Supabase)
-1. Go to: https://supabase.com/dashboard/project/dhxoowakvmobjxsffpst/settings/database
+
+1. Go to: <https://supabase.com/dashboard/project/dhxoowakvmobjxsffpst/settings/database>
 2. Get database password (or reset it)
 3. Copy "Connection pooling" string (port 6543)
 4. Format: `postgresql://postgres.dhxoowakvmobjxsffpst:[PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres`
 
 ### For Redis (Upstash) - Optional
-1. Go to: https://console.upstash.com
+
+1. Go to: <https://console.upstash.com>
 2. Create database (free tier available)
 3. Get: endpoint, port (6379), password
 4. Set SSL to `true`
@@ -80,6 +84,7 @@ print(f'✅ Created {len(tables)} tables')
 ## 🆘 If Something Goes Wrong
 
 ### Script not found
+
 ```bash
 # Make sure you're in the right directory
 cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend
@@ -88,6 +93,7 @@ ls -la setup_production.py  # Should show the file
 
 ### Connection fails
 ```bash
+
 # Check your .env file
 cat .env | grep DATABASE_URL
 cat .env | grep REDIS_
@@ -97,6 +103,7 @@ python3 test_db_connection.py
 ```
 
 ### Migration fails
+
 ```bash
 # Check current migration state
 alembic current

@@ -59,18 +59,21 @@ python setup_google_oauth.py --help
 
 ### Python Dependencies
 ```bash
+
 pip install -r requirements-automation.txt
 ```
 
 ## Usage
 
 ### 1. Configure ngrok
+
 ```bash
 ngrok config add-authtoken YOUR_TOKEN_HERE
 ```
 
 ### 2. Run Automation
 ```bash
+
 python automate_raptor_colab.py
 ```
 
@@ -111,20 +114,21 @@ Step 3: Running notebook cells locally...
 ✅ Notebook executed successfully.
 
 Step 4: Starting ngrok tunnel on port 8000...
-✅ ngrok Public URL: https://abc123.ngrok.io
+✅ ngrok Public URL: <https://abc123.ngrok.io>
 
 🎯 Automation Summary:
    📓 Notebook: raptor_mini_colab.ipynb
-   🔗 Public URL: https://abc123.ngrok.io
+   🔗 Public URL: <https://abc123.ngrok.io>
    📤 Upload to Colab: Manual step required
    🧹 Cleanup: Complete
 
-✅ Success! Raptor Mini is available at: https://abc123.ngrok.io
+✅ Success! Raptor Mini is available at: <https://abc123.ngrok.io>
 ```
 
 ## Important Notes
 
 ### Local vs Colab Execution
+
 - This script executes the notebook **locally** using nbconvert
 - For actual Colab execution, you still need to:
   1. Upload `updated_raptor_mini_colab.ipynb` to Google Colab
@@ -135,6 +139,7 @@ Step 4: Starting ngrok tunnel on port 8000...
 Google Colab doesn't provide a public API for automated execution. This script provides the foundation but Colab execution requires manual steps.
 
 ### Security
+
 - Auth tokens are handled securely (no hardcoded values)
 - Environment variables are recommended for production
 - ngrok processes are properly cleaned up
@@ -142,6 +147,7 @@ Google Colab doesn't provide a public API for automated execution. This script p
 ## Troubleshooting
 
 ### ngrok Issues
+
 ```bash
 # Check if ngrok is running
 curl http://localhost:4040/api/tunnels
@@ -152,10 +158,12 @@ pkill ngrok
 
 ### Import Errors
 ```bash
+
 pip install nbformat nbconvert requests
 ```
 
 ### Permission Issues
+
 ```bash
 chmod +x automate_raptor_colab.py
 ```

@@ -11,6 +11,7 @@ This document outlines the secure secret management practices for the ForgeMonor
 ### Prerequisites
 
 1. Install Bitwarden CLI:
+
    ```bash
    npm install -g @bitwarden/cli
    ```
@@ -18,6 +19,7 @@ This document outlines the secure secret management practices for the ForgeMonor
 2. Login to Bitwarden:
 
    ```bash
+
    bw login
    ```
 
@@ -44,6 +46,7 @@ Examples:
 The main tool for managing secrets:
 
 ```bash
+
 # Get a secret
 ./tools/secrets.sh get goblin-assistant-openai
 
@@ -79,9 +82,12 @@ Monitors for unauthorized .env files:
 1. **Never create .env files manually** - they will be flagged by the monitor
 2. **Use the secret manager** to load required secrets:
    ```bash
+
    ./tools/secrets.sh load your-app-name
    ```
+
 3. **Clean up after development**:
+
    ```bash
    ./tools/secrets.sh cleanup
    ```
@@ -126,9 +132,12 @@ Allowed .env files:
 1. **Extract secrets** from existing .env files
 2. **Store in Bitwarden**:
    ```bash
+
    ./tools/secrets.sh set goblin-app-service "your-secret-value" "Description"
    ```
+
 3. **Delete .env files**:
+
    ```bash
    rm dangerous-env-file.env
    ```
@@ -138,11 +147,13 @@ Allowed .env files:
 
 **Before (❌ Dangerous)**:
 ```bash
+
 # .env file
 OPENAI_API_KEY=sk-real-key-here
 ```
 
 **After (✅ Secure)**:
+
 ```bash
 # Store in Bitwarden
 ./tools/secrets.sh set goblin-assistant-openai "sk-real-key-here" "OpenAI API key"
@@ -172,6 +183,7 @@ api_key = os.getenv('OPENAI_API_KEY') or get_secret_from_bitwarden()
 ### "Bitwarden vault is locked"
 
    ```bash
+
    export BW_SESSION=$(bw unlock --raw)
    ```
 

@@ -5,6 +5,7 @@ This directory contains GitHub Actions workflows that serve as fallbacks/alterna
 ## Available Workflows
 
 ### 1. Backend CI (`backend-ci.yml`)
+
 - **Triggers**: Push/PR to `main` branch affecting backend code
 - **What it does**:
   - Lints Python code with ruff
@@ -12,6 +13,7 @@ This directory contains GitHub Actions workflows that serve as fallbacks/alterna
   - Uploads test results as artifacts
 
 ### 2. Docker CI (`docker-ci.yml`)
+
 - **Triggers**: Push/PR to `main` branch affecting app code or Dockerfile
 - **What it does**:
   - Builds Docker image from `apps/goblin-assistant/`
@@ -19,6 +21,7 @@ This directory contains GitHub Actions workflows that serve as fallbacks/alterna
   - Generates build provenance attestations
 
 ### 3. Terraform Security (`terraform-security.yml`)
+
 - **Triggers**: Push/PR to `main` affecting Terraform code, or daily at 3 AM UTC
 - **What it does**:
   - Runs tfsec for Terraform security scanning
@@ -26,6 +29,7 @@ This directory contains GitHub Actions workflows that serve as fallbacks/alterna
   - Uploads SARIF results to GitHub Security tab
 
 ### 4. Terraform Deploy (`terraform-deploy.yml`)
+
 - **Triggers**: Manual workflow dispatch only
 - **What it does**:
   - Plans and optionally applies Terraform changes
@@ -77,6 +81,7 @@ Set these in your repository settings under **Settings → Secrets and variables
 ### 3. Enable Required Permissions
 
 For Docker workflows, ensure the repository has:
+
 - **Settings → Actions → General → Workflow permissions**: Read and write permissions
 
 ## Usage
@@ -84,6 +89,7 @@ For Docker workflows, ensure the repository has:
 ### Automatic Triggers
 
 Most workflows run automatically on:
+
 - Pushes to `main` branch
 - Pull requests to `main` branch
 - Scheduled runs (security scans)
@@ -124,19 +130,23 @@ For Terraform deployments:
 ## Troubleshooting
 
 ### Workflow doesn't run
+
 - Check that triggers match (branch names, file paths)
 - Verify required secrets are set
 - Check repository permissions
 
 ### Docker build fails
+
 - Ensure GHCR permissions are correct
 - Check that `GITHUB_TOKEN` has package write access
 
 ### Terraform fails
+
 - Verify `TF_TOKEN` is valid and has workspace access
 - Check Terraform Cloud workspace names match
 
 ### Security scans fail
+
 - Ensure Terraform files are in `goblin-infra/` directory
 - Check that workflows have read access to repository contents
 

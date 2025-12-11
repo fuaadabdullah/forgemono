@@ -43,6 +43,7 @@ DD_APP_KEY=your_datadog_app_key
 #### For Staging (`.env.staging`):
 
 ```bash
+
 # Datadog RUM Configuration (Frontend)
 VITE_DD_APPLICATION_ID=your_staging_application_id_here
 VITE_DD_CLIENT_TOKEN=your_staging_client_token_here
@@ -75,6 +76,7 @@ Add to Site Settings > Environment Variables:
 
 ### Step 2.1: Deploy to Staging
 ```bash
+
 # Using the deployment script
 ./deploy.sh staging
 
@@ -86,6 +88,7 @@ netlify deploy --dir=dist
 ```
 
 ### Step 2.2: Run Automated Tests
+
 ```bash
 # Run the Datadog integration test
 ./test-datadog.sh
@@ -184,6 +187,7 @@ netlify deploy --dir=dist
 
 ### Step 5.1: Final Environment Check
 ```bash
+
 # Verify environment variables
 echo $VITE_DD_APPLICATION_ID
 echo $VITE_DD_CLIENT_TOKEN
@@ -191,6 +195,7 @@ echo $VITE_DD_ENV
 ```
 
 ### Step 5.2: Deploy to Production
+
 ```bash
 # Using the Netlify deployment script (recommended)
 ./deploy-netlify.sh

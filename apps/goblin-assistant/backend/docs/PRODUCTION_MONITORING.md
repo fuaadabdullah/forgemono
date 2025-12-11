@@ -64,6 +64,7 @@ Traces flow from:
 Logs include OpenTelemetry trace context for correlation:
 
 ```json
+
 {
   "timestamp": "2025-12-06T10:30:45.123Z",
   "level": "INFO",
@@ -97,6 +98,7 @@ services:
 
 **Collector Configuration:**
 ```yaml
+
 receivers:
   otlp:
     protocols:
@@ -111,7 +113,7 @@ exporters:
   prometheus:
     endpoint: 0.0.0.0:8889
   loki:
-    endpoint: http://loki:3100/loki/api/v1/push
+    endpoint: <http://loki:3100/loki/api/v1/push>
 
 service:
   pipelines:
@@ -147,9 +149,12 @@ sli_chat_response_time_sli_total_events_total 10000
 Example Prometheus alerting rules:
 
 ```yaml
+
 groups:
+
   - name: goblin_assistant_slos
     rules:
+
       - alert: ChatResponseTimeSLOViolation
         expr: slo_chat_response_time_compliance_ratio < 0.99
         for: 5m
@@ -202,6 +207,7 @@ For local development you may still run a local LLM proxy (ollama/llama.cpp) beh
 
 **Response format:**
 ```json
+
 {
   "error": "rate_limit_exceeded",
   "message": "Rate limit exceeded: 10 per 1 minute",
@@ -212,12 +218,14 @@ For local development you may still run a local LLM proxy (ollama/llama.cpp) beh
 ### 2. Structured JSON Logging
 
 **Features:**
+
 - All logs in JSON format for easy parsing
 - Automatic request/response logging
 - Correlation IDs for request tracing
 - Error tracking with stack traces
 
 **Log format:**
+
 ```json
 {
   "timestamp": "2025-12-02T10:30:45.123Z",
@@ -244,6 +252,7 @@ For local development you may still run a local LLM proxy (ollama/llama.cpp) beh
 **Available metrics:**
 
 ```prometheus
+
 # HTTP Metrics
 http_requests_total{method="POST",endpoint="/chat/completions",status_code="200"} 42
 http_request_duration_seconds_bucket{method="POST",endpoint="/chat/completions",le="1.0"} 35
@@ -262,6 +271,7 @@ service_health_status{service_name="sandbox"} 0
 ```
 
 **Custom metric tracking in code:**
+
 ```python
 from middleware.metrics import (
     chat_completions_total,
@@ -294,6 +304,7 @@ provider_latency_seconds.labels(
 **Run load tests:**
 
 ```bash
+
 # Install dependencies
 pip install -r backend/requirements.txt
 
@@ -302,22 +313,25 @@ cd apps/goblin-assistant/backend
 uvicorn main:app --host 0.0.0.0 --port 8001
 
 # Run load test with Web UI
-locust -f backend/tests/load_test.py --host=http://localhost:8001
+locust -f backend/tests/load_test.py --host=<http://localhost:8001>
 
 # Open browser to http://localhost:8089
+
 # Set number of users and spawn rate
 
 # Headless mode (CLI only)
-locust -f backend/tests/load_test.py --host=http://localhost:8001 \
+locust -f backend/tests/load_test.py --host=<http://localhost:8001> \
        --users 10 --spawn-rate 2 --run-time 60s --headless
 ```
 
 **Performance targets:**
+
 - Health checks: < 100ms p95, 100 RPS
 - Chat completions: < 2s p95, 10 RPS
 - Auth login: < 500ms p95, 20 RPS
 
 **Test scenarios:**
+
 1. `health_check` (10x weight) - Basic health endpoint
 2. `health_all` (8x) - Detailed health with all services
 3. `health_chroma` (5x) - ChromaDB health check
@@ -332,12 +346,14 @@ locust -f backend/tests/load_test.py --host=http://localhost:8001 \
 ### Sentry Error Tracking
 
 **1. Install Sentry SDK:**
+
 ```bash
 pip install sentry-sdk
 ```
 
 **2. Configure Sentry:**
 ```python
+
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 
@@ -350,6 +366,7 @@ sentry_sdk.init(
 ```
 
 **3. Environment Variables:**
+
 ```bash
 SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
 SENTRY_ENVIRONMENT=production
@@ -382,9 +399,10 @@ Sentry automatically captures:
 
 **1. Check rate limiting:**
 ```bash
+
 # Should return 429 after 10 requests
 for i in {1..15}; do
-  curl -X POST http://localhost:8001/auth/login \
+  curl -X POST <http://localhost:8001/auth/login> \
     -H "Content-Type: application/json" \
     -d '{"email":"test@example.com","password":"test"}'
   sleep 1
@@ -392,6 +410,7 @@ done
 ```
 
 **2. Check structured logs:**
+
 ```bash
 # Start server and watch logs
 uvicorn main:app --host 0.0.0.0 --port 8001 | jq
@@ -401,13 +420,15 @@ uvicorn main:app --host 0.0.0.0 --port 8001 | jq
 
 **3. Check Sentry error tracking:**
 ```bash
+
 # Trigger a test error
-curl -X GET http://localhost:8001/test-error
+curl -X GET <http://localhost:8001/test-error>
 
 # Should see error appear in Sentry dashboard
 ```
 
 **4. Run load test:**
+
 ```bash
 locust -f backend/tests/load_test.py --host=http://localhost:8001 \
        --users 10 --spawn-rate 2 --run-time 30s --headless
@@ -448,6 +469,7 @@ locust -f backend/tests/load_test.py --host=http://localhost:8001 \
 <!-- Please edit content only in apps/goblin-assistant/backend/docs/PRODUCTION_MONITORING.md -->
 
 ```markdown
+
 # Production Configuration Guide
 
 ## Environment Variables

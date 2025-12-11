@@ -3,6 +3,7 @@ This document has moved into the canonical backend documentation folder:
 - apps/goblin-assistant/backend/docs/PRODUCTION_MONITORING.md
 
 Please update any references or links to point to the new location.
+
 # Production Configuration Guide
 
 ## Environment Variables
@@ -37,6 +38,7 @@ CORS_ORIGINS=http://localhost:3000,https://yourdomain.com,https://www.yourdomain
 
 **Response format:**
 ```json
+
 {
   "error": "rate_limit_exceeded",
   "message": "Rate limit exceeded: 10 per 1 minute",
@@ -47,12 +49,14 @@ CORS_ORIGINS=http://localhost:3000,https://yourdomain.com,https://www.yourdomain
 ### 2. Structured JSON Logging
 
 **Features:**
+
 - All logs in JSON format for easy parsing
 - Automatic request/response logging
 - Correlation IDs for request tracing
 - Error tracking with stack traces
 
 **Log format:**
+
 ```json
 {
   "timestamp": "2025-12-02T10:30:45.123Z",
@@ -79,6 +83,7 @@ CORS_ORIGINS=http://localhost:3000,https://yourdomain.com,https://www.yourdomain
 **Available metrics:**
 
 ```prometheus
+
 # HTTP Metrics
 http_requests_total{method="POST",endpoint="/chat/completions",status_code="200"} 42
 http_request_duration_seconds_bucket{method="POST",endpoint="/chat/completions",le="1.0"} 35
@@ -97,6 +102,7 @@ service_health_status{service_name="sandbox"} 0
 ```
 
 **Custom metric tracking in code:**
+
 ```python
 from middleware.metrics import (
     chat_completions_total,
@@ -129,6 +135,7 @@ provider_latency_seconds.labels(
 **Run load tests:**
 
 ```bash
+
 # Install dependencies
 pip install -r backend/requirements.txt
 
@@ -137,22 +144,25 @@ cd apps/goblin-assistant/backend
 uvicorn main:app --host 0.0.0.0 --port 8001
 
 # Run load test with Web UI
-locust -f backend/tests/load_test.py --host=http://localhost:8001
+locust -f backend/tests/load_test.py --host=<http://localhost:8001>
 
 # Open browser to http://localhost:8089
+
 # Set number of users and spawn rate
 
 # Headless mode (CLI only)
-locust -f backend/tests/load_test.py --host=http://localhost:8001 \
+locust -f backend/tests/load_test.py --host=<http://localhost:8001> \
        --users 10 --spawn-rate 2 --run-time 60s --headless
 ```
 
 **Performance targets:**
+
 - Health checks: < 100ms p95, 100 RPS
 - Chat completions: < 2s p95, 10 RPS
 - Auth login: < 500ms p95, 20 RPS
 
 **Test scenarios:**
+
 1. `health_check` (10x weight) - Basic health endpoint
 2. `health_all` (8x) - Detailed health with all services
 3. `health_chroma` (5x) - ChromaDB health check
@@ -167,6 +177,7 @@ locust -f backend/tests/load_test.py --host=http://localhost:8001 \
 ### Prometheus + Grafana
 
 **1. Install Prometheus:**
+
 ```yaml
 # prometheus.yml
 scrape_configs:
@@ -178,14 +189,21 @@ scrape_configs:
 
 **2. Install Grafana:**
 ```bash
+
 # Add Prometheus as data source in Grafana
+
 # URL: http://localhost:9090
 
 # Import dashboard or create custom:
+
 # - Request rate by endpoint
+
 # - Error rate by endpoint
+
 # - P95 latency by endpoint
+
 # - Active requests gauge
+
 # - Chat completion metrics
 ```
 
@@ -242,12 +260,16 @@ groups:
 
 **Option 1: ELK Stack (Elasticsearch, Logstash, Kibana)**
 ```bash
+
 # Logs are already in JSON format
+
 # Configure Logstash to ingest from stdout/file
+
 # Query in Kibana using correlation_id, method, path, etc.
 ```
 
 **Option 2: Datadog**
+
 ```bash
 # Install Datadog agent
 DD_API_KEY=<your_key> DD_SITE="datadoghq.com" bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script.sh)"
@@ -258,7 +280,9 @@ DD_API_KEY=<your_key> DD_SITE="datadoghq.com" bash -c "$(curl -L https://s3.amaz
 
 **Option 3: CloudWatch (AWS)**
 ```bash
+
 # Use awslogs driver for Docker
+
 # Or install CloudWatch agent for direct logging
 ```
 
@@ -278,6 +302,7 @@ DD_API_KEY=<your_key> DD_SITE="datadoghq.com" bash -c "$(curl -L https://s3.amaz
 ## Testing the Setup
 
 **1. Check rate limiting:**
+
 ```bash
 # Should return 429 after 10 requests
 for i in {1..15}; do
@@ -290,6 +315,7 @@ done
 
 **2. Check structured logs:**
 ```bash
+
 # Start server and watch logs
 uvicorn main:app --host 0.0.0.0 --port 8001 | jq
 
@@ -297,6 +323,7 @@ uvicorn main:app --host 0.0.0.0 --port 8001 | jq
 ```
 
 **3. Check Prometheus metrics:**
+
 ```bash
 curl http://localhost:8001/metrics
 
@@ -307,10 +334,12 @@ curl http://localhost:8001/metrics
 
 **4. Run load test:**
 ```bash
-locust -f backend/tests/load_test.py --host=http://localhost:8001 \
+
+locust -f backend/tests/load_test.py --host=<http://localhost:8001> \
        --users 10 --spawn-rate 2 --run-time 30s --headless
 
 # Should complete without errors
+
 # Check that performance targets are met
 ```
 

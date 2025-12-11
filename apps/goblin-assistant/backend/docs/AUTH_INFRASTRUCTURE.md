@@ -9,11 +9,13 @@ The Goblin Assistant authentication system provides resilient, scalable user aut
 The auth system uses a **resilient challenge storage** mechanism with automatic fallback:
 
 ### Primary Storage: Redis
+
 - **Purpose**: Distributed, shared challenge storage across multiple instances
 - **TTL**: Configurable via `CHALLENGE_EXPIRE_MINUTES` (default: 5 minutes)
 - **Connection**: Configurable via `REDIS_URL` environment variable
 
 ### Fallback Storage: In-Memory
+
 - **Purpose**: Single-instance fallback when Redis is unavailable
 - **Limitations**: Not suitable for multi-instance deployments
 - **Safety**: Automatically activates when Redis connection fails
@@ -21,16 +23,19 @@ The auth system uses a **resilient challenge storage** mechanism with automatic 
 ### Environment-Specific Behavior
 
 #### Development
+
 - Redis optional (fallback enabled by default)
 - Debug logging enabled via `DEBUG_AUTH=true`
 - Single instance assumed unless `INSTANCE_COUNT > 1`
 
 #### Staging
+
 - Redis recommended but not strictly required
 - Fallback allowed for testing resilience
 - Multi-instance support with warnings
 
 #### Production
+
 - **Redis REQUIRED** for multi-instance deployments (`INSTANCE_COUNT > 1`)
 - Fallback mode triggers **CRITICAL alerts** when active
 - Strict health checks and monitoring
@@ -76,6 +81,7 @@ The system validates configuration on startup:
 The system uses `pydantic[email]` for robust email validation:
 
 ```python
+
 from pydantic import BaseModel, EmailStr, field_validator
 
 class UserRegistration(BaseModel):
@@ -96,6 +102,7 @@ class UserRegistration(BaseModel):
 ### Blocked Domains
 
 The system blocks common disposable email domains:
+
 - `tempmail.com`
 - `10minutemail.com`
 - `guerrillamail.com`
@@ -156,6 +163,7 @@ Returns environment-aware health status:
 ### Required Packages
 
 ```bash
+
 pip install pydantic[email] redis fastapi uvicorn
 ```
 
@@ -184,17 +192,21 @@ pip install pytest pytest-asyncio  # For testing
 ### Recommended Alerts
 
 ```yaml
+
 # Redis fallback in production
+
 - condition: components.redis.fallback_active == true AND environment == production
   severity: critical
   message: "Redis fallback active in production environment"
 
 # Missing auth routes
+
 - condition: components.auth_routes.count == 0
   severity: warning
   message: "No authentication routes registered"
 
 # Configuration validation failure
+
 - condition: components.configuration.status == unhealthy
   severity: critical
   message: "Configuration validation failed"
@@ -221,6 +233,7 @@ pytest tests/test_auth_resilience.py::TestConfigurationValidation
 ### Health Check Tests
 
 ```bash
+
 # Test health endpoint
 pytest tests/test_auth_resilience.py::TestHealthCheckIntegration
 ```
@@ -257,6 +270,7 @@ pytest tests/test_auth_resilience.py::TestHealthCheckIntegration
 **Symptom**: Health check shows Redis unhealthy
 
 **Solutions**:
+
 1. Verify `REDIS_URL` configuration
 2. Check Redis server connectivity
 3. Confirm Redis service is running
@@ -279,6 +293,7 @@ pytest tests/test_auth_resilience.py::TestHealthCheckIntegration
 **Symptom**: EmailStr validation errors
 
 **Solutions**:
+
 1. Verify `pydantic[email]` is installed
 2. Check `email-validator` package availability
 3. Review disposable domain list in validators
@@ -288,10 +303,12 @@ pytest tests/test_auth_resilience.py::TestHealthCheckIntegration
 **Symptom**: Configuration component unhealthy
 
 **Common Issues**:
+
 - Missing `DATABASE_URL` in production
 - Memory fallback enabled in multi-instance production
 
 **Solutions**:
+
 1. Review environment variables
 2. Check configuration validation logic
 3. Update deployment configuration

@@ -15,6 +15,7 @@
 **Current Implementation**: APScheduler job in `jobs/provider_health.py`
 
 **Performance Metrics**:
+
 - **Avg Duration**: < 30 seconds (network checks only)
 - **Peak Concurrency**: 1-5 concurrent probes (limited by semaphore)
 - **Memory Usage**: ~50-100MB (database connections + network)
@@ -31,6 +32,7 @@
 **Current Implementation**: APScheduler job in `jobs/system_health.py`
 
 **Performance Metrics**:
+
 - **Avg Duration**: < 5 seconds (system metrics collection)
 - **Peak Concurrency**: 1 (single instance execution)
 - **Memory Usage**: ~20-50MB (psutil + basic monitoring)
@@ -47,6 +49,7 @@
 **Current Implementation**: APScheduler job in `jobs/cleanup.py`
 
 **Performance Metrics**:
+
 - **Avg Duration**: < 60 seconds (bulk delete operations)
 - **Peak Concurrency**: 1 (prevent concurrent cleanup)
 - **Memory Usage**: ~100-200MB (large result sets)
@@ -63,6 +66,7 @@
 **Current Implementation**: Celery beat schedule (every 12 hours)
 
 **Performance Metrics**:
+
 - **Avg Duration**: 10-30 minutes (model evaluation + report generation)
 - **Peak Concurrency**: 1 (resource intensive)
 - **Memory Usage**: 500MB-2GB (model loading + inference)
@@ -79,6 +83,7 @@
 **Current Implementation**: Not fully implemented (referenced in config)
 
 **Performance Metrics** (Estimated):
+
 - **Avg Duration**: 5-60 minutes (data transformation pipelines)
 - **Peak Concurrency**: 2-5 concurrent workers
 - **Memory Usage**: 200MB-1GB (data processing)
@@ -95,6 +100,7 @@
 **Current Implementation**: Partially implemented (performance reports only)
 
 **Performance Metrics** (Estimated):
+
 - **Avg Duration**: 30-240 minutes (model training)
 - **Peak Concurrency**: 1 (GPU/CPU intensive)
 - **Memory Usage**: 2-16GB (training data + models)
@@ -111,6 +117,7 @@
 **Current Implementation**: Not implemented (referenced in config)
 
 **Performance Metrics** (Estimated):
+
 - **Avg Duration**: 1-10 minutes (email/SMS/external API calls)
 - **Peak Concurrency**: 5-20 concurrent notifications
 - **Memory Usage**: 50-200MB (template processing)
@@ -127,6 +134,7 @@
 **Current Implementation**: RQ replacement in `celery_task_queue.py`
 
 **Performance Metrics** (Estimated):
+
 - **Avg Duration**: 1-30 minutes (variable task types)
 - **Peak Concurrency**: 5-50 concurrent tasks
 - **Memory Usage**: 100MB-1GB (task-dependent)
@@ -139,6 +147,7 @@
 
 ### REPLACE (Lightweight Tasks)
 **Criteria**:
+
 - Runtime < 5 minutes
 - Memory usage < 500MB
 - Simple success/failure logic
@@ -150,6 +159,7 @@
 
 ### KEEP (Heavy Tasks)
 **Criteria**:
+
 - Runtime > 5 minutes
 - Memory usage > 500MB
 - Complex error handling/retry logic
@@ -163,11 +173,13 @@
 ## Implementation Status
 
 ### ✅ Completed Migrations
+
 1. **Provider Health Checks** → APScheduler job
 2. **System Health Checks** → APScheduler job
 3. **Database Cleanup** → APScheduler job
 
 ### 🔄 Next Steps
+
 1. **Unit Tests** - Create comprehensive test suite for APScheduler jobs
 2. **Integration Tests** - Test Redis locking and multi-instance behavior
 3. **Staging Deployment** - Deploy to one replica, verify single execution
@@ -177,11 +189,13 @@
 ## Performance Impact
 
 ### Before Migration
+
 - **Celery Workers**: 3-5 workers needed for light tasks
 - **Resource Usage**: ~1-2GB memory for worker processes
 - **Operational Complexity**: Full Celery infrastructure (broker, result backend, monitoring)
 
 ### After Migration
+
 - **APScheduler**: Integrated into app process (~100MB additional memory)
 - **Resource Savings**: ~800MB-1.5GB memory reduction
 - **Simplified Operations**: No separate worker management for light tasks
@@ -189,16 +203,19 @@
 ## Risk Assessment
 
 ### Low Risk ✅
+
 - Light tasks are simple and well-understood
 - APScheduler has mature Redis locking patterns
 - Easy rollback (re-enable Celery tasks)
 
 ### Medium Risk ⚠️
+
 - Multi-instance coordination relies on Redis availability
 - Job persistence requires database availability
 - Monitoring gap until new metrics are implemented
 
 ### Mitigation Strategies
+
 - Redis Sentinel for high availability
 - Job execution logging and alerting
 - Gradual rollout (one replica at a time)

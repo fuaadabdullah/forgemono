@@ -17,6 +17,7 @@ These screenshots are displayed in the [main README](../README.md#screenshots) t
 ## Contributing
 
 When updating screenshots:
+
 1. Capture high-resolution images (1280x850 or higher recommended)
 2. Ensure sensitive information is redacted
 3. Use descriptive filenames

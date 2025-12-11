@@ -59,6 +59,7 @@ VITE_MOCK_API=false
 **Backend** (`.env` or secrets manager):
 
 ```bash
+
 # Required
 DATABASE_URL=postgresql://...
 ROUTING_ENCRYPTION_KEY=...
@@ -92,6 +93,7 @@ gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker \
 ### Deployment Command (Frontend)
 
 ```bash
+
 # Build
 npm run build
 
