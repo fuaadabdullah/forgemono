@@ -135,23 +135,23 @@ jobs:
         if: steps.api-check.outputs.api_available == 'true'
         run: |
           echo "🔍 Running documentation quality analysis..."
-          python3 tools/doc-quality/doc_quality_check.py --ci --mode raptor_only --min-score 70 --report quality_report.md
+          python3 tools/doc-quality/doc_quality_check.py --ci --mode raptor_only --min-score 70 --report docs/reports/quality_report.md
 
       - name: Create fallback report
         if: steps.api-check.outputs.api_available == 'false'
         run: |
-          echo "# Documentation Quality Report" > quality_report.md
-          echo "" >> quality_report.md
-          echo "⚠️ Quality analysis skipped - API unavailable" >> quality_report.md
-          echo "" >> quality_report.md
-          echo "Manual review recommended." >> quality_report.md
+          echo "# Documentation Quality Report" > docs/reports/quality_report.md
+          echo "" >> docs/reports/quality_report.md
+          echo "⚠️ Quality analysis skipped - API unavailable" >> docs/reports/quality_report.md
+          echo "" >> docs/reports/quality_report.md
+          echo "Manual review recommended." >> docs/reports/quality_report.md
 
       - name: Upload quality report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: documentation-quality-report
-          path: quality_report.md
+          path: docs/reports/quality_report.md
 
       - name: Comment PR with quality report
         if: github.event_name == 'pull_request' && always()
@@ -159,7 +159,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const reportPath = 'quality_report.md';
+            const reportPath = 'docs/reports/quality_report.md';
 
             if (fs.existsSync(reportPath)) {
               const report = fs.readFileSync(reportPath, 'utf8');
