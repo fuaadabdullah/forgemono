@@ -2,18 +2,18 @@ name: Terraform Security Scan
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'goblin-infra/**'
       - '.github/workflows/terraform-security.yml'
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'goblin-infra/**'
       - '.github/workflows/terraform-security.yml'
   workflow_dispatch:
   schedule:
-    - cron: '0 3 * * *'  # Daily at 3 AM UTC
+    - cron: '0 3 * * *' # Daily at 3 AM UTC
 
 jobs:
   tfsec:

@@ -28,7 +28,7 @@ const GoogleCallback: React.FC = () => {
       try {
         // Exchange code for token
         const response = await fetch(
-    `${import.meta.env.VITE_FASTAPI_URL || import.meta.env.VITE_API_URL || 'https://goblin-assistant.fly.dev'}/auth/google/callback`,
+          `${import.meta.env.VITE_FASTAPI_URL || import.meta.env.VITE_API_URL || 'https://goblin-assistant.fly.dev'}/auth/google/callback`,
           {
             method: 'POST',
             headers: {
@@ -48,9 +48,9 @@ const GoogleCallback: React.FC = () => {
           );
         }
 
-  const data = await response.json();
-  const tokenValue = (data && (data.token || data.access_token)) || null;
-  const userInfo = (data && (data.user || data.userInfo)) || null;
+        const authData = await response.json();
+        const tokenValue = (authData && (authData.token || authData.access_token)) || null;
+        const userInfo = (authData && (authData.user || authData.userInfo)) || null;
 
         // Store token and user data
         if (!tokenValue || !userInfo) {

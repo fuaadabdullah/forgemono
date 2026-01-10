@@ -33,19 +33,21 @@ sudo ./setup_resource_isolation.sh
 
 **Service Limits:**
 
-| Service | Memory Limit | CPU Quota | CPU Affinity | IO Priority |
-|---------|-------------|-----------|--------------|-------------|
-| Ollama | 8GB | 200% | cores 0-7 | High |
-| llama.cpp | 6GB | 150% | cores 8-11 | Medium |
-| Proxy | 1GB | 50% | any | Low |
+| Service   | Memory Limit | CPU Quota | CPU Affinity | IO Priority |
+| --------- | ------------ | --------- | ------------ | ----------- |
+| Ollama    | 8GB          | 200%      | cores 0-7    | High        |
+| llama.cpp | 6GB          | 150%      | cores 8-11   | Medium      |
+| Proxy     | 1GB          | 50%       | any          | Low         |
 
 **Features:**
+
 - Memory limits with high/low watermarks
 - CPU quotas and affinity for workload isolation
 - Block IO limits to prevent disk contention
 - Process limits and security hardening
 
 **Usage:**
+
 ```bash
 
 sudo ./configure_systemd_cgroups.sh
@@ -81,6 +83,7 @@ sudo ./configure_systemd_cgroups.sh
 ```
 
 **Alert Thresholds:**
+
 - Memory: >85% usage
 - CPU: >90% usage
 - Disk: >90% usage
@@ -89,12 +92,14 @@ sudo ./configure_systemd_cgroups.sh
 ### 4. Resource Management Service (`create_resource_management_service.sh`)
 
 **Features:**
+
 - Automated setup on boot
 - Daily resource verification
 - Systemd timer for periodic checks
 - Integration with monitoring system
 
 **Usage:**
+
 ```bash
 
 sudo ./create_resource_management_service.sh
@@ -105,11 +110,11 @@ sudo ./create_resource_management_service.sh
 **Enhanced Container Limits:**
 
 | Container | Memory | CPU | IO Weight | Security |
-|-----------|--------|-----|-----------|----------|
-| Ollama | 8GB | 2.0 | 100 | Hardened |
-| llama.cpp | 6GB | 1.5 | 80 | Hardened |
-| Proxy | 1GB | 0.5 | 50 | Hardened |
-| Monitor | 128MB | 0.1 | 50 | Hardened |
+| --------- | ------ | --- | --------- | -------- |
+| Ollama    | 8GB    | 2.0 | 100       | Hardened |
+| llama.cpp | 6GB    | 1.5 | 80        | Hardened |
+| Proxy     | 1GB    | 0.5 | 50        | Hardened |
+| Monitor   | 128MB  | 0.1 | 50        | Hardened |
 
 **Features:**
 

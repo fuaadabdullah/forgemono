@@ -13,7 +13,6 @@ curl http://localhost:8001/api/dashboard/status | jq
 Response:
 
 ```json
-
 {
   "backend_api": { "status": "healthy", "latency_ms": 120, "updated": "..." },
   "vector_db": { "status": "healthy", "details": { "collections": 5, "documents": 1234 } },
@@ -35,7 +34,6 @@ curl http://localhost:8001/api/dashboard/costs | jq
 Response:
 
 ```json
-
 {
   "total_cost": 12.45,
   "cost_today": 0.87,
@@ -62,7 +60,6 @@ curl http://localhost:8001/api/dashboard/metrics/backend | jq
 ### Before (6+ API calls)
 
 ```typescript
-
 const [backend, chroma, mcp, rag, sandbox, costs] = await Promise.allSettled([
   apiClient.getHealth(),
   apiClient.getChromaStatus(),
@@ -77,18 +74,18 @@ const [backend, chroma, mcp, rag, sandbox, costs] = await Promise.allSettled([
 
 ```typescript
 const [status, costs] = await Promise.allSettled([
-  apiClient.getDashboardStatus(),  // Consolidated!
-  apiClient.getDashboardCosts(),   // Cached 60s
+  apiClient.getDashboardStatus(), // Consolidated!
+  apiClient.getDashboardCosts(), // Cached 60s
 ]);
 ```
 
 ## Cache Behavior
 
-| Endpoint | TTL | First Call | Cached Call |
-|----------|-----|------------|-------------|
-| `/api/dashboard/status` | 10s | ~150ms | <1ms |
-| `/api/dashboard/costs` | 60s | ~350ms | <1ms |
-| `/api/dashboard/metrics/{service}` | 30s | ~200ms | <1ms |
+| Endpoint                           | TTL | First Call | Cached Call |
+| ---------------------------------- | --- | ---------- | ----------- |
+| `/api/dashboard/status`            | 10s | ~150ms     | <1ms        |
+| `/api/dashboard/costs`             | 60s | ~350ms     | <1ms        |
+| `/api/dashboard/metrics/{service}` | 30s | ~200ms     | <1ms        |
 
 ## Testing Cache
 

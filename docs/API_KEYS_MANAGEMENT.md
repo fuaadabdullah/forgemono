@@ -1,5 +1,5 @@
 ---
-description: "API_KEYS_MANAGEMENT"
+description: 'API_KEYS_MANAGEMENT'
 ---
 
 # API Keys & Secrets Management
@@ -99,15 +99,14 @@ secrets:
 For Kubernetes deployments, use Secret resources:
 
 ```yaml
-
 apiVersion: v1
 kind: Secret
 metadata:
   name: myapp-secrets
 type: Opaque
 data:
-  api-key: bXktc2VjcmV0LWFwaS1rZXk=  # base64 encoded
-  db-password: cGFzc3dvcmQ=          # base64 encoded
+  api-key: bXktc2VjcmV0LWFwaS1rZXk= # base64 encoded
+  db-password: cGFzc3dvcmQ= # base64 encoded
 ```
 
 Access in pods:
@@ -218,4 +217,3 @@ cat /run/secrets/api_key
 ```
 
 Rotations and shared secrets should be coordinated outside of the repo.
-

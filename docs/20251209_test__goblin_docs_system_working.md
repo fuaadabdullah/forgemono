@@ -1,17 +1,18 @@
 ---
-title: "Test: Goblin Docs System Working"
-type: "note"        # architecture | runbook | spec | api | onboarding | model
-owner: "you"
-status: "draft"         # draft | review | final | archived
-version: "0.1.0"
-last_updated: "2025-12-09"
-tags: ["note", "you"]
+title: 'Test: Goblin Docs System Working'
+type: 'note' # architecture | runbook | spec | api | onboarding | model
+owner: 'you'
+status: 'draft' # draft | review | final | archived
+version: '0.1.0'
+last_updated: '2025-12-09'
+tags: ['note', 'you']
 related: []
 ---
 
 # Test: Goblin Docs System Working
 
 ## 🎯 Purpose
+
 One sentence: What does this document exist to solve?
 
 ## 🔍 Context
@@ -39,3 +40,4 @@ Links valid
 📝 Changelog
 
 v0.1.0 — Created by you on 2025-12-09
+```

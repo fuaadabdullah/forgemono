@@ -51,9 +51,9 @@ export default function APIKeyManager({ providers, selectedProvider, onProviderC
         <select
           id="apikey-provider-select"
           value={selectedProvider}
-          onChange={e => onProviderChange && onProviderChange(e.target.value)}
+          onChange={(e) => onProviderChange && onProviderChange(e.target.value)}
         >
-          {providers.map(p => (
+          {providers.map((p) => (
             <option value={p} key={p}>
               {p}
             </option>
@@ -66,7 +66,7 @@ export default function APIKeyManager({ providers, selectedProvider, onProviderC
         <input
           id="apikey-input"
           value={key}
-          onChange={e => setKey(e.currentTarget.value)}
+          onChange={(e) => setKey(e.currentTarget.value)}
           placeholder="Enter API key"
         />
       </div>

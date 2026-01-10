@@ -102,7 +102,7 @@ export default function GoblinDemo({ provider, model, demoMode = false }: Props)
     console.log('🎯 [DEBUG] Template changed:', { from: selectedTemplate, to: templateName });
 
     setSelectedTemplate(templateName);
-    const template = ORCHESTRATION_TEMPLATES.find(t => t.name === templateName);
+    const template = ORCHESTRATION_TEMPLATES.find((t) => t.name === templateName);
     if (template) {
       console.log('📝 [DEBUG] Setting orchestration to:', template.value);
       setOrchestration(template.value);
@@ -197,7 +197,7 @@ export default function GoblinDemo({ provider, model, demoMode = false }: Props)
                 }));
               }
               if (tokenCount || costDelta) {
-                setStepChunks(prev => ({
+                setStepChunks((prev) => ({
                   ...prev,
                   [step.id]: [
                     ...(prev[step.id] || []),
@@ -318,12 +318,12 @@ export default function GoblinDemo({ provider, model, demoMode = false }: Props)
         <select
           id="template-select"
           value={selectedTemplate}
-          onChange={e => handleTemplateChange(e.target.value)}
+          onChange={(e) => handleTemplateChange(e.target.value)}
           className="template-select"
           data-testid="template-select"
           aria-describedby="template-select-help"
         >
-          {ORCHESTRATION_TEMPLATES.map(template => (
+          {ORCHESTRATION_TEMPLATES.map((template) => (
             <option
               key={template.name}
               value={template.name}
@@ -421,7 +421,7 @@ export default function GoblinDemo({ provider, model, demoMode = false }: Props)
               {plan.steps.map((s: OrchestrationStep) => (
                 <li
                   key={s.id}
-                  onClick={() => setExpandedSteps(prev => ({ ...prev, [s.id]: !prev[s.id] }))}
+                  onClick={() => setExpandedSteps((prev) => ({ ...prev, [s.id]: !prev[s.id] }))}
                   style={{ cursor: 'pointer' }}
                   data-testid={`execution-step-${s.id}`}
                 >

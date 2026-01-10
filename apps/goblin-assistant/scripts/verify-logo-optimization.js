@@ -44,7 +44,9 @@ check(logoExists, '1. Logo component exists', '1. Logo component missing');
 if (logoExists) {
   const logoContent = readFileSync(logoComponentPath, 'utf-8');
   check(
-    logoContent.includes('variant') && logoContent.includes('size') && logoContent.includes('animated'),
+    logoContent.includes('variant') &&
+      logoContent.includes('size') &&
+      logoContent.includes('animated'),
     '   - Logo has variant, size, and animated props',
     '   - Logo missing required props'
   );
@@ -86,7 +88,11 @@ const faviconPath = join(appRoot, 'public/favicon.svg');
 const appleTouchIconPath = join(appRoot, 'public/apple-touch-icon.svg');
 
 check(existsSync(faviconPath), '3. Favicon SVG exists', '3. Favicon SVG missing');
-check(existsSync(appleTouchIconPath), '   - Apple touch icon exists', '   - Apple touch icon missing');
+check(
+  existsSync(appleTouchIconPath),
+  '   - Apple touch icon exists',
+  '   - Apple touch icon missing'
+);
 
 // 4. Check HTML references
 const htmlPath = join(appRoot, 'index.html');

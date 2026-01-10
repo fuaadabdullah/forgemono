@@ -5,8 +5,8 @@ prometheus:
     storageSpec:
       volumeClaimTemplate:
         spec:
-          storageClassName: ""
-          accessModes: ["ReadWriteOnce"]
+          storageClassName: ''
+          accessModes: ['ReadWriteOnce']
           resources:
             requests:
               storage: 10Gi
@@ -16,14 +16,14 @@ alertmanager:
     storage:
       volumeClaimTemplate:
         spec:
-          accessModes: ["ReadWriteOnce"]
+          accessModes: ['ReadWriteOnce']
           resources:
             requests:
               storage: 2Gi
 
 grafana:
   enabled: true
-  adminPassword: ""
+  adminPassword: ''
   persistence:
     enabled: false
 

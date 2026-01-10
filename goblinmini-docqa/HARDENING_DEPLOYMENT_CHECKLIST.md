@@ -146,7 +146,7 @@
 ### 📊 Post-Deployment Validation
 
 - [ ] **Smoke Tests**: Basic functionality verified post-deployment
-	- [ ] Optional: run automated post-deploy smoke tests by setting `RUN_POST_DEPLOY_TEST=true` when calling `systemd/deploy_units.sh`. This executes a health check, a lightweight analyze request, and an optional model load check.
+  - [ ] Optional: run automated post-deploy smoke tests by setting `RUN_POST_DEPLOY_TEST=true` when calling `systemd/deploy_units.sh`. This executes a health check, a lightweight analyze request, and an optional model load check.
 - [ ] **Integration Tests**: External integrations verified
 - [ ] **Performance Validation**: Performance benchmarks met
 - [ ] **Security Validation**: Security controls verified active
@@ -185,9 +185,9 @@
 **Business Review**: [ ] Completed by Product Owners
 
 **Deployment Approval**: [ ] Approved for Production
-**Date**: ________________
-**Approved By**: ________________
+**Date**: **\*\***\_\_\_\_**\*\***
+**Approved By**: **\*\***\_\_\_\_**\*\***
 
 ---
 
-*This checklist ensures comprehensive security, reliability, and operational readiness for production deployment.*
+_This checklist ensures comprehensive security, reliability, and operational readiness for production deployment._

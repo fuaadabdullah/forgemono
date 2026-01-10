@@ -8,19 +8,19 @@ metadata:
     component: dashboard
 spec:
   parentRefs:
-  - name: overmind-gateway
-    sectionName: https
+    - name: overmind-gateway
+      sectionName: https
 
   hostnames:
-  - dashboard.overmind.example.com
+    - dashboard.overmind.example.com
 
   rules:
-  # Main dashboard route
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: overmind-dashboard
-      port: 80
-      weight: 100
+    # Main dashboard route
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: overmind-dashboard
+          port: 80
+          weight: 100

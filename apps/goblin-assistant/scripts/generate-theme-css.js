@@ -16,7 +16,7 @@ import {
   hexToRgba,
   GOBLINOS_BASE_COLORS,
   generateCssVariables,
-  GOBLINOS_PALETTE
+  GOBLINOS_PALETTE,
 } from '../src/utils/colorUtils.js';
 
 const args = process.argv.slice(2);
@@ -75,7 +75,7 @@ function generateThemeCSS() {
     '  --surface: #0d1117;',
     '  --border: #3a4a56;',
     '}',
-    ''
+    '',
   ];
 
   return lines.join('\n');
@@ -89,13 +89,13 @@ function generateVerificationData() {
     generated_variants: {
       primary: GOBLINOS_PALETTE.primary,
       accent: GOBLINOS_PALETTE.accent,
-      cta: GOBLINOS_PALETTE.cta
+      cta: GOBLINOS_PALETTE.cta,
     },
     glow_effects: {
       primary: hexToRgba(GOBLINOS_BASE_COLORS.primary, 0.14),
       accent: hexToRgba(GOBLINOS_BASE_COLORS.accent, 0.14),
-      cta: hexToRgba(GOBLINOS_BASE_COLORS.cta, 0.14)
-    }
+      cta: hexToRgba(GOBLINOS_BASE_COLORS.cta, 0.14),
+    },
   };
 }
 

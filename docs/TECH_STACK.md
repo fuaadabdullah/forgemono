@@ -74,4 +74,3 @@ A concise directory of the primary technologies, frameworks, and services used i
   - `apps/goblin-assistant/docs/ARCHITECTURE_OVERVIEW.md`
   - `docs/systems/GOBLIN_AI_SYSTEM_DOCS.md`
   - `*.README.md` files in each app folder
-

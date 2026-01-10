@@ -15,17 +15,18 @@ Cloud-hosted Raptor Mini LLM service with local development fallback.
 
 1. **Install Ollama and pull model (local)**:
 
-  ```bash
-  # Install Ollama (if not already installed)
-  brew install ollama
+```bash
+# Install Ollama (if not already installed)
+brew install ollama
 
-  # Pull Raptor Mini model
-  ollama pull raptor-mini
-  # Alternatively use the convenience script if present
-  ./scripts/pull_ollama_model.sh raptor-mini
-  ```
+# Pull Raptor Mini model
+ollama pull raptor-mini
+# Alternatively use the convenience script if present
+./scripts/pull_ollama_model.sh raptor-mini
+```
 
 2. **Run locally**:
+
    ```bash
 
    cd apps/raptor-mini
@@ -76,7 +77,6 @@ This will:
 ### Generate Response
 
 ```json
-
 {
   "ok": true,
   "result": {
@@ -87,12 +87,12 @@ This will:
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `API_KEY` | "" | API key for authentication (empty = dev mode) |
-| `MODEL_NAME` | "raptor-mini" | Ollama model name |
-| `PORT` | "8080" | Service port |
-| `MODEL_PATH` | "/models/raptor-mini" | Model file path (legacy) |
+| Variable     | Default               | Description                                   |
+| ------------ | --------------------- | --------------------------------------------- |
+| `API_KEY`    | ""                    | API key for authentication (empty = dev mode) |
+| `MODEL_NAME` | "raptor-mini"         | Ollama model name                             |
+| `PORT`       | "8080"                | Service port                                  |
+| `MODEL_PATH` | "/models/raptor-mini" | Model file path (legacy)                      |
 
 ## Integration with Goblin Backend
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { raptorStart, raptorStop, raptorStatus, raptorLogs, raptorDemo } from '@/api/api-client';
-import '@/components/cost/CostEstimationPanel.css';
+// import '@/components/cost/CostEstimationPanel.css'; // Temporarily commented for testing
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 export default function RaptorMiniPanel(): React.JSX.Element {

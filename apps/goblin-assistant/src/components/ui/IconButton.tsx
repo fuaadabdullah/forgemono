@@ -35,7 +35,8 @@ export default function IconButton({
   disabled,
   ...props
 }: IconButtonProps) {
-  const baseStyles = 'rounded-lg inline-flex items-center justify-center transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles =
+    'rounded-lg inline-flex items-center justify-center transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed';
 
   return (
     <button

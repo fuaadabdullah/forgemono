@@ -2,7 +2,7 @@ name: LLM Env Validation (Matrix)
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'GoblinOS/goblins.yaml'
       - 'GoblinOS/.env'
@@ -40,4 +40,3 @@ jobs:
             if [ "${{ github.ref }}" = "refs/heads/main" ]; then export CI_OLLAMA_REQUIRED=true; fi
             node GoblinOS/scripts/validate-ollama-env.js
           fi
-

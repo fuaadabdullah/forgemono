@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
 
 interface User {
   id: string;
@@ -34,7 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       const response = await fetch(
-  `${import.meta.env.VITE_FASTAPI_URL || import.meta.env.VITE_API_URL || 'https://goblin-assistant.fly.dev'}/auth/login`,
+        `${import.meta.env.VITE_FASTAPI_URL || import.meta.env.VITE_API_URL || 'https://goblin-assistant.fly.dev'}/auth/login`,
         {
           method: 'POST',
           headers: {
@@ -57,9 +64,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         localStorage.setItem('auth_token', tokenValue);
         localStorage.setItem('user_data', JSON.stringify(userData));
-  setToken(tokenValue);
-  setUser(userData);
-  console.debug('Auth: login succeeded - token/user set', { token: tokenValue, user: userData });
+        setToken(tokenValue);
+        setUser(userData);
+        console.debug('Auth: login succeeded - token/user set', {
+          token: tokenValue,
+          user: userData,
+        });
       } else {
         // Attempt to extract server message for better error propagation
         let errMsg = 'Login failed';
@@ -83,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       const response = await fetch(
-  `${import.meta.env.VITE_FASTAPI_URL || import.meta.env.VITE_API_URL || 'https://goblin-assistant.fly.dev'}/auth/register`,
+        `${import.meta.env.VITE_FASTAPI_URL || import.meta.env.VITE_API_URL || 'https://goblin-assistant.fly.dev'}/auth/register`,
         {
           method: 'POST',
           headers: {
@@ -99,9 +109,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         localStorage.setItem('auth_token', token);
         localStorage.setItem('user_data', JSON.stringify(userData));
-  setToken(token);
-  setUser(userData);
-  console.debug('Auth: register succeeded - token/user set', { token, user: userData });
+        setToken(token);
+        setUser(userData);
+        console.debug('Auth: register succeeded - token/user set', { token, user: userData });
       } else {
         // Attempt to extract server message for better error propagation
         let errMsg = 'Registration failed';
@@ -151,7 +161,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Validate token with backend
       const response = await fetch(
-  `${import.meta.env.VITE_FASTAPI_URL || import.meta.env.VITE_API_URL || 'https://goblin-assistant.fly.dev'}/auth/validate`,
+        `${import.meta.env.VITE_FASTAPI_URL || import.meta.env.VITE_API_URL || 'https://goblin-assistant.fly.dev'}/auth/validate`,
         {
           method: 'POST',
           headers: {

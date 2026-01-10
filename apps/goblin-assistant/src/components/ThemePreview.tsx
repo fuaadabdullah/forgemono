@@ -9,20 +9,20 @@ const THEME_PRESETS = [
     id: 'default',
     name: 'Goblin Default',
     description: 'Original neon green + magenta stack',
-    colors: { primary: '#06D06A', accent: '#FF2AA8', cta: '#FF6A1A' }
+    colors: { primary: '#06D06A', accent: '#FF2AA8', cta: '#FF6A1A' },
   },
   {
     id: 'nocturne',
     name: 'Nocturne Violet',
     description: 'Deep indigo surfaces with electric cyan accents',
-    colors: { primary: '#51F8E3', accent: '#C964FF', cta: '#FF8C32' }
+    colors: { primary: '#51F8E3', accent: '#C964FF', cta: '#FF8C32' },
   },
   {
     id: 'ember',
     name: 'Ember Blaze',
     description: 'Warm amber primary with teal highlights',
-    colors: { primary: '#17E0C1', accent: '#FF4DA6', cta: '#FFB347' }
-  }
+    colors: { primary: '#17E0C1', accent: '#FF4DA6', cta: '#FFB347' },
+  },
 ] as const;
 
 type ThemeId = (typeof THEME_PRESETS)[number]['id'];

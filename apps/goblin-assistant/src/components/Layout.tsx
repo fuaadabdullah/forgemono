@@ -48,7 +48,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-1">
-              {navItems.map(item => {
+              {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
@@ -92,7 +92,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 bg-white">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              {navItems.map(item => {
+              {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link

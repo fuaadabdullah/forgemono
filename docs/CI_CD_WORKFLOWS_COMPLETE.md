@@ -13,6 +13,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 ### 1. Backend Repository (`goblin-assistant-backend`)
 
 #### CI Workflow (`.github/workflows/ci.yml`)
+
 **Triggers**: Push to `main`/`develop`, PRs
 **Jobs**:
 
@@ -29,6 +30,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 - Docker for containerization
 
 #### Deploy Workflow (`.github/workflows/deploy.yml`)
+
 **Triggers**: Push to `main`, tags `v*`, manual dispatch
 **Jobs**:
 
@@ -52,6 +54,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 ### 2. Frontend Repository (`goblin-assistant-frontend`)
 
 #### CI Workflow (`.github/workflows/ci.yml`)
+
 **Triggers**: Push to `main`/`develop`, PRs
 **Jobs**:
 
@@ -70,6 +73,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 - Chromatic for visual regression
 
 #### Deploy Workflow (`.github/workflows/deploy-vercel.yml`)
+
 **Triggers**: Push to `main`/`develop`, PRs, manual dispatch
 **Jobs**:
 
@@ -97,6 +101,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 ### 3. Contracts Repository (`goblin-assistant-contracts`)
 
 #### CI Workflow (`.github/workflows/ci.yml`)
+
 **Triggers**: Push to `main`/`develop`, PRs
 **Jobs**:
 
@@ -109,6 +114,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 **Purpose**: Ensure TypeScript and Python types stay in sync
 
 #### Publish Workflow (`.github/workflows/publish.yml`)
+
 **Triggers**: Tags `v*`, manual dispatch
 **Jobs**:
 
@@ -133,6 +139,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 ### 4. Infrastructure Repository (`goblin-assistant-infra`)
 
 #### CI Workflow (`.github/workflows/ci.yml`)
+
 **Triggers**: Push to `main`/`develop`, PRs
 **Jobs**:
 
@@ -151,6 +158,7 @@ This document provides comprehensive documentation for all GitHub Actions workfl
 - Infracost
 
 #### Deploy Workflow (`.github/workflows/deploy.yml`)
+
 **Triggers**: Push to `main` (terraform/** or k8s/**), manual dispatch
 **Jobs**:
 
@@ -214,6 +222,7 @@ npm install @goblin/contracts@1.2.3
 ## Environment Configuration
 
 ### Staging Environment
+
 - **Backend**: `https://staging-api.goblin.fuaad.ai` (Fly.io)
 - **Frontend**: `https://staging.goblin.fuaad.ai` (Vercel)
 - **Auto-deploy**: On push to `develop` branch
@@ -221,6 +230,7 @@ npm install @goblin/contracts@1.2.3
 - **Cache**: Redis (Fly.io managed)
 
 ### Production Environment
+
 - **Backend**: `https://api.goblin.fuaad.ai` (Fly.io)
 - **Frontend**: `https://goblin.fuaad.ai` (Vercel)
 - **Deploy**: Manual approval required (GitHub Environments)
@@ -233,17 +243,20 @@ npm install @goblin/contracts@1.2.3
 ## Security Best Practices
 
 ### Secrets Management
+
 - ✅ All secrets stored in GitHub Secrets (org-level or repo-level)
 - ✅ No secrets in code or logs
 - ✅ Rotate secrets every 90 days
 - ✅ Use GitHub Environments for approval gates
 
 ### Vulnerability Scanning
+
 - **Backend**: Trivy (Docker images), Dependabot (Python)
 - **Frontend**: npm audit, Dependabot (npm)
 - **Infrastructure**: tfsec (Terraform), hadolint (Dockerfiles)
 
 ### Access Control
+
 - **GitHub Environments**: Require reviewers for production
 - **AWS IAM**: Least privilege policies
 - **Kubernetes RBAC**: Service accounts per component
@@ -253,16 +266,19 @@ npm install @goblin/contracts@1.2.3
 ## Monitoring & Observability
 
 ### Deployment Notifications
+
 - ✅ Slack webhook for production deployments
 - ✅ GitHub PR comments for preview URLs
 - ✅ GitHub Issues for contracts updates
 
 ### Health Checks
+
 - Backend: `/health` endpoint (200 OK check)
 - Frontend: Lighthouse CI (performance, accessibility)
 - Infrastructure: Kubernetes rollout status
 
 ### Coverage Tracking
+
 - Backend: Codecov (`backend` flag)
 - Frontend: Codecov (`frontend` flag)
 - Contracts: Codecov (`contracts` flag)
@@ -271,16 +287,16 @@ npm install @goblin/contracts@1.2.3
 
 ## Workflow Files Summary
 
-| Repository | Workflow File | Purpose | Trigger |
-|------------|---------------|---------|---------|
-| `backend` | `ci.yml` | Lint, test, build, security | Push, PR |
-| `backend` | `deploy.yml` | Docker build, Fly.io deploy | Push to `main`, tags |
-| `frontend` | `ci.yml` | Lint, test, Storybook, visual regression | Push, PR |
-| `frontend` | `deploy-vercel.yml` | Vercel deployments | Push, PR |
-| `contracts` | `ci.yml` | Lint, test, schema validation | Push, PR |
-| `contracts` | `publish.yml` | npm/PyPI publish | Tags `v*` |
-| `infra` | `ci.yml` | Terraform/K8s validation, cost estimate | Push, PR |
-| `infra` | `deploy.yml` | Terraform apply, K8s deploy | Push to `main`, manual |
+| Repository  | Workflow File       | Purpose                                  | Trigger                |
+| ----------- | ------------------- | ---------------------------------------- | ---------------------- |
+| `backend`   | `ci.yml`            | Lint, test, build, security              | Push, PR               |
+| `backend`   | `deploy.yml`        | Docker build, Fly.io deploy              | Push to `main`, tags   |
+| `frontend`  | `ci.yml`            | Lint, test, Storybook, visual regression | Push, PR               |
+| `frontend`  | `deploy-vercel.yml` | Vercel deployments                       | Push, PR               |
+| `contracts` | `ci.yml`            | Lint, test, schema validation            | Push, PR               |
+| `contracts` | `publish.yml`       | npm/PyPI publish                         | Tags `v*`              |
+| `infra`     | `ci.yml`            | Terraform/K8s validation, cost estimate  | Push, PR               |
+| `infra`     | `deploy.yml`        | Terraform apply, K8s deploy              | Push to `main`, manual |
 
 ---
 
@@ -289,6 +305,7 @@ npm install @goblin/contracts@1.2.3
 Before running workflows, configure these secrets in GitHub:
 
 ### Organization-Level Secrets (Recommended)
+
 ```
 AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
@@ -297,11 +314,13 @@ INFRACOST_API_KEY
 ```
 
 ### Backend Repo Secrets
+
 ```
 FLY_API_TOKEN
 ```
 
 ### Frontend Repo Secrets
+
 ```
 VERCEL_TOKEN
 VERCEL_ORG_ID
@@ -311,12 +330,14 @@ CHROMATIC_PROJECT_TOKEN
 ```
 
 ### Contracts Repo Secrets
+
 ```
 NPM_TOKEN
 PYPI_TOKEN
 ```
 
 ### Infrastructure Repo Secrets
+
 ```
 KUBE_CONFIG_STAGING
 KUBE_CONFIG_PRODUCTION
@@ -327,6 +348,7 @@ KUBE_CONFIG_PRODUCTION
 ## Testing Workflows Locally
 
 ### Backend
+
 ```bash
 
 # Install dependencies
@@ -356,6 +378,7 @@ npm run build
 ```
 
 ### Contracts
+
 ```bash
 
 # TypeScript
@@ -385,6 +408,7 @@ kubeval k8s/*.yaml
 ## Deployment Flow
 
 ### Feature Development
+
 ```
 1. Create branch from `develop`
 2. Make changes, commit
@@ -396,6 +420,7 @@ kubeval k8s/*.yaml
 ```
 
 ### Production Release
+
 ```
 1. Merge `develop` → `main`
 2. Create tag: `git tag v1.2.3`
@@ -408,6 +433,7 @@ kubeval k8s/*.yaml
 ```
 
 ### Hotfix
+
 ```
 1. Branch from `main`
 2. Fix issue, commit
@@ -423,6 +449,7 @@ kubeval k8s/*.yaml
 ### Common Issues
 
 **Docker build fails:**
+
 ```bash
 
 # Check BuildKit cache
@@ -443,6 +470,7 @@ terraform init -reconfigure
 ```
 
 **Vercel deployment fails:**
+
 ```bash
 
 # Check build logs

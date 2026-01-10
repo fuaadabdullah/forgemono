@@ -277,6 +277,7 @@ User → Vercel UI → Google OAuth
    ```
 
 2. **Install Ollama**:
+
    ```bash
 
    curl <https://ollama.ai/install.sh> | sh
@@ -292,6 +293,7 @@ User → Vercel UI → Google OAuth
    ```
 
 4. **Start Ollama Service**:
+
    ```bash
 
    systemctl start ollama
@@ -348,13 +350,13 @@ User → Vercel UI → Google OAuth
 
 ### Monthly Costs (Estimated)
 
-| Service | Plan | Cost |
-|---------|------|------|
-| Vercel (Frontend) | Hobby | $0 (free tier) |
-| Fly.io (Backend) | Free | $0 (free tier) |
-| Supabase (PostgreSQL) | Free | $0 (free tier) |
-| Kamatera (VPS) | Custom | $20-50/month |
-| **Total** | | **$20-50/month** |
+| Service               | Plan   | Cost             |
+| --------------------- | ------ | ---------------- |
+| Vercel (Frontend)     | Hobby  | $0 (free tier)   |
+| Fly.io (Backend)      | Free   | $0 (free tier)   |
+| Supabase (PostgreSQL) | Free   | $0 (free tier)   |
+| Kamatera (VPS)        | Custom | $20-50/month     |
+| **Total**             |        | **$20-50/month** |
 
 ### Cost Optimization Tips
 
@@ -459,6 +461,7 @@ fly deploy --image <previous-image-id>
 ```
 
 ### Database Migrations
+
 ```bash
 
 # Rollback Alembic migration

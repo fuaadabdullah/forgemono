@@ -6,13 +6,13 @@
 
 ## 📦 What You Have
 
-| File | Purpose | Status |
-|------|---------|--------|
-| `docs/MULTI_REPO_MIGRATION_GUIDE.md` | Full migration plan (400+ lines) | ✅ Ready |
-| `tools/migrate-to-multirepo.sh` | Automated extraction script (500+ lines) | ✅ Ready |
-| `docs/ci-cd-workflows/*.yml` | 8 GitHub Actions workflows | ✅ Ready |
-| `docs/CI_CD_WORKFLOWS_COMPLETE.md` | CI/CD documentation | ✅ Ready |
-| `docs/MIGRATION_READY_TO_EXECUTE.md` | Execution checklist | ✅ Ready |
+| File                                 | Purpose                                  | Status   |
+| ------------------------------------ | ---------------------------------------- | -------- |
+| `docs/MULTI_REPO_MIGRATION_GUIDE.md` | Full migration plan (400+ lines)         | ✅ Ready |
+| `tools/migrate-to-multirepo.sh`      | Automated extraction script (500+ lines) | ✅ Ready |
+| `docs/ci-cd-workflows/*.yml`         | 8 GitHub Actions workflows               | ✅ Ready |
+| `docs/CI_CD_WORKFLOWS_COMPLETE.md`   | CI/CD documentation                      | ✅ Ready |
+| `docs/MIGRATION_READY_TO_EXECUTE.md` | Execution checklist                      | ✅ Ready |
 
 ---
 
@@ -28,6 +28,7 @@ bash tools/migrate-to-multirepo.sh
 **Output**: 5 directories created in `/tmp/goblin-migration/`
 
 ### Step 2: Create GitHub Repos
+
 ```bash
 
 gh repo create YOUR_ORG/goblin-assistant-backend --public
@@ -60,6 +61,7 @@ git push -u origin develop
 ### Step 4: Configure Secrets (See Checklist Below)
 
 ### Step 5: Test
+
 ```bash
 
 # Push to develop → triggers staging deployment
@@ -122,6 +124,7 @@ gh run watch
 ## 🔄 Deployment Flow
 
 ### Staging (Automatic)
+
 ```
 Push to develop → CI runs → Deploy to staging
 ```
@@ -132,6 +135,7 @@ Push to develop → CI runs → Deploy to staging
 - Frontend: `<https://staging.goblin.fuaad.ai`>
 
 ### Production (Manual Approval)
+
 ```
 Merge develop → main → Tag v1.0.0 → Manual approval → Deploy
 ```
@@ -164,6 +168,7 @@ docker-compose up
 ```
 
 **Services**:
+
 - Backend: http://localhost:8000
 - Frontend: http://localhost:3000
 - PostgreSQL: localhost:5432
@@ -174,18 +179,22 @@ docker-compose up
 ## ⚡ CI/CD Workflows Overview
 
 ### Backend
+
 - **CI**: Black, Ruff, MyPy, PyTest, Docker build, Trivy scan
 - **Deploy**: Build image → Push to GHCR → Deploy to Fly.io
 
 ### Frontend
+
 - **CI**: ESLint, TypeScript, Vitest, Storybook, Chromatic, Lighthouse
 - **Deploy**: Build with Vite → Deploy to Vercel
 
 ### Contracts
+
 - **CI**: Lint TypeScript + Python, test both, validate sync
 - **Publish**: Publish to npm + PyPI, notify dependent repos
 
 ### Infrastructure
+
 - **CI**: Terraform validate, K8s validate, tfsec, cost estimate
 - **Deploy**: Terraform apply → K8s rollout
 
@@ -194,6 +203,7 @@ docker-compose up
 ## 🛡️ Security & Quality Gates
 
 ### Automated Checks
+
 - ✅ Dependency vulnerability scanning (Dependabot)
 - ✅ Code quality (ESLint, Black, Ruff)
 - ✅ Type checking (TypeScript, MyPy)
@@ -203,6 +213,7 @@ docker-compose up
 - ✅ Security scanning (Trivy, tfsec)
 
 ### Manual Gates
+
 - ✅ Production deployments require approval
 - ✅ Infrastructure changes require 2 approvers
 
@@ -211,6 +222,7 @@ docker-compose up
 ## 📊 Success Metrics
 
 Migration is successful when:
+
 1. All 5 repos exist with CI/CD
 2. Staging deploys automatically
 3. Production requires approval
@@ -225,6 +237,7 @@ Migration is successful when:
 ## 🚨 Rollback Plan
 
 ### If deployment fails:
+
 ```bash
 
 # Backend (Fly.io)
@@ -243,26 +256,26 @@ vercel rollback <https://goblin.fuaad.ai>
 
 ## 📚 Full Documentation
 
-| Document | Purpose |
-|----------|---------|
-| `MULTI_REPO_MIGRATION_GUIDE.md` | Comprehensive 8-phase plan |
-| `CI_CD_WORKFLOWS_COMPLETE.md` | Full CI/CD documentation |
+| Document                        | Purpose                      |
+| ------------------------------- | ---------------------------- |
+| `MULTI_REPO_MIGRATION_GUIDE.md` | Comprehensive 8-phase plan   |
+| `CI_CD_WORKFLOWS_COMPLETE.md`   | Full CI/CD documentation     |
 | `MIGRATION_READY_TO_EXECUTE.md` | Step-by-step execution guide |
-| This file | Quick reference card |
+| This file                       | Quick reference card         |
 
 ---
 
 ## ⏱️ Time Estimate
 
-| Phase | Duration |
-|-------|----------|
-| Run migration script | 30 min |
-| Create GitHub repos | 15 min |
-| Push code + workflows | 20 min |
-| Configure secrets | 30 min |
-| Test staging | 1 hour |
-| Verify production | 1 hour |
-| **Total** | **4-6 hours** |
+| Phase                 | Duration      |
+| --------------------- | ------------- |
+| Run migration script  | 30 min        |
+| Create GitHub repos   | 15 min        |
+| Push code + workflows | 20 min        |
+| Configure secrets     | 30 min        |
+| Test staging          | 1 hour        |
+| Verify production     | 1 hour        |
+| **Total**             | **4-6 hours** |
 
 ---
 
@@ -278,6 +291,7 @@ bash tools/migrate-to-multirepo.sh
 Read `docs/MIGRATION_READY_TO_EXECUTE.md` for detailed checklist
 
 **Option 3: Test Locally**
+
 ```bash
 
 bash tools/migrate-to-multirepo.sh --dry-run

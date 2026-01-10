@@ -79,22 +79,24 @@ pre-commit run
 
 ## Cost Savings Summary
 
-| Optimization | Estimated Savings | Implementation |
-|-------------|------------------|----------------|
-| Docker Caching | 60-80% build time | CircleCI config |
-| Visual Regression | ~90% Chromatic cost | GitHub Actions |
-| Pre-commit Hooks | 30-50% failed builds | Local development |
-| Path Filtering | 20-30% unnecessary runs | Workflow triggers |
-| Parallel Jobs | 15-25% faster pipelines | CircleCI workflows |
+| Optimization      | Estimated Savings       | Implementation     |
+| ----------------- | ----------------------- | ------------------ |
+| Docker Caching    | 60-80% build time       | CircleCI config    |
+| Visual Regression | ~90% Chromatic cost     | GitHub Actions     |
+| Pre-commit Hooks  | 30-50% failed builds    | Local development  |
+| Path Filtering    | 20-30% unnecessary runs | Workflow triggers  |
+| Parallel Jobs     | 15-25% faster pipelines | CircleCI workflows |
 
 ## Monitoring Your Usage
 
 ### GitHub Actions
+
 - Check: Settings → Billing & plans → GitHub Actions
 - Free limit: 2,000 minutes/month
 - Monitor via: `.github/workflows/ci-usage-monitor.yml`
 
 ### CircleCI
+
 - Check: Plan → Usage
 - Free limit: 6,000 credits/month (1 credit = ~1 minute)
 - Monitor via: CircleCI dashboard

@@ -108,8 +108,8 @@ curl http://localhost:9090/model/allocation \
 ### Namespace-Level Allocation
 
 **Overmind Production:**
-```yaml
 
+```yaml
 namespace: overmind-prod
 labels:
   environment: production
@@ -150,21 +150,25 @@ monthly_budget: $1000
 ### Service-Level Costs
 
 **LiteLLM Gateway:**
+
 - CPU: 2-20 replicas × 500m = 1-10 cores
 - Memory: 2-20 replicas × 1Gi = 2-20Gi
 - Estimated: $20-200/day (varies with autoscaling)
 
 **Overmind API:**
+
 - CPU: 2-15 replicas × 200m = 0.4-3 cores
 - Memory: 2-15 replicas × 512Mi = 1-7.5Gi
 - Estimated: $10-100/day
 
 **Overmind Bridge:**
+
 - CPU: 0-5 replicas × 200m = 0-1 cores (scale-to-zero dev)
 - Memory: 0-5 replicas × 512Mi = 0-2.5Gi
 - Estimated: $0-30/day (dev only when active)
 
 **Temporal Workers:**
+
 - CPU: 2-10 replicas × 500m = 1-5 cores
 - Memory: 2-10 replicas × 1Gi = 2-10Gi
 - Estimated: $15-75/day
@@ -174,6 +178,7 @@ monthly_budget: $1000
 ### API Examples
 
 **Get today's costs by namespace:**
+
 ```bash
 
 curl -G <http://localhost:9090/model/allocation> \
@@ -194,6 +199,7 @@ curl -G http://localhost:9090/model/allocation \
 ```
 
 **Get cost breakdown by label:**
+
 ```bash
 
 curl -G <http://localhost:9090/model/allocation> \
@@ -225,6 +231,7 @@ curl -G http://localhost:9090/model/allocation \
 Kubecost analyzes actual resource usage and recommends optimal requests/limits:
 
 **Example - LiteLLM Gateway:**
+
 ```yaml
 
 # Current
@@ -271,11 +278,13 @@ curl -G http://localhost:9090/model/allocation \
 ### Cluster Optimization
 
 **Node pool recommendations:**
+
 - Right-size node types (CPU vs memory-optimized)
 - Spot instance opportunities (dev environment)
 - Reserved instance commitments (prod environment)
 
 **Expected savings:**
+
 - Dev environment: 60-80% with spot instances + scale-to-zero
 - Prod environment: 30-40% with reserved instances + rightsizing
 
@@ -286,14 +295,13 @@ curl -G http://localhost:9090/model/allocation \
 **File:** `alerts/daily-budget.yaml`
 
 ```yaml
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kubecost-daily-alert
   namespace: kubecost
 data:
-  alert.json: | 
+  alert.json: |
     {
       "type": "budget",
       "threshold": 100,
@@ -318,7 +326,7 @@ metadata:
   name: kubecost-monthly-alert
   namespace: kubecost
 data:
-  alert.json: | 
+  alert.json: |
     {
       "type": "budget",
       "threshold": 2000,
@@ -337,14 +345,13 @@ data:
 **File:** `alerts/efficiency.yaml`
 
 ```yaml
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kubecost-efficiency-alert
   namespace: kubecost
 data:
-  alert.json: | 
+  alert.json: |
     {
       "type": "efficiency",
       "cpuEfficiencyThreshold": 0.5,
@@ -444,9 +451,9 @@ spec:
     matchLabels:
       app: cost-analyzer
   endpoints:
-  - port: metrics
-    interval: 30s
-    path: /metrics
+    - port: metrics
+      interval: 30s
+      path: /metrics
 ```
 
 ### Key Metrics
@@ -483,20 +490,19 @@ export:
     projectId: overmind-analytics
     datasetId: kubecost
     table: costs
-    schedule: "0 2 * * *"  # Daily at 2am
+    schedule: '0 2 * * *' # Daily at 2am
 ```
 
 ### S3 Export
 
 ```yaml
-
 export:
   s3:
     enabled: true
     bucket: overmind-cost-data
     region: us-east-1
     prefix: kubecost/
-    schedule: "0 2 * * *"  # Daily at 2am
+    schedule: '0 2 * * *' # Daily at 2am
 ```
 
 ## Troubleshooting

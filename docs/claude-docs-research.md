@@ -3,6 +3,7 @@
 ## Official Anthropic Claude API Setup
 
 ### 1. Set Your API Key
+
 Get your API key from the [Claude Console](https://console.anthropic.com/) and set it as an environment variable:
 
 ```bash
@@ -10,6 +11,7 @@ export ANTHROPIC_API_KEY='your-api-key-here'
 ```
 
 ### 2. Install the SDK
+
 Install the Anthropic Python SDK:
 
 ```bash
@@ -18,6 +20,7 @@ pip install anthropic
 ```
 
 ### 3. Create Your Code
+
 Save this as `quickstart.py`:
 
 ```python
@@ -39,6 +42,7 @@ print(message.content)
 ```
 
 ### 4. Run Your Code
+
 ```bash
 
 python quickstart.py
@@ -60,17 +64,20 @@ python quickstart.py
 ## Troubleshooting
 
 ### Common Issues:
+
 - **401 Unauthorized**: API key is invalid or revoked
 - **403 Forbidden**: Billing not set up or API access not enabled
 - **429 Rate Limit**: Too many requests (check rate limits)
 - **500 Server Error**: Anthropic service issue
 
 ### Billing Requirements:
+
 - Claude API requires **credits/billing setup** even for testing
 - Visit https://console.anthropic.com/settings/billing
 - Add payment method or use free credits if available
 
 ### Testing Your Key:
+
 ```python
 
 import anthropic

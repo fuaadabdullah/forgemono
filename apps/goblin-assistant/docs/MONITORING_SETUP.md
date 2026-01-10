@@ -59,6 +59,7 @@ VITE_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
 ```
 
 #### Backend
+
 ```bash
 
 # backend/.env
@@ -81,6 +82,7 @@ VITE_POSTHOG_HOST=https://app.posthog.com  # or your self-hosted URL
 ```
 
 #### Backend (Optional)
+
 ```bash
 
 # backend/.env
@@ -117,6 +119,7 @@ VITE_POSTHOG_HOST=https://app.posthog.com  # optional
 ```
 
 ### Backend (.env)
+
 ```bash
 
 # Monitoring
@@ -130,13 +133,13 @@ POSTHOG_HOST=<https://app.posthog.com>
 
 ## Cost Breakdown
 
-| Service | Cost | Purpose |
-|---------|------|---------|
-| **Sentry** | $26/month | Error tracking & performance |
-| **Fly.io** | Free | Application metrics & logs |
-| **Vercel** | Free | Frontend analytics & logs |
-| **UptimeRobot** | Free | Uptime monitoring |
-| **PostHog** | Free (self-hosted) | User analytics |
+| Service         | Cost               | Purpose                      |
+| --------------- | ------------------ | ---------------------------- |
+| **Sentry**      | $26/month          | Error tracking & performance |
+| **Fly.io**      | Free               | Application metrics & logs   |
+| **Vercel**      | Free               | Frontend analytics & logs    |
+| **UptimeRobot** | Free               | Uptime monitoring            |
+| **PostHog**     | Free (self-hosted) | User analytics               |
 
 **Total Monthly Cost: $26** (vs $100+ with excessive monitoring)
 
@@ -177,6 +180,7 @@ echo $VITE_SENTRY_DSN
 ```
 
 ### PostHog Not Tracking
+
 ```bash
 
 # Check environment variables

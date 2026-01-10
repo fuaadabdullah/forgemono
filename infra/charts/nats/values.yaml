@@ -70,11 +70,11 @@ nats:
 streams:
   - name: routing-decisions
     subjects:
-      - "routing.model.selected"
-      - "routing.fallback.triggered"
-      - "routing.cost.calculated"
+      - 'routing.model.selected'
+      - 'routing.fallback.triggered'
+      - 'routing.cost.calculated'
     retention: limits
-    maxAge: 168h  # 7 days
+    maxAge: 168h # 7 days
     maxBytes: 1GB
     maxMsgs: 1000000
     storage: file
@@ -83,12 +83,12 @@ streams:
 
   - name: memory-events
     subjects:
-      - "memory.added"
-      - "memory.consolidated"
-      - "memory.retrieved"
-      - "memory.expired"
+      - 'memory.added'
+      - 'memory.consolidated'
+      - 'memory.retrieved'
+      - 'memory.expired'
     retention: limits
-    maxAge: 720h  # 30 days
+    maxAge: 720h # 30 days
     maxBytes: 5GB
     maxMsgs: 5000000
     storage: file
@@ -97,11 +97,11 @@ streams:
 
   - name: llm-requests
     subjects:
-      - "llm.request.started"
-      - "llm.request.completed"
-      - "llm.request.failed"
+      - 'llm.request.started'
+      - 'llm.request.completed'
+      - 'llm.request.failed'
     retention: limits
-    maxAge: 24h  # 1 day
+    maxAge: 24h # 1 day
     maxBytes: 500MB
     maxMsgs: 500000
     storage: file
@@ -117,7 +117,7 @@ consumers:
     ackPolicy: explicit
     ackWait: 30s
     maxDeliver: 3
-    filterSubject: "routing.>"
+    filterSubject: 'routing.>'
     replayPolicy: instant
 
   # Analytics service consumes all events
@@ -127,7 +127,7 @@ consumers:
     ackPolicy: explicit
     ackWait: 60s
     maxDeliver: 5
-    filterSubject: "routing.>"
+    filterSubject: 'routing.>'
     replayPolicy: instant
     # Batch processing
     maxAckPending: 1000
@@ -140,7 +140,7 @@ consumers:
     ackPolicy: explicit
     ackWait: 120s
     maxDeliver: 3
-    filterSubject: "memory.consolidated"
+    filterSubject: 'memory.consolidated'
     replayPolicy: instant
 
   # LLM metrics collector
@@ -150,7 +150,7 @@ consumers:
     ackPolicy: explicit
     ackWait: 30s
     maxDeliver: 3
-    filterSubject: "llm.>"
+    filterSubject: 'llm.>'
     replayPolicy: instant
 
 # Security context

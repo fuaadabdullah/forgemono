@@ -16,9 +16,9 @@ This directory contains the VS Code Dev Container specification for the ForgeMon
 - Provides reproducible development for backend (FastAPI), frontend (React/TypeScript), and GoblinOS agent services.
 - Integrates with Docker Compose for multi-service orchestration.
 - Bootstrap steps (see devcontainer.json):
-	- `bash tools/lint_all.sh` for linting
-	- `pnpm install --recursive` for Node dependencies
-	- `pip install -r ForgeTM/apps/backend/requirements.txt` for Python dependencies
+  - `bash tools/lint_all.sh` for linting
+  - `pnpm install --recursive` for Node dependencies
+  - `pip install -r ForgeTM/apps/backend/requirements.txt` for Python dependencies
 
 To use:
 
@@ -61,6 +61,7 @@ For decentralized processing with orchestration:
    ```bash
    kubectl apply -f deployments/
    ```
+
 1. Configure endpoints:
    - Replace `<azure-endpoint-url>` and `<gcp-endpoint-url>` in `ollama-k8s.yaml` with actual URLs.
 1. Access services:

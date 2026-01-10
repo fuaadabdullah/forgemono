@@ -1,5 +1,5 @@
 ---
-description: "unified-telemetry-plan"
+description: 'unified-telemetry-plan'
 ---
 
 # Unified Telemetry Plan (observability)

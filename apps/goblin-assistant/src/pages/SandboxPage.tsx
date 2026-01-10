@@ -27,8 +27,8 @@ const SandboxPage = () => {
 
   const loadJobs = async () => {
     try {
-      const data = await apiClient.getSandboxJobs();
-      setJobs(data);
+      const jobsData = await apiClient.getSandboxJobs();
+      setJobs(jobsData);
     } catch (error) {
       console.error('Failed to load sandbox jobs:', error);
     }
@@ -39,7 +39,7 @@ const SandboxPage = () => {
     try {
       // Simulate sandbox execution
       // In real implementation: await apiClient.runSandboxCode({ code, language });
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       setLogs('Code executed successfully!\nOutput:\nHello from sandbox');
       loadJobs();
     } catch (error) {
@@ -62,16 +62,12 @@ const SandboxPage = () => {
     <div className="space-y-4">
       <div>
         <h2 className="text-lg font-semibold text-text mb-3">Sandbox</h2>
-        <p className="text-xs text-muted mb-4">
-          Execute code in isolated environments
-        </p>
+        <p className="text-xs text-muted mb-4">Execute code in isolated environments</p>
       </div>
 
       {/* Language Selector */}
       <div>
-        <label className="block text-xs font-medium text-text mb-2">
-          Language
-        </label>
+        <label className="block text-xs font-medium text-text mb-2">Language</label>
         <select
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
@@ -109,9 +105,7 @@ const SandboxPage = () => {
 
       {/* Recent Jobs */}
       <div className="space-y-2">
-        <h3 className="text-xs font-semibold text-text uppercase tracking-wide">
-          Recent Jobs
-        </h3>
+        <h3 className="text-xs font-semibold text-text uppercase tracking-wide">Recent Jobs</h3>
         {jobs.length > 0 ? (
           jobs.slice(0, 10).map((job) => (
             <button
@@ -128,18 +122,21 @@ const SandboxPage = () => {
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="font-mono">{job.id.substring(0, 8)}</span>
-                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                  job.status === 'completed' ? 'bg-success/20 text-success' :
-                  job.status === 'failed' ? 'bg-danger/20 text-danger' :
-                  job.status === 'running' ? 'bg-info/20 text-info' :
-                  'bg-surface-hover text-muted'
-                }`}>
+                <span
+                  className={`px-2 py-0.5 rounded text-xs font-medium ${
+                    job.status === 'completed'
+                      ? 'bg-success/20 text-success'
+                      : job.status === 'failed'
+                        ? 'bg-danger/20 text-danger'
+                        : job.status === 'running'
+                          ? 'bg-info/20 text-info'
+                          : 'bg-surface-hover text-muted'
+                  }`}
+                >
                   {job.status}
                 </span>
               </div>
-              <div className="text-xs text-muted">
-                {new Date(job.created_at).toLocaleString()}
-              </div>
+              <div className="text-xs text-muted">{new Date(job.created_at).toLocaleString()}</div>
             </button>
           ))
         ) : (
@@ -192,9 +189,7 @@ const SandboxPage = () => {
       {selectedJob && (
         <div className="bg-surface rounded-xl shadow-sm border border-border p-6">
           <h2 className="text-lg font-semibold text-text mb-4">Artifacts</h2>
-          <div className="text-sm text-muted">
-            No artifacts generated for this job.
-          </div>
+          <div className="text-sm text-muted">No artifacts generated for this job.</div>
         </div>
       )}
     </div>

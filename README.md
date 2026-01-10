@@ -1,5 +1,5 @@
 ---
-description: "README"
+description: 'README'
 ---
 
 # ForgeMonorepo
@@ -95,4 +95,17 @@ python scripts/doc_cli.py audit docs/
 
 - Legacy demos may have shipped with their own `.git` history—these should be promoted into `apps/` or converted to submodules. See `docs/WORKSPACE_OVERVIEW.md` for guidance.
 
-**Active Projects**: GoblinOS Assistant
+# Goblin Assistant
+
+Welcome to the Goblin Assistant project.
+
+## Quick Links
+
+- [Development Guide](docs/development/CONTRIBUTING.md)
+- [Architecture](docs/architecture/ARCHITECTURE.md)
+- [Deployment](docs/deployment/DEPLOYMENT_README.md)
+- [Security](docs/security/SECURITY.md)
+
+## Getting Started
+
+See [docs/development/setup.md](docs/development/setup.md)

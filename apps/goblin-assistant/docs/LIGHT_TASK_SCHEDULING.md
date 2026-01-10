@@ -44,15 +44,18 @@ scheduler.start()
 **Use Case**: Operations triggered by HTTP requests that should run asynchronously.
 
 **Files**:
+
 - `backend/api_router.py` - Added background task endpoints
 
 **Key Features**:
+
 - Built-in FastAPI BackgroundTasks for simple async execution
 - Redis locks to prevent duplicate background tasks
 - Status tracking for long-running operations
 - Automatic cleanup of completed tasks
 
 **Example Usage**:
+
 ```python
 
 from fastapi import BackgroundTasks
@@ -190,6 +193,7 @@ python backend/probe_worker.py
 ### Minimal Wrapper: Single Provider Probe
 
 **Old Celery Task:**
+
 ```python
 
 @celery.task
@@ -210,6 +214,7 @@ def probe_single_provider_job(provider_id: int):
 ```
 
 **Pattern 2: CronJob Script**
+
 ```python
 
 # backend/probe_single_provider.py
@@ -236,4 +241,3 @@ def probe_provider_cronjob(provider_id: int):
 - Implement circuit breakers for failing tasks
 - Add task prioritization for APScheduler
 - Create Helm charts for CronJob deployments
-

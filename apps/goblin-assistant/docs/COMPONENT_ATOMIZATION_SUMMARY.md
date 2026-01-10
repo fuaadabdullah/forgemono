@@ -31,9 +31,11 @@ Unified button component replacing 20+ inline button styles.
 ```
 
 **After**:
-```tsx
 
-<Button variant="danger" icon="🔄">Retry</Button>
+```tsx
+<Button variant="danger" icon="🔄">
+  Retry
+</Button>
 ```
 
 **Reduction**: ~80 characters → ~41 characters (49% less code)
@@ -61,9 +63,11 @@ Status chip component for health indicators, tags, labels.
 ```
 
 **After**:
-```tsx
 
-<Badge variant="success" icon="✓">Healthy</Badge>
+```tsx
+<Badge variant="success" icon="✓">
+  Healthy
+</Badge>
 ```
 
 **Reduction**: ~140 characters → ~44 characters (69% less code)
@@ -84,14 +88,18 @@ Icon-only button with accessibility built-in.
 **Before**:
 
 ```tsx
-<button onClick={handleDismiss} className="text-danger hover:brightness-110 font-bold" aria-label="Dismiss error">
+<button
+  onClick={handleDismiss}
+  className="text-danger hover:brightness-110 font-bold"
+  aria-label="Dismiss error"
+>
   ✕
 </button>
 ```
 
 **After**:
-```tsx
 
+```tsx
 <IconButton variant="ghost" icon="✕" aria-label="Dismiss error" onClick={handleDismiss} />
 ```
 
@@ -112,17 +120,13 @@ Responsive grid wrapper using `.grid-auto-fit` utility.
 **Before**:
 
 ```tsx
-<div className="grid-auto-fit gap-4">
-  {/* cards */}
-</div>
+<div className="grid-auto-fit gap-4">{/* cards */}</div>
 ```
 
 **After**:
-```tsx
 
-<Grid gap="md">
-  {/* cards */}
-</Grid>
+```tsx
+<Grid gap="md">{/* cards */}</Grid>
 ```
 
 **Benefit**: Semantic component name, consistent gap sizing
@@ -144,24 +148,37 @@ Unified alert/banner for errors, warnings, info messages.
 **Before** (error banner):
 
 ```tsx
-<div className="bg-danger/10 border border-danger rounded-lg p-4 flex items-start gap-3" role="alert" aria-live="polite">
+<div
+  className="bg-danger/10 border border-danger rounded-lg p-4 flex items-start gap-3"
+  role="alert"
+  aria-live="polite"
+>
   <span className="text-xl">⚠️</span>
   <div className="flex-1">
     <p className="text-danger font-medium text-sm">{error}</p>
     <p className="text-muted text-xs mt-1">Showing stale data</p>
   </div>
-  <button onClick={dismiss} className="text-danger hover:brightness-110 font-bold" aria-label="Dismiss error">
+  <button
+    onClick={dismiss}
+    className="text-danger hover:brightness-110 font-bold"
+    aria-label="Dismiss error"
+  >
     ✕
   </button>
 </div>
 ```
 
 **After**:
-```tsx
 
+```tsx
 <Alert
   variant="warning"
-  message={<><p>{error}</p><p className="text-xs mt-1">Showing stale data</p></>}
+  message={
+    <>
+      <p>{error}</p>
+      <p className="text-xs mt-1">Showing stale data</p>
+    </>
+  }
   dismissible
   onDismiss={dismiss}
 />
@@ -180,15 +197,17 @@ Unified alert/banner for errors, warnings, info messages.
 **Before**:
 
 ```tsx
-<span className={`inline-flex items-center gap-1 mt-2 text-xs px-2 py-0.5 rounded-full ${s.chipBg} ${s.chipText}`}>
+<span
+  className={`inline-flex items-center gap-1 mt-2 text-xs px-2 py-0.5 rounded-full ${s.chipBg} ${s.chipText}`}
+>
   <span>{s.icon}</span>
   <span>{status}</span>
 </span>
 ```
 
 **After**:
-```tsx
 
+```tsx
 <Badge variant={config.badgeVariant} icon={config.icon}>
   {status}
 </Badge>
@@ -282,6 +301,7 @@ import Button from './ui/Button';
 ## 🎯 Migration Progress
 
 ### Completed ✅
+
 - [x] Create core UI components (Button, Badge, IconButton, Grid, Alert)
 - [x] Refactor StatusCard to use Badge
 - [x] Refactor EnhancedDashboard to use Button, Alert, Grid
@@ -289,16 +309,19 @@ import Button from './ui/Button';
 - [x] Documentation (`docs/UI_COMPONENT_LIBRARY.md`)
 
 ### In Progress 🔄
+
 - [ ] Migrate TaskExecution buttons
 - [ ] Migrate Orchestration buttons/alerts
 - [ ] Migrate HealthCard buttons
 
 ### Pending ⏳
+
 - [ ] Navigation component (could use Button for links)
 - [ ] KeyboardShortcutsHelp (kbd → Badge)
 - [ ] Auth components (PasskeyPanel, LoginForm)
 
 ### Future Enhancements 💡
+
 - [ ] Add Tooltip component
 - [ ] Add Input component (text, select, checkbox)
 - [ ] Add Modal/Dialog component
@@ -310,6 +333,7 @@ import Button from './ui/Button';
 ## 🧪 Testing
 
 ### Build Status
+
 ```bash
 
 ✓ Built successfully

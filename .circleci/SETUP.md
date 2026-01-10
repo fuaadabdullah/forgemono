@@ -14,14 +14,16 @@
 Go to **Organization Settings → Contexts** and create:
 
 #### Context: `terraform-cloud`
-| Variable | Description | Where to get it |
-|----------|-------------|-----------------|
+
+| Variable   | Description               | Where to get it                                                                      |
+| ---------- | ------------------------- | ------------------------------------------------------------------------------------ |
 | `TF_TOKEN` | Terraform Cloud API token | [app.terraform.io/app/settings/tokens](https://app.terraform.io/app/settings/tokens) |
 
 #### Context: `docker-ghcr`
-| Variable | Description | Where to get it |
-|----------|-------------|-----------------|
-| `GHCR_USER` | Your GitHub username | `fuaadabdullah` |
+
+| Variable     | Description                            | Where to get it                                                  |
+| ------------ | -------------------------------------- | ---------------------------------------------------------------- |
+| `GHCR_USER`  | Your GitHub username                   | `fuaadabdullah`                                                  |
 | `GHCR_TOKEN` | GitHub PAT with `write:packages` scope | [github.com/settings/tokens](https://github.com/settings/tokens) |
 
 ### 3. Required GitHub PAT Scopes
@@ -49,6 +51,7 @@ Ensure the TF_TOKEN has access to these workspaces.
 ## Pipeline Overview
 
 ### CI Pipeline (Every Push/PR)
+
 ```
 backend-lint-test
        ↓
@@ -60,6 +63,7 @@ plan-dev  plan-staging  plan-prod
 ```
 
 ### Deploy Pipeline (Merge to main)
+
 ```
 backend-lint-test → docker-build-push
                           ↓
@@ -77,6 +81,7 @@ backend-lint-test → docker-build-push
 ```
 
 ### Nightly Security (3 AM UTC)
+
 ```
 terraform-security-scan (tfsec + checkov)
 ```
@@ -95,11 +100,11 @@ terraform-security-scan (tfsec + checkov)
 
 ## Secrets Checklist
 
-| Secret | Context | Required | Notes |
-|--------|---------|----------|-------|
-| `TF_TOKEN` | `terraform-cloud` | ✅ Yes | Terraform Cloud API token |
-| `GHCR_USER` | `docker-ghcr` | ✅ Yes | GitHub username |
-| `GHCR_TOKEN` | `docker-ghcr` | ✅ Yes | GitHub PAT with packages scope |
+| Secret       | Context           | Required | Notes                          |
+| ------------ | ----------------- | -------- | ------------------------------ |
+| `TF_TOKEN`   | `terraform-cloud` | ✅ Yes   | Terraform Cloud API token      |
+| `GHCR_USER`  | `docker-ghcr`     | ✅ Yes   | GitHub username                |
+| `GHCR_TOKEN` | `docker-ghcr`     | ✅ Yes   | GitHub PAT with packages scope |
 
 ---
 

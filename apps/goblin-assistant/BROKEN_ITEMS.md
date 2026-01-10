@@ -18,7 +18,7 @@
 - **Error:** `Cannot find module 'vite/bin/vite.js'`
 - **Impact:** Frontend cannot start
 - **Fix Required:** Run `npm install` or `pnpm install`
-- **Command:** 
+- **Command:**
 
   ```bash
   cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant
@@ -28,18 +28,21 @@
 ## Warning Issues (⚠️ Should Fix)
 
 ### 3. OpenAI API Key - INVALID ⚠️
+
 - **Status:** API key rejected (401 Unauthorized)
 - **Impact:** OpenAI provider unavailable for routing
 - **Fix Required:** Update with valid OpenAI API key
 - **Location:** `backend/.env` OPENAI_API_KEY
 
 ### 4. Anthropic API Key - INVALID ⚠️
+
 - **Status:** API key rejected (401 Unauthorized)
 - **Impact:** Anthropic provider unavailable for routing
 - **Fix Required:** Update with valid Anthropic API key
 - **Location:** `backend/.env` ANTHROPIC_API_KEY
 
 ### 5. Local LLM API Key - PLACEHOLDER ⚠️
+
 - **Status:** Using placeholder value
 - **Impact:** Works but should be secured for production
 - **Fix Required:** Set proper API key (currently works with placeholder)
@@ -49,6 +52,7 @@
 ## Working Components (✅ OK)
 
 ### 6. Local Ollama (Kamatera VPS) - WORKING ✅
+
 - **Status:** Healthy and connected
 - **URL:** http://45.61.60.3:8002
 - **Models Available:** 4 models
@@ -59,6 +63,7 @@
 - **Execution Mode:** REAL (not simulated)
 
 ### 7. Environment Configuration - PARTIAL ✅
+
 - **Working:**
   - ✅ SUPABASE_URL
   - ✅ JWT_SECRET_KEY
@@ -71,6 +76,7 @@
 ## Priority Fix Order
 
 1. **URGENT:** Fix database password
+
    ```bash
 
    # Get new password from Supabase dashboard
@@ -85,6 +91,7 @@
    ```
 
 3. **HIGH:** Update OpenAI API key (if needed)
+
    ```bash
 
    # Get key from <https://platform.openai.com/api-keys>
@@ -99,6 +106,7 @@
    ```
 
 5. **LOW:** Secure LOCAL_LLM_API_KEY for production
+
    ```bash
 
    # Generate secure key

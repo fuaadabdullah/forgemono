@@ -1,5 +1,5 @@
-import { Star } from "lucide-react";
-import { testimonials } from "@/data/testimonials";
+import { Star } from 'lucide-react';
+import { testimonials } from '@/data/testimonials';
 
 export default function Testimonials() {
   return (
@@ -18,9 +18,7 @@ export default function Testimonials() {
                 ))}
               </div>
 
-              <blockquote className="text-gray-300 mb-4 italic">
-                "{testimonial.text}"
-              </blockquote>
+              <blockquote className="text-gray-300 mb-4 italic">"{testimonial.text}"</blockquote>
 
               <div className="border-t border-gray-700 pt-4">
                 <div className="font-semibold text-white">{testimonial.name}</div>
@@ -45,6 +43,6 @@ export default function Testimonials() {
 }
 
 export const metadata = {
-  title: "Testimonials",
-  description: "What our customers say about us",
+  title: 'Testimonials',
+  description: 'What our customers say about us',
 };

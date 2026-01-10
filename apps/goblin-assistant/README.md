@@ -19,7 +19,7 @@ See `docs/ARCHITECTURE_OVERVIEW.md` for a compact architecture diagram and reque
 
 - **Framework**: FastAPI (Python)
 - **Purpose**: Main API service handling AI processing and development assistance
-Note: Most backend-specific documentation has been consolidated under the canonical backend repository folder at `apps/goblin-assistant/backend/docs` (e.g. endpoint audits, monitoring, production quick-starts). See that folder for the canonical docs.
+  Note: Most backend-specific documentation has been consolidated under the canonical backend repository folder at `apps/goblin-assistant/backend/docs` (e.g. endpoint audits, monitoring, production quick-starts). See that folder for the canonical docs.
 
 - **Features**: Intelligent model routing, debugging tools, error analysis, code suggestions
 
@@ -152,7 +152,6 @@ GET /health
 Response:
 
 ```json
-
 {
   "status": "healthy"
 }

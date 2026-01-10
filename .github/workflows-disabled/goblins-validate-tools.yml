@@ -2,7 +2,7 @@ name: Goblins Tool Ownership Validation
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'GoblinOS/goblins.yaml'
       - '.github/workflows/goblins-validate-tools.yml'
@@ -27,4 +27,3 @@ jobs:
 
       - name: Validate tool ownership
         run: node GoblinOS/scripts/validate-tools-owned.js
-

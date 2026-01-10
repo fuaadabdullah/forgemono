@@ -48,4 +48,5 @@ This runbook provides a short, actionable guide for on-call engineers when an al
 - Vault and secrets: `vault_client` usage, check `docs/vault_integration.md` for recovery steps.
 
 ---
+
 Last updated: 2025-11-26

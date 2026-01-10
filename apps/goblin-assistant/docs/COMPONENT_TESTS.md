@@ -5,11 +5,11 @@
 
 ## Overview
 
-Comprehensive test coverage for Goblin Assistant UI components using **Vitest**, **React Testing Library**, and **Storybook** for visual regression testing.
+Comprehensive test coverage for Goblin Assistant UI components using **Jest**, **React Testing Library**, and **Storybook** for visual regression testing.
 
 ### Testing Stack
 
-- **Unit Tests**: Vitest 2.1.9 + React Testing Library 16.3.0 (69 tests)
+- **Unit Tests**: Jest + React Testing Library 16.3.0 (69 tests)
 - **Visual Tests**: Storybook 8.6.14 + Chromatic (68 stories, 150+ states)
 - **Accessibility**: @storybook/addon-a11y (automated WCAG checks)
 
@@ -147,24 +147,28 @@ describe('Component', () => {
 ## Testing Best Practices Applied
 
 ### 1. Accessibility Testing
+
 ✅ Tests use semantic queries (`getByRole`, `getByLabelText`)
 ✅ Verifies ARIA attributes (`aria-label`, `aria-busy`, `aria-live`)
 ✅ Checks keyboard accessibility (focus/blur events)
 ✅ Validates accessible names
 
 ### 2. User-Centric Testing
+
 ✅ Tests user interactions (clicks, hovers, keyboard navigation)
 ✅ Verifies visual feedback (CSS classes, text content)
 ✅ Tests loading states and skeletons
 ✅ Validates error states and dismissible alerts
 
 ### 3. Component Contracts
+
 ✅ Tests all component props
 ✅ Validates prop combinations
 ✅ Tests default values
 ✅ Verifies className passthrough
 
 ### 4. Event Handling
+
 ✅ Uses `vi.fn()` for mock functions
 ✅ Verifies callbacks are called
 ✅ Tests disabled state prevents events
@@ -181,6 +185,7 @@ describe('Component', () => {
 **Root Cause**: Vitest/React Testing Library configuration issue, not test implementation
 
 **Evidence**:
+
 ```bash
 
 # Existing test also fails
@@ -206,21 +211,22 @@ npm test -- src/test/Navigation.test.tsx
 
 ## Test Files Created
 
-| File | Lines | Tests |
-|------|-------|-------|
-| `src/components/ui/Button.test.tsx` | 82 | 8 |
-| `src/components/ui/Badge.test.tsx` | 72 | 8 |
-| `src/components/ui/IconButton.test.tsx` | 52 | 5 |
-| `src/components/ui/Grid.test.tsx` | 108 | 7 |
-| `src/components/ui/Alert.test.tsx` | 99 | 8 |
-| `src/components/ui/Tooltip.test.tsx` | 147 | 9 |
-| `src/components/StatusCard.test.tsx` | 121 | 8 |
-| `src/components/LoadingSkeleton.test.tsx` | 135 | 13 |
-| **Total** | **816** | **66** |
+| File                                      | Lines   | Tests  |
+| ----------------------------------------- | ------- | ------ |
+| `src/components/ui/Button.test.tsx`       | 82      | 8      |
+| `src/components/ui/Badge.test.tsx`        | 72      | 8      |
+| `src/components/ui/IconButton.test.tsx`   | 52      | 5      |
+| `src/components/ui/Grid.test.tsx`         | 108     | 7      |
+| `src/components/ui/Alert.test.tsx`        | 99      | 8      |
+| `src/components/ui/Tooltip.test.tsx`      | 147     | 9      |
+| `src/components/StatusCard.test.tsx`      | 121     | 8      |
+| `src/components/LoadingSkeleton.test.tsx` | 135     | 13     |
+| **Total**                                 | **816** | **66** |
 
 ## Running Tests
 
 ### Run All Component Tests
+
 ```bash
 
 cd apps/goblin-assistant
@@ -234,6 +240,7 @@ npm test -- src/components/ui/Button.test.tsx
 ```
 
 ### Run Tests in Watch Mode
+
 ```bash
 
 npm test -- --watch
@@ -248,11 +255,13 @@ npm test -- --coverage
 ## Next Steps
 
 ### Immediate (Fix Test Environment)
+
 - [ ] Fix React version mismatch issue
 - [ ] Verify all tests pass after fix
 - [ ] Set up CI/CD to run tests on PR
 
 ### Future Enhancements
+
 - [ ] Add integration tests for EnhancedDashboard
 - [ ] Add E2E tests with Playwright
 - [x] **Set up visual regression testing** ✅ (Storybook + Chromatic configured)
@@ -275,17 +284,17 @@ npm test -- --coverage
 
 All tested components now have visual stories:
 
-| Component | Unit Tests | Visual Stories | States |
-|-----------|------------|----------------|--------|
-| Button | 8 ✅ | 11 📸 | 15+ |
-| Badge | 8 ✅ | 10 📸 | 12+ |
-| Alert | 8 ✅ | 7 📸 | 8+ |
-| Tooltip | 8 ✅ | 8 📸 | 10+ |
-| Grid | 7 ✅ | 6 📸 | 8+ |
-| IconButton | 5 ✅ | 9 📸 | 12+ |
-| StatusCard | 8 ✅ | 7 📸 | 15+ |
-| LoadingSkeleton | 14 ✅ | 8 📸 | 20+ |
-| Navigation | 3 ✅ | - | - |
+| Component       | Unit Tests | Visual Stories | States |
+| --------------- | ---------- | -------------- | ------ |
+| Button          | 8 ✅       | 11 📸          | 15+    |
+| Badge           | 8 ✅       | 10 📸          | 12+    |
+| Alert           | 8 ✅       | 7 📸           | 8+     |
+| Tooltip         | 8 ✅       | 8 📸           | 10+    |
+| Grid            | 7 ✅       | 6 📸           | 8+     |
+| IconButton      | 5 ✅       | 9 📸           | 12+    |
+| StatusCard      | 8 ✅       | 7 📸           | 15+    |
+| LoadingSkeleton | 14 ✅      | 8 📸           | 20+    |
+| Navigation      | 3 ✅       | -              | -      |
 
 **Total**: 69 unit tests + 68 visual stories = **137 test cases**
 

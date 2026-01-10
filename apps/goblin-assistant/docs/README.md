@@ -12,7 +12,6 @@ Please use this folder for:
 
 If you need to add or update any frontend documentation, please edit files here rather than in backend docs or infra docs. Where possible, backend docs should link to these frontend docs instead of duplicating content.
 
-
 Key files:
 
 - `PRODUCTION_DEPLOYMENT.md` — Frontend deployment and production security

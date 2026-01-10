@@ -3,6 +3,7 @@
 ## 🔧 Jira Project Keys Configuration
 
 ### Overview
+
 The Mira Linker integration supports configurable Jira project keys instead of being hardcoded to "PROJ". This allows you to match your actual Jira project structure.
 
 ### Quick Setup
@@ -18,6 +19,7 @@ The Mira Linker integration supports configurable Jira project keys instead of b
    - Add `JIRA_PROJECT_KEYS` with value like `(PROJ|GOB|INF)`
 
 3. **Test configuration:**
+
    ```bash
 
    ./verify_mira_setup.sh
@@ -26,18 +28,21 @@ The Mira Linker integration supports configurable Jira project keys instead of b
 ### Examples
 
 #### Single Project Key
+
 ```
 JIRA_PROJECT_KEYS: PROJ
 Matches: PROJ-123, PROJ-456, PROJ-789
 ```
 
 #### Multiple Project Keys
+
 ```
 JIRA_PROJECT_KEYS: (PROJ|GOB|INF)
 Matches: PROJ-123, GOB-456, INF-789
 ```
 
 #### Complex Pattern
+
 ```
 JIRA_PROJECT_KEYS: (PROJ|GOB|INF|DEVOPS|SEC)
 Matches: PROJ-123, GOB-456, INF-789, DEVOPS-101, SEC-202
@@ -95,7 +100,7 @@ Matches: PROJ-123, GOB-456, INF-789, DEVOPS-101, SEC-202
 # mira-linker-config.yml
 autoAssign:
   enabled: true
-  fallback: "@fuaadabdullah"  # CODEOWNERS fallback
+  fallback: '@fuaadabdullah' # CODEOWNERS fallback
   method: CODEOWNERS_fallback
 ```
 
@@ -109,6 +114,7 @@ autoAssign:
 ## 🚀 Complete Setup Workflow
 
 1. **Configure Jira Keys:**
+
    ```bash
 
    ./configure_jira_keys.sh
@@ -121,6 +127,7 @@ autoAssign:
    ```
 
 3. **Verify Setup:**
+
    ```bash
 
    ./verify_mira_setup.sh
@@ -146,11 +153,13 @@ echo "PROJ-123" | grep -E "(PROJ|GOB|INF)-\d+"
 ```
 
 #### Mira Auto-Assignment Not Working
+
 - Check CODEOWNERS file exists
 - Verify fallback user has repository access
 - Review Mira dashboard for configuration errors
 
 #### Webhook Issues
+
 - Verify GitHub token has `repo` and `admin:repo_hook` scopes
 - Check webhook delivery in repository settings
 - Ensure Mira API key is valid

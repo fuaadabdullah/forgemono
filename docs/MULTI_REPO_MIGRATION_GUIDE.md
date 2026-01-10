@@ -233,7 +233,6 @@ dependencies = [
 #### 6.2 Frontend depends on contracts
 
 ```json
-
 {
   "dependencies": {
     "@goblin/contracts": "github:fuaadabdullah/goblin-contracts#v1.0.0"
@@ -260,6 +259,7 @@ app.include_router(v1_router, prefix="/api/v1")
 #### Changelog Management
 
 Use [Keep a Changelog](https://keepachangelog.com/):
+
 - `CHANGELOG.md` in each repo
 - Update on every PR merge
 - Tag releases: `v1.0.0`, `v1.1.0`, etc.
@@ -269,11 +269,12 @@ Use [Keep a Changelog](https://keepachangelog.com/):
 #### PR Template Example
 
 ```markdown
-
 ## Description
+
 <!-- What changed and why -->
 
 ## Related PRs
+
 <!-- Link dependent PRs in other repos -->
 
 - Backend: fuaadabdullah/goblin-assistant-backend#42
@@ -318,22 +319,23 @@ See: `contracts-repo-setup.md` (next section)
 
 ## 🔄 Migration Timeline
 
-| Phase | Duration | Tasks |
-|-------|----------|-------|
-| 1. Repository Creation | 4 hours | Extract code, create repos, initial commits |
-| 2. Contracts Package | 4 hours | Define shared types, setup npm package |
-| 3. Infrastructure | 8 hours | Terraform configs, K8s manifests, deploy scripts |
-| 4. Local Dev | 4 hours | Docker Compose, dev scripts |
-| 5. CI/CD | 8 hours | GitHub Actions for all repos |
-| 6. Dependencies | 2 hours | Update imports, install contracts package |
-| 7. Versioning | 2 hours | Changelogs, tagging strategy |
-| 8. PR Workflow | 2 hours | Templates, branch protection |
+| Phase                  | Duration | Tasks                                            |
+| ---------------------- | -------- | ------------------------------------------------ |
+| 1. Repository Creation | 4 hours  | Extract code, create repos, initial commits      |
+| 2. Contracts Package   | 4 hours  | Define shared types, setup npm package           |
+| 3. Infrastructure      | 8 hours  | Terraform configs, K8s manifests, deploy scripts |
+| 4. Local Dev           | 4 hours  | Docker Compose, dev scripts                      |
+| 5. CI/CD               | 8 hours  | GitHub Actions for all repos                     |
+| 6. Dependencies        | 2 hours  | Update imports, install contracts package        |
+| 7. Versioning          | 2 hours  | Changelogs, tagging strategy                     |
+| 8. PR Workflow         | 2 hours  | Templates, branch protection                     |
 
 **Total**: ~5 days for complete migration
 
 ## ⚠️ Migration Risks & Mitigation
 
 ### Risk 1: Breaking Changes During Migration
+
 **Mitigation**:
 
 - Keep monorepo running in parallel
@@ -341,6 +343,7 @@ See: `contracts-repo-setup.md` (next section)
 - Gradual traffic shift (canary deployment)
 
 ### Risk 2: Dependency Hell
+
 **Mitigation**:
 
 - Pin exact versions in contracts package
@@ -348,6 +351,7 @@ See: `contracts-repo-setup.md` (next section)
 - Test compatibility in CI
 
 ### Risk 3: Secret Management
+
 **Mitigation**:
 
 - Use GitHub org-level secrets
@@ -355,6 +359,7 @@ See: `contracts-repo-setup.md` (next section)
 - Document secret requirements in each repo
 
 ### Risk 4: Database Migrations
+
 **Mitigation**:
 
 - Run migrations before code deployment

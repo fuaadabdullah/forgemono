@@ -1,12 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, jest } from '@jest/globals';
 import { render, fireEvent } from '@testing-library/react';
 import Alert from './Alert';
 
 describe('Alert', () => {
   it('renders with info variant by default', () => {
-    const { getByText, getByRole } = render(
-      <Alert message="Information message" />
-    );
+    const { getByText, getByRole } = render(<Alert message="Information message" />);
 
     const alert = getByRole('alert');
     expect(alert).toBeInTheDocument();
@@ -14,9 +12,7 @@ describe('Alert', () => {
   });
 
   it('renders with different variants', () => {
-    const { getByRole, rerender } = render(
-      <Alert variant="success" message="Success!" />
-    );
+    const { getByRole, rerender } = render(<Alert variant="success" message="Success!" />);
 
     let alert = getByRole('alert');
     expect(alert).toHaveClass('bg-success/10');
@@ -31,9 +27,7 @@ describe('Alert', () => {
   });
 
   it('renders with optional title', () => {
-    const { getByText } = render(
-      <Alert title="Alert Title" message="Alert message" />
-    );
+    const { getByText } = render(<Alert title="Alert Title" message="Alert message" />);
 
     expect(getByText('Alert Title')).toBeInTheDocument();
     expect(getByText('Alert message')).toBeInTheDocument();
@@ -56,7 +50,7 @@ describe('Alert', () => {
   });
 
   it('shows dismiss button when dismissible is true', () => {
-    const onDismiss = vi.fn();
+    const onDismiss = jest.fn();
     const { getByRole } = render(
       <Alert message="Dismissible alert" dismissible onDismiss={onDismiss} />
     );
@@ -69,27 +63,21 @@ describe('Alert', () => {
   });
 
   it('does not show dismiss button when dismissible is false', () => {
-    const { queryByRole } = render(
-      <Alert message="Non-dismissible alert" dismissible={false} />
-    );
+    const { queryByRole } = render(<Alert message="Non-dismissible alert" dismissible={false} />);
 
     const dismissButton = queryByRole('button', { name: /dismiss/i });
     expect(dismissButton).not.toBeInTheDocument();
   });
 
   it('applies custom className', () => {
-    const { getByRole } = render(
-      <Alert message="Custom alert" className="custom-class" />
-    );
+    const { getByRole } = render(<Alert message="Custom alert" className="custom-class" />);
 
     const alert = getByRole('alert');
     expect(alert).toHaveClass('custom-class');
   });
 
   it('has proper ARIA attributes', () => {
-    const { getByRole } = render(
-      <Alert variant="danger" message="Error occurred" />
-    );
+    const { getByRole } = render(<Alert variant="danger" message="Error occurred" />);
 
     const alert = getByRole('alert');
     expect(alert).toHaveAttribute('role', 'alert');

@@ -35,19 +35,17 @@ export const useChatModels = () => {
 #### 2. Mutations Return Data to Components
 
 ```typescript
-
 // ✅ GOOD: Components handle state updates
 export const useLogin = () => {
   return useMutation({
-    mutationFn: ({ email, password }: LoginParams) =>
-      apiClient.login(email, password),
+    mutationFn: ({ email, password }: LoginParams) => apiClient.login(email, password),
     // No onSuccess callbacks that manipulate client state
   });
 };
 
 // In component:
 const loginMutation = useLogin();
-const handleLogin = async (credentials) => {
+const handleLogin = async credentials => {
   try {
     const result = await loginMutation.mutateAsync(credentials);
     authStore.setAuth(result.user); // Component handles state update
@@ -78,14 +76,13 @@ export const queryKeys = {
 #### ❌ Direct State Manipulation in Hooks
 
 ```typescript
-
 // ❌ BAD: Tight coupling between server and client state
 export const useLogin = () => {
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const setAuth = useAuthStore(state => state.setAuth);
 
   return useMutation({
     mutationFn: loginApiCall,
-    onSuccess: (data) => {
+    onSuccess: data => {
       setAuth(data.user); // Hook manipulates client state
     },
   });
@@ -115,10 +112,10 @@ interface AuthState {
   clearAuth: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>(set => ({
   user: null,
   isAuthenticated: false,
-  setAuth: (user) => set({ user, isAuthenticated: true }),
+  setAuth: user => set({ user, isAuthenticated: true }),
   clearAuth: () => set({ user: null, isAuthenticated: false }),
 }));
 ```
@@ -126,7 +123,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 #### 2. Store Composition
 
 ```typescript
-
 // ✅ GOOD: Compose related state
 interface UIState {
   theme: 'light' | 'dark';
@@ -134,7 +130,7 @@ interface UIState {
   activeModal: string | null;
 }
 
-export const useUIStore = create<UIState>((set) => ({
+export const useUIStore = create<UIState>(set => ({
   theme: 'light',
   sidebarOpen: true,
   activeModal: null,
@@ -257,8 +253,7 @@ if (isError) {
 ### Client State Errors
 
 ```typescript
-
-const updateData = useStore((state) => state.updateData);
+const updateData = useStore(state => state.updateData);
 
 const handleUpdate = async () => {
   try {
@@ -305,7 +300,6 @@ test('useChatModels fetches models', async () => {
 ### Testing Client State
 
 ```typescript
-
 import { renderHook, act } from '@testing-library/react';
 
 test('useAuthStore manages auth state', () => {

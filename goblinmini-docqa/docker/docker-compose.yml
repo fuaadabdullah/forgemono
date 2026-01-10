@@ -1,10 +1,10 @@
-version: "3.8"
+version: '3.8'
 
 services:
   docqa:
     build: ..
     ports:
-      - "9000:9000"
+      - '9000:9000'
     environment:
       - DOCQA_TOKEN=${DOCQA_TOKEN:-changeme}
       - REDIS_URL=redis://redis:6379/0
@@ -23,10 +23,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2.0"
+          cpus: '2.0'
           memory: 4G
         reservations:
-          cpus: "0.5"
+          cpus: '0.5'
           memory: 1G
       replicas: 1
       restart_policy:
@@ -38,11 +38,11 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes: []
     command: redis-server --appendonly yes
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 5
@@ -50,10 +50,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
+          cpus: '0.5'
           memory: 512M
         reservations:
-          cpus: "0.1"
+          cpus: '0.1'
           memory: 128M
 
   worker:
@@ -75,10 +75,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.0"
+          cpus: '1.0'
           memory: 2G
         reservations:
-          cpus: "0.2"
+          cpus: '0.2'
           memory: 512M
       replicas: 1
       restart_policy:

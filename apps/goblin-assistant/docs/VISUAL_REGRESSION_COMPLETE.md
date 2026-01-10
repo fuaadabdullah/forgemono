@@ -23,20 +23,22 @@ Visual regression testing has been successfully implemented for the Goblin Assis
 ## 📚 Component Stories Created
 
 ### UI Components (8 stories, 60+ variants)
-| Component | Stories | Description |
-|-----------|---------|-------------|
-| **Button** | 11 | All variants, sizes, states (with icons, disabled, fullWidth) |
-| **Badge** | 10 | Status badges with icons (success, warning, danger, neutral) |
-| **Alert** | 7 | Alert types (info, success, warning, danger) + dismissible |
-| **Tooltip** | 8 | All positions (top, bottom, left, right) with delays |
-| **Grid** | 6 | Responsive layouts with auto-fit toggles |
-| **IconButton** | 9 | Icon-only buttons (all variants and sizes) |
+
+| Component      | Stories | Description                                                   |
+| -------------- | ------- | ------------------------------------------------------------- |
+| **Button**     | 11      | All variants, sizes, states (with icons, disabled, fullWidth) |
+| **Badge**      | 10      | Status badges with icons (success, warning, danger, neutral)  |
+| **Alert**      | 7       | Alert types (info, success, warning, danger) + dismissible    |
+| **Tooltip**    | 8       | All positions (top, bottom, left, right) with delays          |
+| **Grid**       | 6       | Responsive layouts with auto-fit toggles                      |
+| **IconButton** | 9       | Icon-only buttons (all variants and sizes)                    |
 
 ### Application Components (2 stories, 15+ variants)
-| Component | Stories | Description |
-|-----------|---------|-------------|
-| **StatusCard** | 7 | Health status cards (healthy, degraded, down, unknown) |
-| **LoadingSkeleton** | 8 | All skeleton loading states |
+
+| Component           | Stories | Description                                            |
+| ------------------- | ------- | ------------------------------------------------------ |
+| **StatusCard**      | 7       | Health status cards (healthy, degraded, down, unknown) |
+| **LoadingSkeleton** | 8       | All skeleton loading states                            |
 
 **Total**: 68 stories documenting 150+ component states
 
@@ -99,6 +101,7 @@ Value: <your-token>
 ### 3. Enable GitHub Actions
 
 The workflow file is already created at:
+
 ```
 .github/workflows/visual-regression.yml
 ```
@@ -127,6 +130,7 @@ test('Button snapshot', () => {
 ```
 
 Update snapshots:
+
 ```bash
 
 npm test -- -u
@@ -135,6 +139,7 @@ npm test -- -u
 ## 🎨 Storybook Features Enabled
 
 ### 1. Auto-Generated Documentation
+
 Every component has auto-docs with:
 
 - Props table
@@ -143,6 +148,7 @@ Every component has auto-docs with:
 - Code snippets
 
 ### 2. Accessibility Testing (addon-a11y)
+
 Automatic checks for:
 
 - Color contrast (WCAG AA/AAA)
@@ -153,6 +159,7 @@ Automatic checks for:
 View in the "Accessibility" tab for each story.
 
 ### 3. Responsive Testing
+
 Test components at different viewports:
 
 - Mobile (375px)
@@ -162,9 +169,11 @@ Test components at different viewports:
 Use the viewport toolbar in Storybook.
 
 ### 4. Dark/Light Theme Toggle
+
 Theme switcher in toolbar tests both modes.
 
 ### 5. Interactive Controls
+
 Modify component props in real-time via the "Controls" tab.
 
 ## 🔍 Visual Regression Workflow
@@ -238,6 +247,7 @@ npx storybook dev -p 6006 --config-dir apps/goblin-assistant/.storybook
 ## 🎯 Benefits
 
 ### Before (No Visual Testing)
+
 - ❌ Manual visual QA required
 - ❌ Regressions slip through
 - ❌ No component documentation
@@ -245,6 +255,7 @@ npx storybook dev -p 6006 --config-dir apps/goblin-assistant/.storybook
 - ❌ Hard to test accessibility
 
 ### After (Storybook + Chromatic)
+
 - ✅ Automated visual testing
 - ✅ Catch regressions immediately
 - ✅ Living component documentation
@@ -255,18 +266,19 @@ npx storybook dev -p 6006 --config-dir apps/goblin-assistant/.storybook
 
 ## 🚦 Status
 
-| Feature | Status |
-|---------|--------|
-| Storybook Installation | ✅ Complete |
-| Component Stories | ✅ 68 stories created |
-| Accessibility Addon | ✅ Enabled |
-| GitHub Workflow | ✅ Configured |
-| Chromatic Setup | ⏳ Pending project token |
-| Local Snapshots | 🔄 Optional (not yet configured) |
+| Feature                | Status                           |
+| ---------------------- | -------------------------------- |
+| Storybook Installation | ✅ Complete                      |
+| Component Stories      | ✅ 68 stories created            |
+| Accessibility Addon    | ✅ Enabled                       |
+| GitHub Workflow        | ✅ Configured                    |
+| Chromatic Setup        | ⏳ Pending project token         |
+| Local Snapshots        | 🔄 Optional (not yet configured) |
 
 ## 🎉 You're Ready!
 
 Your UI component library is now:
+
 - **Documented** - Browse all components at http://localhost:6006
 - **Tested** - 69 unit tests + 68 visual stories
 - **Accessible** - Automated a11y checks

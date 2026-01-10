@@ -53,11 +53,13 @@ python setup_google_oauth.py --help
 ## Prerequisites
 
 ### Required Tools
+
 - Python 3.7+
 - ngrok CLI (`brew install ngrok` or download from https://ngrok.com)
 - gdrive CLI (optional, for Google Drive upload)
 
 ### Python Dependencies
+
 ```bash
 
 pip install -r requirements-automation.txt
@@ -72,6 +74,7 @@ ngrok config add-authtoken YOUR_TOKEN_HERE
 ```
 
 ### 2. Run Automation
+
 ```bash
 
 python automate_raptor_colab.py
@@ -136,6 +139,7 @@ Step 4: Starting ngrok tunnel on port 8000...
   3. Run cells manually in Colab
 
 ### Colab API Limitations
+
 Google Colab doesn't provide a public API for automated execution. This script provides the foundation but Colab execution requires manual steps.
 
 ### Security
@@ -157,6 +161,7 @@ pkill ngrok
 ```
 
 ### Import Errors
+
 ```bash
 
 pip install nbformat nbconvert requests

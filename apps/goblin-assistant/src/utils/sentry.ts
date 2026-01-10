@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/browser';
 
 // Initialize Sentry with Datadog intake
 Sentry.init({
-  dsn: "https://c751f8c0875fd4e2561e0b0821d4da89@sentry-intake.datadoghq.com/1",
+  dsn: 'https://c751f8c0875fd4e2561e0b0821d4da89@sentry-intake.datadoghq.com/1',
   environment: import.meta.env.VITE_DD_ENV || 'development',
   tracesSampleRate: 1.0,
   // Capture console errors and unhandled promise rejections
@@ -10,13 +10,13 @@ Sentry.init({
     // Add service tag for Datadog
     event.tags = {
       ...event.tags,
-      service: 'GoblinOS Assistant'
+      service: 'GoblinOS Assistant',
     };
 
     // Add environment info
     event.tags = {
       ...event.tags,
-      environment: import.meta.env.VITE_DD_ENV || 'development'
+      environment: import.meta.env.VITE_DD_ENV || 'development',
     };
 
     return event;
@@ -40,7 +40,7 @@ export const sentryErrorTracking = {
   captureException: (error: Error, context?: Record<string, unknown>) => {
     if (context) {
       Sentry.withScope((scope) => {
-        Object.keys(context).forEach(key => {
+        Object.keys(context).forEach((key) => {
           scope.setTag(key, String(context[key]));
         });
         Sentry.captureException(error);
@@ -50,10 +50,14 @@ export const sentryErrorTracking = {
     }
   },
 
-  captureMessage: (message: string, level: 'fatal' | 'error' | 'warning' | 'info' | 'debug' = 'error', context?: Record<string, unknown>) => {
+  captureMessage: (
+    message: string,
+    level: 'fatal' | 'error' | 'warning' | 'info' | 'debug' = 'error',
+    context?: Record<string, unknown>
+  ) => {
     if (context) {
       Sentry.withScope((scope) => {
-        Object.keys(context).forEach(key => {
+        Object.keys(context).forEach((key) => {
           scope.setTag(key, String(context[key]));
         });
         Sentry.captureMessage(message, level);
@@ -65,7 +69,11 @@ export const sentryErrorTracking = {
 
   setUser: setUserContext,
 
-  addBreadcrumb: (message: string, category?: string, level?: 'fatal' | 'error' | 'warning' | 'info' | 'debug') => {
+  addBreadcrumb: (
+    message: string,
+    category?: string,
+    level?: 'fatal' | 'error' | 'warning' | 'info' | 'debug'
+  ) => {
     Sentry.addBreadcrumb({
       message,
       category: category || 'custom',

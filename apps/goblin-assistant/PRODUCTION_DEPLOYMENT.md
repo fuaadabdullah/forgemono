@@ -234,4 +234,3 @@ If you encounter issues:
 **Last Updated**: November 2025
 **Platforms**: Fly.io (Backend), Vercel (Frontend)
 **Database**: Supabase PostgreSQL
-

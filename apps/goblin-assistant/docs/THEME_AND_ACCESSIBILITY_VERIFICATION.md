@@ -23,30 +23,30 @@ All theme system implementations have been verified with **zero regressions** to
 
 ### Lighthouse Audit (December 2, 2025)
 
-| Page | Score | Passed | Warnings | Failed |
-|------|-------|--------|----------|--------|
-| Dashboard | 100/100 | 73 | 0 | 0 |
-| Chat | 100/100 | 73 | 0 | 0 |
-| Search | 100/100 | 73 | 0 | 0 |
-| **Settings** | **100/100** | **73** | **0** | **0** |
-| Providers | 100/100 | 73 | 0 | 0 |
-| Logs | 100/100 | 73 | 0 | 0 |
-| Sandbox | 100/100 | 73 | 0 | 0 |
+| Page         | Score       | Passed | Warnings | Failed |
+| ------------ | ----------- | ------ | -------- | ------ |
+| Dashboard    | 100/100     | 73     | 0        | 0      |
+| Chat         | 100/100     | 73     | 0        | 0      |
+| Search       | 100/100     | 73     | 0        | 0      |
+| **Settings** | **100/100** | **73** | **0**    | **0**  |
+| Providers    | 100/100     | 73     | 0        | 0      |
+| Logs         | 100/100     | 73     | 0        | 0      |
+| Sandbox      | 100/100     | 73     | 0        | 0      |
 
 **Average Score**: 100.0/100 ✅
 **Pages Passed (≥90)**: 7/7 ✅
 
 ### axe-core Audit (December 2, 2025)
 
-| Page | Score | Total | Critical | Serious | Moderate | Minor | Passed |
-|------|-------|-------|----------|---------|----------|-------|--------|
-| Dashboard | 100/100 | 0 | 0 | 0 | 0 | 0 | 21 |
-| Chat | 100/100 | 0 | 0 | 0 | 0 | 0 | 21 |
-| Search | 100/100 | 0 | 0 | 0 | 0 | 0 | 21 |
-| **Settings** | **100/100** | **0** | **0** | **0** | **0** | **0** | **21** |
-| Providers | 100/100 | 0 | 0 | 0 | 0 | 0 | 21 |
-| Logs | 100/100 | 0 | 0 | 0 | 0 | 0 | 21 |
-| Sandbox | 100/100 | 0 | 0 | 0 | 0 | 0 | 21 |
+| Page         | Score       | Total | Critical | Serious | Moderate | Minor | Passed |
+| ------------ | ----------- | ----- | -------- | ------- | -------- | ----- | ------ |
+| Dashboard    | 100/100     | 0     | 0        | 0       | 0        | 0     | 21     |
+| Chat         | 100/100     | 0     | 0        | 0       | 0        | 0     | 21     |
+| Search       | 100/100     | 0     | 0        | 0       | 0        | 0     | 21     |
+| **Settings** | **100/100** | **0** | **0**    | **0**   | **0**    | **0** | **21** |
+| Providers    | 100/100     | 0     | 0        | 0       | 0        | 0     | 21     |
+| Logs         | 100/100     | 0     | 0        | 0       | 0        | 0     | 21     |
+| Sandbox      | 100/100     | 0     | 0        | 0       | 0        | 0     | 21     |
 
 **Average Score**: 100.0/100 ✅
 **Total Violations**: 0 ✅
@@ -151,15 +151,15 @@ dist/assets/react-37a6bc99.js                  162.27 kB
 
 ### WCAG 2.1 Level AA/AAA
 
-| Criterion | Status | Notes |
-|-----------|--------|-------|
-| **1.4.3 Contrast (Minimum)** | ✅ AA | 4.5:1 text, 3:1 UI components |
-| **1.4.6 Contrast (Enhanced)** | ✅ AAA | 7:1 text, 4.5:1 UI (default) |
-| **1.4.11 Non-text Contrast** | ✅ AA | All UI controls meet 3:1 |
-| **1.4.12 Text Spacing** | ✅ AA | Responsive to user adjustments |
-| **2.1.1 Keyboard** | ✅ A | All functions keyboard-accessible |
-| **2.1.2 No Keyboard Trap** | ✅ A | Focus management verified |
-| **4.1.2 Name, Role, Value** | ✅ A | Semantic HTML throughout |
+| Criterion                     | Status | Notes                             |
+| ----------------------------- | ------ | --------------------------------- |
+| **1.4.3 Contrast (Minimum)**  | ✅ AA  | 4.5:1 text, 3:1 UI components     |
+| **1.4.6 Contrast (Enhanced)** | ✅ AAA | 7:1 text, 4.5:1 UI (default)      |
+| **1.4.11 Non-text Contrast**  | ✅ AA  | All UI controls meet 3:1          |
+| **1.4.12 Text Spacing**       | ✅ AA  | Responsive to user adjustments    |
+| **2.1.1 Keyboard**            | ✅ A   | All functions keyboard-accessible |
+| **2.1.2 No Keyboard Trap**    | ✅ A   | Focus management verified         |
+| **4.1.2 Name, Role, Value**   | ✅ A   | Semantic HTML throughout          |
 
 ### High-Contrast Mode
 
@@ -235,12 +235,12 @@ When enabled (`Ctrl+Shift+H` or Settings UI):
 
 ### Build Size Impact
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| CSS Bundle | ~3.8 kB | 4.30 kB | +0.5 kB (+13%) |
-| JS Bundle | ~52.4 kB | 52.90 kB | +0.5 kB (+1%) |
-| Settings Page | ~8.2 kB | 8.75 kB | +0.55 kB (+7%) |
-| Total gzip | ~165 kB | ~167 kB | +2 kB (+1.2%) |
+| Metric        | Before   | After    | Change         |
+| ------------- | -------- | -------- | -------------- |
+| CSS Bundle    | ~3.8 kB  | 4.30 kB  | +0.5 kB (+13%) |
+| JS Bundle     | ~52.4 kB | 52.90 kB | +0.5 kB (+1%)  |
+| Settings Page | ~8.2 kB  | 8.75 kB  | +0.55 kB (+7%) |
+| Total gzip    | ~165 kB  | ~167 kB  | +2 kB (+1.2%)  |
 
 **Verdict**: Minimal impact. The 2 kB increase (compressed) is negligible for the features gained.
 

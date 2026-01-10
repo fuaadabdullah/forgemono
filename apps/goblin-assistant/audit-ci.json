@@ -11,11 +11,7 @@
     "path": "reports"
   },
   "allowlist": [],
-  "path-allowlist": [
-    "/test/",
-    "/tests/",
-    "/spec/"
-  ],
+  "path-allowlist": ["/test/", "/tests/", "/spec/"],
   "ignore-dev-dependencies": false,
   "retry": {
     "count": 3,

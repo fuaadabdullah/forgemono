@@ -134,6 +134,7 @@ For Vercel deployments, add headers in `vercel.json`:
    ```bash
    curl -I https://your-domain.com
    ```
+
 3. **Browser DevTools**: Check Console for CSP violations
 4. **CSP Evaluator**: Use Google's CSP Evaluator tool
 
@@ -147,6 +148,7 @@ For Vercel deployments, add headers in `vercel.json`:
 4. **Font loading issues**: Add font domains to `font-src`
 
 **Debugging:**
+
 - Use browser DevTools Network tab to inspect response headers
 - Check browser Console for CSP violation reports
 - Temporarily relax CSP during development to identify blocked resources
@@ -154,12 +156,14 @@ For Vercel deployments, add headers in `vercel.json`:
 ### Security Monitoring
 
 Monitor for CSP violations using:
+
 - Browser console reports
 - Server logs for blocked requests
 - Security monitoring tools (Sentry)
 
 Regularly review and update CSP based on:
+
 - New features requiring additional resources
 - Security audit findings
 - Third-party service changes</content>
-<parameter name="filePath">/Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/docs/SECURITY.md
+  <parameter name="filePath">/Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/docs/SECURITY.md

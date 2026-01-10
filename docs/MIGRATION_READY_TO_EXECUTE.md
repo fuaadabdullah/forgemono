@@ -18,6 +18,7 @@
 - **Execution**: `bash tools/migrate-to-multirepo.sh`
 
 ### 3. CI/CD Workflows ✅ (NEW!)
+
 All workflows created in `docs/ci-cd-workflows/`:
 
 #### Backend Workflows
@@ -120,6 +121,7 @@ bash tools/migrate-to-multirepo.sh
 **Output**: 5 directories in `/tmp/goblin-migration/`
 
 ### Phase 2: Create GitHub Repositories (15 minutes)
+
 ```bash
 
 # Create 5 repos on GitHub
@@ -141,6 +143,7 @@ git push -u origin main
 ```
 
 ### Phase 4: Copy CI/CD Workflows (10 minutes)
+
 ```bash
 
 # Backend
@@ -180,6 +183,7 @@ gh secret set INFRACOST_API_KEY --org YOUR_ORG
 ```
 
 #### Repository-Specific Secrets
+
 ```bash
 
 # Backend
@@ -236,6 +240,7 @@ gh run watch
 ```
 
 ### Phase 8: Verify Production Setup (1 hour)
+
 ```bash
 
 # Merge develop → main to trigger production deployment
@@ -343,6 +348,7 @@ git push
 ```
 
 ### Option 2: Rollback Deployment
+
 ```bash
 
 # Backend (Render)
@@ -364,17 +370,17 @@ vercel rollback <https://goblin.fuaad.ai>
 
 ## Timeline Estimate
 
-| Phase | Duration | Status |
-|-------|----------|--------|
-| Migration script execution | 30 min | ✅ Ready |
-| GitHub repo creation | 15 min | ⏳ Manual |
-| Initial push | 20 min | ⏳ Manual |
-| Copy CI/CD workflows | 10 min | ⏳ Manual |
-| Configure secrets | 30 min | ⏳ Manual |
-| Configure environments | 20 min | ⏳ Manual |
-| Test staging | 1 hour | ⏳ Manual |
-| Verify production | 1 hour | ⏳ Manual |
-| **Total** | **~4-6 hours** | |
+| Phase                      | Duration       | Status    |
+| -------------------------- | -------------- | --------- |
+| Migration script execution | 30 min         | ✅ Ready  |
+| GitHub repo creation       | 15 min         | ⏳ Manual |
+| Initial push               | 20 min         | ⏳ Manual |
+| Copy CI/CD workflows       | 10 min         | ⏳ Manual |
+| Configure secrets          | 30 min         | ⏳ Manual |
+| Configure environments     | 20 min         | ⏳ Manual |
+| Test staging               | 1 hour         | ⏳ Manual |
+| Verify production          | 1 hour         | ⏳ Manual |
+| **Total**                  | **~4-6 hours** |           |
 
 ---
 
@@ -400,6 +406,7 @@ vercel rollback <https://goblin.fuaad.ai>
 ### 1. EXECUTE MIGRATION (Choose One):
 
 **Option A: Automated**
+
 ```bash
 
 cd /Users/fuaadabdullah/ForgeMonorepo

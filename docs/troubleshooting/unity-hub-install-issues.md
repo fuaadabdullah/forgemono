@@ -39,7 +39,7 @@ macOS / Linux (Terminal):
 
 - Find largest directories to free space if needed:
 
-  sudo du -sh /* | sort -hr | head -n 25
+  sudo du -sh /\* | sort -hr | head -n 25
 
 Windows (PowerShell):
 
@@ -151,12 +151,12 @@ To make this easier, I added two scripts to collect logs & system info:
 
 Usage (macOS/Linux):
 
-  chmod +x tools/scripts/collect_unityhub_report.sh
-  ./tools/scripts/collect_unityhub_report.sh
+chmod +x tools/scripts/collect_unityhub_report.sh
+./tools/scripts/collect_unityhub_report.sh
 
 Usage (Windows - PowerShell):
 
-  .\tools\scripts\collect_unityhub_report.ps1
+.\tools\scripts\collect_unityhub_report.ps1
 
 The scripts collect OS info, disk usage, environment variables (TMP/TEMP/TMPDIR), Unity Hub logs, Editor logs where available and zip them for easy sharing.
 
@@ -165,4 +165,3 @@ If you'd like, I can add a bug template or pre-filled report example that includ
 Last updated: 2025-11-19
 
 ---
-

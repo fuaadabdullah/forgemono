@@ -8,7 +8,9 @@ import axios, {
 
 // Prefer VITE_FASTAPI_URL -> VITE_API_URL -> production backend as default
 const API_BASE_URL =
-  import.meta.env.VITE_FASTAPI_URL || import.meta.env.VITE_API_URL || 'https://goblin-assistant.fly.dev';
+  import.meta.env.VITE_FASTAPI_URL ||
+  import.meta.env.VITE_API_URL ||
+  'https://goblin-assistant.fly.dev';
 
 // Log the resolved API base during runtime to help debug production builds
 console.debug('http-client: API_BASE_URL =', API_BASE_URL);

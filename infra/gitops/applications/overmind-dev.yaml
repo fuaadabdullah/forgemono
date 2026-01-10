@@ -9,7 +9,7 @@ metadata:
   annotations:
     argocd.argoproj.io/manifest-generate-paths: .
   finalizers:
-  - resources-finalizer.argocd.argoproj.io
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
 
@@ -23,7 +23,7 @@ spec:
     kustomize:
       version: v5.0.0
       # KSOPS plugin for SOPS secrets
-      buildOptions: "--enable-alpha-plugins --enable-exec"
+      buildOptions: '--enable-alpha-plugins --enable-exec'
 
   # Destination cluster and namespace
   destination:
@@ -34,16 +34,16 @@ spec:
   syncPolicy:
     # Automated sync
     automated:
-      prune: true        # Remove resources not in Git
-      selfHeal: true     # Revert manual changes
-      allowEmpty: false  # Don't sync if no resources
+      prune: true # Remove resources not in Git
+      selfHeal: true # Revert manual changes
+      allowEmpty: false # Don't sync if no resources
 
     # Sync options
     syncOptions:
-    - CreateNamespace=true           # Auto-create namespace
-    - PrunePropagationPolicy=foreground  # Wait for dependents
-    - PruneLast=true                 # Prune after sync
-    - RespectIgnoreDifferences=true  # Honor ignoreDifferences
+      - CreateNamespace=true # Auto-create namespace
+      - PrunePropagationPolicy=foreground # Wait for dependents
+      - PruneLast=true # Prune after sync
+      - RespectIgnoreDifferences=true # Honor ignoreDifferences
 
     # Retry policy
     retry:
@@ -55,15 +55,15 @@ spec:
 
   # Ignore differences (avoid drift alerts for these fields)
   ignoreDifferences:
-  - group: apps
-    kind: Deployment
-    jsonPointers:
-    - /spec/replicas  # Ignore HPA-managed replicas
-  - group: autoscaling
-    kind: HorizontalPodAutoscaler
-    jsonPointers:
-    - /spec/minReplicas
-    - /spec/maxReplicas
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas # Ignore HPA-managed replicas
+    - group: autoscaling
+      kind: HorizontalPodAutoscaler
+      jsonPointers:
+        - /spec/minReplicas
+        - /spec/maxReplicas
 
   # Resource tracking
   revisionHistoryLimit: 10

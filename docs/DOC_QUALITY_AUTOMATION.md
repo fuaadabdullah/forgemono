@@ -24,6 +24,7 @@ python3 tools/doc-quality/doc_quality_check.py --report docs/reports/quality_rep
 
 1. Ensure Python 3.9+ is installed
 2. Install dependencies:
+
    ```bash
 
    pip install requests pyyaml
@@ -53,7 +54,7 @@ Customize behavior via `tools/doc-quality/doc_quality_config.yaml`:
 
 ```yaml
 api:
-  url: "https://your-api-url.ngrok-free.dev"
+  url: 'https://your-api-url.ngrok-free.dev'
   timeout: 15
 
 quality:
@@ -61,8 +62,8 @@ quality:
   ci_fail_threshold: 70
 
 files:
-  directories: ["docs", "."]
-  extensions: [".md", ".txt", ".rst", ".adoc"]
+  directories: ['docs', '.']
+  extensions: ['.md', '.txt', '.rst', '.adoc']
 ```
 
 ## 🔧 Integration Options
@@ -99,6 +100,7 @@ python3 tools/doc-quality/doc_quality_check.py --ci --min-score 70 --report repo
 ## 📈 Reporting
 
 ### Console Output
+
 ```
 📊 Quality Check Results
 ========================================
@@ -115,6 +117,7 @@ Low quality (<60): 0
 ### Detailed Reports
 
 Generate Markdown reports with:
+
 - Summary statistics
 - Top performing files
 - Files needing improvement
@@ -124,14 +127,17 @@ Generate Markdown reports with:
 ## 🎯 Quality Gates
 
 ### Development
+
 - Minimum score: 60 (configurable)
 - Warnings for scores <80
 
 ### CI/CD
+
 - Fail threshold: 70 (configurable)
 - Blocks merges if not met
 
 ### Pre-commit
+
 - Checks only staged documentation files
 - Can be bypassed with `--no-verify`
 
@@ -193,6 +199,7 @@ python3 tools/doc-quality/doc_quality_check.py --save-responses ./debug_response
 ### Debug Output Examples
 
 **File Discovery Debug:**
+
 ```
 🐛 Debug: Searching for documentation files in: docs/
 🐛 Debug: File extensions: ['.md', '.txt', '.rst', '.adoc']
@@ -201,6 +208,7 @@ python3 tools/doc-quality/doc_quality_check.py --save-responses ./debug_response
 ```
 
 **Timing Debug:**
+
 ```
 🐛 Debug: Starting batch analysis with batch_size=10...
 🐛 Debug: Analysis completed in 2.345s
@@ -209,6 +217,7 @@ python3 tools/doc-quality/doc_quality_check.py --save-responses ./debug_response
 ```
 
 **API Debug:**
+
 ```
 🐛 Debug: API Request #2: POST <https://api.example.com/analyze/file>
 🐛 Debug: Request payload: {"file_path": "/path/to/file.md", "analysis_type": "quality_score"}
@@ -221,15 +230,15 @@ python3 tools/doc-quality/doc_quality_check.py --save-responses ./debug_response
 
 ### CLI Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--api-url` | Raptor Mini API URL | ngrok URL |
-| `--min-score` | Minimum acceptable score | 60 |
-| `--report` | Generate detailed report file | None |
-| `--ci` | CI mode (exit codes) | False |
-| `--batch-size` | Files per batch | 10 |
-| `--quiet` | Suppress progress output | False |
-| `--json` | JSON output format | False |
+| Option         | Description                   | Default   |
+| -------------- | ----------------------------- | --------- |
+| `--api-url`    | Raptor Mini API URL           | ngrok URL |
+| `--min-score`  | Minimum acceptable score      | 60        |
+| `--report`     | Generate detailed report file | None      |
+| `--ci`         | CI mode (exit codes)          | False     |
+| `--batch-size` | Files per batch               | 10        |
+| `--quiet`      | Suppress progress output      | False     |
+| `--json`       | JSON output format            | False     |
 
 ### Exit Codes
 

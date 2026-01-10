@@ -11,20 +11,20 @@ spec:
   validationFailureAction: enforce
   background: false
   rules:
-  - name: verify-image-signatures
-    match:
-      any:
-      - resources:
-          kinds:
-          - Pod
-    verifyImages:
-    - imageReferences:
-      - "overmind-*"
-      - "forge-*"
-      attestors:
-      - entries:
-        - keyless:
-            issuer: "https://token.actions.githubusercontent.com"
-            subject: "https://github.com/your-org/ForgeMonorepo/.github/workflows/container-security.yml@refs/heads/main"
-            rekor:
-              url: https://rekor.sigstore.dev
+    - name: verify-image-signatures
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      verifyImages:
+        - imageReferences:
+            - 'overmind-*'
+            - 'forge-*'
+          attestors:
+            - entries:
+                - keyless:
+                    issuer: 'https://token.actions.githubusercontent.com'
+                    subject: 'https://github.com/your-org/ForgeMonorepo/.github/workflows/container-security.yml@refs/heads/main'
+                    rekor:
+                      url: https://rekor.sigstore.dev

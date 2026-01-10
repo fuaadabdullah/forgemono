@@ -28,6 +28,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \\
 gcloud iam service-accounts keys create colab-reader-key.json \\
   --iam-account=colab-reader@$PROJECT_ID.iam.gserviceaccount.com
 ```
+
 Store `colab-reader-key.json` securely and do not commit it.
 
 Step 3 — Uploading artifacts
@@ -64,9 +65,7 @@ Troubleshooting
 
 ---
 
-
 ## Google Drive alternative
-
 
 If you prefer Google Drive for quick sharing or Colab workflows instead of GCS, follow the steps below.
 

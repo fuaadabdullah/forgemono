@@ -90,19 +90,19 @@ spec:
 
   # Triggers
   triggers:
-  # Prometheus: LLM request rate
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus:9090
-      metricName: llm_requests_per_second
-      query: sum(rate(llm_request_total[1m]))
-      threshold: "10"  # Scale up if > 10 req/sec
+    # Prometheus: LLM request rate
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus:9090
+        metricName: llm_requests_per_second
+        query: sum(rate(llm_request_total[1m]))
+        threshold: '10' # Scale up if > 10 req/sec
 
-  # CPU fallback
-  - type: cpu
-    metricType: Utilization
-    metadata:
-      value: "70"
+    # CPU fallback
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: '70'
 ```
 
 ### Temporal Worker Autoscaling
@@ -110,7 +110,6 @@ spec:
 Scale based on memory consolidation queue depth:
 
 ```yaml
-
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
@@ -126,21 +125,21 @@ spec:
   cooldownPeriod: 300
 
   triggers:
-  # Temporal queue depth (via Prometheus)
+    # Temporal queue depth (via Prometheus)
 
-  - type: prometheus
-    metadata:
-      serverAddress: <http://prometheus:9090>
-      metricName: temporal_queue_depth
-      query: sum(temporal_task_queue_depth{task_queue="overmind-memory"})
-      threshold: "5"  # Scale if > 5 tasks pending
+    - type: prometheus
+      metadata:
+        serverAddress: <http://prometheus:9090>
+        metricName: temporal_queue_depth
+        query: sum(temporal_task_queue_depth{task_queue="overmind-memory"})
+        threshold: '5' # Scale if > 5 tasks pending
 
-  # Memory utilization
+    # Memory utilization
 
-  - type: memory
-    metricType: Utilization
-    metadata:
-      value: "80"
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: '80'
 ```
 
 ### API Server Autoscaling with NATS
@@ -163,25 +162,24 @@ spec:
   cooldownPeriod: 300
 
   triggers:
-  # NATS JetStream: routing decisions queue
-  - type: nats-jetstream
-    metadata:
-      natsServerMonitoringEndpoint: nats:8222
-      stream: routing-decisions
-      consumer: api-consumer
-      lagThreshold: "10"  # Scale if > 10 messages behind
+    # NATS JetStream: routing decisions queue
+    - type: nats-jetstream
+      metadata:
+        natsServerMonitoringEndpoint: nats:8222
+        stream: routing-decisions
+        consumer: api-consumer
+        lagThreshold: '10' # Scale if > 10 messages behind
 
-  # CPU utilization
-  - type: cpu
-    metricType: Utilization
-    metadata:
-      value: "70"
+    # CPU utilization
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: '70'
 ```
 
 ### Bridge Autoscaling (Dev with Scale-to-Zero)
 
 ```yaml
-
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
@@ -195,17 +193,17 @@ spec:
   minReplicaCount: 0
   maxReplicaCount: 5
   pollingInterval: 30
-  cooldownPeriod: 600  # 10 min idle before scaling to 0
+  cooldownPeriod: 600 # 10 min idle before scaling to 0
 
   triggers:
-  # Prometheus: HTTP requests
+    # Prometheus: HTTP requests
 
-  - type: prometheus
-    metadata:
-      serverAddress: <http://prometheus:9090>
-      metricName: http_requests_per_minute
-      query: sum(rate(http_requests_total{service="bridge"}[1m])) * 60
-      threshold: "1"  # Scale up if > 1 req/min
+    - type: prometheus
+      metadata:
+        serverAddress: <http://prometheus:9090>
+        metricName: http_requests_per_minute
+        query: sum(rate(http_requests_total{service="bridge"}[1m])) * 60
+        threshold: '1' # Scale up if > 1 req/min
 ```
 
 ## Advanced Patterns
@@ -233,26 +231,26 @@ spec:
         scaleDown:
           stabilizationWindowSeconds: 300
           policies:
-          - type: Percent
-            value: 50
-            periodSeconds: 60
+            - type: Percent
+              value: 50
+              periodSeconds: 60
 
   triggers:
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus:9090
-      query: sum(rate(llm_request_total[1m]))
-      threshold: "10"
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus:9090
+        query: sum(rate(llm_request_total[1m]))
+        threshold: '10'
 
-  - type: cpu
-    metricType: Utilization
-    metadata:
-      value: "70"
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: '70'
 
-  - type: memory
-    metricType: Utilization
-    metadata:
-      value: "80"
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: '80'
 ```
 
 ### Fallback Policy
@@ -260,7 +258,6 @@ spec:
 Handle metric unavailability:
 
 ```yaml
-
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
@@ -273,16 +270,15 @@ spec:
   maxReplicaCount: 20
 
   fallback:
-    failureThreshold: 3  # Fail after 3 attempts
-    replicas: 5          # Scale to this if metrics unavailable
+    failureThreshold: 3 # Fail after 3 attempts
+    replicas: 5 # Scale to this if metrics unavailable
 
   triggers:
-
-  - type: prometheus
-    metadata:
-      serverAddress: <http://prometheus:9090>
-      query: sum(rate(llm_request_total[1m]))
-      threshold: "10"
+    - type: prometheus
+      metadata:
+        serverAddress: <http://prometheus:9090>
+        query: sum(rate(llm_request_total[1m]))
+        threshold: '10'
 ```
 
 ### Custom Metrics from Prometheus
@@ -300,21 +296,21 @@ spec:
   maxReplicaCount: 20
 
   triggers:
-  # LLM cost per hour
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus:9090
-      metricName: llm_cost_per_hour
-      query: sum(rate(llm_cost_total[1h])) * 3600
-      threshold: "100"  # Scale if cost > $100/hr
+    # LLM cost per hour
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus:9090
+        metricName: llm_cost_per_hour
+        query: sum(rate(llm_cost_total[1h])) * 3600
+        threshold: '100' # Scale if cost > $100/hr
 
-  # Memory consolidation backlog
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus:9090
-      metricName: memory_backlog
-      query: sum(memory_consolidation_queue_depth)
-      threshold: "50"
+    # Memory consolidation backlog
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus:9090
+        metricName: memory_backlog
+        query: sum(memory_consolidation_queue_depth)
+        threshold: '50'
 ```
 
 ## Monitoring

@@ -50,10 +50,12 @@ Run unit tests for doc-quality and raptor-mini:
 ```bash
 python3 -m pytest -q tools/raptor-mini/tests tools/doc-quality/tests
 ```
+
 ## Installation
 
 1. Ensure Python 3.9+ is installed
 1. Install dependencies:
+
    ```bash
 
    pip install requests pyyaml
@@ -67,7 +69,7 @@ Customize behavior via `doc_quality_config.yaml`:
 
 ```yaml
 api:
-  url: "https://your-api-url.ngrok-free.dev"
+  url: 'https://your-api-url.ngrok-free.dev'
   timeout: 15
   retries: 3
 
@@ -78,9 +80,9 @@ quality:
   ci_fail_threshold: 70
 
 files:
-  directories: ["docs", "."]
-  extensions: [".md", ".txt", ".rst", ".adoc"]
-  exclude_patterns: ["**/node_modules/**", "**/.git/**"]
+  directories: ['docs', '.']
+  extensions: ['.md', '.txt', '.rst', '.adoc']
+  exclude_patterns: ['**/node_modules/**', '**/.git/**']
 ```
 
 ## Quality Metrics
@@ -94,6 +96,7 @@ The tool analyzes documentation for:
 - **Readability**: Appropriate language and formatting
 
 **Scoring Scale:**
+
 - **High Quality**: ≥80/100
 - **Medium Quality**: 60-79/100
 - **Low Quality**: <60/100
@@ -101,6 +104,7 @@ The tool analyzes documentation for:
 ## Usage Examples
 
 ### Basic Quality Check
+
 ```bash
 
 python3 doc_quality_check.py
@@ -113,6 +117,7 @@ python3 doc_quality_check.py --ci --min-score 70
 ```
 
 ### Generate Reports
+
 ```bash
 
 python3 doc_quality_check.py --report ../../../docs/reports/quality_report.md
@@ -125,6 +130,7 @@ python3 doc_quality_check.py --debug --debug-api --debug-timing
 ```
 
 ### Save API Responses
+
 ```bash
 
 python3 doc_quality_check.py --save-responses ./debug_responses
@@ -143,7 +149,6 @@ python3 doc_quality_check.py --mode phi_only --soft-fallback --path docs/
 1. Config (persist across runs):
 
 ```yaml
-
 models:
   phi3:
     soft_fallback: true
@@ -156,7 +161,6 @@ export DOC_QUALITY_SOFT_FALLBACK=true
 ```
 
 The pre-commit script will pass `--soft-fallback` on the CLI when set.
-
 
 ## Integration
 
@@ -196,4 +200,4 @@ Add to your CI pipeline:
 - **Quality scoring problems**: Review analysis output for suggestions
 - **Configuration errors**: Validate YAML syntax in config file
 - **Integration issues**: Check CI logs and pre-commit hook output</content>
-<parameter name="filePath">/Users/fuaadabdullah/ForgeMonorepo/tools/doc-quality/README.md
+  <parameter name="filePath">/Users/fuaadabdullah/ForgeMonorepo/tools/doc-quality/README.md

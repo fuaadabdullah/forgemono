@@ -8,7 +8,7 @@ metadata:
     policy: resilience
 spec:
   targetRef:
-    group: ""
+    group: ''
     kind: Service
     name: overmind-api
 
@@ -30,14 +30,14 @@ spec:
     perRetryTimeout: 10s
     retryOn:
       httpStatusCodes:
-      - 500
-      - 502
-      - 503
-      - 504
+        - 500
+        - 502
+        - 503
+        - 504
       triggers:
-      - connect-failure
-      - retriable-4xx
-      - reset
+        - connect-failure
+        - retriable-4xx
+        - reset
 
   # Health check
   healthCheck:
@@ -49,4 +49,4 @@ spec:
       http:
         path: /health
         expectedStatuses:
-        - 200
+          - 200

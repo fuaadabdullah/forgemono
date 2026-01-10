@@ -22,17 +22,17 @@ spec:
             - containerPort: 3100
           resources:
             requests:
-              cpu: "100m"
-              memory: "256Mi"
+              cpu: '100m'
+              memory: '256Mi'
             limits:
-              cpu: "1"
-              memory: "1Gi"
+              cpu: '1'
+              memory: '1Gi'
           volumeMounts:
             - name: config
               mountPath: /etc/loki
           env:
             - name: AWS_REGION
-              value: "us-east-1"
+              value: 'us-east-1'
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -107,4 +107,3 @@ type: Opaque
 data:
   aws_access_key_id: REPLACE_BASE64
   aws_secret_access_key: REPLACE_BASE64
-

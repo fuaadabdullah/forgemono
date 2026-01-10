@@ -1,33 +1,44 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
-import CostEstimationPanel, {
+import { describe, it, expect, beforeEach } from '@jest/globals';
+import CostEstimationPanel from './CostEstimationPanel';
+import {
   computeLocalCostEstimate,
   formatCost,
   getCostColor,
   getCachedRate,
-} from './CostEstimationPanel';
-import { runtimeClient } from '@/api/api-client';
+} from '../../utils/costUtils';
 
-vi.mock('@/api/api-client', () => ({
+// Mock the clients module
+jest.mock('../../clients', () => ({
   runtimeClient: {
-    estimateCost: vi.fn(),
-    estimateCostStream: vi.fn(),
+    getPricing: jest.fn(),
+    getRateLimit: jest.fn(),
   },
-  raptorStatus: vi.fn(),
-  raptorStart: vi.fn(),
-  raptorStop: vi.fn(),
-  raptorLogs: vi.fn(),
 }));
 
-const mockedRuntime = vi.mocked(runtimeClient) as any;
+import { runtimeClient } from '../../clients';
+
+// Mock the API client that the hooks actually use
+jest.mock('../../api/api-client', () => ({
+  runtimeClient: {
+    estimateCost: jest.fn(),
+    estimateCostStream: jest.fn(),
+  },
+  raptorStatus: jest.fn(),
+  raptorStart: jest.fn(),
+  raptorStop: jest.fn(),
+  raptorLogs: jest.fn(),
+}));
+
+const mockedRuntime = require('../../api/api-client').runtimeClient;
 
 describe('CostEstimationPanel', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it('shows placeholder when orchestrationText is empty and calls onEstimatedCostChange(0)', () => {
-    const onChange = vi.fn();
+    const onChange = jest.fn();
     render(<CostEstimationPanel orchestrationText="" onEstimatedCostChange={onChange} />);
     expect(
       screen.getByText(/Enter an orchestration command to see cost estimates/i)
@@ -59,7 +70,7 @@ describe('CostEstimationPanel', () => {
     };
 
     mockedRuntime.estimateCost.mockResolvedValueOnce(fakeEstimate);
-    const onChange = vi.fn();
+    const onChange = jest.fn();
 
     render(
       <CostEstimationPanel orchestrationText="fetch and process" onEstimatedCostChange={onChange} />
@@ -86,7 +97,7 @@ describe('CostEstimationPanel', () => {
   it('falls back to local estimate when backend fails due to missing credentials and shows specific warning', async () => {
     const error = new Error('Missing pricing API credentials');
     mockedRuntime.estimateCost.mockRejectedValueOnce(error);
-    const onChange = vi.fn();
+    const onChange = jest.fn();
 
     // orchestrationText and code inputs
     render(
@@ -145,7 +156,7 @@ describe('CostEstimationPanel', () => {
     const streamChunks = ['Progress 1', 'Progress 2'];
 
     // Provide a streaming function on runtime client mock
-    mockedRuntime.estimateCostStream = vi.fn(
+    mockedRuntime.estimateCostStream = jest.fn(
       async (
         _text: string,
         _code: string,
@@ -185,17 +196,11 @@ describe('CostEstimationPanel', () => {
     // After streaming, the summary should be shown
     await waitFor(() => expect(screen.getByText('Formatted Summary')).toBeInTheDocument());
 
-    // Mock clipboard
-    const writeSpy = vi.fn();
-    const originalNavigator = (globalThis as { navigator?: { clipboard?: { writeText: unknown } } })
-      .navigator;
-    (globalThis as { navigator: { clipboard: { writeText: unknown } } }).navigator = {
-      clipboard: { writeText: writeSpy },
-    };
-
     const copyButton = screen.getByRole('button', { name: /Copy formatted docs/i });
     copyButton.click();
-    expect(writeSpy).toHaveBeenCalled();
+
+    // Check that clipboard.writeText was called
+    expect(navigator.clipboard.writeText).toHaveBeenCalled();
 
     // Copy status should appear in the Badge component, not as a class on the button
     await waitFor(() => {
@@ -203,11 +208,6 @@ describe('CostEstimationPanel', () => {
       // With shadcn/ui Button, the copied state is shown in a Badge, not a class
       expect(copyButton).toBeInTheDocument(); // Button should still exist
     });
-
-    // Cleanup navigator
-    if (originalNavigator) {
-      (globalThis as any).navigator = originalNavigator;
-    }
 
     // Summary content present
     expect(screen.getByText(/totalCost/i)).toBeInTheDocument();

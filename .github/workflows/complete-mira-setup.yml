@@ -2,7 +2,7 @@
 name: Complete Mira Integration
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch: # Manual trigger
   push:
     branches: [main]
     paths: ['mira-linker-config.yml']

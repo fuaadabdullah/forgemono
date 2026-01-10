@@ -1,0 +1,15 @@
+.modular-card {
+  border: 1px solid #e5e7eb;
+  padding: 12px;
+  border-radius: 6px;
+  background-color: #fff;
+}
+.modular-card-title {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.modular-card-content {
+  font-size: 0.9rem;
+  color: #374151;
+}

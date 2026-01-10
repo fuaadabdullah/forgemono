@@ -11,8 +11,8 @@ const ErrorTestingPage: React.FC = () => {
             Error Testing & Datadog Validation
           </h1>
           <p className="text-gray-600">
-            Test Datadog RUM error tracking by generating various types of errors.
-            This page is for development and testing purposes only.
+            Test Datadog RUM error tracking by generating various types of errors. This page is for
+            development and testing purposes only.
           </p>
         </div>
 

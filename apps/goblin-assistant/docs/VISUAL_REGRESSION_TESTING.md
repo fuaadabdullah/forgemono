@@ -109,6 +109,7 @@ export const AllVariants: Story = {
    ```
 
 2. **Add Token to Environment**
+
    ```bash
 
    # .env.local (DO NOT COMMIT)
@@ -170,6 +171,7 @@ test('matches snapshot', () => {
 ```
 
 Update snapshots:
+
 ```bash
 
 npm test -- -u
@@ -208,6 +210,7 @@ jobs:
 ### PR Integration
 
 Chromatic comments on PRs with:
+
 - Visual diff screenshots
 - Link to full review interface
 - Status check (pass/changes detected)
@@ -215,23 +218,27 @@ Chromatic comments on PRs with:
 ## Best Practices
 
 ### 1. Story Coverage
+
 - ✅ Cover all component variants
 - ✅ Include edge cases (empty states, long text)
 - ✅ Test interactive states (hover, focus, disabled)
 - ✅ Document accessibility requirements
 
 ### 2. Visual Stability
+
 - ❌ Avoid random data in stories
 - ❌ Don't use Date.now() or timestamps
 - ✅ Use fixed mock data
 - ✅ Stabilize animations for testing
 
 ### 3. Performance
+
 - Keep story bundles small
 - Lazy load heavy components
 - Use `parameters.chromatic.disableSnapshot` for non-visual stories
 
 ### 4. Accessibility
+
 - Every interactive component needs `aria-label`
 - Test keyboard navigation
 - Document screen reader behavior
@@ -254,10 +261,10 @@ Check that components use correct export style:
 
 ```typescript
 // ✅ Default export
-export default function MyComponent() { }
+export default function MyComponent() {}
 
 // ❌ Named export (requires different import)
-export function MyComponent() { }
+export function MyComponent() {}
 ```
 
 ### Chromatic Timeout
@@ -290,12 +297,14 @@ parameters: {
 ## Metrics
 
 ### Current Coverage
+
 - **UI Components**: 6/6 (100%)
 - **Application Components**: 2/2 (100%)
 - **Total Stories**: 68 stories
 - **Variants Tested**: 150+ component states
 
 ### Quality Gates
+
 - ✅ All components have stories
 - ✅ Accessibility addon enabled
 - ✅ Auto-docs generated

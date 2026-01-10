@@ -29,6 +29,7 @@ async def raptor_start():
 ```
 
 **After:**
+
 ```python
 
 from raptor_mini import raptor  # Real RaptorMini singleton
@@ -68,20 +69,24 @@ async def shutdown_event():
 ### 3. **Enhanced Endpoint Functionality**
 
 #### `/raptor/status`
+
 - **Before:** Returns hardcoded dict
 - **After:** Returns actual `raptor.running` state and configured `ini_path`
 
 #### `/raptor/logs`
+
 - **Before:** Reads `logs/raptor.log` with simple string slicing
 - **After:** Reads from configured log file path via `raptor.cfg.get("logging", "file")` with proper binary/text handling
 
 #### `/raptor/demo/{value}`
+
 - **Before:** Just simulates an error with `raise ValueError("Demo error")`
 - **After:** Uses `@raptor.trace` decorator to test real exception logging when `value == "boom"`
 
 ### 4. **Dependencies Added**
 
 Added to `requirements.txt`:
+
 ```
 psutil>=5.9.0
 ```
@@ -93,11 +98,13 @@ This enables CPU and memory monitoring (gracefully degrades if unavailable).
 ## Features Now Available
 
 ### ✅ Real-Time Performance Monitoring
+
 - **CPU Usage**: Tracks CPU percentage via `psutil.cpu_percent()`
 - **Memory Usage**: Tracks memory percentage via `psutil.virtual_memory().percent`
 - **Configurable Sampling**: Default 200ms sample rate (set in `config/raptor.ini`)
 
 ### ✅ Exception Tracing
+
 Use the `@raptor.trace` decorator on any function:
 
 ```python
@@ -115,6 +122,7 @@ def critical_function():
 - Format: `%(asctime)s %(levelname)s %(message)s`
 
 Sample log output:
+
 ```
 2025-01-15 14:30:12,345 INFO RAPTOR MINI ONLINE
 2025-01-15 14:30:12,547 INFO RAPTOR PERF: CPU: 12.3% | MEM: 45.6%
@@ -145,19 +153,20 @@ enable_dev_flags = false
 
 All endpoints are now backed by real monitoring:
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/raptor/start` | POST | Start Raptor monitoring thread |
-| `/raptor/stop` | POST | Stop Raptor monitoring thread |
-| `/raptor/status` | GET | Get current status (running, config file) |
-| `/raptor/logs` | POST | Retrieve last N chars from log file |
-| `/raptor/demo/{value}` | GET | Test exception tracing (use "boom") |
+| Endpoint               | Method | Description                               |
+| ---------------------- | ------ | ----------------------------------------- |
+| `/raptor/start`        | POST   | Start Raptor monitoring thread            |
+| `/raptor/stop`         | POST   | Stop Raptor monitoring thread             |
+| `/raptor/status`       | GET    | Get current status (running, config file) |
+| `/raptor/logs`         | POST   | Retrieve last N chars from log file       |
+| `/raptor/demo/{value}` | GET    | Test exception tracing (use "boom")       |
 
 ---
 
 ## Testing the Integration
 
 ### 1. Start the Backend
+
 ```bash
 
 cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend
@@ -165,6 +174,7 @@ python start_server.py
 ```
 
 Expected startup log:
+
 ```
 INFO:     Started server process [12345]
 INFO:     Waiting for application startup.
@@ -181,8 +191,8 @@ curl http://localhost:8001/raptor/status
 ```
 
 Response:
-```json
 
+```json
 {
   "running": true,
   "config_file": "config/raptor.ini"
@@ -198,8 +208,8 @@ curl -X POST http://localhost:8001/raptor/logs \
 ```
 
 Response:
-```json
 
+```json
 {
   "log_tail": "2025-01-15 14:30:12,345 INFO RAPTOR MINI ONLINE\n2025-01-15 14:30:12,547 INFO RAPTOR PERF: CPU: 12.3% | MEM: 45.6%\n..."
 }
@@ -212,8 +222,8 @@ curl http://localhost:8001/raptor/demo/boom
 ```
 
 Response:
-```json
 
+```json
 {
   "result": "boom",
   "traced": true
@@ -227,6 +237,7 @@ curl -X POST http://localhost:8001/raptor/logs -H "Content-Type: application/jso
 ```
 
 You should see:
+
 ```
 2025-01-15 14:32:15,123 ERROR RAPTOR EXCEPTION: Traceback (most recent call last):
   File "raptor_mini.py", line 127, in wrapper
@@ -304,7 +315,9 @@ The monitoring system is designed to be **non-invasive** and will not impact API
 ## Next Steps (Optional Enhancements)
 
 ### 1. **Database Persistence for Metrics** (Future)
+
 Currently logs to file. Could add:
+
 ```python
 
 class RaptorMetric(Base):
@@ -316,6 +329,7 @@ class RaptorMetric(Base):
 ```
 
 ### 2. **WebSocket Streaming** (Future)
+
 Real-time log streaming to frontend:
 
 ```python
@@ -326,6 +340,7 @@ async def logs_stream(websocket: WebSocket):
 ```
 
 ### 3. **Alerting Thresholds** (Future)
+
 ```ini
 
 [alerts]
@@ -370,6 +385,7 @@ webhook_url = <https://alerts.example.com>
 ## Deployment Notes
 
 ### For Fly.io
+
 The `fly.toml` configuration includes all environment variables. Raptor will:
 
 - ✅ Start automatically on app startup

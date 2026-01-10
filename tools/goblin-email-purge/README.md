@@ -50,7 +50,7 @@ Examples:
 
 - Attempt automatic unsubscribes (dry-run unless --force provided):
 
-```bash
+````bash
 
 ./run.sh audit --config config.yaml --auto-unsubscribe --force
 
@@ -83,7 +83,7 @@ PyYAML & macOS notes:
 brew install libyaml
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install PyYAML
-```
+````
 
 If PyYAML still doesn't install, it's optional — the CLI includes a fallback minimal parser for simple key:value configs.
 

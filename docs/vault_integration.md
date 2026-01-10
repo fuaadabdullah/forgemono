@@ -86,7 +86,6 @@ Note: The rotation script **does not** integrate with external provider APIs to 
 In CI, rotate keys by calling provider API and writing new values to Vault. Use short-lived Vault dynamic tokens with a limited scope so the CI identity can only write to the path needed.
 
 ```yaml
-
 # Example GitHub Actions step (pseudocode)
 
 - name: Rotate openai key
@@ -111,4 +110,5 @@ In CI, rotate keys by calling provider API and writing new values to Vault. Use 
 - Use RBAC and dynamic tokens for running services.
 
 ---
+
 Last updated: 2025-11-26

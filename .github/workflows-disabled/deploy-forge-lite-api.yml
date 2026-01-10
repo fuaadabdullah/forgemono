@@ -2,7 +2,7 @@ name: Deploy Forge Lite API to ECS
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'apps/forge-lite/api/**'
       - '.github/workflows/deploy-forge-lite-api.yml'
@@ -14,8 +14,8 @@ on:
         default: 'staging'
         type: choice
         options:
-        - staging
-        - production
+          - staging
+          - production
 
 jobs:
   build-and-deploy:

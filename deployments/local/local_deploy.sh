@@ -1,4 +1,10 @@
 #!/bin/bash
+# Project: Goblin AI System
+# Script: local_deploy.sh
+# Purpose: Local LLM Deployment Script
+# Date: 2025-12-12
+# Maintainer: fuaadabdullah
+# Usage: ./local_deploy.sh
 set -e
 
 echo "🚀 Local LLM Deployment Script"

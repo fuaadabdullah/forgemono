@@ -23,7 +23,7 @@
 3. Add automated startup script to GoblinOS
 
 ### Test Commands:
-curl -X POST <http://127.0.0.1:8080/completions> \
-  -H "Content-Type: application/json" \
-  -d '{"prompt": "Hello world", "max_tokens": 50}'
 
+curl -X POST <http://127.0.0.1:8080/completions> \
+ -H "Content-Type: application/json" \
+ -d '{"prompt": "Hello world", "max_tokens": 50}'

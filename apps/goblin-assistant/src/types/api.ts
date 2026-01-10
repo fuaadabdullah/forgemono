@@ -143,22 +143,6 @@ export interface HealthStatus {
 // Orchestration Types
 // ============================================================================
 
-export interface OrchestrationPlan {
-  id: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  tasks: Array<{
-    id: string;
-    name: string;
-    description: string;
-    status: 'pending' | 'running' | 'completed' | 'failed';
-    dependencies?: string[];
-    estimated_duration?: number;
-  }>;
-  created_at: string;
-  updated_at?: string;
-  metadata?: Record<string, unknown>;
-}
-
 export interface CreateOrchestrationRequest {
   text: string;
   default_goblin?: string;
@@ -276,22 +260,17 @@ export function isApiSuccess<T>(response: unknown): response is ApiSuccessRespon
 }
 
 export function isHealthStatus(data: unknown): data is HealthStatus {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'overall' in data &&
-    'services' in data
-  );
+  return typeof data === 'object' && data !== null && 'overall' in data && 'services' in data;
 }
 
 export function isOrchestrationPlan(data: unknown): data is OrchestrationPlan {
   return (
     typeof data === 'object' &&
     data !== null &&
-    'id' in data &&
-    'status' in data &&
-    'tasks' in data &&
-    Array.isArray((data as OrchestrationPlan).tasks)
+    'steps' in data &&
+    'total_batches' in data &&
+    'max_parallel' in data &&
+    Array.isArray((data as OrchestrationPlan).steps)
   );
 }
 
@@ -306,9 +285,153 @@ export function isTaskExecutionResponse(data: unknown): data is TaskExecutionRes
 }
 
 export function isChatCompletionResponse(data: unknown): data is ChatCompletionResponse {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    ('choices' in data || 'content' in data)
-  );
+  return typeof data === 'object' && data !== null && ('choices' in data || 'content' in data);
+}
+
+// ============================================================================
+// Runtime Client Types (from api-client.ts refactoring)
+// ============================================================================
+
+export interface RuntimeClient {
+  getGoblins(): Promise<GoblinStatus[]>;
+  getProviders(): Promise<string[]>;
+  getProviderModels(provider: string): Promise<string[]>;
+  executeTask(
+    goblin: string,
+    task: string,
+    streaming?: boolean,
+    code?: string,
+    provider?: string,
+    model?: string
+  ): Promise<string>;
+  executeTaskStreaming(
+    goblin: string,
+    task: string,
+    onChunk: (chunk: StreamChunk) => void,
+    onComplete?: (response: TaskResponse) => void,
+    code?: string,
+    provider?: string,
+    model?: string
+  ): Promise<void>;
+  setProviderApiKey(provider: string, key: string): Promise<void>;
+  storeApiKey(provider: string, key: string): Promise<void>;
+  getApiKey(provider: string): Promise<string | null>;
+  clearApiKey(provider: string): Promise<void>;
+  getHistory(goblin: string, limit?: number): Promise<MemoryEntry[]>;
+  getStats(goblin: string): Promise<GoblinStats>;
+  getCostSummary(): Promise<CostSummary>;
+  parseOrchestration(text: string, defaultGoblin?: string): Promise<OrchestrationPlan>;
+  onTaskStream(callback: (payload: StreamChunk) => void): Promise<void>;
+  // Authentication methods
+  login(email: string, password: string): Promise<{ token: string; user: User }>;
+  register(email: string, password: string, name?: string): Promise<{ token: string; user: User }>;
+  logout(): Promise<void>;
+  validateToken(token: string): Promise<{ valid: boolean; user?: User }>;
+}
+
+export interface GoblinStatus {
+  id: string;
+  name: string;
+  title: string;
+  status: string;
+  guild?: string;
+}
+
+export interface ProviderSettings {
+  name: string;
+  api_key?: string;
+  base_url?: string;
+  models: string[];
+  enabled: boolean;
+}
+
+export interface ModelSettings {
+  name: string;
+  provider: string;
+  model_id: string;
+  temperature?: number;
+  max_tokens?: number;
+  enabled: boolean;
+}
+
+export interface SettingsResponse {
+  providers: ProviderSettings[];
+  models: ModelSettings[];
+  default_provider?: string;
+  default_model?: string;
+}
+
+export interface GoblinResponse {
+  goblin: string;
+  task: string;
+  reasoning: string;
+  tool?: string;
+  command?: string;
+  output?: string;
+  duration_ms: number;
+  cost?: number;
+  model?: string;
+  provider?: string;
+}
+
+export interface MemoryEntry {
+  id: string;
+  goblin: string;
+  task: string;
+  response: string;
+  timestamp: number;
+  kpis?: string;
+}
+
+export interface CostSummary {
+  total_cost: number;
+  cost_by_provider: Record<string, number>;
+  cost_by_model: Record<string, number>;
+}
+
+export interface OrchestrationStep {
+  id: string;
+  goblin: string;
+  task: string;
+  dependencies: string[];
+  batch: number;
+}
+
+export interface OrchestrationPlan {
+  steps: OrchestrationStep[];
+  total_batches: number;
+  max_parallel: number;
+  estimated_cost?: number;
+}
+
+export interface StreamEvent {
+  content: string;
+  done: boolean;
+}
+
+export interface GoblinStats {
+  total_tasks?: number;
+  total_cost?: number;
+  avg_duration_ms?: number;
+  success_rate?: number;
+  [key: string]: unknown; // Allow additional dynamic properties
+}
+
+export interface StreamChunk {
+  content?: string;
+  result?: unknown;
+  done?: boolean;
+  [key: string]: unknown; // Allow additional dynamic properties
+}
+
+export interface TaskResponse {
+  taskId?: string;
+  result?: unknown;
+  [key: string]: unknown; // Allow additional dynamic properties
+}
+
+export interface DemoStepData {
+  response: string;
+  cost: number;
+  tokens: number;
 }

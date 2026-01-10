@@ -28,9 +28,9 @@ export function StreamDemo() {
         },
         onChunk: (chunk: string | { data?: string; [key: string]: unknown }) => {
           // chunk may be object (delta) or string
-          if (typeof chunk === 'string') setText(prev => prev + chunk);
-          else if (chunk.data) setText(prev => prev + chunk.data);
-          else setText(prev => prev + JSON.stringify(chunk));
+          if (typeof chunk === 'string') setText((prev) => prev + chunk);
+          else if (chunk.data) setText((prev) => prev + chunk.data);
+          else setText((prev) => prev + JSON.stringify(chunk));
         },
         onDone: () => {
           setStreaming(false);

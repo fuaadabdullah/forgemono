@@ -4,7 +4,6 @@ about: Create a report to help us improve
 title: '[BUG] '
 labels: bug
 assignees: ''
-
 ---
 
 ## Bug Description
@@ -48,4 +47,3 @@ Add any other context about the problem here, such as:
 ## Possible Solution
 
 If you have any ideas on how to fix this issue, please describe them here.
-

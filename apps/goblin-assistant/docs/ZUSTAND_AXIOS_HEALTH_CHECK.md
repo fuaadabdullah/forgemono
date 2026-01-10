@@ -87,6 +87,7 @@ export const useAuthStore = create<AuthState>()(
 ## Axios Status ✅
 
 ### Package Information
+
 - **Version**: 1.13.2
 - **Location**: `dependencies` in `package.json`
 - **Import**: `import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios'`
@@ -122,23 +123,24 @@ class ApiClient {
 
 ```typescript
 this.client.interceptors.request.use(
-  (config) => {
+  config => {
     const token = useAuthStore.getState().token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  error => Promise.reject(error)
 );
 ```
+
 ✅ Properly adds JWT token to all requests
 
 **Response Interceptor**:
-```typescript
 
+```typescript
 this.client.interceptors.response.use(
-  (response) => response,
+  response => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       useAuthStore.getState().clearAuth();
@@ -147,6 +149,7 @@ this.client.interceptors.response.use(
   }
 );
 ```
+
 ✅ Properly handles 401 Unauthorized by clearing auth state
 
 ### Error Handling ✅
@@ -163,6 +166,7 @@ private handleError(error: AxiosError): Error {
   }
 }
 ```
+
 ✅ Comprehensive error handling for all axios error types
 
 ### Usage Locations (9+ files)
@@ -238,14 +242,14 @@ VITE v4.3.2  ready in 340 ms
 The two libraries work together seamlessly:
 
 1. **Login Flow**:
-   ```typescript
 
+   ```typescript
    // User logs in via ModularLoginForm
    const response = await apiClient.login(email, password);
-   
+
    // Zustand stores the token
    useAuthStore.getState().setAuth(response.access_token, { email });
-   
+
    // Axios interceptor picks up token for future requests
    ```
 
@@ -258,8 +262,8 @@ The two libraries work together seamlessly:
    ```
 
 3. **Token Expiry**:
-   ```typescript
 
+   ```typescript
    // Axios response interceptor clears Zustand on 401
    if (error.response?.status === 401) {
      useAuthStore.getState().clearAuth();
@@ -319,11 +323,11 @@ All TypeScript definitions are correct and properly typed.
 
 ### Bundle Impact
 
-| Library | Gzipped Size | % of Total |
-|---------|--------------|------------|
-| Zustand | ~1.2 KB | 0.07% |
-| Axios | ~13 KB | 0.76% |
-| **Total** | **~14.2 KB** | **0.83%** |
+| Library   | Gzipped Size | % of Total |
+| --------- | ------------ | ---------- |
+| Zustand   | ~1.2 KB      | 0.07%      |
+| Axios     | ~13 KB       | 0.76%      |
+| **Total** | **~14.2 KB** | **0.83%**  |
 
 ✅ Both libraries have minimal bundle impact
 
@@ -383,8 +387,8 @@ If you want to improve further (not urgent):
    ```
 
 2. **Request Retry**:
-   ```typescript
 
+   ```typescript
    // Add axios-retry for transient failures
    import axiosRetry from 'axios-retry';
    axiosRetry(this.client, { retries: 3 });
@@ -399,8 +403,8 @@ If you want to improve further (not urgent):
    ```
 
 4. **Telemetry**:
-   ```typescript
 
+   ```typescript
    // Add request/response logging for debugging
    this.client.interceptors.request.use(logRequest);
    this.client.interceptors.response.use(logResponse);

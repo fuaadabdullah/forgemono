@@ -54,6 +54,7 @@ terraform apply -var-file=terraform.tfvars
 ```
 
 #### 2. Run Production Migration
+
 ```bash
 
 # With real Bitwarden access
@@ -76,6 +77,7 @@ rm -f .env.production.legacy
 ```
 
 #### 4. Remove Legacy Systems
+
 ```bash
 
 # Uninstall Bitwarden CLI components

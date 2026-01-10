@@ -40,20 +40,20 @@ function App() {
       callback: () => {
         const current = getHighContrastPreference();
         enableHighContrast(!current);
-      }
+      },
     },
     {
       ...SHORTCUTS.THEME_DEFAULT,
-      callback: () => applyThemePreset('default')
+      callback: () => applyThemePreset('default'),
     },
     {
       ...SHORTCUTS.THEME_NOCTURNE,
-      callback: () => applyThemePreset('nocturne')
+      callback: () => applyThemePreset('nocturne'),
     },
     {
       ...SHORTCUTS.THEME_EMBER,
-      callback: () => applyThemePreset('ember')
-    }
+      callback: () => applyThemePreset('ember'),
+    },
   ]);
 
   // Health check after mount
@@ -101,51 +101,58 @@ function App() {
   return (
     <ContrastModeProvider>
       <Router>
-          {/* Visually hidden live region to announce page title changes */}
-          <div aria-live="polite" aria-atomic="true" className="sr-only" id="aria-page-title">
-            {typeof document !== 'undefined' ? document.title : 'Goblin Assistant'}
-          </div>
-          {!isAuthenticated ? (
-            <main>
-              <LoginPage />
-            </main>
-          ) : (
-        <div className="min-h-screen bg-bg">
-          <Navigation onLogout={handleLogout} showLogout={true} />
-          {/* Skip to content link for keyboard users */}
-          <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 bg-surface text-text px-3 py-2 rounded-md">Skip to main content</a>
-          <div className="max-w-[1200px] mx-auto p-6">
-            <main role="main" id="main-content" tabIndex={-1}>
-              <Suspense fallback={
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-sm text-muted">Loading page...</p>
-                  </div>
-                </div>
-              }>
-                <Routes>
-                  {/* Root dashboard */}
-                  <Route path="/" element={<EnhancedDashboard />} />
-                  {/* Legacy alias if deep links existed */}
-                  <Route path="/dashboard" element={<EnhancedDashboard />} />
-                  <Route path="/chat" element={<Chat />} />
-                  <Route path="/search" element={<Search />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/providers" element={<EnhancedProvidersPage />} />
-                  {/* Code-split routes for better initial bundle size */}
-                  <Route path="/sandbox" element={<SandboxPage />} />
-                  <Route path="/logs" element={<LogsPage />} />
-                  <Route path="/execute" element={<TaskExecution />} />
-                  <Route path="/orchestrate" element={<Orchestration />} />
-                  {/* Fallback */}
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </Suspense>
-            </main>
-          </div>
+        {/* Visually hidden live region to announce page title changes */}
+        <div aria-live="polite" aria-atomic="true" className="sr-only" id="aria-page-title">
+          {typeof document !== 'undefined' ? document.title : 'Goblin Assistant'}
         </div>
-          )}
+        {!isAuthenticated ? (
+          <main>
+            <LoginPage />
+          </main>
+        ) : (
+          <div className="min-h-screen bg-bg">
+            <Navigation onLogout={handleLogout} showLogout={true} />
+            {/* Skip to content link for keyboard users */}
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 bg-surface text-text px-3 py-2 rounded-md"
+            >
+              Skip to main content
+            </a>
+            <div className="max-w-[1200px] mx-auto p-6">
+              <main role="main" id="main-content" tabIndex={-1}>
+                <Suspense
+                  fallback={
+                    <div className="min-h-screen flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                        <p className="text-sm text-muted">Loading page...</p>
+                      </div>
+                    </div>
+                  }
+                >
+                  <Routes>
+                    {/* Root dashboard */}
+                    <Route path="/" element={<EnhancedDashboard />} />
+                    {/* Legacy alias if deep links existed */}
+                    <Route path="/dashboard" element={<EnhancedDashboard />} />
+                    <Route path="/chat" element={<Chat />} />
+                    <Route path="/search" element={<Search />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/providers" element={<EnhancedProvidersPage />} />
+                    {/* Code-split routes for better initial bundle size */}
+                    <Route path="/sandbox" element={<SandboxPage />} />
+                    <Route path="/logs" element={<LogsPage />} />
+                    <Route path="/execute" element={<TaskExecution />} />
+                    <Route path="/orchestrate" element={<Orchestration />} />
+                    {/* Fallback */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Suspense>
+              </main>
+            </div>
+          </div>
+        )}
       </Router>
     </ContrastModeProvider>
   );

@@ -26,19 +26,21 @@ CORS_ORIGINS=http://localhost:3000,https://yourdomain.com,https://www.yourdomain
 ### 1. Rate Limiting (slowapi)
 
 **Default Limits:**
+
 - Auth endpoints: 10 requests/minute
 - Chat endpoints: 30 requests/minute
 - Health endpoints: 60 requests/minute
 - General API: 100 requests/minute
 
 **How it works:**
+
 - Tracks by client IP address
 - Returns 429 status when exceeded
 - Includes `retry_after` in response
 
 **Response format:**
-```json
 
+```json
 {
   "error": "rate_limit_exceeded",
   "message": "Rate limit exceeded: 10 per 1 minute",
@@ -72,6 +74,7 @@ CORS_ORIGINS=http://localhost:3000,https://yourdomain.com,https://www.yourdomain
 ```
 
 **Correlation ID:**
+
 - Added to every request automatically
 - Returned in `X-Correlation-ID` response header
 - Use for debugging across distributed systems
@@ -188,6 +191,7 @@ scrape_configs:
 ```
 
 **2. Install Grafana:**
+
 ```bash
 
 # Add Prometheus as data source in Grafana
@@ -223,8 +227,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High error rate detected"
-          description: "Error rate is {{ $value }} errors/sec"
+          summary: 'High error rate detected'
+          description: 'Error rate is {{ $value }} errors/sec'
 
       # Slow response time
       - alert: SlowResponseTime
@@ -233,8 +237,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Slow API response time"
-          description: "P95 latency is {{ $value }}s"
+          summary: 'Slow API response time'
+          description: 'P95 latency is {{ $value }}s'
 
       # Service down
       - alert: ServiceUnhealthy
@@ -243,7 +247,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Service {{ $labels.service_name }} is unhealthy"
+          summary: 'Service {{ $labels.service_name }} is unhealthy'
 
       # High chat completion errors
       - alert: HighChatCompletionErrors
@@ -252,13 +256,14 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High chat completion error rate"
-          description: "Provider {{ $labels.provider }}: {{ $value }} errors/sec"
+          summary: 'High chat completion error rate'
+          description: 'Provider {{ $labels.provider }}: {{ $value }} errors/sec'
 ```
 
 ### Log Aggregation
 
 **Option 1: ELK Stack (Elasticsearch, Logstash, Kibana)**
+
 ```bash
 
 # Logs are already in JSON format
@@ -279,6 +284,7 @@ DD_API_KEY=<your_key> DD_SITE="datadoghq.com" bash -c "$(curl -L https://s3.amaz
 ```
 
 **Option 3: CloudWatch (AWS)**
+
 ```bash
 
 # Use awslogs driver for Docker
@@ -314,6 +320,7 @@ done
 ```
 
 **2. Check structured logs:**
+
 ```bash
 
 # Start server and watch logs
@@ -333,6 +340,7 @@ curl http://localhost:8001/metrics
 ```
 
 **4. Run load test:**
+
 ```bash
 
 locust -f backend/tests/load_test.py --host=<http://localhost:8001> \
@@ -372,8 +380,8 @@ locust -f backend/tests/load_test.py --host=<http://localhost:8001> \
    - Add request size limits
    - Enable CORS only for trusted origins
 
-  ### Privacy & Vector DB / RAG (Guidance)
+### Privacy & Vector DB / RAG (Guidance)
 
-  - Do NOT embed PII or secrets into vector stores (Chroma) or include them in prompts to third-party LLM providers. Sanitize and check consent before creating embeddings.
-  - Apply TTLs for conversation context and vector DB entries, and implement automated purge or deletion paths for sensitive data.
-  - Store only hashed/anonymized metadata in logs; avoid logging raw user messages or secrets. If a snippet is necessary for debugging, mask or pseudonymize it and keep it under strict access controls.
+- Do NOT embed PII or secrets into vector stores (Chroma) or include them in prompts to third-party LLM providers. Sanitize and check consent before creating embeddings.
+- Apply TTLs for conversation context and vector DB entries, and implement automated purge or deletion paths for sensitive data.
+- Store only hashed/anonymized metadata in logs; avoid logging raw user messages or secrets. If a snippet is necessary for debugging, mask or pseudonymize it and keep it under strict access controls.

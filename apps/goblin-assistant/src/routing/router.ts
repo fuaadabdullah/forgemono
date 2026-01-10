@@ -28,7 +28,7 @@ const DEFAULT_TIMEOUT_MS = config.default_timeout_ms || 12000;
 function movingAvg(arr: number[], n = 8): number | null {
   if (!arr || arr.length === 0) return null;
   const tail = arr.slice(-n);
-  const sum = tail.reduce((s, x) => s + x, 0);
+  const sum = tail.reduce((s, currentValue) => s + currentValue, 0);
   return sum / tail.length;
 }
 
@@ -79,7 +79,7 @@ export function topProvidersFor(
   limit = 6
 ): string[] {
   const items: [number, string][] = [];
-  Object.keys(PROVIDERS).forEach(pid => {
+  Object.keys(PROVIDERS).forEach((pid) => {
     try {
       const s = scoreProvider(pid, capability, preferLocal, preferCost);
       if (s !== Infinity) items.push([s, pid]);
@@ -88,21 +88,43 @@ export function topProvidersFor(
     }
   });
   items.sort((a, b) => a[0] - b[0]);
-  return items.slice(0, limit).map(x => x[1]);
+  return items.slice(0, limit).map((x) => x[1]);
 }
 
 // minimal frontend router call to your backend route endpoint
+/**
+ * Routes AI tasks to the most appropriate provider based on task type and preferences
+ *
+ * This function acts as the frontend interface to the backend routing system,
+ * which intelligently selects between local models, cloud providers, and cost-optimized options.
+ *
+ * @param taskType - The type of AI task (e.g., 'chat', 'completion', 'embedding')
+ * @param payload - Task-specific data and parameters
+ * @param opts - Routing preferences and constraints
+ * @param opts.preferLocal - Prioritize local/edge models when available
+ * @param opts.preferCost - Optimize for cost efficiency over speed
+ * @returns Promise resolving to routing result with provider selection and response
+ * @throws {Error} When routing fails or no suitable provider is available
+ *
+ * @example
+ * ```typescript
+ * const result = await routeTaskFrontend('chat', {
+ *   messages: [{ role: 'user', content: 'Hello!' }],
+ *   model: 'gpt-4'
+ * }, { preferLocal: true });
+ * ```
+ */
 export async function routeTaskFrontend(
   taskType: string,
   payload: unknown,
   opts?: { preferLocal?: boolean; preferCost?: boolean }
 ) {
-  const res = await fetch('/api/route_task', {
+  const routingResponse = await fetch('/api/route_task', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ task_type: taskType, payload, opts }),
   });
-  return await res.json();
+  return await routingResponse.json();
 }
 
 export default {

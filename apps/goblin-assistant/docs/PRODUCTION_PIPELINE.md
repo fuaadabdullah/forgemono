@@ -35,15 +35,15 @@ This is the **villain-level production pipeline** that makes solo developers loo
 
 Store these in your Bitwarden "Infra Vault" folder:
 
-| Secret | Bitwarden Item Name | Purpose |
-|--------|-------------------|---------|
-| FastAPI SECRET_KEY | `goblin-prod-fastapi-secret` | App secret key |
-| Database URL | `goblin-prod-db-url` | Production database connection |
-| Cloudflare Token | `goblin-prod-cloudflare` | CDN/API token |
-| OpenAI API Key | `goblin-prod-openai` | LLM provider key |
-| JWT Secret | `goblin-prod-jwt` | Token signing secret |
-| Fly.io Token | `goblin-prod-fly-token` | Deployment authentication |
-| SSH Private Key | `goblin-ssh-private-key` | Deployment SSH access |
+| Secret             | Bitwarden Item Name          | Purpose                        |
+| ------------------ | ---------------------------- | ------------------------------ |
+| FastAPI SECRET_KEY | `goblin-prod-fastapi-secret` | App secret key                 |
+| Database URL       | `goblin-prod-db-url`         | Production database connection |
+| Cloudflare Token   | `goblin-prod-cloudflare`     | CDN/API token                  |
+| OpenAI API Key     | `goblin-prod-openai`         | LLM provider key               |
+| JWT Secret         | `goblin-prod-jwt`            | Token signing secret           |
+| Fly.io Token       | `goblin-prod-fly-token`      | Deployment authentication      |
+| SSH Private Key    | `goblin-ssh-private-key`     | Deployment SSH access          |
 
 ### SSH Key Setup
 
@@ -69,11 +69,11 @@ This will guide you through:
 
 ### Development Secrets (for local parity)
 
-| Secret | Bitwarden Item Name | Purpose |
-|--------|-------------------|---------|
-| FastAPI SECRET_KEY | `goblin-dev-fastapi-secret` | Dev app secret |
-| Database URL | `goblin-dev-db-url` | Development database |
-| OpenAI API Key | `goblin-dev-openai` | Dev LLM key |
+| Secret             | Bitwarden Item Name         | Purpose              |
+| ------------------ | --------------------------- | -------------------- |
+| FastAPI SECRET_KEY | `goblin-dev-fastapi-secret` | Dev app secret       |
+| Database URL       | `goblin-dev-db-url`         | Development database |
+| OpenAI API Key     | `goblin-dev-openai`         | Dev LLM key          |
 
 ---
 
@@ -119,6 +119,7 @@ This will guide you through:
    ```
 
 2. **Login to Fly.io**:
+
    ```bash
 
    flyctl auth login
@@ -131,6 +132,7 @@ This will guide you through:
    ```
 
 4. **Deploy initially**:
+
    ```bash
 
    flyctl deploy
@@ -285,6 +287,7 @@ curl -f https://goblin-assistant.fly.dev/health
 ### Alerts
 
 Set up alerts for:
+
 - Deployment failures
 - Health check failures
 - Resource usage spikes
@@ -296,7 +299,6 @@ Set up alerts for:
 ### Blue-Green Deployments
 
 ```yaml
-
 # In CircleCI config
 
 - run:
@@ -400,16 +402,16 @@ flyctl releases rollback <previous-release-id>
 
 ## 📚 File Reference
 
-| File | Purpose |
-|------|---------|
-| `.circleci/config.yml` | CI/CD pipeline configuration |
-| `.circleci/fetch_secrets.sh` | Secret retrieval script |
-| `fly.toml` | Fly.io app configuration |
-| `deploy-fly.sh` | Manual deployment script |
-| `scripts/load_env.sh` | Local development secrets |
-| `scripts/setup_bitwarden.sh` | Vault initialization |
-| `scripts/setup_ssh_key.sh` | SSH key vault setup |
-| `scripts/test_vault.sh` | Vault connectivity testing |
+| File                         | Purpose                      |
+| ---------------------------- | ---------------------------- |
+| `.circleci/config.yml`       | CI/CD pipeline configuration |
+| `.circleci/fetch_secrets.sh` | Secret retrieval script      |
+| `fly.toml`                   | Fly.io app configuration     |
+| `deploy-fly.sh`              | Manual deployment script     |
+| `scripts/load_env.sh`        | Local development secrets    |
+| `scripts/setup_bitwarden.sh` | Vault initialization         |
+| `scripts/setup_ssh_key.sh`   | SSH key vault setup          |
+| `scripts/test_vault.sh`      | Vault connectivity testing   |
 
 ---
 

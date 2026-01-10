@@ -10,6 +10,7 @@
 ## Task Inventory
 
 ### 1. Provider Health Check (`tasks.provider_probe_worker.probe_all_providers`)
+
 **Status**: ✅ MIGRATED to APScheduler
 **Classification**: REPLACE (Light)
 **Current Implementation**: APScheduler job in `jobs/provider_health.py`
@@ -27,6 +28,7 @@
 ---
 
 ### 2. System Health Check (`tasks.monitoring_worker.system_health_check`)
+
 **Status**: ✅ MIGRATED to APScheduler
 **Classification**: REPLACE (Light)
 **Current Implementation**: APScheduler job in `jobs/system_health.py`
@@ -44,6 +46,7 @@
 ---
 
 ### 3. Database Cleanup (`tasks.cleanup_worker.cleanup_expired_data`)
+
 **Status**: ✅ MIGRATED to APScheduler
 **Classification**: REPLACE (Light)
 **Current Implementation**: APScheduler job in `jobs/cleanup.py`
@@ -61,6 +64,7 @@
 ---
 
 ### 4. Model Performance Report (`tasks.model_training_worker.generate_performance_report`)
+
 **Status**: ❌ KEEP in Celery
 **Classification**: KEEP (Heavy)
 **Current Implementation**: Celery beat schedule (every 12 hours)
@@ -78,6 +82,7 @@
 ---
 
 ### 5. Data Processing Worker (`tasks.data_processing_worker.*`)
+
 **Status**: ❌ KEEP in Celery
 **Classification**: KEEP (Heavy)
 **Current Implementation**: Not fully implemented (referenced in config)
@@ -95,6 +100,7 @@
 ---
 
 ### 6. Model Training Worker (`tasks.model_training_worker.*`)
+
 **Status**: ❌ KEEP in Celery
 **Classification**: KEEP (Heavy)
 **Current Implementation**: Partially implemented (performance reports only)
@@ -112,6 +118,7 @@
 ---
 
 ### 7. Notification Worker (`tasks.notification_worker.*`)
+
 **Status**: ❌ KEEP in Celery
 **Classification**: KEEP (Heavy)
 **Current Implementation**: Not implemented (referenced in config)
@@ -129,6 +136,7 @@
 ---
 
 ### 8. Generic Task Processor (`celery_task_queue.process_task_celery`)
+
 **Status**: ❌ KEEP in Celery
 **Classification**: KEEP (Heavy)
 **Current Implementation**: RQ replacement in `celery_task_queue.py`
@@ -146,6 +154,7 @@
 ## Migration Decision Framework
 
 ### REPLACE (Lightweight Tasks)
+
 **Criteria**:
 
 - Runtime < 5 minutes
@@ -158,6 +167,7 @@
 **Migration Pattern**: APScheduler + Redis locks
 
 ### KEEP (Heavy Tasks)
+
 **Criteria**:
 
 - Runtime > 5 minutes

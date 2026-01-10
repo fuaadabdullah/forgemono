@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, jest } from '@jest/globals';
 import { render, fireEvent } from '@testing-library/react';
 import Button from './Button';
 
@@ -35,7 +35,7 @@ describe('Button', () => {
   });
 
   it('handles click events', () => {
-    const handleClick = vi.fn();
+    const handleClick = jest.fn();
     const { getByRole } = render(<Button onClick={handleClick}>Click me</Button>);
 
     const button = getByRole('button');
@@ -52,7 +52,7 @@ describe('Button', () => {
   });
 
   it('can be disabled', () => {
-    const handleClick = vi.fn();
+    const handleClick = jest.fn();
     const { getByRole } = render(
       <Button onClick={handleClick} disabled>
         Disabled

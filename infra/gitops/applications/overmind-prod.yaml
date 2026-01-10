@@ -11,7 +11,7 @@ metadata:
     notifications.argoproj.io/subscribe.on-sync-succeeded.slack: overmind-deployments
     notifications.argoproj.io/subscribe.on-sync-failed.slack: overmind-alerts
   finalizers:
-  - resources-finalizer.argocd.argoproj.io
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
 
@@ -26,7 +26,7 @@ spec:
     kustomize:
       version: v5.0.0
       # KSOPS plugin for SOPS secrets
-      buildOptions: "--enable-alpha-plugins --enable-exec"
+      buildOptions: '--enable-alpha-plugins --enable-exec'
 
   # Destination cluster and namespace
   destination:
@@ -43,10 +43,10 @@ spec:
 
     # Sync options
     syncOptions:
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
-    - RespectIgnoreDifferences=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - RespectIgnoreDifferences=true
 
     # Retry policy
     retry:
@@ -58,19 +58,19 @@ spec:
 
   # Ignore differences
   ignoreDifferences:
-  - group: apps
-    kind: Deployment
-    jsonPointers:
-    - /spec/replicas  # HPA manages this
-  - group: autoscaling
-    kind: HorizontalPodAutoscaler
-    jsonPointers:
-    - /spec/minReplicas
-    - /spec/maxReplicas
-  - group: monitoring.coreos.com
-    kind: ServiceMonitor
-    jsonPointers:
-    - /metadata/labels  # Prometheus operator adds labels
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas # HPA manages this
+    - group: autoscaling
+      kind: HorizontalPodAutoscaler
+      jsonPointers:
+        - /spec/minReplicas
+        - /spec/maxReplicas
+    - group: monitoring.coreos.com
+      kind: ServiceMonitor
+      jsonPointers:
+        - /metadata/labels # Prometheus operator adds labels
 
   # Resource tracking
   revisionHistoryLimit: 20

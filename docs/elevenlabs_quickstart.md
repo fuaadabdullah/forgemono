@@ -24,6 +24,7 @@ ELEVENLABS_API_KEY=<your_api_key_here>
 ### Step 2: Install SDK
 
 **Python:**
+
 ```bash
 
 pip install elevenlabs
@@ -42,6 +43,7 @@ npm install dotenv
 ### Step 3: Basic Implementation
 
 **Python Example:**
+
 ```python
 
 from dotenv import load_dotenv
@@ -168,6 +170,7 @@ audio_bytes = result["audio"]
 ### Future Enhancement Opportunities
 
 **Not Yet Implemented:**
+
 1. **Speech to Text** - Could add transcription capabilities
 2. **Voice Cloning** - Custom voice creation from user audio
 3. **Sound Effects** - Generate UI sound effects or notifications
@@ -180,6 +183,7 @@ audio_bytes = result["audio"]
 **Base URL**: `https://api.elevenlabs.io/v1`
 
 **Key Endpoints Used:**
+
 - `POST /text-to-speech/{voice_id}` - Generate audio
 - `POST /text-to-speech/{voice_id}/stream` - Stream audio
 - `GET /voices` - List available voices
@@ -188,6 +192,7 @@ audio_bytes = result["audio"]
 ### Voice Settings
 
 **Available Parameters:**
+
 - `stability`: 0.0-1.0 (default: 0.5)
 - `similarity_boost`: 0.0-1.0 (default: 0.75)
 - `style`: 0.0-1.0 (default: 0.0)
@@ -196,6 +201,7 @@ audio_bytes = result["audio"]
 ### Output Formats
 
 **Supported Formats:**
+
 - `mp3_44100_128` - MP3 44.1kHz 128kbps (default, high quality)
 - `mp3_44100_192` - MP3 44.1kHz 192kbps (higher quality)
 - `pcm_16000` - PCM 16kHz (low latency)
@@ -207,6 +213,7 @@ audio_bytes = result["audio"]
 ### Models
 
 **Available Models:**
+
 - `eleven_multilingual_v2` - Best quality, 29+ languages (default)
 - `eleven_monolingual_v1` - English only, fast
 - `eleven_turbo_v2` - Fastest, lower latency
@@ -214,6 +221,7 @@ audio_bytes = result["audio"]
 ## Authentication
 
 **Header Format:**
+
 ```http
 
 xi-api-key: <your_api_key>
@@ -232,6 +240,7 @@ self.headers = {
 ## Testing Status
 
 **Test Results** (from `test_elevenlabs.py`):
+
 - ✅ Speech Generation: WORKING (1578ms, 46KB audio)
 - ✅ Streaming: WORKING (1127ms, 54 chunks, 43KB)
 - ✅ Capabilities: All features available

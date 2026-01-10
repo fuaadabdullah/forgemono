@@ -1,17 +1,18 @@
 ---
-title: "Repository Overview and Conventions"
-type: "architecture"        # architecture | runbook | spec | api | onboarding | model
-owner: "you"
-status: "draft"         # draft | review | final | archived
-version: "0.1.0"
-last_updated: "2025-12-09"
-tags: ["architecture", "you"]
+title: 'Repository Overview and Conventions'
+type: 'architecture' # architecture | runbook | spec | api | onboarding | model
+owner: 'you'
+status: 'draft' # draft | review | final | archived
+version: '0.1.0'
+last_updated: '2025-12-09'
+tags: ['architecture', 'you']
 related: []
 ---
 
 # Repository Overview and Conventions
 
 ## 🎯 Purpose
+
 This document serves as the single source of truth for understanding the ForgeMonorepo structure, key conventions, and architectural decisions that guide development across all projects.
 
 ## 🔍 Context
@@ -39,3 +40,4 @@ Links valid
 📝 Changelog
 
 v0.1.0 — Created by you on 2025-12-09
+```

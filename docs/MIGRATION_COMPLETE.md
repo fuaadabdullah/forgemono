@@ -11,13 +11,13 @@ Successfully migrated Goblin Assistant from monorepo to 5 separate repositories 
 
 ### Repositories Created & Deployed
 
-| Repository | Size | Files | Workflows | Status |
-|-----------|------|-------|-----------|--------|
-| [goblin-assistant-backend](https://github.com/fuaadabdullah/goblin-assistant-backend) | 140KB | 4 | 2 CI/CD | ✅ Live |
-| [goblin-assistant-frontend](https://github.com/fuaadabdullah/goblin-assistant-frontend) | 3.0MB | 116 | 2 CI/CD | ✅ Live |
-| [goblin-assistant-contracts](https://github.com/fuaadabdullah/goblin-assistant-contracts) | 140KB | 3 | 2 CI/CD | ✅ Live |
-| [goblin-assistant-infra](https://github.com/fuaadabdullah/goblin-assistant-infra) | 116KB | 1 | 2 CI/CD | ✅ Live |
-| [goblin-assistant-dev](https://github.com/fuaadabdullah/goblin-assistant-dev) | 116KB | 1 | - | ✅ Live |
+| Repository                                                                                | Size  | Files | Workflows | Status  |
+| ----------------------------------------------------------------------------------------- | ----- | ----- | --------- | ------- |
+| [goblin-assistant-backend](https://github.com/fuaadabdullah/goblin-assistant-backend)     | 140KB | 4     | 2 CI/CD   | ✅ Live |
+| [goblin-assistant-frontend](https://github.com/fuaadabdullah/goblin-assistant-frontend)   | 3.0MB | 116   | 2 CI/CD   | ✅ Live |
+| [goblin-assistant-contracts](https://github.com/fuaadabdullah/goblin-assistant-contracts) | 140KB | 3     | 2 CI/CD   | ✅ Live |
+| [goblin-assistant-infra](https://github.com/fuaadabdullah/goblin-assistant-infra)         | 116KB | 1     | 2 CI/CD   | ✅ Live |
+| [goblin-assistant-dev](https://github.com/fuaadabdullah/goblin-assistant-dev)             | 116KB | 1     | -         | ✅ Live |
 
 **Total**: 3.5MB (vs. gigabytes in original monorepo)
 
@@ -26,6 +26,7 @@ Successfully migrated Goblin Assistant from monorepo to 5 separate repositories 
 ## 🚀 What Was Deployed
 
 ### 1. Backend Repository
+
 **URL**: <https://github.com/fuaadabdullah/goblin-assistant-backend>
 **Contents**:
 
@@ -47,6 +48,7 @@ Successfully migrated Goblin Assistant from monorepo to 5 separate repositories 
 ---
 
 ### 2. Frontend Repository
+
 **URL**: <https://github.com/fuaadabdullah/goblin-assistant-frontend>
 **Contents**:
 
@@ -69,6 +71,7 @@ Successfully migrated Goblin Assistant from monorepo to 5 separate repositories 
 ---
 
 ### 3. Contracts Repository
+
 **URL**: <https://github.com/fuaadabdullah/goblin-assistant-contracts>
 **Contents**:
 
@@ -90,6 +93,7 @@ Successfully migrated Goblin Assistant from monorepo to 5 separate repositories 
 ---
 
 ### 4. Infrastructure Repository
+
 **URL**: <https://github.com/fuaadabdullah/goblin-assistant-infra>
 **Contents**:
 
@@ -110,6 +114,7 @@ Successfully migrated Goblin Assistant from monorepo to 5 separate repositories 
 ---
 
 ### 5. Development Repository
+
 **URL**: <https://github.com/fuaadabdullah/goblin-assistant-dev>
 **Contents**:
 
@@ -146,11 +151,13 @@ This script will guide you through setting up all 16 required secrets across all
 ### 📋 Secrets Summary
 
 **Backend** (3 secrets):
+
 - `RENDER_API_KEY` - Render API key for deployments
 - `RENDER_STAGING_SERVICE_ID` - Service ID for staging
 - `RENDER_PRODUCTION_SERVICE_ID` - Service ID for production
 
 **Frontend** (5 secrets):
+
 - `VERCEL_TOKEN` - Vercel API token
 - `VERCEL_ORG_ID` - Vercel organization ID
 - `VERCEL_PROJECT_ID` - Vercel project ID
@@ -158,22 +165,26 @@ This script will guide you through setting up all 16 required secrets across all
 - `CHROMATIC_PROJECT_TOKEN` - Chromatic for visual regression
 
 **Contracts** (2 secrets):
+
 - `NPM_TOKEN` - npm registry token
 - `PYPI_TOKEN` - PyPI API token
 
 **Infrastructure** (4 secrets):
+
 - `AWS_ACCESS_KEY_ID` - AWS credentials
 - `AWS_SECRET_ACCESS_KEY` - AWS credentials
 - `KUBE_CONFIG_STAGING` - Staging K8s config (base64)
 - `KUBE_CONFIG_PRODUCTION` - Production K8s config (base64)
 
 **Optional - Organization Level** (2 secrets):
+
 - `SLACK_WEBHOOK_URL` - Slack notifications for all repos
 - `INFRACOST_API_KEY` - Cost estimates for infrastructure
 
 ### 🔗 Quick Links
 
 **Get Credentials From**:
+
 - Render: https://dashboard.render.com/account/settings
 - Vercel: https://vercel.com/account/tokens
 - npm: https://www.npmjs.com/settings/~/tokens
@@ -181,6 +192,7 @@ This script will guide you through setting up all 16 required secrets across all
 - Chromatic: https://www.chromatic.com/start
 
 **Set Secrets At**:
+
 - Backend: https://github.com/fuaadabdullah/goblin-assistant-backend/settings/secrets/actions
 - Frontend: https://github.com/fuaadabdullah/goblin-assistant-frontend/settings/secrets/actions
 - Contracts: https://github.com/fuaadabdullah/goblin-assistant-contracts/settings/secrets/actions
@@ -191,6 +203,7 @@ This script will guide you through setting up all 16 required secrets across all
 ## 🏗️ Configure GitHub Environments
 
 ### Backend Environments
+
 Navigate to: https://github.com/fuaadabdullah/goblin-assistant-backend/settings/environments
 
 1. **staging**
@@ -202,6 +215,7 @@ Navigate to: https://github.com/fuaadabdullah/goblin-assistant-backend/settings/
    - Auto-deploy on `main` branch
 
 ### Frontend Environments
+
 Navigate to: https://github.com/fuaadabdullah/goblin-assistant-frontend/settings/environments
 
 1. **preview**
@@ -217,6 +231,7 @@ Navigate to: https://github.com/fuaadabdullah/goblin-assistant-frontend/settings
    - Auto-deploy on `main` branch
 
 ### Infrastructure Environments
+
 Navigate to: https://github.com/fuaadabdullah/goblin-assistant-infra/settings/environments
 
 1. **staging-infra**
@@ -234,6 +249,7 @@ Navigate to: https://github.com/fuaadabdullah/goblin-assistant-infra/settings/en
 For all repositories, navigate to: `Settings > Branches > Add rule`
 
 ### Main Branch Protection
+
 - **Branch name pattern**: `main`
 - ✅ Require pull request reviews before merging
 - ✅ Require status checks to pass before merging
@@ -245,6 +261,7 @@ For all repositories, navigate to: `Settings > Branches > Add rule`
 - ✅ Do not allow bypassing the above settings
 
 ### Develop Branch Protection
+
 - **Branch name pattern**: `develop`
 - ✅ Require status checks to pass before merging
 - ⚠️ Allow force pushes (for rebasing)
@@ -254,6 +271,7 @@ For all repositories, navigate to: `Settings > Branches > Add rule`
 ## 🧪 Test Your Deployment Pipeline
 
 ### 1. Test Backend Deployment
+
 ```bash
 
 cd /tmp/goblin-repos/goblin-assistant-backend
@@ -280,6 +298,7 @@ git push origin test-ci
 **Expected**: CI workflow runs (ESLint, Vitest, Storybook, Chromatic)
 
 ### 3. Test Staging Deployment
+
 ```bash
 
 # Merge test branch to develop (staging)
@@ -306,12 +325,14 @@ git push origin main
 ## 📈 Monitor Your Workflows
 
 ### GitHub Actions Dashboard
+
 - Backend: https://github.com/fuaadabdullah/goblin-assistant-backend/actions
 - Frontend: https://github.com/fuaadabdullah/goblin-assistant-frontend/actions
 - Contracts: https://github.com/fuaadabdullah/goblin-assistant-contracts/actions
 - Infra: https://github.com/fuaadabdullah/goblin-assistant-infra/actions
 
 ### Deployment Status
+
 - Backend (Render): https://dashboard.render.com
 - Frontend (Vercel): https://vercel.com/dashboard
 - Chromatic: https://www.chromatic.com
@@ -321,6 +342,7 @@ git push origin main
 ## 🎯 Quick Reference Commands
 
 ### Clone All Repositories
+
 ```bash
 
 cd ~/projects
@@ -339,6 +361,7 @@ docker-compose up -d
 ```
 
 ### Install Contracts (TypeScript)
+
 ```bash
 
 npm install @fuaadabdullah/goblin-assistant-contracts
@@ -355,12 +378,14 @@ pip install goblin-assistant-contracts
 ## 📝 Migration Statistics
 
 ### Disk Space Saved
+
 - **Before Migration**: 10GB (99% disk usage)
 - **Cleanup**: Removed 1.4GB (npm cache + root node_modules)
 - **After Migration**: 3.5MB in repositories (vs. gigabytes in monorepo)
 - **Disk Usage**: 94% → 50% available for continued development
 
 ### Files Migrated
+
 - **Backend**: 4 Python files + config
 - **Frontend**: 116 files (68 Storybook stories, all components, tests)
 - **Contracts**: 3 files (TypeScript + Python)
@@ -368,6 +393,7 @@ pip install goblin-assistant-contracts
 - **Dev**: 1 docker-compose.yml
 
 ### CI/CD Workflows Created
+
 - **Total**: 8 workflow files (981 lines of YAML)
 - **Backend**: 2 workflows (ci + deploy)
 - **Frontend**: 2 workflows (ci + deploy)
@@ -375,6 +401,7 @@ pip install goblin-assistant-contracts
 - **Infra**: 2 workflows (ci + deploy)
 
 ### Documentation Created
+
 - `MULTI_REPO_MIGRATION_GUIDE.md` - 400+ lines
 - `CI_CD_WORKFLOWS_COMPLETE.md` - 500+ lines
 - `MIGRATION_READY_TO_EXECUTE.md` - 400+ lines

@@ -1,9 +1,8 @@
 ---
-description: "README"
+description: 'README'
 ---
 
-Observability manifests
-======================
+# Observability manifests
 
 This folder contains kustomize-based manifests for a production-ready observability stack used by GoblinOS.
 
@@ -14,14 +13,12 @@ Components included (minimal, production-ready starting point):
 - Loki (log store)
 - Tempo (trace store)
 
-Security & assumptions
-----------------------
+## Security & assumptions
 
 - Assumes an Ingress controller is present (e.g., nginx-ingress).
 - TLS is handled via cert-manager; examples are provided but cert-manager installation is required.
 
-How to use
-----------
+## How to use
 
 1. Review and adapt image tags, storage classes, and resource sizes to your cluster.
 1. Use `kustomize build infra/observability | kubectl apply -f -` to deploy.

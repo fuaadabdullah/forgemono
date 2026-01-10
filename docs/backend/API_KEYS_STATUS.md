@@ -74,7 +74,6 @@ Post-merge
 - Confirm the goblin shows in `docs/ROLES.md` and any generated UI/registry pages.
 - If the goblin requires secrets, create entries using GoblinOS vault tooling (do NOT commit secrets in the repo). Document required secrets in the goblin README with placeholders.
 
-
 ## Data Flow Diagram
 
 A data flow diagram is currently missing. Placeholder: [Insert diagram here].

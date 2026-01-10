@@ -100,6 +100,7 @@ curl http://127.0.0.1:8080/health
 ```
 
 ### Test API Generation:
+
 ```bash
 
 # On Kamatera server
@@ -142,6 +143,7 @@ print(result)
 ## Troubleshooting
 
 ### SSH Issues:
+
 ```bash
 
 # Test SSH connection
@@ -162,6 +164,7 @@ ssh root@66.55.77.147 "docker ps -a"
 ```
 
 ### API Issues:
+
 ```bash
 
 # Check if service is responding

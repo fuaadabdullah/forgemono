@@ -88,7 +88,8 @@ const Orchestration = () => {
 
       {/* Live region for orchestration updates */}
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-        {plan && `Orchestration plan created with ${plan.steps.length} step${plan.steps.length !== 1 ? 's' : ''} in ${plan.total_batches} batch${plan.total_batches !== 1 ? 'es' : ''}`}
+        {plan &&
+          `Orchestration plan created with ${plan.steps.length} step${plan.steps.length !== 1 ? 's' : ''} in ${plan.total_batches} batch${plan.total_batches !== 1 ? 'es' : ''}`}
         {executionId && `Orchestration started with ID ${executionId}`}
       </div>
 
@@ -109,9 +110,7 @@ const Orchestration = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-muted mb-2">
-              Default Goblin
-            </label>
+            <label className="block text-sm font-medium text-muted mb-2">Default Goblin</label>
             <select
               value={defaultGoblin}
               onChange={(e) => setDefaultGoblin(e.target.value)}
@@ -135,10 +134,7 @@ const Orchestration = () => {
               Parse Orchestration
             </Button>
 
-            <Button
-              onClick={clearAll}
-              variant="secondary"
-            >
+            <Button onClick={clearAll} variant="secondary">
               Clear All
             </Button>
           </div>
@@ -181,7 +177,9 @@ const Orchestration = () => {
               <div className="text-sm text-muted">Max Parallel</div>
             </div>
             <div className="bg-surface-hover rounded-lg p-4 border border-border">
-              <div className="text-2xl font-bold text-success">${plan.estimated_cost.toFixed(4)}</div>
+              <div className="text-2xl font-bold text-success">
+                ${plan.estimated_cost.toFixed(4)}
+              </div>
               <div className="text-sm text-muted">Estimated Cost</div>
             </div>
           </div>
@@ -217,7 +215,8 @@ const Orchestration = () => {
           <h3 className="text-green-400 font-semibold">Orchestration Started</h3>
           <p className="text-green-300">Execution ID: {executionId}</p>
           <p className="text-green-300 text-sm mt-2">
-            The orchestration plan is now being executed. Check the execution status using the plan ID.
+            The orchestration plan is now being executed. Check the execution status using the plan
+            ID.
           </p>
         </div>
       )}

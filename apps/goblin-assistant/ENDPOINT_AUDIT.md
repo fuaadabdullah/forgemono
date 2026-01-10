@@ -4,7 +4,6 @@ This document has moved into the canonical backend documentation folder:
 
 Please update any references or links to point to the new location.
 
-
 ---
 
 ## Testing Summary
@@ -107,14 +106,12 @@ npx serve -s dist -l 3000
 
 ### Most Used Endpoints
 
-
 #### Health & Monitoring
 
 - `GET /health` - Simple health check
 - `GET /health/all` - Full system status
 - `GET /health/chroma/status` - Vector DB status
 - `GET /health/sandbox/status` - Sandbox status
-
 
 #### Authentication
 
@@ -125,13 +122,11 @@ npx serve -s dist -l 3000
 - `POST /auth/passkey/auth` - Passkey login
 - `GET /auth/me` - Get current user
 
-
 #### Chat
 
 - `POST /chat/completions` - Create chat completion (auto-routed to best model)
 - `GET /chat/models` - List available models
 - `GET /chat/routing-info` - Get routing information
-
 
 #### Settings
 
@@ -142,14 +137,12 @@ npx serve -s dist -l 3000
 - `POST /settings/providers/reorder` - Reorder providers
 - `POST /settings/providers/{id}/priority` - Set priority
 
-
 #### Task Execution
 
 - `POST /execute/` - Create orchestration plan
 - `POST /execute/orchestrate/parse` - Parse text to plan
 - `POST /execute/orchestrate/execute?plan_id=X` - Execute plan
 - `GET /execute/status/{task_id}` - Get execution status
-
 
 #### Routing
 

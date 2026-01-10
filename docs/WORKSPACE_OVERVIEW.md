@@ -1,5 +1,5 @@
 ---
-description: "WORKSPACE_OVERVIEW"
+description: 'WORKSPACE_OVERVIEW'
 ---
 
 # Workspace Overview

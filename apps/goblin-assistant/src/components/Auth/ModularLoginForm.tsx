@@ -15,10 +15,7 @@ interface ModularLoginFormProps {
   onError: (message: string) => void;
 }
 
-export default function ModularLoginForm({
-  onSuccess,
-  onError,
-}: ModularLoginFormProps) {
+export default function ModularLoginForm({ onSuccess, onError }: ModularLoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isRegister, setIsRegister] = useState(false);
   const [showPasskey, setShowPasskey] = useState(false);
@@ -93,10 +90,7 @@ export default function ModularLoginForm({
 
         <Divider text="Or continue with" />
 
-        <SocialLoginButtons
-          onGoogleLogin={handleGoogleLogin}
-          isLoading={isLoading}
-        />
+        <SocialLoginButtons onGoogleLogin={handleGoogleLogin} isLoading={isLoading} />
 
         <div className="mt-6 space-y-3">
           <button
@@ -104,9 +98,7 @@ export default function ModularLoginForm({
             className="w-full text-center text-indigo-600 hover:text-indigo-700 text-sm font-medium transition-colors"
             type="button"
           >
-            {isRegister
-              ? 'Already have an account? Sign in'
-              : "Don't have an account? Sign up"}
+            {isRegister ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
           </button>
 
           <button
@@ -120,18 +112,13 @@ export default function ModularLoginForm({
 
         {showPasskey && (
           <div className="mt-6 pt-6 border-t border-gray-200">
-            <PasskeyPanel
-              email={email}
-              onError={onError}
-              onSuccess={onSuccess}
-            />
+            <PasskeyPanel email={email} onError={onError} onSuccess={onSuccess} />
           </div>
         )}
       </div>
 
       <p className="text-xs text-center text-gray-500 mt-6">
-        By signing in you agree to telemetry collection for performance and
-        anomaly detection.
+        By signing in you agree to telemetry collection for performance and anomaly detection.
       </p>
     </div>
   );

@@ -29,6 +29,7 @@ Cross-repository scripts, generators, and utilities. Ownership per guild/goblin 
 Specialized AI-powered tools for development automation and analysis.
 
 ### Documentation Quality (`doc-quality/`)
+
 AI-powered documentation quality analysis and automated checking.
 
 **Features:**
@@ -46,15 +47,18 @@ python3 doc_quality_check.py --ci --min-score 70
 ```
 
 ### Raptor Mini (`raptor-mini/`)
+
 Lightweight AI analysis and diagnostics system.
 
 **Features:**
+
 - FastAPI-based document analysis API
 - Local deployment with ngrok tunneling
 - CPU/memory monitoring and exception tracing
 - Google Colab integration for cloud deployment
 
 **Quick Start:**
+
 ```bash
 
 cd raptor-mini

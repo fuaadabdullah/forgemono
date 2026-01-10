@@ -4,7 +4,6 @@ about: Propose changes to the codebase
 title: '[PR] '
 labels: ''
 assignees: ''
-
 ---
 
 ## Description

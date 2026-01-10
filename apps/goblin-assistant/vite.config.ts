@@ -35,9 +35,9 @@ export default defineConfig(({ mode }) => {
           "img-src 'self' data: https:",
           "font-src 'self' data:",
           "connect-src 'self' https://goblin-backend.fly.dev https://challenges.cloudflare.com ws://localhost:3000",
-          "frame-src https://challenges.cloudflare.com",
+          'frame-src https://challenges.cloudflare.com',
           "base-uri 'self'",
-          "form-action 'self'"
+          "form-action 'self'",
         ].join('; '),
         // Additional Security Headers
         'X-Content-Type-Options': 'nosniff',

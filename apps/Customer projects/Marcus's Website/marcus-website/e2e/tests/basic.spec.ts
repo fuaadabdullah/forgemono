@@ -16,14 +16,18 @@ test('Bookings flow and pages load', async ({ page, baseURL }) => {
   await page.check('input[name="consent"]');
 
   await page.click('text=Book Service Now');
-  await expect(page.locator('text=Thank you! Your service request has been submitted.')).toBeVisible({ timeout: 10000 });
+  await expect(
+    page.locator('text=Thank you! Your service request has been submitted.')
+  ).toBeVisible({ timeout: 10000 });
 
   // Visit blog page and open a blog post
   await page.goto('/blog');
   await expect(page.locator('text=How to Tell If Your Suspension is Shot')).toBeVisible();
   await page.click('text=How to Tell If Your Suspension is Shot');
 
-  await expect(page.locator('h1', { hasText: 'How to Tell If Your Suspension is Shot' })).toBeVisible();
+  await expect(
+    page.locator('h1', { hasText: 'How to Tell If Your Suspension is Shot' })
+  ).toBeVisible();
 
   // Visit testimonials page
   await page.goto('/testimonials');

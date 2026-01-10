@@ -41,7 +41,8 @@ export default function Button({
   children,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'rounded-lg font-medium transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles =
+    'rounded-lg font-medium transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed';
   const widthStyles = fullWidth ? 'w-full' : '';
   const flexStyles = icon ? 'flex items-center justify-center gap-2' : '';
 

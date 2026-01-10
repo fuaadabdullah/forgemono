@@ -144,7 +144,7 @@ metadata:
 type: Opaque
 stringData:
   # Add your Slack token here (or use SOPS to encrypt)
-  slack-token: "xoxb-your-slack-bot-token"
+  slack-token: 'xoxb-your-slack-bot-token'
   # Add email credentials if using email notifications
-  email-username: "notifications@example.com"
-  email-password: "your-app-password"
+  email-username: 'notifications@example.com'
+  email-password: 'your-app-password'

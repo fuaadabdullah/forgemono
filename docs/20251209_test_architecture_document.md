@@ -1,24 +1,27 @@
 ---
-title: "Test Architecture Document"
-type: "architecture"        # architecture | runbook | spec | api | onboarding | model
-owner: "fuaad"      # your name/team
-status: "draft"         # draft | review | final | archived
-version: "0.1.0"
-last_updated: "2025-12-09"
-tags: ["architecture", "fuaad"]
+title: 'Test Architecture Document'
+type: 'architecture' # architecture | runbook | spec | api | onboarding | model
+owner: 'fuaad' # your name/team
+status: 'draft' # draft | review | final | archived
+version: '0.1.0'
+last_updated: '2025-12-09'
+tags: ['architecture', 'fuaad']
 related: []
 ---
 
 # Test Architecture Document
 
 ## 🎯 Purpose
-*Why this document exists in one sentence*
+
+_Why this document exists in one sentence_
 
 ## 🔍 Context
-*What problem does this solve? What happens if this disappears?*
+
+_What problem does this solve? What happens if this disappears?_
 
 ## 📐 Design
-*Key decisions, diagrams, architecture*
+
+_Key decisions, diagrams, architecture_
 
 ## 🛠️ Runbook (if applicable)
 
@@ -33,3 +36,4 @@ Links checked
 📝 Changelog
 
 v0.1.0 — Created by fuaad on 2025-12-09
+```

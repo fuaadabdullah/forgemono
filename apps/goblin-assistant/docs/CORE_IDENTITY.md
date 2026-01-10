@@ -1,5 +1,5 @@
 ---
-description: "Core Identity and positioning for GoblinOS Assistant — hybrid, multi-provider AI orchestration"
+description: 'Core Identity and positioning for GoblinOS Assistant — hybrid, multi-provider AI orchestration'
 ---
 
 # GoblinOS Assistant — Core Identity
@@ -33,7 +33,7 @@ GoblinOS is designed for users who want data control and privacy:
 - Local Execution Option: Run prompts, RAG, and tools entirely on local models for sensitive workloads.
 - End-to-End Encryption: Conversation data is encrypted in transit and optionally at rest.
 - Self-Hostable: Deploy to Kamatera, Fly.io, bare metal, or a private cloud.
- 
+
 ### 2.3 Enterprise-Grade Features
 
 - Multi-Tenancy with isolated data and permissions.
@@ -110,9 +110,11 @@ Key pieces: provider orchestration, routing, RAG indexing and retrieval, and bac
 ## 7. Slogan & Short Pitches
 
 Tagline:
+
 > GoblinOS is a multi-provider, privacy-first AI assistant platform that routes workloads across cloud and local models for maximum control and cost-efficiency.
 
 Short pitch:
+
 > GoblinOS Assistant is a “Swiss Army knife” AI platform that connects to multiple LLM providers and local models, then intelligently routes each request based on cost, latency, and capability. It’s built for developers and teams who care about privacy, auditability, and flexibility, with RAG, code execution, web search, and voice support baked in.
 
 ## 8. Next Steps & Where to Learn More

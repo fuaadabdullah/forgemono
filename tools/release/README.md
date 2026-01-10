@@ -1,5 +1,5 @@
 ---
-description: "README"
+description: 'README'
 ---
 
 # Release & distribution helpers (macOS)

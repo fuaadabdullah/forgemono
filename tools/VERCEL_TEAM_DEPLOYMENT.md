@@ -70,6 +70,7 @@ This will trigger a team-level deployment using the Pro plan limits, allowing mo
 1. Verify serverless function limits and operations
 
 From the Vercel Dashboard (Team):
+
 1. Go to the Project > Settings > Functions to confirm function quotas and runtime
 1. Deploy your app and check logs for successful upload of functions
 1. Test endpoints and confirm behavior
@@ -81,6 +82,7 @@ From the Vercel Dashboard (Team):
 - Use service accounts or deploy keys where possible if automations are required
 
 Notes about limitations
+
 - The CLI cannot perform plan/billing upgrades (this is a web-based flow requiring a payment method). The script provided in `tools/create-vercel-team-and-deploy.sh` assists with the team creation and link, but billing requires UI intervention.
 
 Appendix: Useful Commands

@@ -7,6 +7,7 @@ This guide walks you through configuring all required GitHub Secrets for the Gob
 ## 📋 Quick Setup Options
 
 ### Option 1: Automated Setup (Recommended)
+
 Use the provided script to configure all secrets interactively:
 
 ```bash
@@ -15,6 +16,7 @@ chmod +x tools/configure-github-secrets.sh
 ```
 
 ### Option 2: Manual Configuration
+
 Follow the step-by-step instructions below for each repository.
 
 ---
@@ -24,11 +26,13 @@ Follow the step-by-step instructions below for each repository.
 Before you begin, gather these credentials:
 
 ### Backend (Render)
+
 - [ ] Render API key from https://dashboard.render.com/account/settings
 - [ ] Staging service ID (create backend service on Render first)
 - [ ] Production service ID (create backend service on Render first)
 
 ### Frontend (Vercel)
+
 - [ ] Vercel API token from https://vercel.com/account/tokens
 - [ ] Vercel Organization ID (found in team settings)
 - [ ] Vercel Project ID (create project on Vercel first)
@@ -36,16 +40,19 @@ Before you begin, gather these credentials:
 - [ ] Chromatic project token from https://www.chromatic.com/start
 
 ### Contracts (npm + PyPI)
+
 - [ ] npm access token from https://www.npmjs.com/settings/~/tokens
 - [ ] PyPI API token from https://pypi.org/manage/account/token/
 
 ### Infrastructure (AWS + Kubernetes)
+
 - [ ] AWS Access Key ID (IAM user with appropriate permissions)
 - [ ] AWS Secret Access Key
 - [ ] Kubernetes staging config (base64-encoded)
 - [ ] Kubernetes production config (base64-encoded)
 
 ### Optional (Organization-Level)
+
 - [ ] Slack webhook URL for notifications
 - [ ] Infracost API key from https://www.infracost.io
 
@@ -56,6 +63,7 @@ Before you begin, gather these credentials:
 **Repository**: https://github.com/fuaadabdullah/goblin-assistant-backend
 
 ### Navigate to Secrets Settings
+
 ```
 https://github.com/fuaadabdullah/goblin-assistant-backend/settings/secrets/actions
 ```
@@ -63,14 +71,17 @@ https://github.com/fuaadabdullah/goblin-assistant-backend/settings/secrets/actio
 ### Required Secrets
 
 #### 1. RENDER_API_KEY
+
 **Purpose**: Authenticate with Render API for deployments
 **How to get it**:
+
 1. Go to https://dashboard.render.com/account/settings
 2. Scroll to "API Keys"
 3. Click "Generate New API Key"
 4. Copy the key (starts with `rnd_`)
 
 **Set via GitHub CLI**:
+
 ```bash
 
 echo "rnd_YOUR_API_KEY_HERE" | gh secret set RENDER_API_KEY \
@@ -87,6 +98,7 @@ echo "rnd_YOUR_API_KEY_HERE" | gh secret set RENDER_API_KEY \
 ---
 
 #### 2. RENDER_STAGING_SERVICE_ID
+
 **Purpose**: Deploy to staging backend service
 **How to get it**:
 
@@ -104,13 +116,16 @@ echo "srv-staging-id" | gh secret set RENDER_STAGING_SERVICE_ID \
 ---
 
 #### 3. RENDER_PRODUCTION_SERVICE_ID
+
 **Purpose**: Deploy to production backend service
 **How to get it**:
+
 1. Create a backend service on Render for production
 2. Go to service settings
 3. Copy the Service ID from the URL (e.g., `srv-xxxxx`)
 
 **Set via GitHub CLI**:
+
 ```bash
 
 echo "srv-production-id" | gh secret set RENDER_PRODUCTION_SERVICE_ID \
@@ -124,6 +139,7 @@ echo "srv-production-id" | gh secret set RENDER_PRODUCTION_SERVICE_ID \
 **Repository**: <https://github.com/fuaadabdullah/goblin-assistant-frontend>
 
 ### Navigate to Secrets Settings
+
 ```
 <https://github.com/fuaadabdullah/goblin-assistant-frontend/settings/secrets/actions>
 ```
@@ -131,6 +147,7 @@ echo "srv-production-id" | gh secret set RENDER_PRODUCTION_SERVICE_ID \
 ### Required Secrets
 
 #### 1. VERCEL_TOKEN
+
 **Purpose**: Authenticate with Vercel API for deployments
 **How to get it**:
 
@@ -150,14 +167,17 @@ echo "your-vercel-token" | gh secret set VERCEL_TOKEN \
 ---
 
 #### 2. VERCEL_ORG_ID
+
 **Purpose**: Identify your Vercel organization
 **How to get it**:
+
 1. Go to https://vercel.com/account
 2. Click on your team/organization
 3. Go to "Settings"
 4. Copy the "Team ID" (starts with `team_`)
 
 **Set via GitHub CLI**:
+
 ```bash
 
 echo "team_xxxxx" | gh secret set VERCEL_ORG_ID \
@@ -167,6 +187,7 @@ echo "team_xxxxx" | gh secret set VERCEL_ORG_ID \
 ---
 
 #### 3. VERCEL_PROJECT_ID
+
 **Purpose**: Identify your Vercel project
 **How to get it**:
 
@@ -188,6 +209,7 @@ vercel project ls --json | jq '.projects[] | select(.name=="goblin-assistant-fro
 ```
 
 **Set via GitHub CLI**:
+
 ```bash
 
 echo "prj_xxxxx" | gh secret set VERCEL_PROJECT_ID \
@@ -197,6 +219,7 @@ echo "prj_xxxxx" | gh secret set VERCEL_PROJECT_ID \
 ---
 
 #### 4. VITE_API_URL
+
 **Purpose**: Backend API endpoint for frontend to connect to
 **Value**: Your backend API URL
 
@@ -216,14 +239,17 @@ echo "https://api.goblin-assistant.com" | gh secret set VITE_API_URL \
 ---
 
 #### 5. CHROMATIC_PROJECT_TOKEN
+
 **Purpose**: Visual regression testing with Chromatic
 **How to get it**:
+
 1. Go to https://www.chromatic.com
 2. Sign in with GitHub
 3. Click "Choose from GitHub" and select `goblin-assistant-frontend`
 4. Copy the project token (starts with `chpt_`)
 
 **Set via GitHub CLI**:
+
 ```bash
 
 echo "chpt_xxxxx" | gh secret set CHROMATIC_PROJECT_TOKEN \
@@ -237,6 +263,7 @@ echo "chpt_xxxxx" | gh secret set CHROMATIC_PROJECT_TOKEN \
 **Repository**: <https://github.com/fuaadabdullah/goblin-assistant-contracts>
 
 ### Navigate to Secrets Settings
+
 ```
 <https://github.com/fuaadabdullah/goblin-assistant-contracts/settings/secrets/actions>
 ```
@@ -244,6 +271,7 @@ echo "chpt_xxxxx" | gh secret set CHROMATIC_PROJECT_TOKEN \
 ### Required Secrets
 
 #### 1. NPM_TOKEN
+
 **Purpose**: Publish packages to npm registry
 **How to get it**:
 
@@ -262,8 +290,10 @@ echo "npm_xxxxx" | gh secret set NPM_TOKEN \
 ---
 
 #### 2. PYPI_TOKEN
+
 **Purpose**: Publish packages to PyPI registry
 **How to get it**:
+
 1. Go to https://pypi.org/manage/account/token/
 2. Click "Add API token"
 3. Token name: "GitHub Actions"
@@ -271,6 +301,7 @@ echo "npm_xxxxx" | gh secret set NPM_TOKEN \
 5. Copy the token (starts with `pypi-`)
 
 **Set via GitHub CLI**:
+
 ```bash
 
 echo "pypi-xxxxx" | gh secret set PYPI_TOKEN \
@@ -284,6 +315,7 @@ echo "pypi-xxxxx" | gh secret set PYPI_TOKEN \
 **Repository**: <https://github.com/fuaadabdullah/goblin-assistant-infra>
 
 ### Navigate to Secrets Settings
+
 ```
 <https://github.com/fuaadabdullah/goblin-assistant-infra/settings/secrets/actions>
 ```
@@ -291,6 +323,7 @@ echo "pypi-xxxxx" | gh secret set PYPI_TOKEN \
 ### Required Secrets
 
 #### 1. AWS_ACCESS_KEY_ID
+
 **Purpose**: Terraform access to AWS
 **How to get it**:
 
@@ -310,12 +343,15 @@ echo "AKIAIOSFODNN7EXAMPLE" | gh secret set AWS_ACCESS_KEY_ID \
 ---
 
 #### 2. AWS_SECRET_ACCESS_KEY
+
 **Purpose**: Terraform authentication to AWS
 **How to get it**:
+
 1. Same as AWS_ACCESS_KEY_ID process
 2. Copy the Secret Access Key (only shown once!)
 
 **Set via GitHub CLI**:
+
 ```bash
 
 echo "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" | gh secret set AWS_SECRET_ACCESS_KEY \
@@ -325,6 +361,7 @@ echo "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" | gh secret set AWS_SECRET_ACCES
 ---
 
 #### 3. KUBE_CONFIG_STAGING
+
 **Purpose**: Deploy to staging Kubernetes cluster
 **How to get it**:
 
@@ -334,9 +371,11 @@ echo "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" | gh secret set AWS_SECRET_ACCES
    ```bash
    cat ~/.kube/staging-config | base64 | tr -d '\n'
    ```
+
 3. Copy the output
 
 **Set via GitHub CLI**:
+
 ```bash
 
 cat ~/.kube/staging-config | base64 | tr -d '\n' | \
@@ -347,6 +386,7 @@ cat ~/.kube/staging-config | base64 | tr -d '\n' | \
 ---
 
 #### 4. KUBE_CONFIG_PRODUCTION
+
 **Purpose**: Deploy to production Kubernetes cluster
 **How to get it**:
 
@@ -356,9 +396,11 @@ cat ~/.kube/staging-config | base64 | tr -d '\n' | \
    ```bash
    cat ~/.kube/production-config | base64 | tr -d '\n'
    ```
+
 3. Copy the output
 
 **Set via GitHub CLI**:
+
 ```bash
 
 cat ~/.kube/production-config | base64 | tr -d '\n' | \
@@ -373,6 +415,7 @@ cat ~/.kube/production-config | base64 | tr -d '\n' | \
 These secrets can be shared across all repositories in your organization.
 
 ### Navigate to Organization Secrets Settings
+
 ```
 <https://github.com/organizations/YOUR_ORG/settings/secrets/actions>
 ```
@@ -380,6 +423,7 @@ These secrets can be shared across all repositories in your organization.
 ### Optional Secrets
 
 #### 1. SLACK_WEBHOOK_URL
+
 **Purpose**: Send deployment notifications to Slack
 **How to get it**:
 
@@ -400,14 +444,17 @@ echo "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXX" | \
 ---
 
 #### 2. INFRACOST_API_KEY
+
 **Purpose**: Cost estimation for infrastructure changes
 **How to get it**:
+
 1. Go to https://www.infracost.io
 2. Sign up for free account
 3. Go to "Settings" → "API Keys"
 4. Copy the API key
 
 **Set via GitHub CLI**:
+
 ```bash
 
 echo "ico-xxxxx" | gh secret set INFRACOST_API_KEY --org fuaadabdullah
@@ -426,6 +473,7 @@ gh secret list --repo fuaadabdullah/goblin-assistant-backend
 ```
 
 **Expected output**:
+
 ```
 RENDER_API_KEY                Updated 2025-12-03
 RENDER_PRODUCTION_SERVICE_ID  Updated 2025-12-03
@@ -433,12 +481,14 @@ RENDER_STAGING_SERVICE_ID     Updated 2025-12-03
 ```
 
 ### Frontend
+
 ```bash
 
 gh secret list --repo fuaadabdullah/goblin-assistant-frontend
 ```
 
 **Expected output**:
+
 ```
 CHROMATIC_PROJECT_TOKEN  Updated 2025-12-03
 VERCEL_ORG_ID            Updated 2025-12-03
@@ -454,18 +504,21 @@ gh secret list --repo fuaadabdullah/goblin-assistant-contracts
 ```
 
 **Expected output**:
+
 ```
 NPM_TOKEN   Updated 2025-12-03
 PYPI_TOKEN  Updated 2025-12-03
 ```
 
 ### Infrastructure
+
 ```bash
 
 gh secret list --repo fuaadabdullah/goblin-assistant-infra
 ```
 
 **Expected output**:
+
 ```
 AWS_ACCESS_KEY_ID        Updated 2025-12-03
 AWS_SECRET_ACCESS_KEY    Updated 2025-12-03
@@ -495,6 +548,7 @@ Visit: https://github.com/fuaadabdullah/goblin-assistant-backend/actions
 **Expected**: CI workflow runs successfully (lint, test, build, security scan)
 
 ### 2. Test Frontend CI
+
 ```bash
 
 cd /tmp/goblin-repos/goblin-assistant-frontend
@@ -514,6 +568,7 @@ Visit: <https://github.com/fuaadabdullah/goblin-assistant-frontend/actions>
 ## 🚨 Troubleshooting
 
 ### Secret Not Found Error
+
 **Error**: `Secret RENDER_API_KEY not found`
 
 **Solution**:
@@ -528,18 +583,22 @@ echo "your-secret-value" | gh secret set RENDER_API_KEY \
 ```
 
 ### Authentication Failed
+
 **Error**: `Authentication failed`
 
 **Solution**:
+
 1. Verify the token/key is correct
 2. Check if token has expired
 3. Ensure proper permissions (API token scopes)
 4. Regenerate and update the secret
 
 ### Base64 Decoding Error
+
 **Error**: `illegal base64 data at input byte`
 
 **Solution**:
+
 ```bash
 
 # Ensure no newlines in base64 encoding

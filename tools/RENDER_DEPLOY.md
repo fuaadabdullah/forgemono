@@ -20,10 +20,12 @@ vercel env add VITE_FASTAPI_URL https://your-backend.onrender.com --prod --team 
 ```
 
 Important notes:
+
 - If you deploy to Render's free plan, it may sleep after inactivity. For production uptime consider the paid hobby plan.
 - This preserves your frontend on Vercel (Hobby) and moves CPU-bound functions to Render where they do not count as serverless functions on Vercel.
 
 Verification (after deploy):
+
 - See Render web console for service logs and health
 - Test an endpoint: curl https://your-backend.onrender.com/health
 - Check CORS and envs, then test Vercel frontend with `VITE_FASTAPI_URL` pointing to Render

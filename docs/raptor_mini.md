@@ -68,7 +68,6 @@ def critical_job(...):
 
 - Basic tests are included under `GoblinOS/tests/test_raptor_mini.py`.
 
-
 ## Extensibility
 
 - Add additional metrics in `monitor_loop` as needed, but keep checks cheap and minimal.

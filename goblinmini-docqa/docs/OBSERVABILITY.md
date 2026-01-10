@@ -85,10 +85,9 @@ Prometheus alerting rules are defined in `prometheus/alerting_rules.yml`:
    ```
 
 2. **Load Alerting Rules**:
+
    ```yaml
-
    rule_files:
-
      - 'prometheus/alerting_rules.yml'
    ```
 

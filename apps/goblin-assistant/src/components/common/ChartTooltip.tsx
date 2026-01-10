@@ -14,7 +14,7 @@ interface TooltipProps {
 const ChartTooltip: React.FC<TooltipProps> = ({ active, payload, label }) => {
   if (!active || !payload || payload.length === 0) return null;
 
-  const rows = payload.map(p => ({ name: p.name || p.dataKey || label, value: p.value }));
+  const rows = payload.map((p) => ({ name: p.name || p.dataKey || label, value: p.value }));
 
   return (
     <div className="bg-slate-800 text-slate-100 p-2 rounded shadow-md text-sm">

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
@@ -8,9 +8,9 @@ import GoblinDemo from '@/pages/GoblinDemo';
 import type { StreamChunk } from '@/api/api-client';
 
 // Mock the runtime client
-vi.mock('@/api/api-client', () => ({
+jest.mock('@/api/api-client', () => ({
   runtimeClient: {
-    getGoblins: vi.fn().mockResolvedValue([
+    getGoblins: jest.fn().mockResolvedValue([
       {
         id: 'docs-writer',
         name: 'docs-writer',
@@ -19,8 +19,8 @@ vi.mock('@/api/api-client', () => ({
       },
       { id: 'code-writer', name: 'code-writer', title: 'Code Writer', status: 'available' },
     ]),
-    getProviders: vi.fn().mockResolvedValue(['openai', 'anthropic', 'google']),
-    getProviderModels: vi.fn().mockImplementation((provider: string) => {
+    getProviders: jest.fn().mockResolvedValue(['openai', 'anthropic', 'google']),
+    getProviderModels: jest.fn().mockImplementation((provider: string) => {
       const models: Record<string, string[]> = {
         openai: ['gpt-4', 'gpt-3.5-turbo'],
         anthropic: ['claude-3', 'claude-2'],
@@ -28,8 +28,8 @@ vi.mock('@/api/api-client', () => ({
       };
       return Promise.resolve(models[provider] || []);
     }),
-    executeTask: vi.fn().mockResolvedValue('Executed: task completed successfully'),
-    parseOrchestration: vi.fn().mockResolvedValue({
+    executeTask: jest.fn().mockResolvedValue('Executed: task completed successfully'),
+    parseOrchestration: jest.fn().mockResolvedValue({
       steps: [
         {
           id: 'step1',
@@ -42,25 +42,25 @@ vi.mock('@/api/api-client', () => ({
       total_batches: 1,
       max_parallel: 1,
     }),
-    getHistory: vi.fn().mockResolvedValue([]),
-    getStats: vi.fn().mockResolvedValue({}),
-    getCostSummary: vi
+    getHistory: jest.fn().mockResolvedValue([]),
+    getStats: jest.fn().mockResolvedValue({}),
+    getCostSummary: jest
       .fn()
       .mockResolvedValue({ total_cost: 0, cost_by_provider: {}, cost_by_model: {} }),
-    executeTaskStreaming: vi
+    executeTaskStreaming: jest
       .fn()
       .mockImplementation(
         async (_goblin: string, _task: string, onChunk: (chunk: StreamChunk) => void) => {
           onChunk({ chunk: 'Executed: streaming task completed', result: true });
         }
       ),
-    executeGoblinCommand: vi.fn().mockResolvedValue({
+    executeGoblinCommand: jest.fn().mockResolvedValue({
       result: 'Executed: command completed',
       status: 'success',
     }),
   },
   runtimeClientDemo: {
-    getGoblins: vi.fn().mockResolvedValue([
+    getGoblins: jest.fn().mockResolvedValue([
       {
         id: 'docs-writer',
         name: 'docs-writer',
@@ -69,8 +69,8 @@ vi.mock('@/api/api-client', () => ({
       },
       { id: 'code-writer', name: 'code-writer', title: 'Code Writer', status: 'available' },
     ]),
-    getProviders: vi.fn().mockResolvedValue(['openai', 'anthropic', 'google']),
-    getProviderModels: vi.fn().mockImplementation((provider: string) => {
+    getProviders: jest.fn().mockResolvedValue(['openai', 'anthropic', 'google']),
+    getProviderModels: jest.fn().mockImplementation((provider: string) => {
       const models: Record<string, string[]> = {
         openai: ['gpt-4', 'gpt-3.5-turbo'],
         anthropic: ['claude-3', 'claude-2'],
@@ -78,8 +78,8 @@ vi.mock('@/api/api-client', () => ({
       };
       return Promise.resolve(models[provider] || []);
     }),
-    executeTask: vi.fn().mockResolvedValue('Executed: demo task completed successfully'),
-    parseOrchestration: vi.fn().mockResolvedValue({
+    executeTask: jest.fn().mockResolvedValue('Executed: demo task completed successfully'),
+    parseOrchestration: jest.fn().mockResolvedValue({
       steps: [
         {
           id: 'step1',
@@ -92,19 +92,19 @@ vi.mock('@/api/api-client', () => ({
       total_batches: 1,
       max_parallel: 1,
     }),
-    getHistory: vi.fn().mockResolvedValue([]),
-    getStats: vi.fn().mockResolvedValue({}),
-    getCostSummary: vi
+    getHistory: jest.fn().mockResolvedValue([]),
+    getStats: jest.fn().mockResolvedValue({}),
+    getCostSummary: jest
       .fn()
       .mockResolvedValue({ total_cost: 0, cost_by_provider: {}, cost_by_model: {} }),
-    executeTaskStreaming: vi
+    executeTaskStreaming: jest
       .fn()
       .mockImplementation(
         async (_goblin: string, _task: string, onChunk: (chunk: StreamChunk) => void) => {
           onChunk({ chunk: 'Executed: demo streaming task completed', result: true });
         }
       ),
-    executeGoblinCommand: vi.fn().mockResolvedValue({
+    executeGoblinCommand: jest.fn().mockResolvedValue({
       result: 'Executed: demo command completed',
       status: 'success',
     }),
@@ -126,11 +126,11 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => (
 
 describe('Integration Tests - Provider/Model Selection Flow', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should allow selecting a provider and then a model', async () => {
-    const mockOnChange = vi.fn();
+    const mockOnChange = jest.fn();
 
     render(
       <TestWrapper>
@@ -171,7 +171,7 @@ describe('Integration Tests - Provider/Model Selection Flow', () => {
   });
 
   it('should update model options when provider changes', async () => {
-    const mockOnChange = vi.fn();
+    const mockOnChange = jest.fn();
 
     // Use a component that manages state
     const TestComponent = () => {
@@ -222,11 +222,11 @@ describe('Integration Tests - Provider/Model Selection Flow', () => {
   it('should handle provider selection errors gracefully', async () => {
     // Mock API failure
     const { runtimeClient } = await import('../../src/api/api-client');
-    vi.mocked(runtimeClient.getProviderModels).mockRejectedValueOnce(new Error('Network error'));
+    (runtimeClient as any).getProviderModels.mockRejectedValueOnce(new Error('Network error'));
 
     render(
       <TestWrapper>
-        <ProviderSelector providers={['openai', 'anthropic', 'google']} onChange={vi.fn()} />
+        <ProviderSelector providers={['openai', 'anthropic', 'google']} onChange={jest.fn()} />
       </TestWrapper>
     );
 
@@ -239,7 +239,7 @@ describe('Integration Tests - Provider/Model Selection Flow', () => {
 
 describe('Integration Tests - Goblin Demo Execution Flow', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should execute goblin commands and display results', async () => {
@@ -275,7 +275,7 @@ describe('Integration Tests - Goblin Demo Execution Flow', () => {
   it('should handle command execution errors', async () => {
     // Mock API failure
     const { runtimeClient } = await import('../../src/api/api-client');
-    vi.mocked(runtimeClient.executeGoblinCommand).mockRejectedValueOnce(
+    (runtimeClient as any).executeGoblinCommand.mockRejectedValueOnce(
       new Error('Execution failed')
     );
 
@@ -308,7 +308,7 @@ describe('Integration Tests - Goblin Demo Execution Flow', () => {
 
 describe('Integration Tests - Full Application Flow', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should integrate provider selection with goblin demo execution', async () => {

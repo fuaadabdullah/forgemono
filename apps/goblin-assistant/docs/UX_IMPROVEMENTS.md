@@ -42,16 +42,18 @@ import { Tooltip } from './ui';
 
 <Tooltip content="Additional information" position="bottom">
   <Badge>Status</Badge>
-</Tooltip>
+</Tooltip>;
 ```
 
 **Props**:
+
 - `content: ReactNode` - Tooltip content (text or JSX)
 - `children: ReactNode` - Element to wrap
 - `position?: 'top' | 'bottom' | 'left' | 'right'` - Tooltip position (default: 'top')
 - `delay?: number` - Show delay in ms (default: 300)
 
 **Accessibility**:
+
 - Unique `id` generated for each tooltip
 - `aria-describedby` links trigger to tooltip
 - `role="tooltip"` for semantic meaning
@@ -65,14 +67,13 @@ import { Tooltip } from './ui';
 ### New Props
 
 ```tsx
-
 interface StatusCardProps {
   title: string;
   status: 'healthy' | 'degraded' | 'down' | 'unknown';
   icon?: ReactNode;
   meta?: Array<{ label: string; value: string | number }>;
-  lastCheck?: string;           // NEW: ISO timestamp
-  statusDetails?: string;        // NEW: Custom tooltip text
+  lastCheck?: string; // NEW: ISO timestamp
+  statusDetails?: string; // NEW: Custom tooltip text
   className?: string;
 }
 ```
@@ -89,8 +90,8 @@ const statusConfig = {
 ```
 
 **After**:
-```tsx
 
+```tsx
 const statusConfig = {
   healthy: {
     border: 'border-success',
@@ -103,7 +104,8 @@ const statusConfig = {
     border: 'border-warning',
     badgeVariant: 'warning',
     icon: '⚠',
-    description: 'Service is experiencing issues but remains partially functional. Some features may be unavailable or slow.',
+    description:
+      'Service is experiencing issues but remains partially functional. Some features may be unavailable or slow.',
     ariaLabel: 'Status: Degraded - Service has reduced functionality',
   },
   down: {
@@ -117,7 +119,8 @@ const statusConfig = {
     border: 'border-border',
     badgeVariant: 'neutral',
     icon: '?',
-    description: 'Unable to determine service status. Check may have timed out or service is unreachable.',
+    description:
+      'Unable to determine service status. Check may have timed out or service is unreachable.',
     ariaLabel: 'Status: Unknown - Cannot determine service status',
   },
 };
@@ -138,14 +141,15 @@ const formatLastCheck = (timestamp?: string) => {
 ```
 
 **Display**:
+
 - Shown in top-right corner of status card
 - Uses muted text color for non-intrusive appearance
 - Full timestamp shown on hover (browser native `title` attribute)
 - Automatically formatted based on time elapsed
 
 **Example**:
-```tsx
 
+```tsx
 <StatusCard
   title="Backend API"
   status="healthy"
@@ -168,8 +172,8 @@ const formatLastCheck = (timestamp?: string) => {
 ```
 
 **Custom Tooltip** (specific details):
-```tsx
 
+```tsx
 <StatusCard
   title="Vector DB (Chroma)"
   status="down"
@@ -181,6 +185,7 @@ const formatLastCheck = (timestamp?: string) => {
 ### Visual Layout
 
 **Before**:
+
 ```
 ┌─────────────────────────────────┐
 │ ⚡ Backend API                   │
@@ -194,6 +199,7 @@ const formatLastCheck = (timestamp?: string) => {
 ```
 
 **After**:
+
 ```
 ┌─────────────────────────────────┐
 │ ⚡ Backend API            5m ago │
@@ -243,11 +249,13 @@ const formatLastCheck = (timestamp?: string) => {
 ### Screen Reader Experience
 
 **Before**:
+
 ```
 "Backend API status healthy"
 ```
 
 **After**:
+
 ```
 "Backend API Status: Healthy - Service is fully operational
 Last checked 5 minutes ago
@@ -264,10 +272,12 @@ Hover for more information"
      aria-label={`${title} ${config.ariaLabel}`}
    >
    ```
+
    - Groups related status information
    - Provides complete status context
 
 2. **Badge ARIA**:
+
    ```tsx
 
    <Badge
@@ -289,6 +299,7 @@ Hover for more information"
      Service is experiencing issues...
    </div>
    ```
+
    - Links badge to descriptive tooltip
    - Screen readers announce description on focus
 
@@ -305,14 +316,15 @@ Hover for more information"
 
 ### Status Colors (already implemented, now enhanced)
 
-| Status    | Border Color | Badge Variant | Icon | Semantic Meaning              |
-|-----------|--------------|---------------|------|-------------------------------|
-| Healthy   | Green        | success       | ✓    | Fully operational             |
-| Degraded  | Orange       | warning       | ⚠    | Partial functionality         |
-| Down      | Red          | danger        | ✗    | Completely unavailable        |
-| Unknown   | Gray         | neutral       | ?    | Cannot determine status       |
+| Status   | Border Color | Badge Variant | Icon | Semantic Meaning        |
+| -------- | ------------ | ------------- | ---- | ----------------------- |
+| Healthy  | Green        | success       | ✓    | Fully operational       |
+| Degraded | Orange       | warning       | ⚠    | Partial functionality   |
+| Down     | Red          | danger        | ✗    | Completely unavailable  |
+| Unknown  | Gray         | neutral       | ?    | Cannot determine status |
 
 **WCAG Compliance**:
+
 - All color combinations meet WCAG AA contrast ratios
 - Status communicated through icon + text + color (triple redundancy)
 - Color is not the sole indicator of status
@@ -322,8 +334,8 @@ Hover for more information"
 ## Usage Examples
 
 ### Basic Usage
-```tsx
 
+```tsx
 <StatusCard
   title="Backend API"
   status="healthy"
@@ -353,8 +365,8 @@ Hover for more information"
 ```
 
 ### Without Timestamp
-```tsx
 
+```tsx
 <StatusCard
   title="Quick Links"
   status="healthy"

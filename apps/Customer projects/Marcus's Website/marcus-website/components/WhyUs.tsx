@@ -1,21 +1,21 @@
-import { DollarSign, Shield, Truck } from "lucide-react";
+import { DollarSign, Shield, Truck } from 'lucide-react';
 
 const features = [
   {
     icon: DollarSign,
-    title: "Fair Pricing",
-    description: "Transparent pricing with no hidden fees. Get the best value for your money."
+    title: 'Fair Pricing',
+    description: 'Transparent pricing with no hidden fees. Get the best value for your money.',
   },
   {
     icon: Shield,
-    title: "Honest Service",
-    description: "15 years of experience with honest diagnostics and recommendations."
+    title: 'Honest Service',
+    description: '15 years of experience with honest diagnostics and recommendations.',
   },
   {
     icon: Truck,
-    title: "Mobile & Reliable",
-    description: "We come to you. Fast response times and reliable service you can count on."
-  }
+    title: 'Mobile & Reliable',
+    description: 'We come to you. Fast response times and reliable service you can count on.',
+  },
 ];
 
 export default function WhyUs() {

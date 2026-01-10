@@ -24,10 +24,9 @@ If you need assistance executing steps 1 or 4 above, ask for a separate migratio
 
 ---
 
-This is a living document. Update as the reorganization progresses.
----
-description: "REORG_PLAN"
----
+## This is a living document. Update as the reorganization progresses.
+
+## description: "REORG_PLAN"
 
 # Monorepo Reorg Plan (Proposal)
 
@@ -69,4 +68,3 @@ Goal: world-class structure that’s easy to navigate, operate, and onboard.
 - Add workspace health gate (existing GoblinOS health package) to CI
 
 Request approval before executing Phases 2–5 (destructive/moves).
-

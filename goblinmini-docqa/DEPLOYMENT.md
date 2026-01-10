@@ -25,7 +25,6 @@ Why:
 
 Alternative: Docker host using docker-compose is a fine production choice for containerized environments, portability, and easy redeployments — but it adds a layer of complexity for GPU/driver access and may impact model loading strategies. Use docker-compose if your priorities are portability and ease of CI/CD.
 
-
 For maximum security and to completely eliminate port conflicts, use Unix Domain Sockets (UDS):
 
 ### systemd with UDS
@@ -41,6 +40,7 @@ EnvironmentFile=/etc/default/goblin-docqa
 ExecStartPre=/bin/bash -c 'exec 200>/run/goblinmini-docqa.lock || exit 1'
 ExecStartPre=/bin/bash -c 'flock -n 200 || { echo "Another instance is running"; exit 1; }'
 ```
+
 #### systemd socket activation & enabling
 
 To start the service with systemd socket activation and ensure it starts on boot:
@@ -54,11 +54,11 @@ sudo systemctl enable --now goblin-docqa.service
 This ensures the socket is owned by systemd and the service is started safely on demand or on boot.
 
 #### systemd drop-ins (recommended)
+
 Place custom service options (timeouts/start-limit) into the repo `systemd/dropins/` directory and the `deploy_units.sh` script will copy them into `/etc/systemd/system/<unit>.service.d/` during deployment. We include safe defaults for:
 
 - `TimeoutStartSec` / `TimeoutStopSec`
 - `StartLimitIntervalSec` / `StartLimitBurst`
-
 
 #### Resource caps and runtime directory
 
@@ -69,7 +69,6 @@ The systemd services include safe bounds for memory and CPU usage. You can tune 
 - RuntimeDirectory: directory under `/run` created by systemd
 
 Adjust these values to match server capability (total memory, CPU count, and expected load).
-
 
 ### Nginx Reverse Proxy
 
@@ -98,6 +97,7 @@ server {
 ```
 
 **Benefits of UDS approach:**
+
 - ✅ No port conflicts possible
 - ✅ Better security (socket permissions vs network access)
 - ✅ Lower latency
@@ -108,7 +108,8 @@ server {
 If you want to run local LLMs (recommended for CPU-only inference with llama-cpp), follow these steps.
 Keep `DOCQA_ENABLE_LOCAL_MODEL=false` in development to avoid accidental heavy loads.
 
-1) Add env variables to `/etc/default/goblin-docqa`:
+1. Add env variables to `/etc/default/goblin-docqa`:
+
 ```ini
 
 DOCQA_ENABLE_LOCAL_MODEL=true
@@ -117,7 +118,7 @@ MODEL_NAME=Phi-3-mini-4k.gguf
 MODEL_QUANTIZATION=auto
 ```
 
-2) Install `llama-cpp-python` (preferred for CPU):
+2. Install `llama-cpp-python` (preferred for CPU):
 
 ```bash
 sudo apt-get update && sudo apt-get install -y build-essential cmake libssl-dev libsqlite3-dev
@@ -126,13 +127,14 @@ sudo -H -u docqa /opt/goblinmini-docqa/venv/bin/python -m pip install llama-cpp-
 ```
 
 If you prefer PyTorch-based local models (GPU/torch), install it inside the venv with the correct CUDA variant. Some third-party packages may have specific NumPy compatibility constraints; install the correct NumPy/CUDA combination per package documentation if needed:
+
 ```bash
 
 # Example (CPU-only torch, check the official install instructions for CUDA if using GPU)
 sudo -H -u docqa /opt/goblinmini-docqa/venv/bin/python -m pip install torch torchvision
 ```
 
-3) Add model files to `MODEL_PATH` (GGUF for llama-cpp or TF/PyTorch weights for torch-based backends):
+3. Add model files to `MODEL_PATH` (GGUF for llama-cpp or TF/PyTorch weights for torch-based backends):
 
 ```bash
 sudo mkdir -p /opt/goblinmini-docqa/models
@@ -140,7 +142,8 @@ sudo chown -R docqa:docqa /opt/goblinmini-docqa/models
 # place your model files (e.g., *.gguf, *.pt) under this directory
 ```
 
-4) Restart systemd unit(s) or re-run preflight/deploy:
+4. Restart systemd unit(s) or re-run preflight/deploy:
+
 ```bash
 
 sudo systemctl restart goblin-docqa.service
@@ -151,7 +154,6 @@ sudo journalctl -u goblin-docqa.service -f
 ```
 
 Note: Using CPU-models will affect memory and CPU limits. Tune systemd `MemoryLimit` and `CPUQuota` accordingly. If running GPU-backed PyTorch, configure CUDA and NVIDIA runtimes appropriately.
-
 
 ## App-Level Single Instance Guard
 
@@ -177,6 +179,7 @@ The script (`bin/start-docqa.sh`) implements robust locking:
 - **Non-blocking**: Exits immediately if another instance is running
 
 **Benefits:**
+
 - ✅ Prevents accidental manual duplicates
 - ✅ Works in development environments
 - ✅ Provides fallback protection beyond systemd
@@ -231,7 +234,7 @@ Add to your `prometheus.yml`:
 scrape_configs:
   - job_name: 'goblin-docqa'
     static_configs:
-      - targets: ['localhost:8000']  # Or your service endpoint
+      - targets: ['localhost:8000'] # Or your service endpoint
     scrape_interval: 15s
     metrics_path: '/metrics'
 ```
@@ -241,34 +244,31 @@ scrape_configs:
 Key alerts are configured in `prometheus/alerting_rules.yml`:
 
 ```yaml
-
 groups:
+  - name: docqa.rules
+    rules:
+      - alert: DocQAHighQueue
+        expr: docqa_job_queue_length > 0.8 * docqa_job_queue_capacity
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: 'Goblin Mini queue >80% capacity'
+          description: 'Queue length is {{ $value }}. Scale workers or throttle agents.'
 
-- name: docqa.rules
-  rules:
+      - alert: DocQAMemoryHigh
+        expr: process_resident_memory_bytes{job="docqa"} > 0.8 * machine_memory_bytes
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: 'High memory usage'
+          description: 'Memory >80% for >1m. Consider evicting nodes or restarting worker.'
 
-  - alert: DocQAHighQueue
-    expr: docqa_job_queue_length > 0.8 * docqa_job_queue_capacity
-    for: 2m
-    labels: { severity: warning }
-    annotations:
-      summary: "Goblin Mini queue >80% capacity"
-      description: "Queue length is {{ $value }}. Scale workers or throttle agents."
-
-  - alert: DocQAMemoryHigh
-    expr: process_resident_memory_bytes{job="docqa"} > 0.8 * machine_memory_bytes
-    for: 1m
-    labels: { severity: critical }
-    annotations:
-      summary: "High memory usage"
-      description: "Memory >80% for >1m. Consider evicting nodes or restarting worker."
-
-  - alert: DocQARestarting
-    expr: increase(process_start_time_seconds{job="docqa"}[5m]) > 0
-    for: 0m
-    labels: { severity: warning }
-    annotations:
-      summary: "Frequent restarts detected"
+      - alert: DocQARestarting
+        expr: increase(process_start_time_seconds{job="docqa"}[5m]) > 0
+        for: 0m
+        labels: { severity: warning }
+        annotations:
+          summary: 'Frequent restarts detected'
 ```
 
 ### Service Level Objectives (SLOs)
@@ -295,12 +295,14 @@ export COPILOT_TOKEN_BUDGET_DAILY=50000    # Set daily token limit
 ```
 
 **Optimization Features:**
+
 - ✅ **Response Caching**: 1-hour cache for identical requests (no token cost)
 - ✅ **Token Budget**: Daily spending limits with automatic enforcement
 - ✅ **Accurate Tracking**: Extracts real token usage from API responses
 - ✅ **Usage Analytics**: Historical analysis and optimization recommendations
 
 **Key Metrics to Monitor:**
+
 - `goblin_docqa_copilot_tokens_used_total` - Total tokens consumed
 - `goblin_docqa_copilot_requests_total` - API request count
 - Cache hit ratio and budget utilization
@@ -308,6 +310,7 @@ export COPILOT_TOKEN_BUDGET_DAILY=50000    # Set daily token limit
 ### Centralized Logging
 
 **systemd/journald** (recommended for Linux):
+
 ```bash
 
 # View logs
@@ -353,6 +356,7 @@ Minimum Grafana panels for production monitoring:
 ### Health Checks
 
 The `/health` endpoint provides operational status including:
+
 - Queue sizes and capacity
 - Model loading status
 - Rate limit configuration
@@ -371,6 +375,7 @@ The `/health` endpoint provides operational status including:
 If job completion times stay <0.2s and you need real stress testing:
 
 1. **Simulate slow jobs** by adding artificial delays in the worker:
+
    ```python
 
    # In worker.py, add temporary delay for testing
@@ -400,6 +405,7 @@ If job completion times stay <0.2s and you need real stress testing:
 **Never use .env files in production** - move all secrets to secure stores:
 
 **Option 1: HashiCorp Vault**
+
 ```bash
 
 # Store secrets in Vault
@@ -424,6 +430,7 @@ EnvironmentFile=/etc/vault.d/goblinmini-docqa.env
 ```
 
 **Option 3: OS Secret Store**
+
 ```bash
 
 # Linux (systemd credential storage)
@@ -495,6 +502,7 @@ sudo usermod -aG goblin goblin
 ```
 
 2. Set up the application directory:
+
 ```bash
 
 sudo mkdir -p /opt/goblinmini-docqa
@@ -510,6 +518,7 @@ cd /opt/goblinmini-docqa
 ```
 
 4. Create virtual environment:
+
 ```bash
 
 sudo -u goblin python3 -m venv venv
@@ -525,7 +534,8 @@ sudo -u goblin nano .env
 ```
 
 6. Install systemd services (automatic helper script):
-```bash
+
+````bash
 
 # Optionally ensure a 'docqa' system user and set ownership of /opt/goblinmini-docqa first
 sudo ENSURE_USER=true ENSURE_MODELS_DIR=true ENSURE_PIP_INSTALL=true ./systemd/deploy_units.sh
@@ -540,7 +550,8 @@ sudo ENSURE_USER=true ENSURE_MODELS_DIR=true ENSURE_PIP_INSTALL=true ./systemd/d
 
 ```bash
 sudo RUN_POST_DEPLOY_TEST=true POST_DEPLOY_MODEL_NAME=Phi-3-mini-4k.gguf ./systemd/deploy_units.sh
-```
+````
+
 ### Installing llama-cpp and system dependencies (Ubuntu/Debian)
 
 If you plan to use `llama-cpp-python` (recommended for CPU-only local inference), install these packages:
@@ -558,14 +569,14 @@ If you plan to use PyTorch (GPU or CPU), follow the official PyTorch install ins
 sudo -H -u docqa /opt/goblinmini-docqa/venv/bin/python -m pip install "numpy<2" torch torchvision
 ```
 
-```
+````
 
 7. Create required directories:
 ```bash
 
 sudo mkdir -p /run/goblinmini-docqa
 sudo chown goblin:goblin /run/goblinmini-docqa
-```
+````
 
 8. Start services:
 
@@ -620,6 +631,7 @@ sudo systemctl start goblin-docqa.service
 ```
 
 **For regular systemd services:**
+
 ```bash
 
 sudo systemctl stop goblinmini-docqa
@@ -778,6 +790,7 @@ export COPILOT_API_KEY="your-copilot-key"
 ```
 
 2. Start services:
+
 ```bash
 
 cd docker
@@ -828,6 +841,7 @@ docker compose down
 ### Preventing Runaway Inference
 
 Both deployment methods include resource caps to prevent:
+
 - Memory exhaustion from large document processing
 - CPU starvation of host system
 - Resource conflicts between main app and workers
@@ -835,6 +849,7 @@ Both deployment methods include resource caps to prevent:
 ### Monitoring Resources
 
 **Docker**:
+
 ```bash
 
 docker stats
@@ -851,6 +866,7 @@ sudo journalctl -u goblinmini-docqa | grep -i memory
 ## Security Considerations
 
 ### systemd Security Features
+
 - Non-root user execution
 - Private /tmp directory
 - Read-only root filesystem (except allowed paths)
@@ -858,6 +874,7 @@ sudo journalctl -u goblinmini-docqa | grep -i memory
 - No new privileges after startup
 
 ### Docker Security Features
+
 - Read-only root filesystem
 - Non-root user execution
 - Minimal base image (python:3.11-slim)
@@ -869,6 +886,7 @@ sudo journalctl -u goblinmini-docqa | grep -i memory
 ### Multiple Instances Detected
 
 **systemd**:
+
 ```bash
 
 # Check for existing processes
@@ -894,14 +912,14 @@ docker compose up -d
 ### Resource Limit Issues
 
 **Increase limits if needed**:
-```yaml
 
+```yaml
 # docker-compose.yml
 deploy:
   resources:
     limits:
-      cpus: "4.0"    # Increase CPU limit
-      memory: 8G     # Increase memory limit
+      cpus: '4.0' # Increase CPU limit
+      memory: 8G # Increase memory limit
 ```
 
 **systemd**:
@@ -915,6 +933,7 @@ CPUQuota=400%
 ### Port Conflicts
 
 **Check port usage**:
+
 ```bash
 
 sudo lsof -i :8000
@@ -949,6 +968,7 @@ ports:
 ### Pre-Release Preparation
 
 - [ ] **Build production image**:
+
   ```bash
 
   # Build and tag with date
@@ -977,6 +997,7 @@ ports:
 ### Canary Deployment (1 Replica)
 
 - [ ] **Deploy single canary instance**:
+
   ```bash
 
   # Kubernetes example
@@ -1000,6 +1021,7 @@ ports:
   ```
 
 - [ ] **Metrics endpoint test**:
+
   ```bash
 
   curl -f <https://api.goblinmini-docqa.com/metrics> | grep -E "(docqa_|process_|redis_)"
@@ -1021,6 +1043,7 @@ ports:
   ```
 
 - [ ] **Verify job processing**:
+
   ```bash
 
   # Check queue metrics
@@ -1042,6 +1065,7 @@ ports:
   ```
 
 - [ ] **Monitor memory usage**:
+
   ```bash
 
   # Watch memory metrics
@@ -1058,6 +1082,7 @@ ports:
   ```
 
 - [ ] **Check logs for anomalies**:
+
   ```bash
 
   # Recent error logs
@@ -1092,6 +1117,7 @@ ports:
   ```
 
 - [ ] **Verify full rollout**:
+
   ```bash
 
   # Wait for all replicas to be ready
@@ -1118,6 +1144,7 @@ ports:
   ```
 
 - [ ] **Verify 429 behavior**:
+
   ```bash
 
   # Check metrics for 429 responses
@@ -1145,6 +1172,7 @@ ports:
 ### Rollback Plan (If Issues Detected)
 
 - [ ] **Immediate rollback commands**:
+
   ```bash
 
   # Rollback to previous image
@@ -1198,36 +1226,36 @@ jobs:
       packages: write
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Log in to Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./goblinmini-docqa
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./goblinmini-docqa
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   canary-deploy:
     needs: build-and-push
@@ -1235,68 +1263,68 @@ jobs:
     environment: production
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Deploy to ECS (Canary - 1 replica)
-      run: |
-        # Update ECS service to 1 replica with new image
-        aws ecs update-service \
-          --cluster goblinmini-docqa-prod \
-          --service goblinmini-docqa-service \
-          --task-definition goblinmini-docqa-task \
-          --desired-count 1 \
-          --force-new-deployment
+      - name: Deploy to ECS (Canary - 1 replica)
+        run: |
+          # Update ECS service to 1 replica with new image
+          aws ecs update-service \
+            --cluster goblinmini-docqa-prod \
+            --service goblinmini-docqa-service \
+            --task-definition goblinmini-docqa-task \
+            --desired-count 1 \
+            --force-new-deployment
 
-    - name: Wait for deployment
-      run: |
-        aws ecs wait services-stable \
-          --cluster goblinmini-docqa-prod \
-          --services goblinmini-docqa-service
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster goblinmini-docqa-prod \
+            --services goblinmini-docqa-service
 
-    - name: Smoke Test Canary Deployment
-      run: |
-        # Wait for service to be healthy
-        sleep 30
+      - name: Smoke Test Canary Deployment
+        run: |
+          # Wait for service to be healthy
+          sleep 30
 
-        # Test health endpoint
-        HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.goblinmini-docqa.com/health)
-        if [ "$HEALTH_STATUS" -ne 200 ]; then
-          echo "Health check failed: $HEALTH_STATUS"
-          exit 1
-        fi
+          # Test health endpoint
+          HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.goblinmini-docqa.com/health)
+          if [ "$HEALTH_STATUS" -ne 200 ]; then
+            echo "Health check failed: $HEALTH_STATUS"
+            exit 1
+          fi
 
-        # Test metrics endpoint
-        METRICS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.goblinmini-docqa.com/metrics)
-        if [ "$METRICS_STATUS" -ne 200 ]; then
-          echo "Metrics check failed: $METRICS_STATUS"
-          exit 1
-        fi
+          # Test metrics endpoint
+          METRICS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.goblinmini-docqa.com/metrics)
+          if [ "$METRICS_STATUS" -ne 200 ]; then
+            echo "Metrics check failed: $METRICS_STATUS"
+            exit 1
+          fi
 
-        # Test basic API functionality
-        API_STATUS=$(curl -s -X POST \
-          -H "Content-Type: application/json" \
-          -d '{"query": "test", "context": "test context"}' \
-          -o /dev/null -w "%{http_code}" \
-          https://api.goblinmini-docqa.com/api/query)
+          # Test basic API functionality
+          API_STATUS=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"query": "test", "context": "test context"}' \
+            -o /dev/null -w "%{http_code}" \
+            https://api.goblinmini-docqa.com/api/query)
 
-        if [ "$API_STATUS" -ne 200 ] && [ "$API_STATUS" -ne 429 ]; then
-          echo "API test failed: $API_STATUS"
-          exit 1
-        fi
+          if [ "$API_STATUS" -ne 200 ] && [ "$API_STATUS" -ne 429 ]; then
+            echo "API test failed: $API_STATUS"
+            exit 1
+          fi
 
-        echo "✅ Canary deployment smoke tests passed"
+          echo "✅ Canary deployment smoke tests passed"
 
   promote-full-rollout:
     needs: canary-deploy
@@ -1304,46 +1332,46 @@ jobs:
     environment: production
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-    - name: Promote to Full Rollout (3 replicas)
-      run: |
-        aws ecs update-service \
-          --cluster goblinmini-docqa-prod \
-          --service goblinmini-docqa-service \
-          --task-definition goblinmini-docqa-task \
-          --desired-count 3 \
-          --force-new-deployment
+      - name: Promote to Full Rollout (3 replicas)
+        run: |
+          aws ecs update-service \
+            --cluster goblinmini-docqa-prod \
+            --service goblinmini-docqa-service \
+            --task-definition goblinmini-docqa-task \
+            --desired-count 3 \
+            --force-new-deployment
 
-    - name: Wait for full rollout
-      run: |
-        aws ecs wait services-stable \
-          --cluster goblinmini-docqa-prod \
-          --services goblinmini-docqa-service
+      - name: Wait for full rollout
+        run: |
+          aws ecs wait services-stable \
+            --cluster goblinmini-docqa-prod \
+            --services goblinmini-docqa-service
 
-    - name: Verify full rollout
-      run: |
-        # Check that all 3 replicas are running
-        RUNNING_COUNT=$(aws ecs describe-services \
-          --cluster goblinmini-docqa-prod \
-          --services goblinmini-docqa-service \
-          --query 'services[0].runningCount' \
-          --output text)
+      - name: Verify full rollout
+        run: |
+          # Check that all 3 replicas are running
+          RUNNING_COUNT=$(aws ecs describe-services \
+            --cluster goblinmini-docqa-prod \
+            --services goblinmini-docqa-service \
+            --query 'services[0].runningCount' \
+            --output text)
 
-        if [ "$RUNNING_COUNT" -ne 3 ]; then
-          echo "Full rollout failed: expected 3 running tasks, got $RUNNING_COUNT"
-          exit 1
-        fi
+          if [ "$RUNNING_COUNT" -ne 3 ]; then
+            echo "Full rollout failed: expected 3 running tasks, got $RUNNING_COUNT"
+            exit 1
+          fi
 
-        echo "✅ Full rollout completed successfully"
+          echo "✅ Full rollout completed successfully"
 
   rollback:
     needs: [canary-deploy, promote-full-rollout]
@@ -1351,23 +1379,23 @@ jobs:
     if: failure()
 
     steps:
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-    - name: Rollback to previous version
-      run: |
-        # Rollback ECS service to previous task definition
-        aws ecs update-service \
-          --cluster goblinmini-docqa-prod \
-          --service goblinmini-docqa-service \
-          --task-definition goblinmini-docqa-task \
-          --desired-count 3 \
-          --force-new-deployment \
-          --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50"
+      - name: Rollback to previous version
+        run: |
+          # Rollback ECS service to previous task definition
+          aws ecs update-service \
+            --cluster goblinmini-docqa-prod \
+            --service goblinmini-docqa-service \
+            --task-definition goblinmini-docqa-task \
+            --desired-count 3 \
+            --force-new-deployment \
+            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50"
 ```
 
 ### Docker Compose for Local Testing

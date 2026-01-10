@@ -2,7 +2,7 @@ name: DeepSeek Env Validation
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'GoblinOS/goblins.yaml'
       - 'GoblinOS/.env'
@@ -37,4 +37,3 @@ jobs:
       #     CI_DEEPSEEK_REQUIRED: 'true'
       #     DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
       #   run: node GoblinOS/scripts/validate-deepseek-env.js
-

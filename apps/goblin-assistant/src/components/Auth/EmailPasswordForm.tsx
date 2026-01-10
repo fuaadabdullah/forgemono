@@ -55,10 +55,7 @@ export default function EmailPasswordForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-muted mb-2"
-        >
+        <label htmlFor="email" className="block text-sm font-medium text-muted mb-2">
           Email Address
         </label>
         <input
@@ -71,22 +68,15 @@ export default function EmailPasswordForm({
           }}
           required
           className={`w-full px-4 py-3 border rounded-lg bg-surface-hover text-text placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${
-            errors.email
-              ? 'border-danger'
-              : 'border-border'
+            errors.email ? 'border-danger' : 'border-border'
           }`}
           placeholder="you@example.com"
         />
-        {errors.email && (
-          <p className="mt-1 text-sm text-danger">{errors.email}</p>
-        )}
+        {errors.email && <p className="mt-1 text-sm text-danger">{errors.email}</p>}
       </div>
 
       <div>
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-muted mb-2"
-        >
+        <label htmlFor="password" className="block text-sm font-medium text-muted mb-2">
           Password
         </label>
         <input
@@ -99,19 +89,13 @@ export default function EmailPasswordForm({
           }}
           required
           className={`w-full px-4 py-3 border rounded-lg bg-surface-hover text-text placeholder-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${
-            errors.password
-              ? 'border-danger'
-              : 'border-border'
+            errors.password ? 'border-danger' : 'border-border'
           }`}
           placeholder="••••••••"
         />
-        {errors.password && (
-          <p className="mt-1 text-sm text-danger">{errors.password}</p>
-        )}
+        {errors.password && <p className="mt-1 text-sm text-danger">{errors.password}</p>}
         {isRegister && !errors.password && (
-          <p className="mt-1 text-xs text-muted">
-            Must be at least 8 characters
-          </p>
+          <p className="mt-1 text-xs text-muted">Must be at least 8 characters</p>
         )}
       </div>
 

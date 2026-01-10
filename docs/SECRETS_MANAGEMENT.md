@@ -81,6 +81,7 @@ Monitors for unauthorized .env files:
 
 1. **Never create .env files manually** - they will be flagged by the monitor
 2. **Use the secret manager** to load required secrets:
+
    ```bash
 
    ./tools/secrets.sh load your-app-name
@@ -131,6 +132,7 @@ Allowed .env files:
 
 1. **Extract secrets** from existing .env files
 2. **Store in Bitwarden**:
+
    ```bash
 
    ./tools/secrets.sh set goblin-app-service "your-secret-value" "Description"
@@ -141,11 +143,13 @@ Allowed .env files:
    ```bash
    rm dangerous-env-file.env
    ```
+
 4. **Update code** to use environment variables or secret manager
 
 ### Example Migration
 
 **Before (❌ Dangerous)**:
+
 ```bash
 
 # .env file
@@ -182,17 +186,17 @@ api_key = os.getenv('OPENAI_API_KEY') or get_secret_from_bitwarden()
 
 ### "Bitwarden vault is locked"
 
-   ```bash
+```bash
 
-   export BW_SESSION=$(bw unlock --raw)
-   ```
+export BW_SESSION=$(bw unlock --raw)
+```
 
 ### "Secret not found"
 
-   ```bash
-   ./tools/secrets.sh list  # Check available secrets
-   bw list items --search "goblin-"  # Direct Bitwarden search
-   ```
+```bash
+./tools/secrets.sh list  # Check available secrets
+bw list items --search "goblin-"  # Direct Bitwarden search
+```
 
 ### Monitor shows false positives
 

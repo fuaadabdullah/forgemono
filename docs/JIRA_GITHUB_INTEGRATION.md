@@ -14,9 +14,11 @@ This guide provides step-by-step instructions for connecting GitHub Enterprise S
 Your GitHub Enterprise Server must allow communication with Jira. There are two options:
 
 ### Option 1: Public-Facing URL with IP Allowlist
+
 If your server has a public URL, configure the firewall to allow Atlassian IP addresses. Refer to [GitHub IP Allowlist Setup](https://github.com/atlassian/github-for-jira/blob/main/docs/ip-allowlist.md).
 
 ### Option 2: Locked Gateway (More Secure)
+
 Create a secure gateway using the [sample reverse proxy configuration](https://github.com/atlassian/github-for-jira/blob/main/docs/sample-reverse-proxy-nginx.conf). You'll need:
 
 - Server URL for the locked gateway
@@ -48,6 +50,7 @@ Create a secure gateway using the [sample reverse proxy configuration](https://g
 4. Update the Homepage URL to include your app name at `http(s)://<your-domain>/settings/apps/<app-name>`
 
 ### Manual Creation
+
 If automatic creation fails, manually create a GitHub App following the [manual setup guide](https://support.atlassian.com/jira-cloud-administration/docs/manually-create-a-github-app/).
 
 ## Step 5: Link Development Activity to Jira Work Items

@@ -14,6 +14,7 @@
    ```
 
 2. Ensure `flyctl` is installed and you're logged in:
+
    ```bash
 
    curl -L <https://fly.io/install.sh> | sh
@@ -26,9 +27,11 @@
    cd apps/goblin-assistant
    fly launch --name goblin-assistant --region iad --no-deploy
    ```
+
    - `--no-deploy` prevents an immediate deploy during initial setup so you can set secrets first.
 
 4. Set Environment Variables/Secrets
+
    ```bash
 
    fly secrets set ANTHROPIC_API_KEY=sk-... OPENAI_API_KEY=sk-... \
@@ -42,6 +45,7 @@
    ```
 
 6. Verify the deployment
+
    ```bash
 
    # Health check
@@ -109,7 +113,9 @@ The repo already includes `.circleci/config.yml` with Fly deployment steps.
    ```bash
    curl https://goblin-assistant.fly.dev/health
    ```
+
 3. Update frontend environment variable
+
    ```bash
 
    VITE_FASTAPI_URL=<https://goblin-assistant.fly.dev>

@@ -21,28 +21,26 @@ This is structured so you can follow it top-to-bottom while building.
 
 ## 1.1 Create the project
 
-* Open Unity Hub
-* New Project → **2D (URP)** template
-* Project name: `Gaslight`
+- Open Unity Hub
+- New Project → **2D (URP)** template
+- Project name: `Gaslight`
 
 ## 1.2 Packages you must add
 
-* From Package Manager → Install:
-
-  * 2D Pixel Perfect
-  * 2D Animation (optional)
-  * URP 2D Lights
+- From Package Manager → Install:
+  - 2D Pixel Perfect
+  - 2D Animation (optional)
+  - URP 2D Lights
 
 ## 1.3 Pixel Perfect Camera Setup
 
-* Add a GameObject: `Main Camera`
-* Attach: **Pixel Perfect Camera** component
-* Settings:
-
-  * Assets Pixels Per Unit (PPU): **32**
-  * Reference Resolution: **320 x 180**
-  * Upscale Render Texture: ON
-  * Pixel Snapping: ON
+- Add a GameObject: `Main Camera`
+- Attach: **Pixel Perfect Camera** component
+- Settings:
+  - Assets Pixels Per Unit (PPU): **32**
+  - Reference Resolution: **320 x 180**
+  - Upscale Render Texture: ON
+  - Pixel Snapping: ON
 
 ---
 
@@ -286,36 +284,36 @@ uvicorn main:app --reload --port 8000
 
 ### Samira (Sister)
 
-* Love-bombs Ayah
-* Twists facts softly
-* Gaslighting type: Minimizing
+- Love-bombs Ayah
+- Twists facts softly
+- Gaslighting type: Minimizing
 
 ### Layla (Cousin)
 
-* Passive aggressive
-* Pretends Ayah is childish
-* Gaslighting type: Shifting blame
+- Passive aggressive
+- Pretends Ayah is childish
+- Gaslighting type: Shifting blame
 
 ### Idris (Family friend)
 
-* Overly logical
-* Makes Ayah “prove” her feelings
-* Gaslighting type: Reality denial
+- Overly logical
+- Makes Ayah “prove” her feelings
+- Gaslighting type: Reality denial
 
 ### Mariam (Friend)
 
-* Fake empathy
-* Speaks in contradictions
-* Gaslighting type: Rewriting events
+- Fake empathy
+- Speaks in contradictions
+- Gaslighting type: Rewriting events
 
 ---
 
 ## 6. GOBLIN DIALOGUE STYLE
 
-* Honest but evil-coded
-* Talks like a gremlin with clarity
-* Always tells the truth but in the most toxic, chaotic way
-* Breaks the fourth wall with Ayah only
+- Honest but evil-coded
+- Talks like a gremlin with clarity
+- Always tells the truth but in the most toxic, chaotic way
+- Breaks the fourth wall with Ayah only
 
 Example tone:
 “Girl, they lying through they teeth. I ain’t gon’ sugarcoat it. They cooking you alive out there.”

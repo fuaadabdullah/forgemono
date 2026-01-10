@@ -37,8 +37,14 @@ const ChatPage: React.FC = () => {
     setInput('');
 
     try {
-      const completion = await apiClient.chatCompletion([...messages, userMsg], undefined, undefined, turnstileToken);
-      const answer = completion?.choices?.[0]?.message?.content || completion?.content || 'No response';
+      const completion = await apiClient.chatCompletion(
+        [...messages, userMsg],
+        undefined,
+        undefined,
+        turnstileToken
+      );
+      const answer =
+        completion?.choices?.[0]?.message?.content || completion?.content || 'No response';
       setMessages((prev) => [...prev, { role: 'assistant', content: answer }]);
       setTotalTokens((prev) => prev + (completion?.usage?.total_tokens || 0));
     } catch (err: any) {
@@ -68,7 +74,9 @@ const ChatPage: React.FC = () => {
                 <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-3xl">🤖</span>
                 </div>
-                <h2 className="text-2xl font-semibold text-text mb-2">Welcome to Goblin Assistant!</h2>
+                <h2 className="text-2xl font-semibold text-text mb-2">
+                  Welcome to Goblin Assistant!
+                </h2>
                 <p className="text-muted">Start a conversation by typing a message below.</p>
               </div>
             </div>
@@ -116,7 +124,9 @@ const ChatPage: React.FC = () => {
               {isSending ? '⏳' : '📤'}
             </button>
           </div>
-          <p className="text-xs text-muted text-center mt-2">Press Enter to send, Shift+Enter for new line</p>
+          <p className="text-xs text-muted text-center mt-2">
+            Press Enter to send, Shift+Enter for new line
+          </p>
         </div>
       </div>
 

@@ -4,7 +4,6 @@ import { useRoutingHealth } from '../hooks/api/useHealth';
 import { apiClient } from '../api/client-axios';
 import TwoColumnLayout from '../components/TwoColumnLayout';
 
-
 /**
  * Provider Manager: Select, test, and prioritize AI providers
  */
@@ -12,11 +11,15 @@ const ProvidersPage = () => {
   const { data: providers, isLoading, error, refetch } = useProviderSettings();
   const { data: routingHealth } = useRoutingHealth();
   // Cast query data (React Query defaults unknown without generics)
-  const providerList = (providers as ProviderConfig[] | undefined);
+  const providerList = providers as ProviderConfig[] | undefined;
   const routingStatus: string = (routingHealth as any)?.status || 'Healthy';
   const [selectedProvider, setSelectedProvider] = useState<ProviderConfig | null>(null);
   const [testing, setTesting] = useState<string | null>(null);
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string; latency?: number } | null>(null);
+  const [testResult, setTestResult] = useState<{
+    success: boolean;
+    message: string;
+    latency?: number;
+  } | null>(null);
 
   const handleTestConnection = async (provider: ProviderConfig) => {
     setTesting(provider.name);
@@ -61,9 +64,7 @@ const ProvidersPage = () => {
         >
           🔄 Refresh Status
         </button>
-        <button
-          className="w-full px-3 py-2 text-sm font-medium text-text bg-surface-hover rounded-lg hover:bg-surface-active transition-colors"
-        >
+        <button className="w-full px-3 py-2 text-sm font-medium text-text bg-surface-hover rounded-lg hover:bg-surface-active transition-colors">
           ➕ Add Provider
         </button>
       </div>
@@ -157,33 +158,35 @@ const ProvidersPage = () => {
 
           {/* Test Result Banner */}
           {testResult && (
-            <div className={`mb-6 p-4 rounded-lg border ${
-              testResult.success
-                ? 'bg-success/20 border-success'
-                : 'bg-danger/20 border-danger'
-            }`}>
+            <div
+              className={`mb-6 p-4 rounded-lg border ${
+                testResult.success ? 'bg-success/20 border-success' : 'bg-danger/20 border-danger'
+              }`}
+            >
               <div className="flex items-start gap-3">
                 <span className="text-xl">{testResult.success ? '✓' : '✗'}</span>
                 <div className="flex-1">
-                  <h3 className={`text-sm font-semibold mb-1 ${
-                    testResult.success ? 'text-success' : 'text-danger'
-                  }`}>
+                  <h3
+                    className={`text-sm font-semibold mb-1 ${
+                      testResult.success ? 'text-success' : 'text-danger'
+                    }`}
+                  >
                     {testResult.success ? 'Connection Successful' : 'Connection Failed'}
                   </h3>
-                  <p className={`text-sm ${
-                    testResult.success ? 'text-success' : 'text-danger'
-                  }`}>
+                  <p className={`text-sm ${testResult.success ? 'text-success' : 'text-danger'}`}>
                     {testResult.message}
                   </p>
                   {testResult.latency && (
-                    <p className="text-xs text-muted mt-1">
-                      Latency: {testResult.latency}ms
-                    </p>
+                    <p className="text-xs text-muted mt-1">Latency: {testResult.latency}ms</p>
                   )}
                 </div>
                 <button
                   onClick={() => setTestResult(null)}
-                  className={testResult.success ? 'text-success hover:text-success/80' : 'text-danger hover:text-danger/80'}
+                  className={
+                    testResult.success
+                      ? 'text-success hover:text-success/80'
+                      : 'text-danger hover:text-danger/80'
+                  }
                   aria-label="Dismiss"
                 >
                   ✕
@@ -197,7 +200,9 @@ const ProvidersPage = () => {
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-bg rounded-lg p-4">
                 <div className="text-xs text-muted mb-1">Status</div>
-                <div className={`text-lg font-semibold ${selectedProvider.enabled ? 'text-success' : 'text-muted'}`}>
+                <div
+                  className={`text-lg font-semibold ${selectedProvider.enabled ? 'text-success' : 'text-muted'}`}
+                >
                   {selectedProvider.enabled ? 'Enabled' : 'Disabled'}
                 </div>
               </div>
@@ -220,7 +225,10 @@ const ProvidersPage = () => {
               <h3 className="text-sm font-semibold text-text mb-3">Configuration</h3>
               <div className="space-y-3">
                 <div>
-                  <label htmlFor="provider-base-url" className="block text-xs font-medium text-text mb-1">
+                  <label
+                    htmlFor="provider-base-url"
+                    className="block text-xs font-medium text-text mb-1"
+                  >
                     Base URL
                   </label>
                   <input
@@ -233,12 +241,14 @@ const ProvidersPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-text mb-1">
-                    API Key Status
-                  </label>
-                  <div className={`px-3 py-2 border rounded-lg text-sm ${
-                    selectedProvider.api_key ? 'border-success bg-success/20 text-success' : 'border-danger bg-danger/20 text-danger'
-                  }`}>
+                  <label className="block text-xs font-medium text-text mb-1">API Key Status</label>
+                  <div
+                    className={`px-3 py-2 border rounded-lg text-sm ${
+                      selectedProvider.api_key
+                        ? 'border-success bg-success/20 text-success'
+                        : 'border-danger bg-danger/20 text-danger'
+                    }`}
+                  >
                     {selectedProvider.api_key ? '✓ Configured' : '✗ Not configured'}
                   </div>
                 </div>

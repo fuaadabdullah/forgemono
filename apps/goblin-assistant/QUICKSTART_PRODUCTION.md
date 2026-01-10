@@ -6,7 +6,6 @@ This document contains a mix of backend and frontend quickstart notes. Please up
 
 ### What Was Done Today (December 1, 2025)
 
-
 |------|--------|---------------|
 | 1. API Keys Setup | ✅ Complete | `.env.production` |
 | 2. Real Task Execution | ✅ Complete | `services/goblin_executor.py` |
@@ -165,12 +164,12 @@ alembic upgrade head
 
 ## 📚 Full Documentation
 
-| Topic | File |
-|-------|------|
-| Complete Summary | `PRODUCTION_DEPLOYMENT_COMPLETE.md` |
-| PostgreSQL Migration | `POSTGRESQL_MIGRATION.md` |
-| WebAuthn Production | `auth/PRODUCTION_READINESS.md` |
-| Original Deployment | `PRODUCTION_DEPLOYMENT.md` |
+| Topic                | File                                |
+| -------------------- | ----------------------------------- |
+| Complete Summary     | `PRODUCTION_DEPLOYMENT_COMPLETE.md` |
+| PostgreSQL Migration | `POSTGRESQL_MIGRATION.md`           |
+| WebAuthn Production  | `auth/PRODUCTION_READINESS.md`      |
+| Original Deployment  | `PRODUCTION_DEPLOYMENT.md`          |
 
 ---
 

@@ -1,6 +1,7 @@
 # Code Citations
 
 ## License: unknown
+
 <https://github.com/laitanop/TodoList/blob/6988314aba3466f2e38bd7e5ac4369a5ff86a91a/src/Services/Auth.ts>
 
 ```
@@ -23,4 +24,3 @@ export const signIn = async (email: string, password: string) => {
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
 ```
-

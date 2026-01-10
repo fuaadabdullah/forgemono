@@ -78,7 +78,7 @@ if client.health_check():
 
 ### Command Line Usage
 
-```bash
+````bash
 # Test API connectivity
 python3 use_raptor_api.py
 
@@ -101,7 +101,7 @@ Quick start:
 docker-compose up -d phi3-mini
 export RAPTOR_MODE=phi_only
 python3 ../doc-quality/doc_quality_check.py --path ../../docs/ --mode phi_only
-```
+````
 
 #### Soft fallback
 
@@ -116,7 +116,6 @@ python3 ../doc-quality/doc_quality_check.py --path ../../docs/ --mode phi_only -
 Configuration (persist across runs):
 
 ```yaml
-
 models:
   phi3:
     soft_fallback: true
@@ -129,39 +128,46 @@ export DOC_QUALITY_SOFT_FALLBACK=true
 ```
 
 This instructs the Doc Quality tool to attempt a Raptor API call when the local Phi process fails instead of failing the run.
+
 ```
 
 ## API Endpoints
 
 ### Health Check
 ```
+
 GET /health
+
 ```
 Returns server status and API availability.
 
 ### Document Analysis
 ```
+
 POST /analyze
 Content-Type: application/json
 
 {
-  "content": "Document content to analyze",
-  "analysis_type": "quality_score"
+"content": "Document content to analyze",
+"analysis_type": "quality_score"
 }
+
 ```
 
 ### Batch Analysis
 ```
+
 POST /analyze/batch
 Content-Type: application/json
 
 {
-  "documents": [
-    {"content": "First document", "filename": "doc1.md"},
-    {"content": "Second document", "filename": "doc2.md"}
-  ]
+"documents": [
+{"content": "First document", "filename": "doc1.md"},
+{"content": "Second document", "filename": "doc2.md"}
+]
 }
-```
+
+````
 
 ## Configuration
 
@@ -170,9 +176,10 @@ Default settings in `use_raptor_api.py`:
 ```python
 
 base_url = "<https://thomasena-auxochromic-joziah.ngrok-free.dev">
-```
+````
 
 ### Diagnostics Configuration
+
 Create `config/raptor.ini`:
 
 ```ini
@@ -240,6 +247,7 @@ def critical_function():
 ## Colab Deployment
 
 ### Automated Setup
+
 ```bash
 
 python3 automate_raptor_colab.py raptor_mini_colab.ipynb YOUR_NGROK_TOKEN
@@ -261,6 +269,7 @@ python3 -m pytest test_raptor*.py -v
 ```
 
 ### API Connectivity Test
+
 ```bash
 
 python3 test_raptor.py
@@ -275,16 +284,19 @@ python3 test_raptor_optimization.py
 ## Troubleshooting
 
 ### API Connection Issues
+
 - Verify ngrok tunnel is active
 - Check API URL in client configuration
 - Ensure server is running and accessible
 
 ### Colab Issues
+
 - Verify ngrok authentication token
 - Check Colab runtime (use GPU for better performance)
 - Monitor ngrok tunnel logs for errors
 
 ### Diagnostics Issues
+
 - Ensure `config/raptor.ini` exists
 - Check file permissions for log directory
 - Verify psutil installation for performance monitoring
@@ -322,4 +334,4 @@ Raptor Mini System
 - Input sanitization and validation
 - Rate limiting via ngrok configuration
 - No persistent data storage of sensitive content</content>
-<parameter name="filePath">/Users/fuaadabdullah/ForgeMonorepo/tools/raptor-mini/README.md
+  <parameter name="filePath">/Users/fuaadabdullah/ForgeMonorepo/tools/raptor-mini/README.md

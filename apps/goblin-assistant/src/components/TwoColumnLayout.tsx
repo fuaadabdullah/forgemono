@@ -9,11 +9,7 @@ interface TwoColumnLayoutProps {
 /**
  * Two-column layout: left sidebar (navigation + controls), right main content
  */
-const TwoColumnLayout = ({
-  sidebar,
-  children,
-  sidebarWidth = 'normal'
-}: TwoColumnLayoutProps) => {
+const TwoColumnLayout = ({ sidebar, children, sidebarWidth = 'normal' }: TwoColumnLayoutProps) => {
   const widthClasses = {
     narrow: 'w-48',
     normal: 'w-64',
@@ -21,19 +17,18 @@ const TwoColumnLayout = ({
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)]"> {/* Subtract header height */}
+    <div className="flex h-[calc(100vh-4rem)]">
+      {' '}
+      {/* Subtract header height */}
       {/* Left Sidebar */}
-      <aside className={`${widthClasses[sidebarWidth]} bg-surface border-r border-border overflow-y-auto flex-shrink-0`}>
-        <div className="p-4">
-          {sidebar}
-        </div>
+      <aside
+        className={`${widthClasses[sidebarWidth]} bg-surface border-r border-border overflow-y-auto flex-shrink-0`}
+      >
+        <div className="p-4">{sidebar}</div>
       </aside>
-
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto bg-bg">
-        <div className="p-6">
-          {children}
-        </div>
+        <div className="p-6">{children}</div>
       </main>
     </div>
   );

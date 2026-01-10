@@ -1,5 +1,5 @@
 ---
-description: "README"
+description: 'README'
 ---
 
 # LaunchAgents integration for headless backend
@@ -61,6 +61,7 @@ Uninstall
 ```
 
 Notes and caveats
+
 - New macOS versions may prefer `launchctl bootstrap` instead of `load`/`unload`. The install script uses `load`/`unload` for compatibility; if you run into issues, replace with `launchctl bootstrap gui/$UID \"$PLIST_DEST\"` and `launchctl bootout gui/$UID \"$PLIST_DEST\"`.
 - `launchd` runs services in a minimal environment. Explicitly source your venv and use absolute paths (as the plist currently does).
 - Do not commit secrets into the plist. Use environment files or system-level secrets as needed; `launchd` will not read `.env` files for you unless you source them in the command.

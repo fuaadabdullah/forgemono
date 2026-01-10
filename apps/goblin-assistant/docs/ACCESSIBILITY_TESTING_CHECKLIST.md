@@ -240,7 +240,7 @@
 
 ## 🐛 Issues Found
 
-*(Document any issues discovered during testing)*
+_(Document any issues discovered during testing)_
 
 ### Critical Issues
 
@@ -272,8 +272,8 @@ Once all tests pass:
 - [ ] axe DevTools 0 Critical/Serious violations
 - [ ] Documentation complete (ACCESSIBILITY.md)
 
-**Tested By**: _________________
-**Date**: _________________
+**Tested By**: **\*\*\*\***\_**\*\*\*\***
+**Date**: **\*\*\*\***\_**\*\*\*\***
 **Status**: ☐ PASS | ☐ FAIL (see issues above)
 
 ---

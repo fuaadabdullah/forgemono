@@ -2,7 +2,7 @@ name: Overmind CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'GoblinOS/packages/goblins/overmind/**'
       - '.github/workflows/overmind-ci.yml'

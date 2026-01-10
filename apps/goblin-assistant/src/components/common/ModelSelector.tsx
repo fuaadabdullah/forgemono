@@ -49,7 +49,7 @@ const ModelSelector: React.FC<Props> = ({ provider, selected, onChange }) => {
           <SelectValue placeholder="Select a model..." />
         </SelectTrigger>
         <SelectContent>
-          {(models || []).map(model => (
+          {(models || []).map((model) => (
             <SelectItem
               key={model}
               value={model}

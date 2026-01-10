@@ -98,11 +98,13 @@ nats sub --server=nats://localhost:4222 'routing.>'
 Routing decisions made by the bridge for LLM model selection.
 
 **Subjects:**
+
 - `routing.model.selected` - Model selected for request
 - `routing.fallback.triggered` - Fallback to alternative model
 - `routing.cost.calculated` - Cost calculation for request
 
 **Configuration:**
+
 - Retention: 7 days
 - Max size: 1GB
 - Storage: File (persistent)
@@ -111,7 +113,6 @@ Routing decisions made by the bridge for LLM model selection.
 **Message Schema:**
 
 ```typescript
-
 interface RoutingDecision {
   requestId: string;
   timestamp: string;
@@ -165,11 +166,13 @@ interface MemoryEvent {
 LLM request lifecycle events for metrics and cost tracking.
 
 **Subjects:**
+
 - `llm.request.started` - Request initiated
 - `llm.request.completed` - Request completed successfully
 - `llm.request.failed` - Request failed with error
 
 **Configuration:**
+
 - Retention: 24 hours
 - Max size: 500MB
 - Storage: File (persistent)
@@ -178,7 +181,6 @@ LLM request lifecycle events for metrics and cost tracking.
 **Message Schema:**
 
 ```typescript
-
 interface LLMRequest {
   requestId: string;
   timestamp: string;
@@ -374,7 +376,6 @@ nats consumer info routing-decisions api-consumer --server=nats://nats:4222
 NATS JetStream triggers KEDA autoscaling:
 
 ```yaml
-
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
@@ -383,13 +384,12 @@ spec:
   scaleTargetRef:
     name: overmind-api
   triggers:
-
-  - type: nats-jetstream
-    metadata:
-      natsServerMonitoringEndpoint: nats:8222
-      stream: routing-decisions
-      consumer: api-consumer
-      lagThreshold: "10"
+    - type: nats-jetstream
+      metadata:
+        natsServerMonitoringEndpoint: nats:8222
+        stream: routing-decisions
+        consumer: api-consumer
+        lagThreshold: '10'
 ```
 
 See `infra/charts/keda/scaledobjects/overmind-api-scaler.yaml` for full configuration.

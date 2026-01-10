@@ -6,13 +6,13 @@ Test the dashboard at these common viewport widths to ensure proper responsive b
 
 ### Viewports to Test
 
-| Width | Device Type | Expected Layout |
-|-------|-------------|-----------------|
-| 375px | Mobile (iPhone SE) | 1 column stacked |
-| 768px | Tablet (iPad Portrait) | 2 columns |
-| 1024px | Small Desktop | 3 columns |
-| 1280px | Desktop | 3-4 columns |
-| 1440px | Wide Desktop | 4 columns |
+| Width  | Device Type            | Expected Layout  |
+| ------ | ---------------------- | ---------------- |
+| 375px  | Mobile (iPhone SE)     | 1 column stacked |
+| 768px  | Tablet (iPad Portrait) | 2 columns        |
+| 1024px | Small Desktop          | 3 columns        |
+| 1280px | Desktop                | 3-4 columns      |
+| 1440px | Wide Desktop           | 4 columns        |
 
 ## Chrome DevTools Testing
 
@@ -92,6 +92,7 @@ npm run dev
 ```
 
 ### Run Accessibility Tests
+
 ```bash
 
 # Install puppeteer if needed
@@ -114,38 +115,41 @@ npm run build
 ## Common Issues to Fix
 
 ### If cards overflow:
+
 - Check min-width in `.grid-auto-fit` (should be ≤ viewport - padding)
 - Verify no fixed widths on child elements
 - Ensure images/icons have max-width: 100%
 
 ### If text is unreadable:
+
 - Increase base font size (currently 16px)
 - Adjust heading scale (h1: 32px, h2: 24px, h3: 18px)
 - Check contrast ratios (use axe-core)
 
 ### If touch targets are too small:
+
 - Ensure buttons/links have min-height: 44px
 - Add padding to increase clickable area
 - Use larger tap targets on mobile (48x48px ideal)
 
 ## Browser Testing Matrix
 
-| Browser | Versions | Priority |
-|---------|----------|----------|
-| Chrome | Latest 2 | High |
-| Safari (iOS) | Latest 2 | High |
-| Firefox | Latest 2 | Medium |
-| Edge | Latest 2 | Medium |
-| Safari (macOS) | Latest 2 | Low |
+| Browser        | Versions | Priority |
+| -------------- | -------- | -------- |
+| Chrome         | Latest 2 | High     |
+| Safari (iOS)   | Latest 2 | High     |
+| Firefox        | Latest 2 | Medium   |
+| Edge           | Latest 2 | Medium   |
+| Safari (macOS) | Latest 2 | Low      |
 
 ## Performance Targets
 
-| Metric | Mobile | Desktop |
-|--------|--------|---------|
-| LCP | < 2.5s | < 2.0s |
-| FID | < 100ms | < 100ms |
-| CLS | < 0.1 | < 0.1 |
-| TTI | < 3.8s | < 3.0s |
+| Metric | Mobile  | Desktop |
+| ------ | ------- | ------- |
+| LCP    | < 2.5s  | < 2.0s  |
+| FID    | < 100ms | < 100ms |
+| CLS    | < 0.1   | < 0.1   |
+| TTI    | < 3.8s  | < 3.0s  |
 
 ## Next Steps
 

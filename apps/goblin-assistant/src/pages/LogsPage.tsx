@@ -41,10 +41,10 @@ const LogsPage = () => {
     setError(null);
 
     try {
-      const data = await apiClient.getRaptorLogs(100);
+      const logsData = await apiClient.getRaptorLogs(100);
 
       // Transform backend logs to match our LogEntry interface
-      const transformedLogs: LogEntry[] = (data || []).map((log: any, index: number) => ({
+      const transformedLogs: LogEntry[] = (logsData || []).map((log: any, index: number) => ({
         id: log.id || `log-${index}`,
         timestamp: log.timestamp || new Date().toISOString(),
         level: log.level || 'info',
@@ -92,9 +92,7 @@ const LogsPage = () => {
 
       {/* Filters */}
       <div>
-        <label className="block text-xs font-medium text-text mb-2">
-          Level Filter
-        </label>
+        <label className="block text-xs font-medium text-text mb-2">Level Filter</label>
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value as any)}
@@ -109,9 +107,7 @@ const LogsPage = () => {
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-text mb-2">
-          Service Filter
-        </label>
+        <label className="block text-xs font-medium text-text mb-2">Service Filter</label>
         <select
           value={serviceFilter}
           onChange={(e) => setServiceFilter(e.target.value)}
@@ -228,60 +224,66 @@ const LogsPage = () => {
 
       {/* Live region for auto-refresh updates */}
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-        {!isLoading && logs.length > 0 && `Logs updated. Showing ${filteredLogs.length} of ${logs.length} entries`}
+        {!isLoading &&
+          logs.length > 0 &&
+          `Logs updated. Showing ${filteredLogs.length} of ${logs.length} entries`}
       </div>
 
       {/* Log Entries */}
       {!isLoading && (
         <div className="space-y-3">
           {filteredLogs.length > 0 ? (
-          filteredLogs.map((log) => {
-            const colors = levelColors[log.level];
-            return (
-              <div
-                key={log.id}
-                onClick={() => setSelectedLog(log)}
-                className={`bg-surface rounded-lg shadow-sm border border-border p-4 cursor-pointer hover:shadow-md transition-shadow ${
-                  selectedLog?.id === log.id ? 'ring-2 ring-primary' : ''
-                }`}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
-                      <span className={`inline-block w-2 h-2 rounded-full ${colors.dot} mr-2`}></span>
-                      {log.level.toUpperCase()}
-                    </span>
-                    <span className="px-3 py-1 bg-surface-hover text-text rounded-full text-xs font-medium">
-                      {log.service}
+            filteredLogs.map((log) => {
+              const colors = levelColors[log.level];
+              return (
+                <div
+                  key={log.id}
+                  onClick={() => setSelectedLog(log)}
+                  className={`bg-surface rounded-lg shadow-sm border border-border p-4 cursor-pointer hover:shadow-md transition-shadow ${
+                    selectedLog?.id === log.id ? 'ring-2 ring-primary' : ''
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}
+                      >
+                        <span
+                          className={`inline-block w-2 h-2 rounded-full ${colors.dot} mr-2`}
+                        ></span>
+                        {log.level.toUpperCase()}
+                      </span>
+                      <span className="px-3 py-1 bg-surface-hover text-text rounded-full text-xs font-medium">
+                        {log.service}
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted font-mono">
+                      {new Date(log.timestamp).toLocaleTimeString()}
                     </span>
                   </div>
-                  <span className="text-xs text-muted font-mono">
-                    {new Date(log.timestamp).toLocaleTimeString()}
-                  </span>
+                  <p className="text-sm text-text font-medium mb-2">{log.message}</p>
+                  {selectedLog?.id === log.id && log.details && (
+                    <div className="mt-3 pt-3 border-t border-border">
+                      <h4 className="text-xs font-semibold text-text mb-2">Details:</h4>
+                      <pre className="text-xs bg-bg p-3 rounded border border-border overflow-x-auto">
+                        {JSON.stringify(log.details, null, 2)}
+                      </pre>
+                    </div>
+                  )}
                 </div>
-                <p className="text-sm text-text font-medium mb-2">{log.message}</p>
-                {selectedLog?.id === log.id && log.details && (
-                  <div className="mt-3 pt-3 border-t border-border">
-                    <h4 className="text-xs font-semibold text-text mb-2">Details:</h4>
-                    <pre className="text-xs bg-bg p-3 rounded border border-border overflow-x-auto">
-                      {JSON.stringify(log.details, null, 2)}
-                    </pre>
-                  </div>
-                )}
-              </div>
-            );
-          })
-        ) : (
-          <div className="bg-surface rounded-xl shadow-sm border border-border p-12 text-center">
-            <div className="text-6xl mb-4">📋</div>
-            <h3 className="text-lg font-medium text-text mb-2">No Logs Found</h3>
-            <p className="text-muted">
-              {filter !== 'all' || serviceFilter !== 'all'
-                ? 'Try adjusting your filters'
-                : 'System logs will appear here'}
-            </p>
-          </div>
-        )}
+              );
+            })
+          ) : (
+            <div className="bg-surface rounded-xl shadow-sm border border-border p-12 text-center">
+              <div className="text-6xl mb-4">📋</div>
+              <h3 className="text-lg font-medium text-text mb-2">No Logs Found</h3>
+              <p className="text-muted">
+                {filter !== 'all' || serviceFilter !== 'all'
+                  ? 'Try adjusting your filters'
+                  : 'System logs will appear here'}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

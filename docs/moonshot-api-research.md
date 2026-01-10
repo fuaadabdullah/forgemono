@@ -109,6 +109,7 @@ completion = client.chat.completions.create(
 ```
 
 **Tool Configuration Requirements:**
+
 - Maximum 128 functions in tools
 - Function name must match regex: `^[a-zA-Z_][a-zA-Z0-9-_]{0,63}$`
 - Must include `type`, `name`, `description`, and `parameters`
@@ -172,6 +173,7 @@ completion = client.chat.completions.create(
 ```
 
 **Tips for Character Consistency:**
+
 1. Provide clear character descriptions
 2. Include personality, background, traits, and quirks
 3. Add speech style and backstory details
@@ -214,11 +216,13 @@ response = client.chat.completions.create(
 ## API Endpoints
 
 ### Chat Completion
+
 ```
 POST <https://api.moonshot.ai/v1/chat/completions>
 ```
 
 ### List Models
+
 ```
 GET <https://api.moonshot.ai/v1/models>
 ```
@@ -269,6 +273,7 @@ pip install --upgrade 'openai>=1.0'
 ## Integrations
 
 Compatible with Agent platforms:
+
 - Coze
 - Bisheng
 - Dify

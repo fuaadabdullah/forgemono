@@ -2,7 +2,7 @@ name: Forge Lite API CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'apps/forge-lite/api/**'
       - '.github/workflows/forge-lite-api-ci.yml'
@@ -35,4 +35,3 @@ jobs:
 
       - name: Run pytest
         run: pytest -q
-

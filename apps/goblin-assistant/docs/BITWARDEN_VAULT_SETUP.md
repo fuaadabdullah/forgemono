@@ -342,35 +342,29 @@ RUN source /app/load_env.sh && echo "Secrets loaded"
 ### With Kubernetes
 
 ```yaml
-
 # Use Bitwarden CLI in init container
 apiVersion: v1
 kind: Pod
 spec:
   initContainers:
-
-  - name: load-secrets
-    image: bitwarden/cli:latest
-    command: ["sh", "-c"]
-    args:
-
-    - |
-      export BW_SESSION=$(bw unlock --raw)
-      bw get password goblin-prod-db-url > /secrets/db-url
-    volumeMounts:
-
-    - name: secrets
-      mountPath: /secrets
+    - name: load-secrets
+      image: bitwarden/cli:latest
+      command: ['sh', '-c']
+      args:
+        - |
+          export BW_SESSION=$(bw unlock --raw)
+          bw get password goblin-prod-db-url > /secrets/db-url
+      volumeMounts:
+        - name: secrets
+          mountPath: /secrets
   containers:
-
-  - name: app
-    env:
-
-    - name: DB_URL
-      valueFrom:
-        secretKeyRef:
-          name: db-secret
-          key: url
+    - name: app
+      env:
+        - name: DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: url
 ```
 
 ## Benefits

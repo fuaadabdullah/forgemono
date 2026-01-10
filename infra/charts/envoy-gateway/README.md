@@ -125,22 +125,22 @@ metadata:
 spec:
   gatewayClassName: eg
   listeners:
-  # HTTP (redirect to HTTPS)
-  - name: http
-    protocol: HTTP
-    port: 80
-    hostname: "*.overmind.example.com"
+    # HTTP (redirect to HTTPS)
+    - name: http
+      protocol: HTTP
+      port: 80
+      hostname: '*.overmind.example.com'
 
-  # HTTPS
-  - name: https
-    protocol: HTTPS
-    port: 443
-    hostname: "*.overmind.example.com"
-    tls:
-      mode: Terminate
-      certificateRefs:
-      - name: overmind-tls
-        kind: Secret
+    # HTTPS
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: '*.overmind.example.com'
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: overmind-tls
+            kind: Secret
 ```
 
 ### HTTPRoute - Dashboard
@@ -148,7 +148,6 @@ spec:
 **File:** `gateway/httproutes/dashboard.yaml`
 
 ```yaml
-
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -156,24 +155,20 @@ metadata:
   namespace: overmind-prod
 spec:
   parentRefs:
-
-  - name: overmind-gateway
-    sectionName: https
+    - name: overmind-gateway
+      sectionName: https
 
   hostnames:
-
-  - dashboard.overmind.example.com
+    - dashboard.overmind.example.com
 
   rules:
-
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-
-    - name: overmind-dashboard
-      port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: overmind-dashboard
+          port: 80
 ```
 
 ### HTTPRoute - API with Rate Limiting
@@ -188,46 +183,46 @@ metadata:
   namespace: overmind-prod
 spec:
   parentRefs:
-  - name: overmind-gateway
-    sectionName: https
+    - name: overmind-gateway
+      sectionName: https
 
   hostnames:
-  - api.overmind.example.com
+    - api.overmind.example.com
 
   rules:
-  # API endpoints (with auth)
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /api
-      headers:
-      - name: Authorization
-        value: .+
-        type: RegularExpression
-    filters:
-    - type: ExtensionRef
-      extensionRef:
-        group: gateway.envoyproxy.io
-        kind: RateLimitPolicy
-        name: authenticated-rate-limit
-    backendRefs:
-    - name: overmind-api
-      port: 8000
+    # API endpoints (with auth)
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+          headers:
+            - name: Authorization
+              value: .+
+              type: RegularExpression
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.envoyproxy.io
+            kind: RateLimitPolicy
+            name: authenticated-rate-limit
+      backendRefs:
+        - name: overmind-api
+          port: 8000
 
-  # Public endpoints (no auth, stricter limits)
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /api
-    filters:
-    - type: ExtensionRef
-      extensionRef:
-        group: gateway.envoyproxy.io
-        kind: RateLimitPolicy
-        name: anonymous-rate-limit
-    backendRefs:
-    - name: overmind-api
-      port: 8000
+    # Public endpoints (no auth, stricter limits)
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.envoyproxy.io
+            kind: RateLimitPolicy
+            name: anonymous-rate-limit
+      backendRefs:
+        - name: overmind-api
+          port: 8000
 ```
 
 ## Rate Limiting
@@ -237,7 +232,6 @@ spec:
 **File:** `gateway/rate-limits/anonymous.yaml`
 
 ```yaml
-
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: RateLimitPolicy
 metadata:
@@ -245,14 +239,13 @@ metadata:
   namespace: overmind-prod
 spec:
   rateLimits:
-
-  - clientSelectors:
-    - headers:
-      - name: X-Forwarded-For
-        type: Distinct
-    limits:
-      requests: 10
-      unit: Second
+    - clientSelectors:
+        - headers:
+            - name: X-Forwarded-For
+              type: Distinct
+      limits:
+        requests: 10
+        unit: Second
 ```
 
 ### RateLimitPolicy - Authenticated
@@ -267,13 +260,13 @@ metadata:
   namespace: overmind-prod
 spec:
   rateLimits:
-  - clientSelectors:
-    - headers:
-      - name: Authorization
-        type: Distinct
-    limits:
-      requests: 100
-      unit: Second
+    - clientSelectors:
+        - headers:
+            - name: Authorization
+              type: Distinct
+      limits:
+        requests: 100
+        unit: Second
 ```
 
 ### RateLimitPolicy - Global
@@ -281,7 +274,6 @@ spec:
 **File:** `gateway/rate-limits/global.yaml`
 
 ```yaml
-
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: RateLimitPolicy
 metadata:
@@ -294,10 +286,9 @@ spec:
     name: overmind-gateway
 
   rateLimits:
-
-  - limits:
-      requests: 1000
-      unit: Second
+    - limits:
+        requests: 1000
+        unit: Second
 ```
 
 ## Backend TLS (mTLS)
@@ -314,15 +305,15 @@ metadata:
   namespace: overmind-prod
 spec:
   targetRef:
-    group: ""
+    group: ''
     kind: Service
     name: overmind-api
 
   tls:
     hostname: overmind-api.overmind-prod.svc.cluster.local
     caCertRefs:
-    - name: overmind-ca
-      kind: ConfigMap
+      - name: overmind-ca
+        kind: ConfigMap
 ```
 
 ## CORS Configuration
@@ -332,7 +323,6 @@ spec:
 **File:** `gateway/security/cors.yaml`
 
 ```yaml
-
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -346,26 +336,22 @@ spec:
 
   cors:
     allowOrigins:
-
-    - <https://dashboard.overmind.example.com>
-    - <https://*.overmind.example.com>
+      - <https://dashboard.overmind.example.com>
+      - <https://*.overmind.example.com>
     allowMethods:
-
-    - GET
-    - POST
-    - PUT
-    - DELETE
-    - OPTIONS
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
     allowHeaders:
-
-    - Content-Type
-    - Authorization
-    - X-Request-ID
+      - Content-Type
+      - Authorization
+      - X-Request-ID
     exposeHeaders:
-
-    - X-Request-ID
-    - X-RateLimit-Limit
-    - X-RateLimit-Remaining
+      - X-Request-ID
+      - X-RateLimit-Limit
+      - X-RateLimit-Remaining
     maxAge: 86400
     allowCredentials: true
 ```
@@ -391,17 +377,17 @@ spec:
   headers:
     response:
       add:
-      - name: X-Frame-Options
-        value: DENY
-      - name: X-Content-Type-Options
-        value: nosniff
-      - name: X-XSS-Protection
-        value: "1; mode=block"
-      - name: Strict-Transport-Security
-        value: max-age=31536000; includeSubDomains
+        - name: X-Frame-Options
+          value: DENY
+        - name: X-Content-Type-Options
+          value: nosniff
+        - name: X-XSS-Protection
+          value: '1; mode=block'
+        - name: Strict-Transport-Security
+          value: max-age=31536000; includeSubDomains
       remove:
-      - Server
-      - X-Powered-By
+        - Server
+        - X-Powered-By
 ```
 
 ## Circuit Breaking
@@ -411,7 +397,6 @@ spec:
 **File:** `gateway/backend-traffic/circuit-breaker.yaml`
 
 ```yaml
-
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:
@@ -419,7 +404,7 @@ metadata:
   namespace: overmind-prod
 spec:
   targetRef:
-    group: ""
+    group: ''
     kind: Service
     name: overmind-api
 
@@ -457,13 +442,13 @@ spec:
     perRetryTimeout: 10s
     retryOn:
       httpStatusCodes:
-      - 500
-      - 502
-      - 503
-      - 504
+        - 500
+        - 502
+        - 503
+        - 504
       triggers:
-      - connect-failure
-      - retriable-4xx
+        - connect-failure
+        - retriable-4xx
 ```
 
 ## Observability
@@ -473,7 +458,6 @@ spec:
 **File:** `gateway/envoy-proxy/telemetry.yaml`
 
 ```yaml
-
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
@@ -483,17 +467,16 @@ spec:
   telemetry:
     accessLog:
       settings:
-
-      - format:
-          type: JSON
-          json:
-            timestamp: "%START_TIME%"
-            protocol: "%PROTOCOL%"
-            method: "%REQ(:METHOD)%"
-            path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
-            responseCode: "%RESPONSE_CODE%"
-            duration: "%DURATION%"
-            upstreamHost: "%UPSTREAM_HOST%"
+        - format:
+            type: JSON
+            json:
+              timestamp: '%START_TIME%'
+              protocol: '%PROTOCOL%'
+              method: '%REQ(:METHOD)%'
+              path: '%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%'
+              responseCode: '%RESPONSE_CODE%'
+              duration: '%DURATION%'
+              upstreamHost: '%UPSTREAM_HOST%'
 
     metrics:
       prometheus:

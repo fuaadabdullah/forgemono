@@ -35,11 +35,11 @@ executors:
 # ============================================================================
 commands:
   setup-python-deps:
-    description: "Install Python dependencies with caching"
+    description: 'Install Python dependencies with caching'
     parameters:
       requirements_path:
         type: string
-        default: "apps/goblin-assistant/backend/requirements.txt"
+        default: 'apps/goblin-assistant/backend/requirements.txt'
     steps:
       - restore_cache:
           keys:
@@ -56,7 +56,7 @@ commands:
             - ~/.cache/pip
 
   install-terraform:
-    description: "Install Terraform CLI"
+    description: 'Install Terraform CLI'
     steps:
       - run:
           name: Install Terraform
@@ -66,7 +66,7 @@ commands:
             sudo apt-get update && sudo apt-get install -y terraform
 
   install-security-tools:
-    description: "Install tfsec and checkov for IaC security scanning"
+    description: 'Install tfsec and checkov for IaC security scanning'
     steps:
       - run:
           name: Install tfsec
@@ -88,7 +88,7 @@ jobs:
     steps:
       - checkout
       - setup-python-deps:
-          requirements_path: "apps/goblin-assistant/backend/requirements.txt"
+          requirements_path: 'apps/goblin-assistant/backend/requirements.txt'
       - run:
           name: Install test dependencies
           command: pip install pytest pytest-asyncio pytest-cov ruff
@@ -554,7 +554,7 @@ workflows:
   nightly-security:
     triggers:
       - schedule:
-          cron: "0 3 * * *"  # 3 AM UTC daily
+          cron: '0 3 * * *' # 3 AM UTC daily
           filters:
             branches:
               only: main

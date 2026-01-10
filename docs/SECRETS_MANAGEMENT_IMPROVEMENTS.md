@@ -19,6 +19,7 @@
 ## Recommended Architecture
 
 ### Primary Secrets Manager: HashiCorp Vault
+
 **Why Vault for Production:**
 
 - **Multi-cloud native**: Single pane of glass across AWS, GCP, Azure
@@ -28,6 +29,7 @@
 - **Enterprise features**: Namespaces, replication, disaster recovery
 
 ### Secondary Manager: Bitwarden
+
 **Why Keep Bitwarden:**
 
 - **Developer experience**: Excellent CLI and UI for day-to-day operations
@@ -72,6 +74,7 @@ terraform apply -target=module.vault
 ```
 
 ### Phase 2: Secret Migration (Week 3-4)
+
 ```bash
 
 # Migrate production secrets from Bitwarden to Vault
@@ -95,6 +98,7 @@ vault audit enable file file_path=/vault/logs/audit.log
 ```
 
 ### Phase 4: Dynamic Secrets & Rotation (Week 7-8)
+
 ```bash
 
 # Enable database secret engines
@@ -116,6 +120,7 @@ vault write aws/config/root access_key=... secret_key=...
 - **Development**: Keep in Bitwarden for developer experience
 
 ### Environment Mapping
+
 ```
 Development: Bitwarden (fast iteration)
 Staging:     Vault (production-like testing)
@@ -138,6 +143,7 @@ class VaultClient:
 ```
 
 ### 2. Application Integration
+
 ```python
 
 # In app startup
@@ -156,7 +162,7 @@ if not secrets:
 ```yaml
 # .circleci/config.yml
 - run:
-    name: "Fetch Secrets"
+    name: 'Fetch Secrets'
     command: |
       if [ "$CIRCLE_BRANCH" = "main" ]; then
         ./scripts/fetch_vault_secrets.sh
@@ -168,12 +174,14 @@ if not secrets:
 ## Security Benefits
 
 ### Before (Current)
+
 - ❌ Secrets in repository (encrypted)
 - ❌ Manual key rotation
 - ❌ Limited audit trail
 - ❌ No dynamic secrets
 
 ### After (Recommended)
+
 - ✅ Zero secrets in repository
 - ✅ Automated rotation policies
 - ✅ Complete audit logging
@@ -184,11 +192,13 @@ if not secrets:
 ## Cost Analysis
 
 ### HashiCorp Vault Options
+
 - **HCP Vault**: $0.18/hour (~$130/month) - Managed, enterprise features
 - **Self-hosted**: Free on Kubernetes/EC2 - Full control, maintenance overhead
 - **Bitwarden**: Free tier sufficient for development
 
 ### Migration ROI
+
 - **Security**: Eliminates repository secrets entirely
 - **Compliance**: Enterprise audit trails and access controls
 - **Operational**: Automated rotation reduces manual work
@@ -197,11 +207,13 @@ if not secrets:
 ## Risk Mitigation
 
 ### Rollback Plan
+
 - Keep Bitwarden as backup during migration
 - Gradual rollout: dev → staging → production
 - Feature flags for secret source switching
 
 ### Testing Strategy
+
 - Secret access tests in all environments
 - Failover testing (Vault → Bitwarden fallback)
 - Performance testing for secret retrieval latency
@@ -218,26 +230,31 @@ if not secrets:
 ## Implementation Status
 
 ### ✅ Phase 1: Planning & Design - COMPLETED
+
 - Hybrid Vault + Bitwarden architecture designed
 - Migration strategy documented
 - Security benefits and cost analysis completed
 
 ### ✅ Phase 2: Infrastructure Module Creation - COMPLETED
+
 - Vault Terragrunt module created with Fly.io deployment
 - Production environment configured
 - Disk space and Terraform backend issues resolved
 
 ### ❌ Phase 3: Infrastructure Deployment - BLOCKED
+
 **Current Status**: Terraform plan successful, but deployment blocked by invalid Fly.io token.
 
 **Issue**: The provided Fly.io organization token is being rejected by both Fly CLI and Terraform provider ("You must be authenticated to view this").
 
 **What We Tried**:
+
 - ✅ Updated Bitwarden with new organization token
 - ✅ Terraform plan shows 4 resources ready to deploy (app, volumes, machine)
 - ❌ Token authentication failing for both Fly CLI and Terraform provider
 
 **Next Steps**:
+
 1. **Verify Token**: Please confirm the Fly.io organization token is valid and current
 2. **Alternative Deployment**: If token issues persist, we can:
    - Deploy Vault locally for development testing
@@ -245,13 +262,16 @@ if not secrets:
    - Create Fly app manually via web interface
 
 ### Phase 4: Secrets Migration (Ready)
+
 Once Vault is deployed:
+
 ```bash
 
 ./scripts/migrate_secrets_to_vault.sh all
 ```
 
 ### Phase 5: Application Integration (Ready)
+
 Update code to use hybrid Bitwarden+Vault client with Vault primary, Bitwarden fallback.
 
 ## Next Steps
@@ -606,11 +626,13 @@ Based on codebase analysis, your application uses **2 different task queue syste
 ### Current Usage Patterns
 
 **RQ Tasks:**
+
 - Simple task status tracking
 - Task logging and artifact storage
 - Basic queue inspection (used in sandbox_router.py)
 
 **Celery Tasks:**
+
 - Provider health monitoring (every 5 minutes)
 - Model training workflows
 - Data processing pipelines
@@ -623,6 +645,7 @@ Based on codebase analysis, your application uses **2 different task queue syste
 #### Option A: Migrate RQ to Celery (Recommended)
 
 **Why Consolidate to Celery:**
+
 - **Single System**: One task queue to manage and monitor
 - **Advanced Features**: RQ functionality can be replicated in Celery
 - **Better Monitoring**: Unified observability with Flower/Celery monitoring
@@ -665,11 +688,13 @@ Based on codebase analysis, your application uses **2 different task queue syste
 #### Option C: Managed Service Migration
 
 **Cloud Task Queues:**
+
 - **AWS SQS + Lambda**: Serverless task processing
 - **Google Cloud Tasks**: Managed task queuing
 - **Azure Queue Storage + Functions**: Cloud-native processing
 
 **Benefits:**
+
 - **Zero Infrastructure**: No Redis/Celery management
 - **Auto-Scaling**: Handles traffic spikes automatically
 - **Cost Efficiency**: Pay per task, not per server
@@ -825,13 +850,13 @@ curl -X POST <http://localhost:8001/sandbox/jobs> \
 
 ### Queue Configuration
 
-| Queue | Priority | Use Case | Workers |
-|-------|----------|----------|---------|
-| `high_priority` | 9 | Health checks, notifications | 2 workers |
-| `default` | 5 | General tasks, API processing | 4 workers |
-| `low_priority` | 1 | Cleanup, maintenance | 2 workers |
-| `batch` | 3 | ML training, data processing | 2 workers |
-| `scheduled` | 7 | Cron jobs, periodic tasks | Beat scheduler |
+| Queue           | Priority | Use Case                      | Workers        |
+| --------------- | -------- | ----------------------------- | -------------- |
+| `high_priority` | 9        | Health checks, notifications  | 2 workers      |
+| `default`       | 5        | General tasks, API processing | 4 workers      |
+| `low_priority`  | 1        | Cleanup, maintenance          | 2 workers      |
+| `batch`         | 3        | ML training, data processing  | 2 workers      |
+| `scheduled`     | 7        | Cron jobs, periodic tasks     | Beat scheduler |
 
 ### Scheduled Tasks
 
@@ -898,6 +923,7 @@ celery -A celery_app inspect ping
 ```
 
 **Tasks not being processed:**
+
 ```bash
 
 # Check worker logs
@@ -942,6 +968,7 @@ If issues arise with the Celery migration:
    ```
 
 2. **Restore RQ temporarily:**
+
    ```bash
 
    # Revert imports in affected files
@@ -993,6 +1020,7 @@ If issues arise with the Celery migration:
 ### Recommended Authentication Architecture
 
 #### Primary Identity Provider: Auth0
+
 **Why Auth0 for Enterprise Authentication:**
 
 - **Unified Auth Platform**: Single identity provider for all authentication methods
@@ -1003,6 +1031,7 @@ If issues arise with the Celery migration:
 - **Advanced Features**: MFA, passwordless, social login, enterprise SSO
 
 #### Secondary Provider: Supabase Auth (Keep for Development)
+
 **Why Keep Supabase Auth:**
 
 - **Rapid Development**: Perfect for prototyping and development workflows
@@ -1043,6 +1072,7 @@ ROLES = {
 ```
 
 **Resource-Based Permissions:**
+
 ```python
 
 # Permission matrix for different resources
@@ -1096,6 +1126,7 @@ ABAC_POLICIES = [
 #### Phase 1: Auth0 Integration (2-3 weeks)
 
 **Setup Auth0 Tenant:**
+
 ```bash
 
 # Create Auth0 tenant and application
@@ -1142,6 +1173,7 @@ class UnifiedAuthService:
 #### Phase 2: RBAC Implementation (1-2 weeks)
 
 **Create Permission System:**
+
 ```python
 
 from enum import Enum
@@ -1219,6 +1251,7 @@ async def list_users(user: User = Depends(require_permission(Permission.MANAGE_U
 #### Phase 3: Enhanced Security Features (1 week)
 
 **Multi-Factor Authentication (MFA):**
+
 ```python
 
 # Auth0 MFA configuration
@@ -1287,6 +1320,7 @@ class SessionManager:
 ```
 
 **Audit Logging:**
+
 ```python
 
 class AuthAuditLogger:
@@ -1334,6 +1368,7 @@ class AuthAuditLogger:
 ```
 
 **Week 3-4: Backend Integration**
+
 ```bash
 
 # 1. Implement UnifiedAuthService
@@ -1358,6 +1393,7 @@ class AuthAuditLogger:
 ```
 
 **Week 7-8: Production Deployment**
+
 ```bash
 
 # 1. Gradual user migration (feature flags)
@@ -1404,6 +1440,7 @@ class AuthAuditLogger:
 ```
 
 **Data Migration:**
+
 ```bash
 
 # Migrate existing users from Supabase to Auth0

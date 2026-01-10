@@ -1,5 +1,5 @@
 ---
-description: "README"
+description: 'README'
 ---
 
 # Apps
@@ -14,7 +14,6 @@ Current applications:
 - `gaslight/` — Additional applications
 - `python/` — Python utilities and tools
 - `raptor-mini/` — Raptor monitoring system components
-
 
 Conventions:
 

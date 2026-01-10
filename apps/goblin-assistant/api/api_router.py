@@ -1,11 +1,101 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import uuid
 import asyncio
 import time
+from .core.orchestration import create_simple_orchestration_plan
+from .write_time_router import router as write_time_router
+from .providers.dispatcher_fixed import invoke_provider
 
 router = APIRouter(prefix="/api", tags=["api"])
+
+
+# ============================================================================
+# Simple Chat Endpoint - Routes to Kamatera LLM
+# ============================================================================
+
+
+class SimpleChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class SimpleChatRequest(BaseModel):
+    messages: List[SimpleChatMessage]
+    model: Optional[str] = None
+    stream: Optional[bool] = False
+
+
+class SimpleChatResponse(BaseModel):
+    ok: bool
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    provider: Optional[str] = None
+    model: Optional[str] = None
+
+
+@router.post("/chat", response_model=SimpleChatResponse)
+async def simple_chat(request: SimpleChatRequest):
+    """
+    Simple chat endpoint that routes to Kamatera LLM provider.
+
+    This is the main endpoint for the frontend to use for chat functionality.
+    It automatically routes to the best available provider (Kamatera by default).
+
+    Example:
+        POST /api/chat
+        {
+            "messages": [{"role": "user", "content": "Hello!"}]
+        }
+    """
+    try:
+        # Convert messages to dict format
+        messages = [{"role": m.role, "content": m.content} for m in request.messages]
+
+        # Create payload for provider
+        payload = {
+            "messages": messages,
+            "model": request.model,
+        }
+
+        # Invoke provider (auto-selects llamacpp_kamatera if available)
+        response = await invoke_provider(
+            pid=None,  # Auto-select best provider
+            model=request.model,
+            payload=payload,
+            timeout_ms=30000,
+            stream=request.stream,
+        )
+
+        if isinstance(response, dict) and response.get("ok"):
+            return SimpleChatResponse(
+                ok=True,
+                result=response.get("result"),
+                provider=response.get("provider", "unknown"),
+                model=response.get("model", "unknown"),
+            )
+        else:
+            error_msg = (
+                response.get("error", "Unknown error")
+                if isinstance(response, dict)
+                else str(response)
+            )
+            return SimpleChatResponse(
+                ok=False,
+                error=error_msg,
+            )
+
+    except Exception as e:
+        return SimpleChatResponse(
+            ok=False,
+            error=str(e),
+        )
+
+
+# ============================================================================
+# Original API Router Endpoints
+# ============================================================================
 
 
 class RouteTaskRequest(BaseModel):
@@ -31,6 +121,8 @@ class StreamResponse(BaseModel):
 
 
 # In-memory storage for streams (in production, use Redis or database)
+# Production implementation would use Redis for distributed stream management
+# or a message queue system (RabbitMQ, Apache Kafka) for scalability
 ACTIVE_STREAMS = {}
 
 
@@ -47,22 +139,6 @@ async def route_task(request: RouteTaskRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Routing failed: {str(e)}")
-
-
-@router.get("/health/stream")
-async def health_stream():
-    """Streaming health check endpoint"""
-    return {
-        "status": "healthy",
-        "timestamp": time.time(),
-        "version": "1.0.0",
-        "services": {
-            "routing": "healthy",
-            "execution": "healthy",
-            "search": "healthy",
-            "auth": "healthy",
-        },
-    }
 
 
 @router.post("/route_task_stream_start")
@@ -244,23 +320,7 @@ class ParseOrchestrationRequest(BaseModel):
 @router.post("/orchestrate/parse")
 async def parse_orchestration(request: ParseOrchestrationRequest):
     """Parse natural language into orchestration plan"""
-    # Simple parsing logic - in production, this would use NLP
-    return {
-        "steps": [
-            {
-                "id": "step1",
-                "goblin": request.default_goblin or "docs-writer",
-                "task": request.text[:100] + "..."
-                if len(request.text) > 100
-                else request.text,
-                "dependencies": [],
-                "batch": 0,
-            }
-        ],
-        "total_batches": 1,
-        "max_parallel": 1,
-        "estimated_cost": 0.05,
-    }
+    return create_simple_orchestration_plan(request.text, request.default_goblin)
 
 
 @router.post("/orchestrate/execute")

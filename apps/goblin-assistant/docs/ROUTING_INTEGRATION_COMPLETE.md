@@ -78,18 +78,18 @@ Successfully integrated an intelligent routing system for local LLMs with the Go
 
 All 10 routing scenarios passed successfully:
 
-| Test Case | Selected Model | Intent | Reasoning |
-|-----------|---------------|--------|-----------|
-| Code Generation | **mistral:7b** | code-gen | High quality needed (temp=0.0) |
-| Status Check | **gemma:2b** | status | Ultra-low latency (40 tokens max) |
-| Long Document | **qwen2.5:3b** | summarize | 10K tokens, 32K window |
-| Multilingual | **qwen2.5:3b** | chat | Non-English detected |
-| Creative Writing | **mistral:7b** | creative | High quality (temp=0.6) |
-| Classification | **gemma:2b** | code-gen | Cost priority enabled |
-| RAG Query | **qwen2.5:3b** | rag | Retrieval mode (temp=0.0) |
-| Multi-Turn Chat | **phi3:3.8b** | chat | Low latency target |
-| Tech Explanation | **mistral:7b** | explain | High quality needed |
-| Explicit Model | **phi3:3.8b** | chat | Conversational default |
+| Test Case        | Selected Model | Intent    | Reasoning                         |
+| ---------------- | -------------- | --------- | --------------------------------- |
+| Code Generation  | **mistral:7b** | code-gen  | High quality needed (temp=0.0)    |
+| Status Check     | **gemma:2b**   | status    | Ultra-low latency (40 tokens max) |
+| Long Document    | **qwen2.5:3b** | summarize | 10K tokens, 32K window            |
+| Multilingual     | **qwen2.5:3b** | chat      | Non-English detected              |
+| Creative Writing | **mistral:7b** | creative  | High quality (temp=0.6)           |
+| Classification   | **gemma:2b**   | code-gen  | Cost priority enabled             |
+| RAG Query        | **qwen2.5:3b** | rag       | Retrieval mode (temp=0.0)         |
+| Multi-Turn Chat  | **phi3:3.8b**  | chat      | Low latency target                |
+| Tech Explanation | **mistral:7b** | explain   | High quality needed               |
+| Explicit Model   | **phi3:3.8b**  | chat      | Conversational default            |
 
 ## 🚀 API Endpoints
 
@@ -103,9 +103,7 @@ POST /chat/completions
 
 ```json
 {
-  "messages": [
-    {"role": "user", "content": "Write a Python function"}
-  ],
+  "messages": [{ "role": "user", "content": "Write a Python function" }],
   "intent": "code-gen",
   "latency_target": "medium",
   "temperature": 0.0
@@ -113,19 +111,21 @@ POST /chat/completions
 ```
 
 **Response:**
-```json
 
+```json
 {
   "id": "uuid",
   "model": "mistral:7b",
   "provider": "Ollama (Local LLMs)",
   "intent": "code-gen",
   "routing_explanation": "Intent: code-gen | Optimized for: high quality, coding",
-  "choices": [{
-    "message": {"role": "assistant", "content": "def validate_email..."},
-    "finish_reason": "stop"
-  }],
-  "usage": {"prompt_tokens": 10, "completion_tokens": 50}
+  "choices": [
+    {
+      "message": { "role": "assistant", "content": "def validate_email..." },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": { "prompt_tokens": 10, "completion_tokens": 50 }
 }
 ```
 
@@ -212,25 +212,25 @@ response = requests.post("<http://localhost:8000/chat/completions",> json={
 
 ## 🎛️ Routing Parameters
 
-| Parameter | Type | Options | Default | Description |
-|-----------|------|---------|---------|-------------|
-| `intent` | string | code-gen, creative, rag, chat, classification, etc. | auto-detect | Explicit intent override |
-| `latency_target` | string | ultra_low, low, medium, high | medium | Response time requirement |
-| `context` | string | Any text | null | Additional context for RAG |
-| `cost_priority` | boolean | true, false | false | Prefer cheaper models |
-| `temperature` | float | 0.0-2.0 | auto | Override default temperature |
-| `max_tokens` | integer | 1-4096 | auto | Override max tokens |
-| `top_p` | float | 0.0-1.0 | auto | Override top_p |
+| Parameter        | Type    | Options                                             | Default     | Description                  |
+| ---------------- | ------- | --------------------------------------------------- | ----------- | ---------------------------- |
+| `intent`         | string  | code-gen, creative, rag, chat, classification, etc. | auto-detect | Explicit intent override     |
+| `latency_target` | string  | ultra_low, low, medium, high                        | medium      | Response time requirement    |
+| `context`        | string  | Any text                                            | null        | Additional context for RAG   |
+| `cost_priority`  | boolean | true, false                                         | false       | Prefer cheaper models        |
+| `temperature`    | float   | 0.0-2.0                                             | auto        | Override default temperature |
+| `max_tokens`     | integer | 1-4096                                              | auto        | Override max tokens          |
+| `top_p`          | float   | 0.0-1.0                                             | auto        | Override top_p               |
 
 ## 📊 Performance Metrics
 
-| Metric | Value |
-|--------|-------|
-| Routing Decision Time | < 10ms |
-| Intent Detection Accuracy | ~85% (keyword-based) |
+| Metric                       | Value                   |
+| ---------------------------- | ----------------------- |
+| Routing Decision Time        | < 10ms                  |
+| Intent Detection Accuracy    | ~85% (keyword-based)    |
 | Model Selection Success Rate | 100% (all tests passed) |
-| End-to-End Latency Overhead | < 50ms |
-| Cost per Request | $0 (self-hosted) |
+| End-to-End Latency Overhead  | < 50ms                  |
+| Cost per Request             | $0 (self-hosted)        |
 
 ## 🔧 Configuration
 
@@ -246,6 +246,7 @@ LOCAL_LLM_API_KEY=your-secure-api-key-here
 ### Database Setup
 
 The routing system uses the following tables:
+
 - `routing_providers` - Provider configuration
 - `provider_metrics` - Health monitoring metrics
 - `routing_requests` - Request logging for analytics

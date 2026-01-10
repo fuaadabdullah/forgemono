@@ -9,6 +9,7 @@
 ## 🎯 What We Built
 
 ### 1. Modular Theme Architecture ✅
+
 Created a centralized theme system with:
 
 - **CSS Variables**: Single source of truth in `src/theme/index.css`
@@ -72,21 +73,23 @@ apps/goblin-assistant/
 
 ```javascript
 import {
-  setThemeVars,           // Manual color override
-  enableHighContrast,     // Toggle contrast mode
-  initializeTheme,        // Auto-init on mount
-  applyThemePreset,       // Switch preset (default/nocturne/ember)
-  THEME_PRESETS           // Available presets
+  setThemeVars, // Manual color override
+  enableHighContrast, // Toggle contrast mode
+  initializeTheme, // Auto-init on mount
+  applyThemePreset, // Switch preset (default/nocturne/ember)
+  THEME_PRESETS, // Available presets
 } from './theme/theme';
 ```
 
 ### High-Contrast Mode
+
 - **Toggle**: Button in navigation bar (already existed!)
 - **Persistence**: Saved to localStorage
 - **System Detection**: Auto-applies `prefers-contrast: high`
 - **WCAG AAA**: Pure black background, pure white text, 21:1 contrast
 
 ### Reduced Motion
+
 - **CSS Media Query**: Disables animations for users with motion sensitivity
 - **JavaScript Detection**: Sets `data-motion-reduced` attribute on `<html>`
 - **Comprehensive**: Covers `.glitch`, `.scanlines`, `.pulse`, `.bounce`, `.spin`
@@ -96,6 +99,7 @@ import {
 ## ✅ Verification
 
 Run automated checks:
+
 ```bash
 
 cd apps/goblin-assistant
@@ -166,6 +170,7 @@ node scripts/verify-theme-system.js
 ```
 
 ### After (Modular Theme System)
+
 ```tsx
 
 // Clean Tailwind utility classes

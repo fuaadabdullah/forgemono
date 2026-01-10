@@ -24,15 +24,15 @@ spec:
         scaleDown:
           stabilizationWindowSeconds: 300
           policies:
-          - type: Percent
-            value: 50
-            periodSeconds: 60
+            - type: Percent
+              value: 50
+              periodSeconds: 60
         scaleUp:
           stabilizationWindowSeconds: 0
           policies:
-          - type: Percent
-            value: 100
-            periodSeconds: 30
+            - type: Percent
+              value: 100
+              periodSeconds: 30
 
   # Fallback
   fallback:
@@ -41,31 +41,31 @@ spec:
 
   # Triggers
   triggers:
-  # Primary: NATS JetStream routing-decisions queue
-  - type: nats-jetstream
-    metadata:
-      natsServerMonitoringEndpoint: nats:8222
-      stream: routing-decisions
-      consumer: api-consumer
-      lagThreshold: "10"  # Scale if > 10 messages behind
-      activationLagThreshold: "5"
+    # Primary: NATS JetStream routing-decisions queue
+    - type: nats-jetstream
+      metadata:
+        natsServerMonitoringEndpoint: nats:8222
+        stream: routing-decisions
+        consumer: api-consumer
+        lagThreshold: '10' # Scale if > 10 messages behind
+        activationLagThreshold: '5'
 
-  # Secondary: HTTP request rate
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus:9090
-      metricName: http_requests_per_second
-      query: sum(rate(http_requests_total{service="api"}[1m]))
-      threshold: "20"
+    # Secondary: HTTP request rate
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus:9090
+        metricName: http_requests_per_second
+        query: sum(rate(http_requests_total{service="api"}[1m]))
+        threshold: '20'
 
-  # Tertiary: CPU utilization
-  - type: cpu
-    metricType: Utilization
-    metadata:
-      value: "70"
+    # Tertiary: CPU utilization
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: '70'
 
-  # Quaternary: Memory utilization
-  - type: memory
-    metricType: Utilization
-    metadata:
-      value: "80"
+    # Quaternary: Memory utilization
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: '80'

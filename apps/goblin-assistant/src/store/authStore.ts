@@ -71,7 +71,7 @@ export const useAuthStore = create<AuthState>()(
 
       removeSession: (sessionId: string) => {
         set((state) => ({
-          sessions: state.sessions.filter(s => s.id !== sessionId),
+          sessions: state.sessions.filter((s) => s.id !== sessionId),
         }));
       },
 
@@ -92,7 +92,9 @@ export const useAuthStore = create<AuthState>()(
       hasAnyRole: (roles: string[]) => {
         const { user } = get();
         if (!user) return false;
-        return roles.some(role => user.role === role || (user.roles && user.roles.includes(role)));
+        return roles.some(
+          (role) => user.role === role || (user.roles && user.roles.includes(role))
+        );
       },
     }),
     {

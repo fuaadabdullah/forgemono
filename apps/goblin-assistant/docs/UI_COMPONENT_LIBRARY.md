@@ -28,6 +28,7 @@ interface ButtonProps {
 ```
 
 **Example**:
+
 ```tsx
 
 // Primary button with icon
@@ -74,6 +75,7 @@ interface BadgeProps {
 ```
 
 **Example**:
+
 ```tsx
 
 // Success badge with icon
@@ -120,6 +122,7 @@ interface IconButtonProps {
 ```
 
 **Example**:
+
 ```tsx
 
 // Ghost icon button (most common)
@@ -164,6 +167,7 @@ interface GridProps {
 ```
 
 **Example**:
+
 ```tsx
 
 // Auto-responsive card grid
@@ -207,6 +211,7 @@ interface AlertProps {
 ```
 
 **Example**:
+
 ```tsx
 
 // Danger alert with custom content
@@ -271,6 +276,7 @@ interface CardProps {
 ```
 
 **Example**:
+
 ```tsx
 
 // Standard card
@@ -397,6 +403,7 @@ Create a new UI atom when:
 ### Step 1: Identify Pattern
 
 Search for repeated className patterns:
+
 ```bash
 
 grep -r "bg-primary.*rounded-lg.*hover:brightness" src/
@@ -421,13 +428,12 @@ export default function Button({ variant, children, ...props }) {
 ### Step 3: Replace Usage
 
 ```tsx
-
 // Before
-<button className="px-4 py-2 bg-primary...">Click</button>
+<button className="px-4 py-2 bg-primary...">Click</button>;
 
 // After
 import { Button } from './ui';
-<Button variant="primary">Click</Button>
+<Button variant="primary">Click</Button>;
 ```
 
 ### Step 4: Update Imports
@@ -455,39 +461,28 @@ export type { ButtonProps } from './Button';
 Components use centralized design tokens from `src/theme/index.css`:
 
 ### Colors
-```css
 
---primary: #00ff88
---accent: #00d9ff
---danger: #ff4466
---warning: #ffaa00
---success: #00ff88
+```css
+--primary: #00ff88 --accent: #00d9ff --danger: #ff4466 --warning: #ffaa00 --success: #00ff88;
 ```
 
 ### Spacing
 
 ```css
---space-1: 4px
---space-2: 8px
---space-3: 12px
---space-4: 16px
+--space-1: 4px --space-2: 8px --space-3: 12px --space-4: 16px;
 ```
 
 ### Radii
-```css
 
---radius-sm: 4px
---radius-md: 8px
---radius-lg: 12px
+```css
+--radius-sm: 4px --radius-md: 8px --radius-lg: 12px;
 ```
 
 ### Elevation
 
 ```css
---shadow-card: 0 1px 2px rgba(0,0,0,0.3)
---glow-primary: 0 6px 24px var(--primary)
---glow-accent: 0 6px 24px var(--accent)
---glow-cta: 0 6px 24px var(--danger)
+--shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3) --glow-primary: 0 6px 24px var(--primary)
+  --glow-accent: 0 6px 24px var(--accent) --glow-cta: 0 6px 24px var(--danger);
 ```
 
 ---
@@ -495,6 +490,7 @@ Components use centralized design tokens from `src/theme/index.css`:
 ## 🧪 Testing
 
 ### Manual Testing
+
 1. Check all variants render correctly
 2. Verify hover/focus states
 3. Test disabled states
@@ -502,6 +498,7 @@ Components use centralized design tokens from `src/theme/index.css`:
 5. Screen reader announcements (ARIA)
 
 ### Automated Testing (Future)
+
 ```typescript
 
 // Example: Button.test.tsx

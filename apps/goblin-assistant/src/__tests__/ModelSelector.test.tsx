@@ -1,21 +1,21 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach } from '@jest/globals';
 import { render, screen, waitFor } from '@testing-library/react';
 import ModelSelector from '@/components/common/ModelSelector';
 
 // Mock the runtimeClient
-vi.mock('@/api/api-client', () => ({
+jest.mock('@/api/api-client', () => ({
   runtimeClient: {
-    getProviderModels: vi.fn(),
+    getProviderModels: jest.fn(),
   },
 }));
 
 import { runtimeClient } from '@/api/api-client';
 
-const mockGetProviderModels = vi.mocked(runtimeClient.getProviderModels);
+const mockGetProviderModels = (runtimeClient as any).getProviderModels;
 
 describe('ModelSelector', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it('shows placeholder when no provider is selected', () => {
@@ -29,7 +29,7 @@ describe('ModelSelector', () => {
     const mockModels = ['gpt-4', 'gpt-3.5-turbo', 'claude-3'];
     mockGetProviderModels.mockResolvedValue(mockModels);
 
-    const onChange = vi.fn();
+    const onChange = jest.fn();
     render(<ModelSelector provider="openai" onChange={onChange} />);
 
     // Should show loading state initially
@@ -57,7 +57,7 @@ describe('ModelSelector', () => {
     const mockModels = ['gpt-4', 'gpt-3.5-turbo'];
     mockGetProviderModels.mockResolvedValue(mockModels);
 
-    const onChange = vi.fn();
+    const onChange = jest.fn();
     render(<ModelSelector provider="openai" onChange={onChange} />);
 
     await waitFor(() => {
@@ -95,7 +95,7 @@ describe('ModelSelector', () => {
   it('handles API errors gracefully', async () => {
     mockGetProviderModels.mockRejectedValue(new Error('API Error'));
 
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     render(<ModelSelector provider="openai" onChange={() => {}} />);
 
@@ -147,7 +147,7 @@ describe('ModelSelector', () => {
   it('disables select while loading', async () => {
     // Create a promise that doesn't resolve immediately
     let resolvePromise: (value: string[]) => void;
-    const loadingPromise = new Promise<string[]>(resolve => {
+    const loadingPromise = new Promise<string[]>((resolve) => {
       resolvePromise = resolve;
     });
 

@@ -36,6 +36,7 @@ cd /Users/fuaadabdullah/ForgeMonorepo/goblin-assistant
 ```
 
 This script will:
+
 - Guide you through creating a Datadog RUM application
 - Configure environment variables in Netlify
 - Redeploy with monitoring enabled

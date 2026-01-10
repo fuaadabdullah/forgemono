@@ -31,11 +31,11 @@ function validateEnvFile(filePath: string) {
       }
 
       // Check for dangerous patterns
-      DANGEROUS_PATTERNS.forEach(pattern => {
+      DANGEROUS_PATTERNS.forEach((pattern) => {
         if (pattern.test(varName)) {
           errors.push(
             `Line ${index + 1}: Suspicious env var "${varName}" ` +
-            `contains sensitive keyword. Remove or prefix without VITE_`
+              `contains sensitive keyword. Remove or prefix without VITE_`
           );
         }
       });
@@ -49,13 +49,13 @@ function validateEnvFile(filePath: string) {
 const envFiles = ['.env', '.env.example', '.env.development'];
 let hasErrors = false;
 
-envFiles.forEach(file => {
+envFiles.forEach((file) => {
   const filePath = path.join(process.cwd(), file);
   if (fs.existsSync(filePath)) {
     const errors = validateEnvFile(filePath);
     if (errors.length > 0) {
       console.error(`\n🚨 Security issues in ${file}:\n`);
-      errors.forEach(err => console.error(`  - ${err}`));
+      errors.forEach((err) => console.error(`  - ${err}`));
       hasErrors = true;
     }
   }

@@ -38,17 +38,17 @@
 
 ## 🔑 Intent Keywords
 
-| Intent | Trigger Words | Route To |
-|--------|--------------|----------|
-| **code-gen** | code, function, implement, script, class | mistral:7b |
-| **creative** | story, poem, creative, imagine | mistral:7b |
-| **explain** | explain, what is, how does | mistral:7b |
-| **summarize** | summarize, summary, tldr | mistral:7b |
-| **rag** | based on, according to, from document | qwen2.5:3b |
-| **translation** | translate, say in, translation | qwen2.5:3b |
-| **chat** | conversational flow, Q&A | phi3:3.8b |
-| **classification** | classify, category, label | gemma:2b |
-| **status** | status, health, check | gemma:2b |
+| Intent             | Trigger Words                            | Route To   |
+| ------------------ | ---------------------------------------- | ---------- |
+| **code-gen**       | code, function, implement, script, class | mistral:7b |
+| **creative**       | story, poem, creative, imagine           | mistral:7b |
+| **explain**        | explain, what is, how does               | mistral:7b |
+| **summarize**      | summarize, summary, tldr                 | mistral:7b |
+| **rag**            | based on, according to, from document    | qwen2.5:3b |
+| **translation**    | translate, say in, translation           | qwen2.5:3b |
+| **chat**           | conversational flow, Q&A                 | phi3:3.8b  |
+| **classification** | classify, category, label                | gemma:2b   |
+| **status**         | status, health, check                    | gemma:2b   |
 
 ## 🚀 Quick API Examples
 
@@ -64,6 +64,7 @@
 ```
 
 ### 2. Fast Status Check (gemma:2b)
+
 ```python
 
 {
@@ -90,6 +91,7 @@
 ```
 
 ### 4. Conversational Chat (phi3:3.8b)
+
 ```python
 
 {
@@ -106,12 +108,12 @@
 
 ## 📊 Performance SLAs
 
-| Model | p50 Latency | p95 Latency | Best For |
-|-------|-------------|-------------|----------|
-| gemma:2b | 5s | 8s | Status, classification |
-| phi3:3.8b | 10s | 12s | Chat, UI responses |
-| qwen2.5:3b | 14s | 18s | Long docs, RAG |
-| mistral:7b | 14s | 20s | High quality, code |
+| Model      | p50 Latency | p95 Latency | Best For               |
+| ---------- | ----------- | ----------- | ---------------------- |
+| gemma:2b   | 5s          | 8s          | Status, classification |
+| phi3:3.8b  | 10s         | 12s         | Chat, UI responses     |
+| qwen2.5:3b | 14s         | 18s         | Long docs, RAG         |
+| mistral:7b | 14s         | 20s         | High quality, code     |
 
 ## 🎛️ Parameter Presets
 
@@ -135,6 +137,7 @@
 ## 🔍 Override Routing
 
 Force specific model:
+
 ```python
 
 {

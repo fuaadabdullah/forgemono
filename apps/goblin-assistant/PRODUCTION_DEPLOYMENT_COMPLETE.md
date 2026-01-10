@@ -75,6 +75,7 @@ execute_custom_script(script_content)
 ## 3. ✅ WebAuthn Passkey Verification
 
 ### Completed
+
 - **Verified** full cryptographic implementation
 - **Implemented** Redis challenge storage (production-ready)
 - **Added** in-memory fallback for development
@@ -82,6 +83,7 @@ execute_custom_script(script_content)
 - **Created** comprehensive testing checklist
 
 ### Security Features
+
 - ✅ Cryptographically secure challenge generation
 - ✅ Challenge expiration (5 minutes)
 - ✅ One-time use challenges
@@ -91,6 +93,7 @@ execute_custom_script(script_content)
 - ✅ Authenticator data validation
 
 ### Production Configuration
+
 ```bash
 
 # Redis setup required (recommended: Upstash)
@@ -160,6 +163,7 @@ pool_pre_ping=True        # Detect stale connections
 ```
 
 ### Migration Features
+
 - ✅ All 14 tables included in schema
 - ✅ Automatic model detection
 - ✅ SQLite → PostgreSQL migration path
@@ -167,6 +171,7 @@ pool_pre_ping=True        # Detect stale connections
 - ✅ Health check endpoints
 
 ### Execute Migration
+
 ```bash
 
 cd apps/goblin-assistant/backend
@@ -213,6 +218,7 @@ alembic upgrade head
   ```
 
 - [ ] **Redis**: Set up for passkey challenges (Upstash recommended)
+
   ```bash
 
   USE_REDIS_CHALLENGES=true
@@ -228,6 +234,7 @@ alembic upgrade head
   ```
 
 - [ ] **Migrations**: Run database migrations
+
   ```bash
 
   alembic upgrade head
@@ -240,6 +247,7 @@ alembic upgrade head
   ```
 
 - [ ] **Frontend URL**: Set for WebAuthn
+
   ```bash
 
   FRONTEND_URL=<https://your-domain.com>
@@ -255,6 +263,7 @@ alembic upgrade head
    ```
 
 2. **Frontend to Vercel**
+
    ```bash
 
    ./deploy-frontend.sh
@@ -288,12 +297,14 @@ alembic upgrade head
 ## 📈 Monitoring & Observability
 
 ### Health Checks
+
 - `/health` - Overall health
 - `/health/db` - Database connection
 - `/health/db-pool` - Connection pool stats
 - `/raptor/status` - Monitoring system
 
 ### Logs
+
 ```bash
 
 # Backend logs

@@ -1,11 +1,11 @@
 ---
-title: "{{title}}"
-type: "{{type}}"        # architecture | runbook | spec | api | onboarding | model
-owner: "{{owner}}"      # your name/team
-status: "draft"         # draft | review | final | archived
-version: "0.1.0"
-last_updated: "{{date}}"
-tags: ["{{tag1}}", "{{tag2}}"]
+title: '{{title}}'
+type: '{{type}}' # architecture | runbook | spec | api | onboarding | model
+owner: '{{owner}}' # your name/team
+status: 'draft' # draft | review | final | archived
+version: '0.1.0'
+last_updated: '{{date}}'
+tags: ['{{tag1}}', '{{tag2}}']
 related: []
 ---
 
@@ -17,7 +17,7 @@ Why this document exists in one sentence
 
 ## 🔍 Context
 
-*What problem does this solve? What happens if this disappears?*
+_What problem does this solve? What happens if this disappears?_
 
 ## 📐 Design
 

@@ -24,7 +24,6 @@ Typical pattern:
 - Create a `secret/goblin-assistant/backups/<provider>` path to persist rotated keys temporarily, if needed.
 - Use a `VaultClient` wrapper (included in repo at `vault_client.py`) to read secrets into the app's environment.
 
-
 Quick verification
 
 1. Search the repo for likely private key markers:
@@ -53,9 +52,9 @@ Purging history (if secret was committed previously)
 
 Using git filter-repo (recommended):
 
-1) Install: <https://github.com/newren/git-filter-repo>
+1. Install: <https://github.com/newren/git-filter-repo>
 
-2) Example to remove a path (run on a clean clone; backup first):
+2. Example to remove a path (run on a clean clone; backup first):
 
 ```bash
 # clone a fresh copy
@@ -108,4 +107,5 @@ Recommendations
 If you need, I can prepare a small script/PR to run gitleaks across the history and a template for rotating keys.
 
 ---
+
 Last updated: 2025-11-13

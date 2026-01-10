@@ -19,6 +19,8 @@ __pycache__/
 .env
 .env.*
 !.env.example
+apps/goblin-assistant/infra/kong/.env
+!apps/goblin-assistant/infra/kong/.env.example
 .secrets/
 
 # Local env / decrypted files

@@ -26,7 +26,7 @@ export default function Logo({
   size = 'md',
   variant = 'full',
   className = '',
-  animated = true
+  animated = true,
 }: LogoProps) {
   const [svgError, setsvgError] = useState(false);
   const pixelSize = sizeMap[size];
@@ -46,9 +46,8 @@ export default function Logo({
         🤖
       </span>
     );
-  }  const svgPath = variant === 'simple'
-    ? '/src/assets/logo-simple.svg'
-    : '/src/assets/logo.svg';
+  }
+  const svgPath = variant === 'simple' ? '/src/assets/logo-simple.svg' : '/src/assets/logo.svg';
 
   return (
     <img

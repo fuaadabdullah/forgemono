@@ -84,32 +84,30 @@ config:
     - model_name: gpt-4-turbo
       litellm_params:
         model: openai/gpt-4-turbo-preview
-        api_key: "os.environ/OPENAI_API_KEY"
+        api_key: 'os.environ/OPENAI_API_KEY'
 
     - model_name: gemini-pro
       litellm_params:
         model: gemini/gemini-1.5-pro-latest
-        api_key: "os.environ/GEMINI_API_KEY"
+        api_key: 'os.environ/GEMINI_API_KEY'
 
     - model_name: ollama-local
       litellm_params:
         model: ollama/llama3.2
-        api_base: "http://ollama:11434"
+        api_base: 'http://ollama:11434'
 ```
 
 ### Routing & Fallbacks
 
 ```yaml
-
 config:
   router:
     enabled: true
-    routingStrategy: "latency-based-routing"  # or cost-based-routing, simple-shuffle
+    routingStrategy: 'latency-based-routing' # or cost-based-routing, simple-shuffle
     fallbacks:
-
-      - ["gpt-4-turbo", "gemini-pro"]       # Fallback gpt-4 -> gemini
-      - ["gemini-pro", "deepseek-chat"]     # Fallback gemini -> deepseek
-      - ["deepseek-chat", "ollama-local"]   # Fallback deepseek -> ollama
+      - ['gpt-4-turbo', 'gemini-pro'] # Fallback gpt-4 -> gemini
+      - ['gemini-pro', 'deepseek-chat'] # Fallback gemini -> deepseek
+      - ['deepseek-chat', 'ollama-local'] # Fallback deepseek -> ollama
 ```
 
 ### Autoscaling
@@ -149,26 +147,25 @@ metrics:
 # In your service deployment
 env:
   - name: LITELLM_BASE_URL
-    value: "http://litellm:4000"
+    value: 'http://litellm:4000'
   - name: OPENAI_API_KEY
-    value: "dummy"  # LiteLLM handles auth
+    value: 'dummy' # LiteLLM handles auth
 ```
 
 1. **Update code to use OpenAI SDK**:
 
 ```typescript
-
 // Node.js / TypeScript
 import OpenAI from 'openai';
 
 const client = new OpenAI({
   apiKey: 'dummy',
-  baseURL: process.env.LITELLM_BASE_URL
+  baseURL: process.env.LITELLM_BASE_URL,
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-4-turbo',  // or gemini-pro, deepseek-chat, ollama-local
-  messages: [{ role: 'user', content: 'Hello!' }]
+  model: 'gpt-4-turbo', // or gemini-pro, deepseek-chat, ollama-local
+  messages: [{ role: 'user', content: 'Hello!' }],
 });
 ```
 
@@ -227,7 +224,7 @@ autoscaling:
 config:
   logLevel: INFO
   setVerbose: false
-  database: "postgresql://user:pass@postgres:5432/litellm"
+  database: 'postgresql://user:pass@postgres:5432/litellm'
 
 resources:
   limits:

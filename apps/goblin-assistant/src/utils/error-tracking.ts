@@ -175,10 +175,7 @@ export const trackRoutingOperation = (
 };
 
 // User interaction tracking
-export const trackUserAction = (
-  action: string,
-  context?: Record<string, unknown>
-) => {
+export const trackUserAction = (action: string, context?: Record<string, unknown>) => {
   logEvent(`User action: ${action}`, {
     ...context,
     timestamp: new Date().toISOString(),

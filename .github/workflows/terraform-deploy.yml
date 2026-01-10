@@ -2,7 +2,7 @@ name: Terraform Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'goblin-infra/**'
       - '.github/workflows/terraform-deploy.yml'

@@ -36,8 +36,8 @@ spec:
         - name: prometheus
           image: prom/prometheus:v2.47.0
           args:
-            - "--config.file=/etc/prometheus/prometheus.yml"
-            - "--storage.tsdb.path=/prometheus"
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
           ports:
             - containerPort: 9090
           volumeMounts:
@@ -47,11 +47,11 @@ spec:
               mountPath: /prometheus
           resources:
             requests:
-              cpu: "200m"
-              memory: "512Mi"
+              cpu: '200m'
+              memory: '512Mi'
             limits:
-              cpu: "1"
-              memory: "2Gi"
+              cpu: '1'
+              memory: '2Gi'
       volumes:
         - name: config
           configMap:
@@ -60,7 +60,7 @@ spec:
     - metadata:
         name: prometheus-data
       spec:
-        accessModes: ["ReadWriteOnce"]
+        accessModes: ['ReadWriteOnce']
         resources:
           requests:
             storage: 10Gi

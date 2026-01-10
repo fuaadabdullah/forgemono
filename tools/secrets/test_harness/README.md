@@ -1,5 +1,5 @@
 ---
-description: "README"
+description: 'README'
 ---
 
 Test harness for secrets scanning tools.

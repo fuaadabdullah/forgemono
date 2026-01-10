@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@jest/globals';
 import { render } from '@testing-library/react';
 import Grid from './Grid';
 
@@ -78,7 +78,8 @@ describe('Grid', () => {
     const grid = container.firstChild as HTMLElement;
     expect(grid).toHaveClass('grid');
     expect(grid).not.toHaveClass('grid-auto-fit');
-  });  it('applies custom className', () => {
+  });
+  it('applies custom className', () => {
     const { container } = render(
       <Grid className="custom-grid">
         <div>Content</div>

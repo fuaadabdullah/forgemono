@@ -141,11 +141,13 @@ grep -r "bg-red-\|text-red-\|bg-orange-" src/ --include="*.tsx" | wc -l
 ```
 
 ## Expected Remaining Count
+
 - ~17 components left to migrate
 - Estimated time: 30-45 minutes for complete migration
 - Priority: Dashboard > Pages > Utility components
 
 ## Testing Checklist (Post-Migration)
+
 - [ ] All interactive elements have hover states
 - [ ] Text contrast meets WCAG AA (4.5:1)
 - [ ] No white flashes or mixed color schemes

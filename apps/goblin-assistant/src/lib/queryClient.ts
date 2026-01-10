@@ -45,12 +45,13 @@ export const queryKeys = {
 
   // Routing
   routingProviders: (capability?: string) =>
-    capability ? ['routing', 'providers', capability] : ['routing', 'providers'] as const,
+    capability ? ['routing', 'providers', capability] : (['routing', 'providers'] as const),
   routingHealth: ['routing', 'health'] as const,
 
   // Goblins
   goblins: ['goblins'] as const,
-  goblinHistory: (goblinId: string, limit: number) => ['goblins', goblinId, 'history', limit] as const,
+  goblinHistory: (goblinId: string, limit: number) =>
+    ['goblins', goblinId, 'history', limit] as const,
   goblinStats: (goblinId: string) => ['goblins', goblinId, 'stats'] as const,
 
   // RAPTOR

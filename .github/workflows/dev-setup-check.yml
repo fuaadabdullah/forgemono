@@ -2,7 +2,7 @@ name: Dev setup check
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -31,3 +31,6 @@ jobs:
 
       - name: Run dev-setup check (CI)
         run: bash ./goblin-assistant/scripts/dev-setup.sh --check --ci
+
+      - name: Check variable naming conventions
+        run: node scripts/check-naming.js

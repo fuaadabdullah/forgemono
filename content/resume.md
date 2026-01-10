@@ -1,5 +1,5 @@
 ---
-description: "resume"
+description: 'resume'
 ---
 
 # Fuaad Abdullah
@@ -12,7 +12,7 @@ Independent day trader and freelance developer specializing in risk management t
 
 ### Independent Day Trader & Freelance Developer
 
-*Current Role*
+_Current Role_
 
 - Studying macroeconomic trends and market cycles to inform trading strategies
 - Prototyping trading algorithms in Python and Rust for automated execution

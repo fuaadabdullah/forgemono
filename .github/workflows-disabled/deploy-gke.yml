@@ -37,7 +37,7 @@ jobs:
 name: Build and Deploy to GKE
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 # Notes:
 # - Replace gcr.io/... with your Artifact Registry host if necessary.

@@ -1,9 +1,9 @@
-version: "3.8"
+version: '3.8'
 services:
   prometheus:
     image: prom/prometheus:latest
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ../prometheus:/etc/prometheus
     command:
@@ -18,7 +18,7 @@ services:
   alertmanager:
     image: prom/alertmanager:latest
     ports:
-      - "9093:9093"
+      - '9093:9093'
     volumes:
       - ../prometheus/alerting_rules.yml:/etc/alertmanager/alertmanager.yml
     command:
@@ -29,7 +29,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:

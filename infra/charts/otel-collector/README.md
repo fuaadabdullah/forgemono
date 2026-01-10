@@ -1,5 +1,5 @@
 ---
-description: "README"
+description: 'README'
 ---
 
 # OpenTelemetry Collector Helm Chart
@@ -28,11 +28,11 @@ helm upgrade --install otel-collector . \
 
 ### Configuration Highlights
 
- | Value | Description | 
- | --- | --- | 
- | `daemonset.config` | ConfigMap content for node agents (default enables OTLP -> upstream) | 
- | `deployment.config` | Central collector pipeline (tail sampling, exporters) | 
- | `security.mtls.*` | Enables TLS certificates for OTLP listeners | 
- | `security.apiKey.*` | Header injection for agents forwarding to central collector | 
+| Value               | Description                                                          |
+| ------------------- | -------------------------------------------------------------------- |
+| `daemonset.config`  | ConfigMap content for node agents (default enables OTLP -> upstream) |
+| `deployment.config` | Central collector pipeline (tail sampling, exporters)                |
+| `security.mtls.*`   | Enables TLS certificates for OTLP listeners                          |
+| `security.apiKey.*` | Header injection for agents forwarding to central collector          |
 
 For advanced scenarios create environment-specific values files (e.g., `values.staging.yaml`) that override exporter endpoints or sampling policies.

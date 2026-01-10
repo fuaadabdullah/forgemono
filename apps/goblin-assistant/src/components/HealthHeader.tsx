@@ -31,13 +31,13 @@ const HealthHeader = ({ className = '', compact = false }: HealthHeaderProps) =>
     const checkHealth = async () => {
       const startTime = Date.now();
       try {
-  const data = (await apiClient.getAllHealth()) as HealthData; // Cast to expected shape
+        const data = (await apiClient.getAllHealth()) as HealthData; // Cast to expected shape
         const latency = Date.now() - startTime;
 
         // Aggregate health status from services
-  const services = (data.services || {}) as Record<string, string | undefined>;
-  const serviceStatuses = Object.values(services);
-  let status: 'healthy' | 'degraded' | 'down' = 'healthy';
+        const services = (data.services || {}) as Record<string, string | undefined>;
+        const serviceStatuses = Object.values(services);
+        let status: 'healthy' | 'degraded' | 'down' = 'healthy';
 
         if (serviceStatuses.some((s: any) => s === 'down' || s === 'error')) {
           status = 'down';
@@ -104,7 +104,11 @@ const HealthHeader = ({ className = '', compact = false }: HealthHeaderProps) =>
 
   const config = statusConfig[health.status];
   const lastCheckTime = health.last_check
-    ? new Date(health.last_check).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    ? new Date(health.last_check).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
     : 'Unknown';
 
   return (

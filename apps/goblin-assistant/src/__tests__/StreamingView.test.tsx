@@ -1,6 +1,11 @@
+/// <reference types="@testing-library/jest-dom" />
+import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from '@jest/globals';
 import StreamingView from '@/components/streaming/StreamingView';
+
+// Re-import jest-dom to ensure types are available
+import '@testing-library/jest-dom';
 
 describe('StreamingView', () => {
   it('renders streaming text when streaming is active', () => {

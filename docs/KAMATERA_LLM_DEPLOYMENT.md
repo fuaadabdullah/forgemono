@@ -224,6 +224,7 @@ LOCAL_LLM_API_KEY=your-secure-api-key-here
 ### Systemd Services
 
 **Local LLM Proxy** (`/etc/systemd/system/local-llm-proxy.service`):
+
 ```ini
 
 [Unit]
@@ -319,6 +320,7 @@ ollama pull mistral:7b         # 4.1GB - High quality
 ### Llama.cpp Models
 
 Place `.gguf` files in `/srv/models/active/`:
+
 - Download from HuggingFace
 - Use Q4_K_M quantization for best balance
 - Popular sources:
@@ -326,6 +328,7 @@ Place `.gguf` files in `/srv/models/active/`:
   - Official model repos with GGUF releases
 
 Example models:
+
 - `phi-3-mini-4k-instruct-q4.gguf` (2.3GB)
 - `llama-2-7b-chat-q4_k_m.gguf` (4GB)
 - `mistral-7b-instruct-v0.2-q4_k_m.gguf` (4GB)
@@ -333,11 +336,14 @@ Example models:
 ## API Endpoints
 
 ### Base URL
+
 - **Local**: `http://localhost:8002`
 - **External**: `http://45.61.60.3:8002` (configure firewall/nginx)
 
 ### Authentication
+
 All endpoints (except `/health`) require:
+
 ```
 Header: x-api-key: your-secure-api-key-here
 ```
@@ -345,10 +351,12 @@ Header: x-api-key: your-secure-api-key-here
 ### Endpoints
 
 #### Health Check
+
 ```http
 
 GET /health
 ```
+
 Response: `{"status": "healthy", "service": "local-llm-proxy"}`
 
 #### List Models
@@ -357,9 +365,10 @@ Response: `{"status": "healthy", "service": "local-llm-proxy"}`
 GET /models
 Headers: x-api-key: <key>
 ```
-Response:
-```json
 
+Response:
+
+```json
 {
   "models": {
     "ollama": ["phi3:3.8b", "gemma:2b"],
@@ -391,11 +400,13 @@ Body:
 ## Security Considerations
 
 ### 1. API Key Security
+
 - **Generate strong key**: Use `openssl rand -hex 32`
 - **Store securely**: Environment variable, never commit
 - **Rotate regularly**: Update monthly
 
 ### 2. Firewall Configuration
+
 ```bash
 
 # On Kamatera server
@@ -413,6 +424,7 @@ sudo ufw status
 ```
 
 ### 3. NGINX Reverse Proxy (Optional)
+
 Set up NGINX with SSL for production:
 
 ```nginx
@@ -435,6 +447,7 @@ server {
 ## Resource Monitoring
 
 ### System Resources
+
 ```bash
 
 # Memory usage
@@ -477,6 +490,7 @@ sudo journalctl -u llamacpp -n 50
 ```
 
 **Common issues:**
+
 1. **Port conflicts**: Check if ports 8002, 8080, 11434 are in use
 2. **Model not found**: Verify model path in llamacpp.service
 3. **Permission errors**: Ensure /srv/models/active is readable
@@ -485,6 +499,7 @@ sudo journalctl -u llamacpp -n 50
 ### Connection Issues
 
 **Test from server:**
+
 ```bash
 
 curl <http://localhost:8002/health>
@@ -499,6 +514,7 @@ curl http://45.61.60.3:8002/health
 ```
 
 If external fails:
+
 1. Check firewall: `sudo ufw status`
 2. Check nginx config
 3. Verify server is listening: `netstat -tlnp | grep 8002`
@@ -506,6 +522,7 @@ If external fails:
 ### Model Download Fails
 
 **rclone issues:**
+
 ```bash
 
 # Test rclone config

@@ -1,5 +1,5 @@
 ---
-description: "CONTRIBUTING"
+description: 'CONTRIBUTING'
 ---
 
 # Contributing Guidelines
@@ -102,4 +102,3 @@ Contributor checklist for docs:
 4. Run docs lint and spellcheck (where available) and add an entry in `docs/CHANGELOG` if the change affects user-facing behavior.
 
 If in doubt, ask in the repo or your component owner before moving large docs across folders.
-

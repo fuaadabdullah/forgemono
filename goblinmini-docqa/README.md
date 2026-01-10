@@ -309,11 +309,13 @@ LLAMA_N_THREADS = max(1, cpu_count // 2)  # Reserve half for other processes
 ```
 
 **Example on 8-core system:**
+
 - Total cores: 8
 - Reserved for system/web server: 4 cores
 - Used for llama-cpp inference: 4 threads
 
 **Override via environment:**
+
 ```bash
 
 # Force specific thread count
@@ -357,16 +359,19 @@ goblinmini-docqa/
 ## Analysis Methods
 
 ### Heuristic Analysis
+
 - Rule-based scoring using predefined quality metrics
 - Fast and lightweight, no external dependencies
 - Good for basic quality checks
 
 ### Local LLM Analysis
+
 - Uses local LLM models (e.g., Llama.cpp, Ollama)
 - More sophisticated analysis with natural language understanding
 - Requires local LLM setup
 
 ### Copilot Proxy Analysis
+
 - Integrates with GitHub Copilot API
 - Advanced AI-powered analysis
 - Requires GitHub token and API access

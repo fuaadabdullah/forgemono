@@ -1,5 +1,5 @@
 ---
-description: "README"
+description: 'README'
 ---
 
 # Goblin Quick TUI (Textual)
@@ -38,9 +38,11 @@ python tools/tui/goblin_tui.py --config tools/tui/config.json
 ```
 
 Notes
+
 - The TUI runs commands using `/bin/bash -lc` in the configured working directory.
 - Commands should be safe, idempotent, and non-interactive. The default `goblin kill-zombies` maps to the repo `tools/scripts/kill-port.sh 8000` helper.
 - If you prefer a Node alternative (Ink), I can add that next.
 
 Customization
+
 - `config.json` supports a top-level `commands` object mapping label -> shell command, and `cwd` which may include `${repo_root}`.

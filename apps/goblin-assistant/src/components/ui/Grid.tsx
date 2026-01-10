@@ -26,10 +26,7 @@ export default function Grid({
   const gridClass = autoFit ? 'grid-auto-fit' : 'grid';
 
   return (
-    <div
-      className={`${gridClass} ${gapStyles[gap]} ${className}`}
-      {...props}
-    >
+    <div className={`${gridClass} ${gapStyles[gap]} ${className}`} {...props}>
       {children}
     </div>
   );

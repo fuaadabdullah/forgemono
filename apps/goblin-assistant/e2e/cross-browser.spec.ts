@@ -82,8 +82,8 @@ test.describe('Cross-browser Accessibility and Compatibility Tests', () => {
 
   test('should handle slow networks gracefully', async ({ page }) => {
     // Simulate slow network
-    await page.route('**/*', async route => {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    await page.route('**/*', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
       await route.continue();
     });
 

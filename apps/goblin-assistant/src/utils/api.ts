@@ -18,10 +18,26 @@ import {
 /**
  * Typed fetch wrapper that ensures type safety for API responses
  */
-export async function typedFetch<T>(
-  url: string,
-  options?: RequestInit
-): Promise<T> {
+/**
+ * Type-safe wrapper around fetch that automatically parses JSON responses
+ *
+ * This utility provides compile-time type safety for API responses while handling
+ * the common pattern of fetching and parsing JSON. It throws on HTTP errors.
+ *
+ * @template T - The expected response type
+ * @param url - The URL to fetch from
+ * @param options - Standard fetch options (method, headers, etc.)
+ * @returns Promise resolving to the typed JSON response
+ * @throws {Error} When HTTP response is not ok (status >= 400)
+ *
+ * @example
+ * ```typescript
+ * interface User { id: number; name: string; }
+ * const user = await typedFetch<User>('/api/users/123');
+ * console.log(user.name); // TypeScript knows this is a string
+ * ```
+ */
+export async function typedFetch<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, options);
 
   if (!response.ok) {
@@ -33,6 +49,27 @@ export async function typedFetch<T>(
 
 /**
  * Safe fetch with error handling and optional type guard validation
+ *
+ * This function provides resilient API calls that gracefully handle network errors
+ * and optionally validate response types at runtime. Unlike typedFetch, it returns
+ * null on errors instead of throwing, making it suitable for non-critical operations.
+ *
+ * @template T - The expected response type
+ * @param url - The URL to fetch from
+ * @param options - Standard fetch options (method, headers, etc.)
+ * @param typeGuard - Optional function to validate response shape at runtime
+ * @returns Promise resolving to typed response or null if fetch/validation fails
+ *
+ * @example
+ * ```typescript
+ * // Basic usage - returns null on any error
+ * const user = await safeFetch<User>('/api/users/123');
+ *
+ * // With type validation
+ * const isValidUser = (data: unknown): data is User =>
+ *   typeof data === 'object' && data !== null && 'id' in data;
+ * const user = await safeFetch<User>('/api/users/123', {}, isValidUser);
+ * ```
  */
 export async function safeFetch<T>(
   url: string,
@@ -41,14 +78,14 @@ export async function safeFetch<T>(
 ): Promise<T | null> {
   try {
     const response = await fetch(url, options);
-    const data = await response.json();
+    const responseData = await response.json();
 
-    if (typeGuard && !typeGuard(data)) {
+    if (typeGuard && !typeGuard(responseData)) {
       console.error('Invalid response type for:', url);
       return null;
     }
 
-    return data as T;
+    return responseData as T;
   } catch (error) {
     console.error('Fetch error:', error);
     return null;
@@ -91,7 +128,10 @@ export const apiFetch = {
   /**
    * Fetch chat completion with type validation
    */
-  async chatCompletion(messages: Array<{role: string, content: string}>, model?: string): Promise<ChatCompletionResponse | null> {
+  async chatCompletion(
+    messages: Array<{ role: string; content: string }>,
+    model?: string
+  ): Promise<ChatCompletionResponse | null> {
     return safeFetch<ChatCompletionResponse>(
       '/api/chat/completions',
       {
@@ -106,24 +146,42 @@ export const apiFetch = {
 
 /**
  * Generic API response handler with error checking
+ *
+ * Standardizes API response handling by wrapping successful responses in a success
+ * envelope and failed responses in an error envelope. This provides consistent
+ * error handling patterns across the application.
+ *
+ * @template T - The expected success response type
+ * @param response - The fetch Response object to process
+ * @returns Promise resolving to standardized ApiResponse envelope
+ *
+ * @example
+ * ```typescript
+ * const response = await fetch('/api/users');
+ * const result = await handleApiResponse<User[]>(response);
+ *
+ * if (result.success) {
+ *   console.log('Users:', result.data);
+ * } else {
+ *   console.error('Error:', result.error);
+ * }
+ * ```
  */
-export async function handleApiResponse<T>(
-  response: Response
-): Promise<ApiResponse<T>> {
-  const data = await response.json();
+export async function handleApiResponse<T>(response: Response): Promise<ApiResponse<T>> {
+  const responseData = await response.json();
 
   if (!response.ok) {
     return {
       success: false,
-      error: data.error || `HTTP ${response.status}`,
-      code: data.code,
-      details: data.details,
+      error: responseData.error || `HTTP ${response.status}`,
+      code: responseData.code,
+      details: responseData.details,
     };
   }
 
   return {
     success: true,
-    data: data as T,
+    data: responseData as T,
   };
 }
 

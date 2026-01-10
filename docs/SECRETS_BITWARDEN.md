@@ -11,6 +11,7 @@ This guide explains how to manage secrets for the ForgeMonorepo using Bitwarden 
    ```
 
 2. **Login to Bitwarden**:
+
    ```bash
 
    bw login
@@ -21,7 +22,9 @@ This guide explains how to manage secrets for the ForgeMonorepo using Bitwarden 
    ```bash
    bw unlock
    ```
+
    This will provide a session token that you can export:
+
    ```bash
 
    export BW_SESSION="your-session-token-here"
@@ -58,6 +61,7 @@ The `scripts/bw-secrets.sh` script provides convenient commands for managing sec
 ```
 
 ### Export all secrets to environment variables
+
 ```bash
 
 ./scripts/bw-secrets.sh export
@@ -74,6 +78,7 @@ The `scripts/bw-secrets.sh` script provides convenient commands for managing sec
 ```
 
 ### List all required secrets
+
 ```bash
 
 ./scripts/bw-secrets.sh list
@@ -119,7 +124,9 @@ bw unlock
 ```
 
 ### Permission denied
+
 Make sure you're logged in and have access to the vault:
+
 ```bash
 
 bw login
@@ -127,6 +134,7 @@ bw unlock
 ```
 
 ### Secret not found
+
 Verify the secret name exists in your vault:
 
 ```bash

@@ -13,14 +13,14 @@
 
 ### Certification Metrics
 
-| Metric | Result | Status |
-|--------|--------|--------|
-| **Lighthouse Score** | 100/100 (all 7 pages) | ✅ Perfect |
-| **axe-core Violations** | 0 (all 7 pages) | ✅ Perfect |
-| **WCAG 2.1 Level AA** | Full Compliance | ✅ Certified |
-| **Color Contrast** | 16.64:1 (body text) | ✅ AAA Level |
-| **Keyboard Navigation** | 100% Accessible | ✅ Perfect |
-| **Screen Reader Ready** | Yes | ✅ Perfect |
+| Metric                  | Result                | Status       |
+| ----------------------- | --------------------- | ------------ |
+| **Lighthouse Score**    | 100/100 (all 7 pages) | ✅ Perfect   |
+| **axe-core Violations** | 0 (all 7 pages)       | ✅ Perfect   |
+| **WCAG 2.1 Level AA**   | Full Compliance       | ✅ Certified |
+| **Color Contrast**      | 16.64:1 (body text)   | ✅ AAA Level |
+| **Keyboard Navigation** | 100% Accessible       | ✅ Perfect   |
+| **Screen Reader Ready** | Yes                   | ✅ Perfect   |
 
 ---
 
@@ -32,16 +32,16 @@
 **Date**: December 2, 2025
 **Results**: **7/7 pages scored 100/100**
 
-| Page | Score | Audits Passed | Violations |
-|------|-------|---------------|------------|
-| Dashboard | 100/100 | 73 | 0 |
-| Chat | 100/100 | 73 | 0 |
-| Search | 100/100 | 73 | 0 |
-| Settings | 100/100 | 73 | 0 |
-| Providers | 100/100 | 73 | 0 |
-| Logs | 100/100 | 73 | 0 |
-| Sandbox | 100/100 | 73 | 0 |
-| **TOTAL** | **100/100** | **511** | **0** |
+| Page      | Score       | Audits Passed | Violations |
+| --------- | ----------- | ------------- | ---------- |
+| Dashboard | 100/100     | 73            | 0          |
+| Chat      | 100/100     | 73            | 0          |
+| Search    | 100/100     | 73            | 0          |
+| Settings  | 100/100     | 73            | 0          |
+| Providers | 100/100     | 73            | 0          |
+| Logs      | 100/100     | 73            | 0          |
+| Sandbox   | 100/100     | 73            | 0          |
+| **TOTAL** | **100/100** | **511**       | **0**      |
 
 **Report**: [`docs/ACCESSIBILITY_AUDIT_RESULTS.md`](./ACCESSIBILITY_AUDIT_RESULTS.md)
 
@@ -54,16 +54,16 @@
 **Date**: December 2, 2025
 **Results**: **0 violations across all pages**
 
-| Page | Score | Violations | Critical | Serious | Moderate | Minor |
-|------|-------|------------|----------|---------|----------|-------|
-| Dashboard | 100/100 | 0 | 0 | 0 | 0 | 0 |
-| Chat | 100/100 | 0 | 0 | 0 | 0 | 0 |
-| Search | 100/100 | 0 | 0 | 0 | 0 | 0 |
-| Settings | 100/100 | 0 | 0 | 0 | 0 | 0 |
-| Providers | 100/100 | 0 | 0 | 0 | 0 | 0 |
-| Logs | 100/100 | 0 | 0 | 0 | 0 | 0 |
-| Sandbox | 100/100 | 0 | 0 | 0 | 0 | 0 |
-| **TOTAL** | **100/100** | **0** | **0** | **0** | **0** | **0** |
+| Page      | Score       | Violations | Critical | Serious | Moderate | Minor |
+| --------- | ----------- | ---------- | -------- | ------- | -------- | ----- |
+| Dashboard | 100/100     | 0          | 0        | 0       | 0        | 0     |
+| Chat      | 100/100     | 0          | 0        | 0       | 0        | 0     |
+| Search    | 100/100     | 0          | 0        | 0       | 0        | 0     |
+| Settings  | 100/100     | 0          | 0        | 0       | 0        | 0     |
+| Providers | 100/100     | 0          | 0        | 0       | 0        | 0     |
+| Logs      | 100/100     | 0          | 0        | 0       | 0        | 0     |
+| Sandbox   | 100/100     | 0          | 0        | 0       | 0        | 0     |
+| **TOTAL** | **100/100** | **0**      | **0**    | **0**   | **0**    | **0** |
 
 **Passed Checks**: 147 (21 per page)
 **Report**: [`docs/AXE_AUDIT_RESULTS.md`](./AXE_AUDIT_RESULTS.md)
@@ -76,16 +76,16 @@
 **Standard**: WCAG 2.1 Level AA (4.5:1 normal text, 3.0:1 large text)
 **Results**: **8/8 token combinations passed**
 
-| Token Combination | Ratio | Minimum | Status |
-|-------------------|-------|---------|--------|
-| `--text` on `--bg` | 16.64:1 | 4.5:1 | ✅ AAA |
-| `--muted` on `--bg` | 7.55:1 | 4.5:1 | ✅ Pass |
-| `--text` on `--surface` | 16.06:1 | 4.5:1 | ✅ AAA |
-| `--muted` on `--surface` | 7.29:1 | 4.5:1 | ✅ Pass |
-| `--primary` on `--bg` (large) | 9.29:1 | 3.0:1 | ✅ Pass |
-| `--danger` on `--bg` | 5.71:1 | 4.5:1 | ✅ Pass |
-| `--warning` on `--bg` | 9.65:1 | 4.5:1 | ✅ Pass |
-| `--info` on `--bg` | 6.05:1 | 4.5:1 | ✅ Pass |
+| Token Combination             | Ratio   | Minimum | Status  |
+| ----------------------------- | ------- | ------- | ------- |
+| `--text` on `--bg`            | 16.64:1 | 4.5:1   | ✅ AAA  |
+| `--muted` on `--bg`           | 7.55:1  | 4.5:1   | ✅ Pass |
+| `--text` on `--surface`       | 16.06:1 | 4.5:1   | ✅ AAA  |
+| `--muted` on `--surface`      | 7.29:1  | 4.5:1   | ✅ Pass |
+| `--primary` on `--bg` (large) | 9.29:1  | 3.0:1   | ✅ Pass |
+| `--danger` on `--bg`          | 5.71:1  | 4.5:1   | ✅ Pass |
+| `--warning` on `--bg`         | 9.65:1  | 4.5:1   | ✅ Pass |
+| `--info` on `--bg`            | 6.05:1  | 4.5:1   | ✅ Pass |
 
 ---
 
@@ -338,7 +338,6 @@ node scripts/verify-a11y.js
 ## 🎖️ Certification Badge
 
 ```markdown
-
 [![WCAG 2.1 AA Compliant](https://img.shields.io/badge/WCAG%202.1-AA%20Compliant-brightgreen)](docs/ACCESSIBILITY_CERTIFICATION.md)
 [![Lighthouse Score](https://img.shields.io/badge/Lighthouse-100%2F100-brightgreen)](docs/ACCESSIBILITY_AUDIT_RESULTS.md)
 [![axe-core](https://img.shields.io/badge/axe--core-0%20violations-brightgreen)](docs/AXE_AUDIT_RESULTS.md)
@@ -359,4 +358,4 @@ For questions about this accessibility certification:
 
 **🎉 Congratulations! GoblinOS Assistant is fully accessible and ready for production deployment.**
 
-*This certification is valid as of December 2, 2025 and should be renewed after major UI changes.*
+_This certification is valid as of December 2, 2025 and should be renewed after major UI changes._

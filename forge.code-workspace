@@ -3,7 +3,7 @@
     { "path": ".", "name": "ForgeMonorepo" },
     { "path": "GoblinOS", "name": "GoblinOS Core" },
     { "path": "GoblinOS/packages/goblins/overmind/dashboard", "name": "Overmind Dashboard" },
-    { "path": "GoblinOS/packages/goblins/forge-master", "name": "Forge Master Toolkit" }
+    { "path": "GoblinOS/packages/goblins/forge-master", "name": "Forge Master Toolkit" },
   ],
   "settings": {
     "files.exclude": { "**/.turbo": true, "**/dist": true },
@@ -20,7 +20,7 @@
     "inlineChat.enableV2": true,
     "chat.useNestedAgentsMdFiles": true,
     "chat.useCloudButtonV2": true,
-  "chat.tools.terminal.autoReplyToPrompts": false,
+    "chat.tools.terminal.autoReplyToPrompts": false,
     "chat.todoListTool.writeOnly": true,
     "chat.renderRelatedFiles": true,
     "chat.mcp.gallery.enabled": true,
@@ -28,7 +28,7 @@
       "cursor-workspace": true,
       "cursor-global": true,
       "windsurf": true,
-      "claude-desktop": true
+      "claude-desktop": true,
     },
     "chat.mcp.assisted.nuget.enabled": true,
     "chat.mcp.autostart": "newAndOutdated",
@@ -50,14 +50,14 @@
       "**/node_modules/**": true,
       "**/.pnpm/**": true,
       "**/dist/**": true,
-      "**/.obsidian/**": true
+      "**/.obsidian/**": true,
     },
     "search.exclude": {
       "**/node_modules/**": true,
       "**/.pnpm/**": true,
       "**/dist/**": true,
-      "**/.obsidian/**": true
+      "**/.obsidian/**": true,
     },
-    "chat.overmind.goblinsConfig": "${workspaceFolder:ForgeMonorepo}/goblins.yaml"
-  }
+    "chat.overmind.goblinsConfig": "${workspaceFolder:ForgeMonorepo}/goblins.yaml",
+  },
 }

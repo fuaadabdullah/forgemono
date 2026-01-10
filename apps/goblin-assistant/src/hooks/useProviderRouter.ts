@@ -31,12 +31,12 @@ export function useProviderRouter() {
     payload: any,
     opts?: { preferLocal?: boolean; preferCost?: boolean }
   ) {
-    const res = await fetch('/api/route_task', {
+    const routingResponse = await fetch('/api/route_task', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ task_type: taskType, payload, opts }),
     });
-    return await res.json();
+    return await routingResponse.json();
   }
 
   // Health check for streaming connections
@@ -98,12 +98,12 @@ export function useProviderRouter() {
             throw new Error(`Poll failed: ${pollResp.status}`);
           }
 
-          const data = await pollResp.json();
-          if (data.chunks) {
-            data.chunks.forEach((chunk: any) => onChunk?.(chunk));
+          const pollResult = await pollResp.json();
+          if (pollResult.chunks) {
+            pollResult.chunks.forEach((chunk: any) => onChunk?.(chunk));
           }
 
-          if (data.done) {
+          if (pollResult.done) {
             onDone?.();
             return;
           }
@@ -124,7 +124,6 @@ export function useProviderRouter() {
       // Start polling
       setTimeout(poll, pollingInterval);
 
-      // Return cleanup function
       return () => {
         fetch(`/api/route_task_stream_cancel/${stream_id}`, { method: 'POST' }).catch(() => {});
       };
@@ -198,7 +197,7 @@ export function useProviderRouter() {
               if (result.done) break;
 
               clearTimeout(timeoutId);
-              sseWorking = true; // If we get here, SSE is working
+              sseWorking = true;
 
               buffer += decoder.decode(result.value, { stream: true });
 
@@ -209,26 +208,26 @@ export function useProviderRouter() {
               for (const part of parts) {
                 const lines = part.split('\n');
                 let event = 'message';
-                let data = '';
+                let eventData = '';
                 for (const line of lines) {
                   if (line.startsWith('event:')) event = line.replace('event:', '').trim();
-                  else if (line.startsWith('data:')) data += line.replace('data:', '').trim();
+                  else if (line.startsWith('data:')) eventData += line.replace('data:', '').trim();
                 }
 
                 if (event === 'meta') {
                   try {
-                    onMeta?.(JSON.parse(data));
+                    onMeta?.(JSON.parse(eventData));
                   } catch {
-                    onMeta?.(data);
+                    onMeta?.(eventData);
                   }
                 } else if (event === 'done') {
                   onDone?.();
                   return;
                 } else {
                   try {
-                    onChunk?.(JSON.parse(data));
+                    onChunk?.(JSON.parse(eventData));
                   } catch {
-                    onChunk?.(data);
+                    onChunk?.(eventData);
                   }
                 }
               }

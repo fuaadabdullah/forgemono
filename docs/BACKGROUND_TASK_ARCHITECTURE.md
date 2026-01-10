@@ -7,6 +7,7 @@ Goblin Assistant uses a multi-tier background task system designed to prevent co
 ## Architecture
 
 ### Tier 1: APScheduler + Redis Locks (Primary)
+
 **Purpose**: Lightweight periodic tasks that run inside the application
 **Location**: `apps/goblin-assistant/backend/scheduler.py`
 **Use Case**: Health checks, cleanup jobs, provider probing
@@ -23,6 +24,7 @@ Goblin Assistant uses a multi-tier background task system designed to prevent co
 - `cleanup_expired_data_job` - Every hour (database cleanup)
 
 ### Tier 2: Celery Beat (Heavy Tasks)
+
 **Purpose**: Resource-intensive background processing
 **Location**: `apps/goblin-assistant/backend/celery_app.py`
 **Use Case**: ML model training, heavy data processing
@@ -35,6 +37,7 @@ Goblin Assistant uses a multi-tier background task system designed to prevent co
 **Current Status**: No active beat schedules (cleaned up duplicates)
 
 ### Tier 3: FastAPI BackgroundTasks (Request-Scoped)
+
 **Purpose**: Async operations tied to HTTP requests
 **Location**: Various route handlers
 **Use Case**: Email sending, webhook processing
@@ -54,11 +57,11 @@ app.conf.beat_schedule['health-check'] = {...}  # Celery - DUPLICATE!
 ```
 
 ### ❌ Kubernetes CronJobs
-```yaml
 
+```yaml
 # BAD: External cron conflicts with in-app scheduling
 apiVersion: batch/v1
-kind: CronJob  # BLOCKED BY CI
+kind: CronJob # BLOCKED BY CI
 ```
 
 ### ❌ Uncoordinated Background Tasks
@@ -78,6 +81,7 @@ asyncio.create_task(health_check())  # Runs on every replica
    - Request-scoped → FastAPI BackgroundTasks
 
 2. **Use Redis Locks for APScheduler**:
+
    ```python
 
    @with_redis_lock('my-job-lock', timeout=30)
@@ -99,6 +103,7 @@ asyncio.create_task(health_check())  # Runs on every replica
    ```
 
 4. **Test Locally**:
+
    ```bash
 
    # Run scheduler manually
@@ -122,12 +127,14 @@ python scripts/ci/check_background_tasks.py
 ## Migration History
 
 ### Phase 1 (Completed)
+
 - ✅ Removed duplicate Kubernetes CronJobs
 - ✅ Eliminated duplicate Celery beat schedules
 - ✅ Cleaned disabled worker code
 - ✅ Added CI gates and documentation
 
 ### Phase 2 (Future)
+
 - Migrate remaining heavy tasks to appropriate schedulers
 - Add monitoring dashboards
 - Implement alerting for job failures
@@ -135,6 +142,7 @@ python scripts/ci/check_background_tasks.py
 ## Monitoring
 
 Background jobs are monitored through:
+
 - APScheduler logging (INFO level)
 - Redis lock acquisition metrics
 - Application health endpoints
@@ -143,17 +151,20 @@ Background jobs are monitored through:
 ## Troubleshooting
 
 ### Job Not Running
+
 1. Check Redis connectivity
 2. Verify scheduler startup logs
 3. Confirm job registration in `register_jobs()`
 4. Check for Redis lock conflicts
 
 ### Duplicate Execution
+
 1. Run `python scripts/ci/check_background_tasks.py`
 2. Look for jobs with same name in multiple schedulers
 3. Check Redis lock configuration
 
 ### Performance Issues
+
 1. Monitor Redis lock acquisition times
 2. Check job execution duration logs
 3. Consider moving heavy jobs to Celery

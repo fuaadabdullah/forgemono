@@ -2,7 +2,7 @@ name: Forge Lite CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'apps/forge-lite/**'
       - '.github/workflows/forge-lite-ci.yml'

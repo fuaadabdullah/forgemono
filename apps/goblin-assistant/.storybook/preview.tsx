@@ -6,7 +6,11 @@ initialize();
 
 export const decorators = [
   mswDecorator, // To mock API responses per-story if needed
-  (Story: React.ComponentType) => <div style={{ padding: 16, fontFamily: 'Inter, system-ui' }}><Story/></div>,
+  (Story: React.ComponentType) => (
+    <div style={{ padding: 16, fontFamily: 'Inter, system-ui' }}>
+      <Story />
+    </div>
+  ),
 ];
 
 export const parameters = {

@@ -1,36 +1,36 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, jest } from '@jest/globals';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import GoblinDemo from '@/pages/GoblinDemo';
 import type { StreamChunk, TaskResponse } from '@/api/api-client';
 
 // Mock the runtimeClient
-vi.mock('@/api/api-client', () => {
+jest.mock('@/api/api-client', () => {
   return {
     runtimeClient: {
-      parseOrchestration: vi.fn(),
-      executeTaskStreaming: vi.fn(),
-      executeTask: vi.fn(),
+      parseOrchestration: jest.fn(),
+      executeTaskStreaming: jest.fn(),
+      executeTask: jest.fn(),
     },
     runtimeClientDemo: {
-      parseOrchestration: vi.fn(),
-      executeTaskStreaming: vi.fn(),
-      executeTask: vi.fn(),
+      parseOrchestration: jest.fn(),
+      executeTaskStreaming: jest.fn(),
+      executeTask: jest.fn(),
     },
   };
 });
 
 import { runtimeClient, runtimeClientDemo } from '@/api/api-client';
 
-const mockParseOrchestration = vi.mocked(runtimeClient.parseOrchestration);
-const mockExecuteTaskStreaming = vi.mocked(runtimeClient.executeTaskStreaming);
-const mockExecuteTask = vi.mocked(runtimeClient.executeTask);
-const mockDemoParseOrchestration = vi.mocked(runtimeClientDemo.parseOrchestration);
-const mockDemoExecuteTaskStreaming = vi.mocked(runtimeClientDemo.executeTaskStreaming);
-const mockDemoExecuteTask = vi.mocked(runtimeClientDemo.executeTask);
+const mockParseOrchestration = (runtimeClient as any).parseOrchestration;
+const mockExecuteTaskStreaming = (runtimeClient as any).executeTaskStreaming;
+const mockExecuteTask = (runtimeClient as any).executeTask;
+const mockDemoParseOrchestration = (runtimeClientDemo as any).parseOrchestration;
+const mockDemoExecuteTaskStreaming = (runtimeClientDemo as any).executeTaskStreaming;
+const mockDemoExecuteTask = (runtimeClientDemo as any).executeTask;
 
 describe('GoblinDemo', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     // Reset all mocks to default implementations
     mockParseOrchestration.mockResolvedValue({
       steps: [
@@ -60,7 +60,7 @@ describe('GoblinDemo', () => {
         onComplete?: (result: TaskResponse) => void
       ) => {
         // Simulate async streaming with cost
-        await new Promise(resolve => setTimeout(resolve, 10)); // Small delay
+        await new Promise((resolve) => setTimeout(resolve, 10)); // Small delay
         onChunk({ chunk: 'Starting...', token_count: 10, cost_delta: 0.0005 });
         onChunk({ chunk: 'Processing...', token_count: 20, cost_delta: 0.0005 });
         if (onComplete) {
@@ -93,7 +93,7 @@ describe('GoblinDemo', () => {
         onComplete?: (result: TaskResponse) => void
       ) => {
         // Simulate async streaming with cost for demo
-        await new Promise(resolve => setTimeout(resolve, 10)); // Small delay
+        await new Promise((resolve) => setTimeout(resolve, 10)); // Small delay
         onChunk({ chunk: 'Demo starting...' });
         if (onComplete) {
           onComplete({
@@ -280,7 +280,7 @@ describe('GoblinDemo', () => {
   it('disables run button while running', async () => {
     // Make execution take longer
     mockExecuteTaskStreaming.mockImplementation(
-      () => new Promise(resolve => setTimeout(resolve, 100))
+      () => new Promise((resolve) => setTimeout(resolve, 100))
     );
 
     render(<GoblinDemo />);
@@ -366,7 +366,7 @@ describe('GoblinDemo', () => {
   it('handles parsing errors gracefully', async () => {
     mockParseOrchestration.mockRejectedValue(new Error('Parse failed'));
 
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     render(<GoblinDemo />);
 

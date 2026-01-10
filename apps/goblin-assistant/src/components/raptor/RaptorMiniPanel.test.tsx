@@ -1,23 +1,23 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import RaptorMiniPanel from './RaptorMiniPanel';
 
 // Mock API client functions used by the component
-vi.mock('../../api/api-client', () => ({
-  raptorStart: vi.fn(async () => ({ running: true })),
-  raptorStop: vi.fn(async () => ({ running: false })),
-  raptorStatus: vi.fn(async () => ({ running: false, config_file: 'config/test.ini' })),
-  raptorLogs: vi.fn(async () => ({ log_tail: 'line1\nline2' })),
-  raptorDemo: vi.fn(async () => ({ result: 'boom' })),
+jest.mock('../../api/api-client', () => ({
+  raptorStart: jest.fn(async () => ({ running: true })),
+  raptorStop: jest.fn(async () => ({ running: false })),
+  raptorStatus: jest.fn(async () => ({ running: false, config_file: 'config/test.ini' })),
+  raptorLogs: jest.fn(async () => ({ log_tail: 'line1\nline2' })),
+  raptorDemo: jest.fn(async () => ({ result: 'boom' })),
 }));
 
 import * as apiClient from '@/api/api-client';
 
-const mockedClient = vi.mocked(apiClient);
+const mockedClient = apiClient as any;
 
 describe('RaptorMiniPanel', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it('fetches and displays status on mount', async () => {
@@ -71,7 +71,7 @@ describe('RaptorMiniPanel', () => {
   it('copies logs when copy button is pressed', async () => {
     const originalNavigator = (globalThis as { navigator?: { clipboard?: { writeText: unknown } } })
       .navigator;
-    const writeSpy = vi.fn();
+    const writeSpy = jest.fn();
     (globalThis as { navigator: { clipboard: { writeText: unknown } } }).navigator = {
       clipboard: { writeText: writeSpy },
     };

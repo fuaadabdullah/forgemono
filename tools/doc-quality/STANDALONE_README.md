@@ -81,22 +81,24 @@ The standalone analyzer evaluates documentation based on:
 
 ## Comparison with Full Version
 
- | Feature | Standalone Mode | Full Version | 
-|---------|----------------|--------------|
- | Dependencies | None | Virtual env + APIs | 
- | Speed | Instant | Network-dependent | 
- | Accuracy | Heuristic-based | AI-powered analysis | 
- | Setup | Just Python | Complex infrastructure | 
- | Reliability | Always works | Requires external services | 
+| Feature      | Standalone Mode | Full Version               |
+| ------------ | --------------- | -------------------------- |
+| Dependencies | None            | Virtual env + APIs         |
+| Speed        | Instant         | Network-dependent          |
+| Accuracy     | Heuristic-based | AI-powered analysis        |
+| Setup        | Just Python     | Complex infrastructure     |
+| Reliability  | Always works    | Requires external services |
 
 ## Use Cases
 
 ### Development
+
 - Quick quality checks during writing
 - CI/CD pipelines without external dependencies
 - Offline documentation review
 
 ### Production
+
 - Automated quality gates
 - Documentation maintenance
 - Quality trend monitoring
@@ -110,14 +112,17 @@ The standalone mode uses built-in heuristics and doesn't require configuration f
 ### Common Issues
 
 **Low Scores on Good Documentation**
+
 - The heuristic analyzer may not recognize specialized content
 - Consider using the full version for complex documentation
 
 **Import Errors**
+
 - Ensure you're using Python 3.6+
 - The tool only requires standard library modules
 
 **Performance Issues**
+
 - Standalone mode is very fast (< 1 second per file)
 - If you need slower, more accurate analysis, use the full version
 
@@ -126,11 +131,10 @@ The standalone mode uses built-in heuristics and doesn't require configuration f
 ### CI/CD Integration
 
 ```yaml
-
 # GitHub Actions example
 
 - name: Check Documentation Quality
-  run: | 
+  run: |
     python3 tools/doc-quality/doc_quality_check.py --standalone --ci --min-score 70
 ```
 

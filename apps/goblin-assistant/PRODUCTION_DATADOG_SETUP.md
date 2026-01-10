@@ -65,6 +65,7 @@ vercel env add VITE_DD_VERSION production
 #### Netlify:
 
 Add to Site Settings > Environment Variables:
+
 - `VITE_DD_APPLICATION_ID`
 - `VITE_DD_CLIENT_TOKEN`
 - `VITE_DD_ENV`
@@ -75,6 +76,7 @@ Add to Site Settings > Environment Variables:
 ## 2. Test in Staging Environment
 
 ### Step 2.1: Deploy to Staging
+
 ```bash
 
 # Using the deployment script
@@ -95,6 +97,7 @@ netlify deploy --dir=dist
 ```
 
 ### Step 2.3: Manual Testing Checklist
+
 - [ ] Open staging URL in browser
 - [ ] Check browser console for Datadog initialization messages
 - [ ] Trigger API errors (try when backend is down)
@@ -105,6 +108,7 @@ netlify deploy --dir=dist
   - [ ] Any errors logged
 
 ### Step 2.4: Verify Error Tracking
+
 1. Go to [Datadog RUM Explorer](https://app.datadoghq.com/rum/explorer)
 2. Filter by:
    - Service: `goblin-assistant-frontend`
@@ -121,6 +125,7 @@ netlify deploy --dir=dist
 ### Step 3.1: Access Datadog Dashboards
 
 #### Real User Monitoring (RUM):
+
 - **URL**: https://app.datadoghq.com/rum/overview
 - **Key Metrics**:
   - Page views and unique visitors
@@ -129,6 +134,7 @@ netlify deploy --dir=dist
   - User session recordings
 
 #### Browser Logs:
+
 - **URL**: https://app.datadoghq.com/logs
 - **Filters**:
   - Service: `goblin-assistant-frontend`
@@ -136,12 +142,14 @@ netlify deploy --dir=dist
   - Status: `error`
 
 ### Step 3.2: Key Metrics to Monitor
+
 - **Error Rate**: Target < 1%
 - **API Call Success Rate**: Target > 99%
 - **Page Load Performance**: LCP < 2.5s
 - **User Frustration Signals**: Monitor rage clicks, dead clicks
 
 ### Step 3.3: Create Custom Dashboards
+
 1. Go to Dashboards > New Dashboard
 2. Add widgets for:
    - Error rate over time
@@ -154,6 +162,7 @@ netlify deploy --dir=dist
 ## 4. Set Up Alerts and Monitors
 
 ### Step 4.1: Error Rate Alert
+
 1. Go to Monitors > New Monitor
 2. Select "Metric Monitor"
 3. Configure:
@@ -164,6 +173,7 @@ netlify deploy --dir=dist
    - **Alert Message**: "High error rate detected in production"
 
 ### Step 4.2: API Failure Alert
+
 1. Create a new monitor for API errors:
    - **Metric**: `rum.errors.count`
    - **Filter**: `resource.url:*api*`
@@ -171,12 +181,14 @@ netlify deploy --dir=dist
    - **Alert**: "API failures spiking in production"
 
 ### Step 4.3: Performance Alert
+
 1. Create LCP performance alert:
    - **Metric**: `rum.performance.lcp`
    - **Threshold**: > 4 seconds (p75)
    - **Alert**: "Poor page load performance detected"
 
 ### Step 4.4: Configure Alert Channels
+
 - **Email**: Team distribution list
 - **Slack**: #alerts channel
 - **PagerDuty**: For critical production issues
@@ -186,6 +198,7 @@ netlify deploy --dir=dist
 ## 5. Production Deployment
 
 ### Step 5.1: Final Environment Check
+
 ```bash
 
 # Verify environment variables
@@ -209,6 +222,7 @@ echo $VITE_DD_ENV
 ```
 
 ### Step 5.3: Set Environment Variables in Netlify
+
 After deployment, configure environment variables in Netlify dashboard:
 
 1. Go to your Netlify site dashboard
@@ -223,6 +237,7 @@ After deployment, configure environment variables in Netlify dashboard:
    - `VITE_MOCK_API` = false
 
 ### Step 5.4: Post-Deployment Verification
+
 1. **Check Application Loads**: Visit the Netlify deployment URL
 2. **Verify Datadog Data**: Check RUM dashboard for new data
 3. **Test Error Scenarios**: Try error conditions safely
@@ -235,20 +250,24 @@ After deployment, configure environment variables in Netlify dashboard:
 ### Common Issues:
 
 #### "Datadog RUM not available" in console:
+
 - Check environment variables are set correctly
-- Verify VITE_ prefix is used (not NEXT_PUBLIC_)
+- Verify VITE* prefix is used (not NEXT_PUBLIC*)
 - Ensure Datadog packages are installed
 
 #### No data in Datadog dashboard:
+
 - Wait 5-10 minutes for data to appear
 - Check application ID and client token are correct
 - Verify environment name matches dashboard filters
 
 #### CORS errors with Datadog:
+
 - Ensure `datadoghq.com` is allowed in CSP headers
 - Check if ad-blockers are interfering
 
 #### High error rates:
+
 - Check browser compatibility (ES2020+ support)
 - Verify API endpoints are responding
 - Check for JavaScript runtime errors
@@ -258,12 +277,14 @@ After deployment, configure environment variables in Netlify dashboard:
 ## 7. Maintenance
 
 ### Weekly Checks:
+
 - [ ] Review error trends in Datadog
 - [ ] Check alert configurations
 - [ ] Update Datadog RUM version if needed
 - [ ] Monitor Core Web Vitals
 
 ### Monthly Reviews:
+
 - [ ] Analyze top error patterns
 - [ ] Review performance metrics
 - [ ] Update alert thresholds based on data
@@ -279,4 +300,4 @@ After deployment, configure environment variables in Netlify dashboard:
 
 ---
 
-*Last Updated: November 27, 2025*
+_Last Updated: November 27, 2025_

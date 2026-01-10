@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 services:
   vault:
@@ -6,7 +6,7 @@ services:
     container_name: goblin-vault
     restart: unless-stopped
     ports:
-      - "8200:8200"
+      - '8200:8200'
     environment:
       - VAULT_DEV_ROOT_TOKEN_ID=goblin-vault-root-token
       - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
@@ -16,7 +16,7 @@ services:
       - ./logs/vault:/vault/logs
     command: server -dev
     healthcheck:
-      test: ["CMD", "vault", "status"]
+      test: ['CMD', 'vault', 'status']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,11 +30,11 @@ services:
       - POSTGRES_USER=vault_admin
       - POSTGRES_PASSWORD=vault_password
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U vault_admin -d goblin_assistant"]
+      test: ['CMD-SHELL', 'pg_isready -U vault_admin -d goblin_assistant']
       interval: 10s
       timeout: 5s
       retries: 5

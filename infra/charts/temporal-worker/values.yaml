@@ -6,11 +6,11 @@ replicaCount: 2
 image:
   repository: overmind-temporal-worker
   pullPolicy: IfNotPresent
-  tag: "latest"
+  tag: 'latest'
 
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+nameOverride: ''
+fullnameOverride: ''
 
 # Temporal connection configuration
 temporal:
@@ -35,12 +35,12 @@ worker:
 serviceAccount:
   create: true
   annotations: {}
-  name: ""
+  name: ''
 
 podAnnotations:
-  prometheus.io/scrape: "true"
-  prometheus.io/port: "9090"
-  prometheus.io/path: "/metrics"
+  prometheus.io/scrape: 'true'
+  prometheus.io/port: '9090'
+  prometheus.io/path: '/metrics'
 
 podSecurityContext:
   runAsNonRoot: true
@@ -52,7 +52,7 @@ securityContext:
   readOnlyRootFilesystem: true
   capabilities:
     drop:
-    - ALL
+      - ALL
 
 resources:
   requests:
@@ -76,15 +76,15 @@ tolerations: []
 affinity:
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 100
-      podAffinityTerm:
-        labelSelector:
-          matchExpressions:
-          - key: app
-            operator: In
-            values:
-            - overmind-temporal-worker
-        topologyKey: kubernetes.io/hostname
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - overmind-temporal-worker
+          topologyKey: kubernetes.io/hostname
 
 # Environment variables
 env:

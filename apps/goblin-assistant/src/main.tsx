@@ -1,15 +1,15 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { QueryClientProvider } from '@tanstack/react-query'
-import App from './App.tsx'
-import { ErrorBoundaryFallback } from './components/ErrorBoundary'
-import './index.css'
-import { queryClient } from './lib/queryClient'
-import { logErrorToService } from './utils/monitoring'
-import { env } from './config/env'
-import { devLog } from './utils/dev-log'
-import { inject } from '@vercel/analytics'
-import posthog from 'posthog-js'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { QueryClientProvider } from '@tanstack/react-query';
+import App from './App.tsx';
+import { ErrorBoundaryFallback } from './components/ErrorBoundary';
+import './index.css';
+import { queryClient } from './lib/queryClient';
+import { logErrorToService } from './utils/monitoring';
+import { env } from './config/env';
+import { devLog } from './utils/dev-log';
+import { inject } from '@vercel/analytics';
+import posthog from 'posthog-js';
 
 devLog('🚀 main.tsx loading...');
 devLog('API Base URL:', env.fastApiUrl);
@@ -49,7 +49,7 @@ try {
       <QueryClientProvider client={queryClient}>
         <App />
       </QueryClientProvider>
-    </React.StrictMode>,
+    </React.StrictMode>
   );
   devLog('✅ React app rendered successfully');
 } catch (error) {

@@ -130,14 +130,13 @@ creation_rules:
 1. **Install SOPS plugin**:
 
 ```yaml
-
 # argocd-cm ConfigMap
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-cm
 data:
-  kustomize.buildOptions: "--enable-alpha-plugins --enable-helm"
+  kustomize.buildOptions: '--enable-alpha-plugins --enable-helm'
 ```
 
 1. **Create secret with age key**:
@@ -151,10 +150,8 @@ kubectl create secret generic sops-age \
 1. **Use KSOPS kustomize plugin**:
 
 ```yaml
-
 # kustomization.yaml
 generators:
-
   - ./secrets/dev/litellm-secrets.enc.yaml
 ```
 
@@ -175,7 +172,7 @@ flux bootstrap github \
 
 ```bash
 
-cat ~/.config/sops/age/keys.txt | 
+cat ~/.config/sops/age/keys.txt |
 kubectl create secret generic sops-age \
   --namespace=flux-system \
   --from-file=age.agekey=/dev/stdin

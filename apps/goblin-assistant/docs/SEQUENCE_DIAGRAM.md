@@ -1,5 +1,5 @@
 ---
-description: "Sequence diagram for request routing in GoblinOS Assistant"
+description: 'Sequence diagram for request routing in GoblinOS Assistant'
 ---
 
 # Request Routing Sequence
@@ -30,4 +30,3 @@ sequenceDiagram
 Notes:
 
 - Replace `Provider` in the diagram with `Ollama`, `OpenAI`, `Anthropic`, etc. when you want provider-specific flows.
-

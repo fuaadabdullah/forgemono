@@ -12,16 +12,16 @@ This document outlines the accessibility (A11Y) features and testing procedures 
 
 All color combinations meet or exceed WCAG AA requirements:
 
-| Combination | Ratio | Requirement | Status | Usage |
-|-------------|-------|-------------|--------|-------|
-| `--text` (#e8ecef) on `--bg` (#0a0e0f) | **16.33:1** | 4.5:1 | ✅ **PASS** | Body text |
-| `--muted` (#8a9ba8) on `--bg` (#0a0e0f) | **6.77:1** | 4.5:1 | ✅ **PASS** | Secondary text |
-| `--text` (#e8ecef) on `--surface` (#151b1e) | **14.64:1** | 4.5:1 | ✅ **PASS** | Card/panel text |
-| `--muted` (#8a9ba8) on `--surface` (#151b1e) | **6.07:1** | 4.5:1 | ✅ **PASS** | Card secondary text |
-| `--primary` (#00ff88) on `--bg` (#0a0e0f) | **14.46:1** | 3.0:1 | ✅ **PASS** | Headings/buttons (large text) |
-| `--danger` (#ff4757) on `--bg` (#0a0e0f) | **5.81:1** | 4.5:1 | ✅ **PASS** | Error messages |
-| `--warning` (#ffa502) on `--bg` (#0a0e0f) | **9.82:1** | 4.5:1 | ✅ **PASS** | Warning messages |
-| `--info` (#3498db) on `--bg` (#0a0e0f) | **6.15:1** | 4.5:1 | ✅ **PASS** | Info messages |
+| Combination                                  | Ratio       | Requirement | Status      | Usage                         |
+| -------------------------------------------- | ----------- | ----------- | ----------- | ----------------------------- |
+| `--text` (#e8ecef) on `--bg` (#0a0e0f)       | **16.33:1** | 4.5:1       | ✅ **PASS** | Body text                     |
+| `--muted` (#8a9ba8) on `--bg` (#0a0e0f)      | **6.77:1**  | 4.5:1       | ✅ **PASS** | Secondary text                |
+| `--text` (#e8ecef) on `--surface` (#151b1e)  | **14.64:1** | 4.5:1       | ✅ **PASS** | Card/panel text               |
+| `--muted` (#8a9ba8) on `--surface` (#151b1e) | **6.07:1**  | 4.5:1       | ✅ **PASS** | Card secondary text           |
+| `--primary` (#00ff88) on `--bg` (#0a0e0f)    | **14.46:1** | 3.0:1       | ✅ **PASS** | Headings/buttons (large text) |
+| `--danger` (#ff4757) on `--bg` (#0a0e0f)     | **5.81:1**  | 4.5:1       | ✅ **PASS** | Error messages                |
+| `--warning` (#ffa502) on `--bg` (#0a0e0f)    | **9.82:1**  | 4.5:1       | ✅ **PASS** | Warning messages              |
+| `--info` (#3498db) on `--bg` (#0a0e0f)       | **6.15:1**  | 4.5:1       | ✅ **PASS** | Info messages                 |
 
 **Testing Script**: `node scripts/check-contrast.js`
 
@@ -67,7 +67,9 @@ The application respects the user's `prefers-reduced-motion` system preference:
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -81,17 +83,20 @@ The application respects the user's `prefers-reduced-motion` system preference:
 ### Testing Motion Sensitivity
 
 **macOS**:
+
 1. System Settings → Accessibility → Display
 2. Enable "Reduce motion"
 3. Reload the app
 4. Verify no smooth transitions or animations occur
 
 **Windows**:
+
 1. Settings → Ease of Access → Display
 2. Enable "Show animations in Windows"
 3. Reload the app
 
 **Browser DevTools** (Chrome/Edge):
+
 1. Open DevTools (F12)
 2. Press Cmd+Shift+P (Mac) or Ctrl+Shift+P (Windows/Linux)
 3. Type "Render" and select "Show Rendering"
@@ -107,7 +112,6 @@ The application respects the user's `prefers-reduced-motion` system preference:
 All interactive elements have visible focus indicators when navigated with the keyboard:
 
 ```css
-
 :focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
@@ -306,9 +310,11 @@ Before deploying to production:
 ```bash
 node scripts/check-contrast.js
 ```
+
 Verifies all semantic token combinations meet WCAG AA contrast requirements.
 
 **Exit Codes**:
+
 - `0`: All tests passed
 - `1`: One or more tests failed
 
@@ -317,6 +323,7 @@ Verifies all semantic token combinations meet WCAG AA contrast requirements.
 ## 📝 Changelog
 
 ### v1.0.0 (December 2, 2025)
+
 - ✅ Initial WCAG AA compliance verified (all contrast ratios pass)
 - ✅ High-contrast mode implemented with toggle in navigation
 - ✅ `prefers-reduced-motion` support added

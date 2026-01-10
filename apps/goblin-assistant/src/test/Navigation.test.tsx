@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@jest/globals';
 import { render } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Navigation from '../components/Navigation';

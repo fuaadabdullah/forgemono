@@ -35,7 +35,6 @@ POST /debugger/suggest
 ### Request Format
 
 ```json
-
 {
   "task": "quick_fix",
   "context": {

@@ -63,10 +63,7 @@ export default function EnhancedProvidersPage() {
     setTestResult(null);
 
     try {
-      const result = await apiClient.testProviderWithPrompt(
-        selectedProvider.id,
-        testPrompt
-      );
+      const result = await apiClient.testProviderWithPrompt(selectedProvider.id, testPrompt);
       setTestResult(result);
     } catch (error) {
       setTestResult({
@@ -79,7 +76,11 @@ export default function EnhancedProvidersPage() {
     }
   };
 
-  const handleSetPriority = async (providerId: number, priority: number, role?: 'primary' | 'fallback') => {
+  const handleSetPriority = async (
+    providerId: number,
+    priority: number,
+    role?: 'primary' | 'fallback'
+  ) => {
     try {
       await apiClient.setProviderPriority(providerId, priority, role);
       await refetch();
@@ -91,7 +92,7 @@ export default function EnhancedProvidersPage() {
   const handleReorder = async (newOrder: ProviderConfig[]) => {
     setReordering(true);
     try {
-      const providerIds = newOrder.map(p => p.id).filter((id): id is number => id !== undefined);
+      const providerIds = newOrder.map((p) => p.id).filter((id): id is number => id !== undefined);
       await apiClient.reorderProviders(providerIds);
       await refetch();
     } catch (error) {
@@ -113,8 +114,8 @@ export default function EnhancedProvidersPage() {
     if (!draggedProvider || draggedProvider.id === targetProvider.id) return;
 
     const newOrder = [...providerList];
-    const draggedIndex = newOrder.findIndex(p => p.id === draggedProvider.id);
-    const targetIndex = newOrder.findIndex(p => p.id === targetProvider.id);
+    const draggedIndex = newOrder.findIndex((p) => p.id === draggedProvider.id);
+    const targetIndex = newOrder.findIndex((p) => p.id === targetProvider.id);
 
     newOrder.splice(draggedIndex, 1);
     newOrder.splice(targetIndex, 0, draggedProvider);
@@ -170,9 +171,7 @@ export default function EnhancedProvidersPage() {
           <h3 className="text-xs font-semibold text-text uppercase tracking-wide">
             Providers (Drag to Reorder)
           </h3>
-          {reordering && (
-            <span className="text-xs text-primary animate-pulse">Saving...</span>
-          )}
+          {reordering && <span className="text-xs text-primary animate-pulse">Saving...</span>}
         </div>
 
         {isLoading ? (
@@ -233,9 +232,7 @@ export default function EnhancedProvidersPage() {
   const mainContent = (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-text mb-2">
-          Provider Manager & Tester
-        </h1>
+        <h1 className="text-3xl font-bold text-text mb-2">Provider Manager & Tester</h1>
         <p className="text-muted">
           Configure, test with prompts, and set priorities for intelligent routing
         </p>
@@ -243,7 +240,9 @@ export default function EnhancedProvidersPage() {
 
       {/* Live region for provider updates */}
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-        {!isLoading && providerList.length > 0 && `Providers loaded. ${providerList.length} provider${providerList.length !== 1 ? 's' : ''} available`}
+        {!isLoading &&
+          providerList.length > 0 &&
+          `Providers loaded. ${providerList.length} provider${providerList.length !== 1 ? 's' : ''} available`}
         {testResult && `Test ${testResult.success ? 'passed' : 'failed'}. ${testResult.message}`}
       </div>
 
@@ -275,9 +274,7 @@ export default function EnhancedProvidersPage() {
           <div className="bg-surface rounded-xl shadow-sm border border-border p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-semibold text-text">
-                  {selectedProvider.name}
-                </h2>
+                <h2 className="text-2xl font-semibold text-text">{selectedProvider.name}</h2>
                 <p className="text-sm text-muted">Provider Configuration & Testing</p>
               </div>
             </div>
@@ -286,9 +283,7 @@ export default function EnhancedProvidersPage() {
             {testResult && (
               <div
                 className={`mb-6 p-4 rounded-lg border ${
-                  testResult.success
-                    ? 'bg-success/20 border-success'
-                    : 'bg-danger/20 border-danger'
+                  testResult.success ? 'bg-success/20 border-success' : 'bg-danger/20 border-danger'
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -301,24 +296,16 @@ export default function EnhancedProvidersPage() {
                     >
                       {testResult.success ? 'Test Successful' : 'Test Failed'}
                     </h3>
-                    <p
-                      className={`text-sm ${
-                        testResult.success ? 'text-success' : 'text-danger'
-                      }`}
-                    >
+                    <p className={`text-sm ${testResult.success ? 'text-success' : 'text-danger'}`}>
                       {testResult.message}
                     </p>
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted">
                       <span>Latency: {testResult.latency}ms</span>
-                      {testResult.model_used && (
-                        <span>Model: {testResult.model_used}</span>
-                      )}
+                      {testResult.model_used && <span>Model: {testResult.model_used}</span>}
                     </div>
                     {testResult.response && (
                       <div className="mt-3 p-3 bg-bg rounded border border-border">
-                        <h4 className="text-xs font-semibold text-text mb-2">
-                          Sample Response:
-                        </h4>
+                        <h4 className="text-xs font-semibold text-text mb-2">Sample Response:</h4>
                         <pre className="text-xs text-text whitespace-pre-wrap">
                           {testResult.response}
                         </pre>
@@ -376,8 +363,7 @@ export default function EnhancedProvidersPage() {
             <div className="flex gap-2 mb-6">
               <button
                 onClick={() =>
-                  selectedProvider.id &&
-                  handleSetPriority(selectedProvider.id, 1, 'primary')
+                  selectedProvider.id && handleSetPriority(selectedProvider.id, 1, 'primary')
                 }
                 className="px-4 py-2 bg-info text-text-inverse rounded-lg hover:bg-info/90 transition-colors text-sm font-medium shadow-glow-primary"
               >
@@ -385,8 +371,7 @@ export default function EnhancedProvidersPage() {
               </button>
               <button
                 onClick={() =>
-                  selectedProvider.id &&
-                  handleSetPriority(selectedProvider.id, 10, 'fallback')
+                  selectedProvider.id && handleSetPriority(selectedProvider.id, 10, 'fallback')
                 }
                 className="px-4 py-2 bg-warning text-text-inverse rounded-lg hover:bg-warning/90 transition-colors text-sm font-medium"
               >
@@ -412,9 +397,7 @@ export default function EnhancedProvidersPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-text mb-1">
-                  API Key Status
-                </label>
+                <label className="block text-xs font-medium text-text mb-1">API Key Status</label>
                 <div
                   className={`px-3 py-2 border rounded-lg text-sm ${
                     selectedProvider.api_key
@@ -430,15 +413,10 @@ export default function EnhancedProvidersPage() {
 
           {/* Prompt Testing Panel */}
           <div className="bg-surface rounded-xl shadow-sm border border-border p-6">
-            <h3 className="text-lg font-semibold text-text mb-4">
-              Test with Custom Prompt
-            </h3>
+            <h3 className="text-lg font-semibold text-text mb-4">Test with Custom Prompt</h3>
             <div className="space-y-4">
               <div>
-                <label
-                  htmlFor="test-prompt"
-                  className="block text-sm font-medium text-text mb-2"
-                >
+                <label htmlFor="test-prompt" className="block text-sm font-medium text-text mb-2">
                   Enter your test prompt:
                 </label>
                 <textarea
@@ -492,12 +470,8 @@ export default function EnhancedProvidersPage() {
       ) : (
         <div className="bg-surface rounded-xl shadow-sm border border-border p-12 text-center">
           <div className="text-6xl mb-4">🔌</div>
-          <h3 className="text-lg font-medium text-text mb-2">
-            Select a Provider
-          </h3>
-          <p className="text-muted">
-            Choose a provider from the sidebar to test and configure
-          </p>
+          <h3 className="text-lg font-medium text-text mb-2">Select a Provider</h3>
+          <p className="text-muted">Choose a provider from the sidebar to test and configure</p>
         </div>
       )}
     </div>

@@ -21,7 +21,7 @@ repos:
     rev: 5.13.2
     hooks:
       - id: isort
-        args: ["--profile", "black"]
+        args: ['--profile', 'black']
         files: ^apps/goblin-assistant/backend/
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
@@ -42,8 +42,8 @@ repos:
         types: [file]
         additional_dependencies:
           - eslint@^8.0.0
-          - "@typescript-eslint/parser"
-          - "@typescript-eslint/eslint-plugin"
+          - '@typescript-eslint/parser'
+          - '@typescript-eslint/eslint-plugin'
 
   # Docker linting
   - repo: https://github.com/hadolint/hadolint

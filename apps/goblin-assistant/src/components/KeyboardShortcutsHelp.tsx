@@ -5,7 +5,7 @@ export default function KeyboardShortcutsHelp() {
     { ...SHORTCUTS.TOGGLE_HIGH_CONTRAST },
     { ...SHORTCUTS.THEME_DEFAULT },
     { ...SHORTCUTS.THEME_NOCTURNE },
-    { ...SHORTCUTS.THEME_EMBER }
+    { ...SHORTCUTS.THEME_EMBER },
   ];
 
   return (
@@ -16,7 +16,10 @@ export default function KeyboardShortcutsHelp() {
       </h3>
       <div className="space-y-2">
         {shortcuts.map((shortcut, index) => (
-          <div key={index} className="flex items-center justify-between py-2 border-b border-divider last:border-0">
+          <div
+            key={index}
+            className="flex items-center justify-between py-2 border-b border-divider last:border-0"
+          >
             <span className="text-muted text-sm">{shortcut.description}</span>
             <kbd className="px-3 py-1 text-xs font-mono bg-bg border border-border rounded text-primary">
               {formatShortcut(shortcut)}
@@ -25,7 +28,11 @@ export default function KeyboardShortcutsHelp() {
         ))}
       </div>
       <p className="text-xs text-muted mt-4">
-        💡 Tip: Use <kbd className="px-1 py-0.5 text-xs font-mono bg-bg border border-border rounded">Ctrl+Shift+H</kbd> to quickly toggle high-contrast mode
+        💡 Tip: Use{' '}
+        <kbd className="px-1 py-0.5 text-xs font-mono bg-bg border border-border rounded">
+          Ctrl+Shift+H
+        </kbd>{' '}
+        to quickly toggle high-contrast mode
       </p>
     </div>
   );

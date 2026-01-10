@@ -41,6 +41,7 @@ Goblin Assistant is a production-ready AI inference platform with intelligent mo
 ### Model Architecture
 
 #### Intent-Based Routing
+
 The system uses intelligent intent classification to route requests to appropriate models based on latency requirements, context length, and task complexity:
 
 - **Ultra-Low Latency** (< 100ms): Classification, status checks → gemma:2b (1.7GB, 8K context)
@@ -63,6 +64,7 @@ The system uses intelligent intent classification to route requests to appropria
 - **DeepSeek, SilliconFlow, Moonshot** - Specialized and cost-effective alternatives
 
 #### RAG Pipeline Architecture
+
 The system implements a flexible RAG pipeline for long-context and knowledge-intensive tasks:
 
 **Pipeline Flow:**
@@ -144,12 +146,12 @@ POST /settings/rag/test
 
 Recent benchmarking (December 2025) shows optimal model selection based on current architecture:
 
-| Model | Size | Context Window | Response Time | Best For |
-|-------|------|----------------|---------------|----------|
-| **gemma:2b** | 1.7GB | 8,192 tokens | ~5-8s | Ultra-fast classification, status |
-| **phi3:3.8b** | 2.2GB | 4,096 tokens | ~10-12s | Low-latency chat, UI responses |
-| **qwen2.5:3b** | 1.9GB | 32,768 tokens | ~14s | Long context, RAG, multilingual |
-| **mistral:7b** | 4.4GB | 8,192 tokens | ~14-15s | High-quality code, creative writing |
+| Model          | Size  | Context Window | Response Time | Best For                            |
+| -------------- | ----- | -------------- | ------------- | ----------------------------------- |
+| **gemma:2b**   | 1.7GB | 8,192 tokens   | ~5-8s         | Ultra-fast classification, status   |
+| **phi3:3.8b**  | 2.2GB | 4,096 tokens   | ~10-12s       | Low-latency chat, UI responses      |
+| **qwen2.5:3b** | 1.9GB | 32,768 tokens  | ~14s          | Long context, RAG, multilingual     |
+| **mistral:7b** | 4.4GB | 8,192 tokens   | ~14-15s       | High-quality code, creative writing |
 
 **Key Findings:**
 
@@ -173,9 +175,10 @@ Recent benchmarking (December 2025) shows optimal model selection based on curre
 ```bash
 GET /health
 ```
-Response:
-```json
 
+Response:
+
+```json
 {
   "status": "healthy",
   "version": "1.0.0",
@@ -206,6 +209,7 @@ Body:
 ```
 
 #### Model Routing Info
+
 ```bash
 
 GET /chat/models
@@ -218,11 +222,13 @@ Headers:
 ```bash
 GET /metrics
 ```
+
 Returns Prometheus metrics including request counts, response times, cache statistics, and model usage.
 
 ### Local LLM API (Kamatera VPS)
 
 #### Model Health Check
+
 ```bash
 
 GET /health
@@ -443,6 +449,7 @@ curl "http://localhost:3100/loki/api/v1/query_range?query={job=\"goblin-router\"
 ```
 
 ### Service Management
+
 ```bash
 
 # Restart router
@@ -521,6 +528,7 @@ ollama pull <new-model>
 ```
 
 ### For Administrators
+
 ```bash
 
 # Check backend health
@@ -539,6 +547,6 @@ wrangler tail
 
 ---
 
-*Last Updated: December 8, 2025*
-*System Version: Goblin Assistant v2.0*
-*Infrastructure: Cloudflare Edge + Fly.io + Kamatera VPS*
+_Last Updated: December 8, 2025_
+_System Version: Goblin Assistant v2.0_
+_Infrastructure: Cloudflare Edge + Fly.io + Kamatera VPS_

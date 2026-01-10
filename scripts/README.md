@@ -31,14 +31,14 @@ scripts/
 
 ### When to Use Scripts vs CI/CD
 
- | Use Case | Use Scripts | Use CI/CD | 
-|----------|-------------|-----------|
- | Local development | ✅ Scripts | ❌ CI/CD | 
- | Emergency deployments | ✅ Scripts | ❌ CI/CD | 
- | Manual testing/debugging | ✅ Scripts | ❌ CI/CD | 
- | Automated PR checks | ❌ Scripts | ✅ CI/CD | 
- | Scheduled deployments | ❌ Scripts | ✅ CI/CD | 
- | Multi-environment testing | ❌ Scripts | ✅ CI/CD | 
+| Use Case                  | Use Scripts | Use CI/CD |
+| ------------------------- | ----------- | --------- |
+| Local development         | ✅ Scripts  | ❌ CI/CD  |
+| Emergency deployments     | ✅ Scripts  | ❌ CI/CD  |
+| Manual testing/debugging  | ✅ Scripts  | ❌ CI/CD  |
+| Automated PR checks       | ❌ Scripts  | ✅ CI/CD  |
+| Scheduled deployments     | ❌ Scripts  | ✅ CI/CD  |
+| Multi-environment testing | ❌ Scripts  | ✅ CI/CD  |
 
 ### CI/CD Integration Pattern
 
@@ -60,12 +60,14 @@ CI/CD should **call these scripts** rather than duplicate logic:
 ### Development Scripts (`dev/`)
 
 #### `start-dev.sh`
+
 - **Purpose**: Start local development servers (backend + frontend)
 - **Usage**: `./scripts/dev/start-dev.sh`
 - **CI/CD**: Not used in CI/CD - local development only
 - **Dependencies**: Python venv, Node.js
 
 #### `lint_all.sh`
+
 - **Purpose**: Run comprehensive linting across the entire repository
 - **Usage**: `./scripts/dev/lint_all.sh`
 - **CI/CD**: Called by GitHub Actions backend-ci workflow
@@ -74,12 +76,14 @@ CI/CD should **call these scripts** rather than duplicate logic:
 ### Deployment Scripts (`deploy/`)
 
 #### `deploy-backend.sh`
+
 - **Purpose**: Multi-platform backend deployment (Fly.io, Render)
 - **Usage**: `./scripts/deploy/deploy-backend.sh --platform flyio --env production`
 - **CI/CD**: Called by CircleCI production pipeline
 - **Dependencies**: Platform CLIs (flyctl, render)
 
 #### `deploy-frontend.sh`
+
 - **Purpose**: Frontend deployment orchestration
 - **Usage**: `./scripts/deploy/deploy-frontend.sh --platform vercel`
 - **CI/CD**: Called by GitHub Actions frontend-deploy-vercel workflow
@@ -88,24 +92,28 @@ CI/CD should **call these scripts** rather than duplicate logic:
 ### Operational Scripts (`ops/`)
 
 #### `smoke.sh`
+
 - **Purpose**: Health checks and smoke tests for deployed services
 - **Usage**: `./scripts/ops/smoke.sh`
 - **CI/CD**: Called after deployments in staging/production pipelines
 - **Dependencies**: kubectl, curl
 
 #### `supabase_rls_check.sh`
+
 - **Purpose**: Database security audit for Row Level Security policies
 - **Usage**: `./scripts/ops/supabase_rls_check.sh [supabase_dir]`
 - **CI/CD**: Called by GitHub Actions terraform-security workflow
 - **Dependencies**: sed, ripgrep (optional)
 
 #### `sanity_checks.sh`
+
 - **Purpose**: General sanity validation for the application
 - **Usage**: `./scripts/ops/sanity_checks.sh`
 - **CI/CD**: Called by CircleCI build-and-test-backend job
 - **Dependencies**: Various application dependencies
 
 #### `security_check.sh`
+
 - **Purpose**: Security scanning and vulnerability checks
 - **Usage**: `./scripts/ops/security_check.sh`
 - **CI/CD**: Called by GitHub Actions gitleaks workflow
@@ -114,12 +122,14 @@ CI/CD should **call these scripts** rather than duplicate logic:
 ### Monitoring Scripts (`monitoring/`)
 
 #### `benchmark_llamacpp.py`
+
 - **Purpose**: Performance benchmarking for LLM operations
 - **Usage**: `python scripts/monitoring/benchmark_llamacpp.py`
 - **CI/CD**: Called by scheduled performance monitoring jobs
 - **Dependencies**: Python, llama.cpp
 
 #### `test_llamacpp_server.py`
+
 - **Purpose**: Test LLM server connectivity and basic functionality
 - **Usage**: `python scripts/monitoring/test_llamacpp_server.py`
 - **CI/CD**: Called by health check workflows
@@ -128,6 +138,7 @@ CI/CD should **call these scripts** rather than duplicate logic:
 ## Development Workflow
 
 ### Local Development
+
 ```bash
 
 # Start development servers
@@ -147,6 +158,7 @@ chmod +x .git/hooks/pre-commit
 ```
 
 ### Emergency Operations
+
 ```bash
 
 # Manual deployment
@@ -172,8 +184,8 @@ chmod +x .git/hooks/pre-commit
 ```
 
 ### CircleCI Deployment
-```yaml
 
+```yaml
 - run:
     name: Deploy Backend
     command: ./scripts/deploy/deploy-backend.sh --platform flyio --env $CIRCLE_TAG
@@ -212,12 +224,14 @@ Scripts automatically integrate with the CI/CD performance monitoring system:
 ### Error Handling
 
 All scripts follow these standards:
+
 - Exit with appropriate codes (0 = success, non-zero = failure)
 - Provide clear error messages
 - Support `--help` flag where applicable
 - Log output to stderr for errors, stdout for normal output
 
 ### Testing Scripts
+
 - Scripts should be testable in isolation
 - Include usage examples in comments
 - Test both success and failure scenarios
@@ -235,14 +249,16 @@ All scripts follow these standards:
 ## Consolidation & housekeeping scripts
 
 ### `check-goblin-assistant-diffs.sh`
+
 - **Purpose**: Detect potential duplicates and filename collisions between the root `goblin-assistant/` and `apps/goblin-assistant/` directories
 - **Usage**: `./scripts/check-goblin-assistant-diffs.sh` — writes conflict and file lists to `/tmp/`
 
 ### `consolidate-goblin-assistant.sh`
+
 - **Purpose**: Merge unique files from root `goblin-assistant/` into `apps/goblin-assistant/` safely using `rsync` and back up the root folder
 - **Usage**: `./scripts/consolidate-goblin-assistant.sh` — runs the check script, asks for confirmation, copies files and backs up root
 
 ### `consolidate-data.sh`
+
 - **Purpose**: Consolidate and reorganize on-disk data into `data/` folder (vector DBs, sqlite files, logs) and create backups with `.moved-<date>` suffix.
 - **Usage**: `./scripts/consolidate-data.sh` — non-destructive, creates `.moved-` backups and copies
-

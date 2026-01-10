@@ -36,6 +36,8 @@ test.describe('Smoke E2E flows', () => {
     await page.check('input[name="consent"]');
 
     await page.click('text=Book Service Now');
-    await expect(page.locator('text=Thank you! Your service request has been submitted')).toBeVisible({ timeout: 5000 });
+    await expect(
+      page.locator('text=Thank you! Your service request has been submitted')
+    ).toBeVisible({ timeout: 5000 });
   });
 });

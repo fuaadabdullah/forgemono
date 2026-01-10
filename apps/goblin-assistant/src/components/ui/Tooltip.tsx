@@ -69,9 +69,7 @@ export default function Tooltip({
       onFocus={showTooltip}
       onBlur={hideTooltip}
     >
-      <div aria-describedby={isVisible ? tooltipId.current : undefined}>
-        {children}
-      </div>
+      <div aria-describedby={isVisible ? tooltipId.current : undefined}>{children}</div>
 
       {shouldRender && (
         <div

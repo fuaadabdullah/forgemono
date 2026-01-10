@@ -1,5 +1,10 @@
 #!/bin/bash
-# deploy-goblin-system.sh - Automated deployment script for Goblin AI system
+# Project: Goblin AI System
+# Script: deploy-goblin-system.sh
+# Purpose: Automated deployment script for Goblin AI system
+# Date: 2025-12-12
+# Maintainer: fuaadabdullah
+# Usage: ./deploy-goblin-system.sh [--router-ip IP] [--inference-ip IP]
 set -euo pipefail
 
 # Parse command line arguments

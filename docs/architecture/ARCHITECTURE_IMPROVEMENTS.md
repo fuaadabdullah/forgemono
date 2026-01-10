@@ -192,12 +192,14 @@ spec:
 ```
 
 ### Implementation Steps
+
 1. **Standardize on Kubernetes**: Migrate all backend services to K8s
 2. **Simplify IaC**: Use Crossplane or Terraform CDK for unified IaC
 3. **GitOps Only**: Remove manual deployments, use ArgoCD for all environments
 4. **Frontend Strategy**: Keep Vercel/Netlify for static hosting, but standardize on one
 
 ### Benefits
+
 - ✅ Declarative infrastructure
 - ✅ Consistent deployment process
 - ✅ Better resource utilization
@@ -206,6 +208,7 @@ spec:
 ## Priority 5: Cost Optimization & Monitoring 💰 ONGOING
 
 ### Current Problems
+
 - **No Cost Visibility**: Multiple cloud providers without centralized monitoring
 - **LLM Cost Sprawl**: No optimization across multiple providers
 - **Resource Waste**: Over-provisioned infrastructure
@@ -318,4 +321,4 @@ class CostOptimizer:
 
 ---
 
-*This improvement plan addresses the most critical architectural issues while maintaining system stability and performance.*
+_This improvement plan addresses the most critical architectural issues while maintaining system stability and performance._

@@ -1,6 +1,7 @@
 # Groq API Reference Documentation
 
 ## Overview
+
 Comprehensive reference documentation for the Groq API, including endpoints, parameters, and examples.
 
 **Source**: <https://console.groq.com/docs/api-reference>
@@ -120,14 +121,13 @@ print(response.choices[0].message.content)
 ## Example Usage (JavaScript)
 
 ```javascript
-
-import Groq from "groq-sdk";
+import Groq from 'groq-sdk';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const completion = await groq.chat.completions.create({
-    messages: [{ role: "user", content: "Hello!" }],
-    model: "llama-3.3-70b-versatile",
+  messages: [{ role: 'user', content: 'Hello!' }],
+  model: 'llama-3.3-70b-versatile',
 });
 ```
 
@@ -155,5 +155,5 @@ const completion = await groq.chat.completions.create({
 
 ---
 
-*This documentation was extracted from the official Groq API reference as of November 23, 2025. For the most up-to-date information, always refer to the official documentation at <https://console.groq.com/docs/api-reference*</content>>
+_This documentation was extracted from the official Groq API reference as of November 23, 2025. For the most up-to-date information, always refer to the official documentation at <https://console.groq.com/docs/api-reference_</content>>
 <parameter name="filePath">/Users/fuaadabdullah/ForgeMonorepo/docs/GROQ_API_REFERENCE.md

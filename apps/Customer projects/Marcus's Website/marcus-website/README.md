@@ -256,13 +256,11 @@ This project is designed to be deployed on Vercel, Netlify, or any static hostin
 ### Netlify Deployment
 
 1. **Connect Repository**:
-
    - Go to [Netlify](https://netlify.com)
    - Click "New site from Git"
    - Connect your GitHub repository
 
 2. **Build Settings**:
-
    - Build command: `npm run build`
    - Publish directory: `.next`
    - Node version: 18

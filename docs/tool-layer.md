@@ -1,5 +1,5 @@
 ---
-description: "tool-layer"
+description: 'tool-layer'
 ---
 
 # Tool Invocation Layer
@@ -48,7 +48,6 @@ The Tool Invocation Layer is a secure, auditable service that allows AI agents (
 ### Response
 
 ```json
-
 {
   "request_id": "uuid",
   "status": "ok",
@@ -90,21 +89,25 @@ The Tool Invocation Layer is a secure, auditable service that allows AI agents (
 ## Tools
 
 ### monorepo_cli
+
 - **Function**: `run_script(name, args, env?, working_dir?)`
 - **Purpose**: Execute whitelisted scripts in the monorepo
 - **Security**: Script whitelist, timeout, audit logging
 
 ### config_manager
+
 - **Function**: `update_yaml(path, operation, patch|key/value)`
 - **Purpose**: Safe configuration file updates
 - **Security**: Path whitelist, dry-run support, change tracking
 
 ### metrics_api
+
 - **Function**: `query_gauge(metric_name, window, labels?)`
 - **Purpose**: Query performance metrics
 - **Security**: Read-only, rate-limited
 
 ### github_pr
+
 - **Function**: `get_status_check(pr_id, check_name)`
 - **Purpose**: Check PR status and CI results
 - **Security**: Read-only GitHub API access

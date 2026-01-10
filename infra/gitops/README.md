@@ -145,7 +145,6 @@ argocd app get overmind-prod --refresh
 **File:** `applications/overmind-dev.yaml`
 
 ```yaml
-
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -165,8 +164,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-
-    - CreateNamespace=true
+      - CreateNamespace=true
 ```
 
 ### Production Environment
@@ -193,7 +191,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true
 ```
 
 ## SOPS Integration
@@ -203,7 +201,6 @@ spec:
 **File:** `argocd/argocd-repo-server-ksops-patch.yaml`
 
 ```yaml
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -213,50 +210,43 @@ spec:
   template:
     spec:
       volumes:
+        - name: custom-tools
+          emptyDir: {}
 
-      - name: custom-tools
-        emptyDir: {}
-
-      - name: sops-age
-        secret:
-          secretName: sops-age
+        - name: sops-age
+          secret:
+            secretName: sops-age
       initContainers:
-
-      - name: install-ksops
-        image: viaductoss/ksops:v4.3.2
-        command: ["/bin/sh", "-c"]
-        args:
-
-        - echo "Installing KSOPS...";
-          cp ksops /custom-tools/;
-          cp $GOPATH/bin/kustomize /custom-tools/;
-          echo "Done.";
-        volumeMounts:
-
-        - mountPath: /custom-tools
-          name: custom-tools
+        - name: install-ksops
+          image: viaductoss/ksops:v4.3.2
+          command: ['/bin/sh', '-c']
+          args:
+            - echo "Installing KSOPS...";
+              cp ksops /custom-tools/;
+              cp $GOPATH/bin/kustomize /custom-tools/;
+              echo "Done.";
+          volumeMounts:
+            - mountPath: /custom-tools
+              name: custom-tools
       containers:
+        - name: argocd-repo-server
+          volumeMounts:
+            - mountPath: /usr/local/bin/ksops
+              name: custom-tools
+              subPath: ksops
 
-      - name: argocd-repo-server
-        volumeMounts:
+            - mountPath: /usr/local/bin/kustomize
+              name: custom-tools
+              subPath: kustomize
 
-        - mountPath: /usr/local/bin/ksops
-          name: custom-tools
-          subPath: ksops
+            - mountPath: /home/argocd/.config/sops/age
+              name: sops-age
+          env:
+            - name: XDG_CONFIG_HOME
+              value: /home/argocd/.config
 
-        - mountPath: /usr/local/bin/kustomize
-          name: custom-tools
-          subPath: kustomize
-
-        - mountPath: /home/argocd/.config/sops/age
-          name: sops-age
-        env:
-
-        - name: XDG_CONFIG_HOME
-          value: /home/argocd/.config
-
-        - name: SOPS_AGE_KEY_FILE
-          value: /home/argocd/.config/sops/age/keys.txt
+            - name: SOPS_AGE_KEY_FILE
+              value: /home/argocd/.config/sops/age/keys.txt
 ```
 
 ### Add Age Key Secret
@@ -276,27 +266,26 @@ kubectl get secret sops-age -n argocd
 Use sync waves to control deployment order:
 
 ```yaml
-
 apiVersion: v1
 kind: Secret
 metadata:
   name: postgres-credentials
   annotations:
-    argocd.argoproj.io/sync-wave: "0"  # Deploy first
+    argocd.argoproj.io/sync-wave: '0' # Deploy first
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: overmind-api
   annotations:
-    argocd.argoproj.io/sync-wave: "1"  # Deploy after secrets
+    argocd.argoproj.io/sync-wave: '1' # Deploy after secrets
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: db-migration
   annotations:
-    argocd.argoproj.io/sync-wave: "2"  # Run after deployment
+    argocd.argoproj.io/sync-wave: '2' # Run after deployment
 ```
 
 ## Health Checks
@@ -311,7 +300,7 @@ metadata:
   name: argocd-cm
   namespace: argocd
 data:
-  resource.customizations: | 
+  resource.customizations: |
     apps/Deployment:
       health.lua: | 
         hs = {}
@@ -340,7 +329,6 @@ data:
 For managing multiple environments with less duplication:
 
 ```yaml
-
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -348,17 +336,15 @@ metadata:
   namespace: argocd
 spec:
   generators:
+    - list:
+        elements:
+          - env: dev
+            revision: main
+            namespace: overmind-dev
 
-  - list:
-      elements:
-
-      - env: dev
-        revision: main
-        namespace: overmind-dev
-
-      - env: prod
-        revision: release/v1.0
-        namespace: overmind-prod
+          - env: prod
+            revision: release/v1.0
+            namespace: overmind-prod
   template:
     metadata:
       name: 'overmind-{{env}}'
@@ -404,20 +390,19 @@ argocd app rollback overmind-prod 0  # Latest
 ### Slack Integration
 
 ```yaml
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-notifications-cm
   namespace: argocd
 data:
-  service.slack: | 
+  service.slack: |
     token: $slack-token
-  template.app-deployed: | 
+  template.app-deployed: |
     message: | 
       Application {{.app.metadata.name}} deployed to {{.app.spec.destination.namespace}}
       Revision: {{.app.status.sync.revision}}
-  trigger.on-deployed: | 
+  trigger.on-deployed: |
 
     - when: app.status.operationState.phase in ['Succeeded']
       send: [app-deployed]

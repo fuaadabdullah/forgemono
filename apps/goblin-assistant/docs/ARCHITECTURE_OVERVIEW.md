@@ -1,5 +1,5 @@
 ---
-description: "Short architecture overview and process flow for GoblinOS Assistant"
+description: 'Short architecture overview and process flow for GoblinOS Assistant'
 ---
 
 # Architecture Overview — GoblinOS Assistant
@@ -38,7 +38,6 @@ graph LR
   REDIS --> |broker/cache| Celery
   DB --> |persistence| API
 ```
-
 
 ## Request Flow (Quick)
 
@@ -116,6 +115,5 @@ Follow these steps when you want to add a new provider adapter (e.g., partner SD
 - Run `probe_single_provider.py` and `probe_worker.py` to diagnose connectivity and latency issues.
 - Inspect `logs/` and Sentry for stack traces and timeouts.
 - Switch to a fallback provider if errors or regressions persist during rollout.
-
 
 ---

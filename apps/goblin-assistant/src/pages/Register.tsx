@@ -66,7 +66,7 @@ const Register: React.FC = () => {
                 id="name"
                 type="text"
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your full name"
                 required
                 disabled={isLoading}
@@ -79,7 +79,7 @@ const Register: React.FC = () => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
                 disabled={isLoading}
@@ -92,7 +92,7 @@ const Register: React.FC = () => {
                 id="password"
                 type="password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
                 disabled={isLoading}
@@ -105,7 +105,7 @@ const Register: React.FC = () => {
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
                 required
                 disabled={isLoading}

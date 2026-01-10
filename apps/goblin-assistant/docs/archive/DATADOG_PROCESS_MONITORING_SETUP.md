@@ -10,17 +10,17 @@ Successfully configured comprehensive Datadog process monitoring for the Goblin 
 
 Created in `goblin-infra/projects/goblin-assistant/infra/observability/datadog/`:
 
-| File | Purpose |
-|------|---------|
-| `datadog-agent.yaml` | Main agent configuration with process collection, tagging, integrations |
-| `system-probe.yaml` | System probe config for I/O stats and network monitoring |
-| `docker-compose-datadog.yml` | Docker Compose deployment with all required capabilities |
-| `k8s-datadog-agent.yaml` | Kubernetes DaemonSet with RBAC and service account |
-| `setup-datadog-processes.sh` | Automated setup script for Linux hosts |
-| `verify-setup.sh` | Verification script to check installation |
-| `setup-env.sh` | Environment-specific configuration (prod/staging/dev) |
-| `README.md` | Complete documentation (700+ lines) |
-| `QUICKSTART.md` | Quick reference guide |
+| File                         | Purpose                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `datadog-agent.yaml`         | Main agent configuration with process collection, tagging, integrations |
+| `system-probe.yaml`          | System probe config for I/O stats and network monitoring                |
+| `docker-compose-datadog.yml` | Docker Compose deployment with all required capabilities                |
+| `k8s-datadog-agent.yaml`     | Kubernetes DaemonSet with RBAC and service account                      |
+| `setup-datadog-processes.sh` | Automated setup script for Linux hosts                                  |
+| `verify-setup.sh`            | Verification script to check installation                               |
+| `setup-env.sh`               | Environment-specific configuration (prod/staging/dev)                   |
+| `README.md`                  | Complete documentation (700+ lines)                                     |
+| `QUICKSTART.md`              | Quick reference guide                                                   |
 
 ### 2. Features Enabled
 
@@ -231,12 +231,11 @@ process_config:
 ### Adjust Collection Frequency
 
 ```yaml
-
 # Collect less frequently
 process_config:
   intervals:
-    container: 30  # Default: 10s
-    process: 30    # Default: 10s
+    container: 30 # Default: 10s
+    process: 30 # Default: 10s
 ```
 
 ### Disable Optional Features
@@ -256,6 +255,7 @@ service_monitoring_config:
 ### Common Issues & Solutions
 
 **Issue: No processes visible in UI**
+
 ```bash
 
 # Check if enabled
@@ -272,6 +272,7 @@ sudo systemctl restart datadog-agent
 ```
 
 **Issue: Sensitive data visible**
+
 ```bash
 
 # Enable scrubbing
@@ -376,6 +377,7 @@ apps/goblin-assistant/
 ## 🎯 Success Metrics
 
 After 1 week, you should see:
+
 - ✅ All Python/Gunicorn processes visible in Process Explorer
 - ✅ CPU and memory trends tracked over time
 - ✅ I/O statistics available for all processes
@@ -393,14 +395,14 @@ After 1 week, you should see:
 
 ## 🔄 Maintenance Schedule
 
-| Task | Frequency | Owner |
-|------|-----------|-------|
-| Review process metrics | Daily | On-call |
-| Check monitor thresholds | Weekly | SRE team |
-| Update agent | Monthly | DevOps |
-| Audit tag strategy | Quarterly | Platform team |
-| Review costs | Quarterly | FinOps |
-| Test disaster recovery | Quarterly | SRE team |
+| Task                     | Frequency | Owner         |
+| ------------------------ | --------- | ------------- |
+| Review process metrics   | Daily     | On-call       |
+| Check monitor thresholds | Weekly    | SRE team      |
+| Update agent             | Monthly   | DevOps        |
+| Audit tag strategy       | Quarterly | Platform team |
+| Review costs             | Quarterly | FinOps        |
+| Test disaster recovery   | Quarterly | SRE team      |
 
 ## ✅ Verification Checklist
 

@@ -15,13 +15,16 @@ export interface StatusCardProps {
   className?: string;
 }
 
-const statusConfig: Record<StatusKind, {
-  border: string;
-  badgeVariant: 'success' | 'warning' | 'danger' | 'neutral';
-  icon: string;
-  description: string;
-  ariaLabel: string;
-}> = {
+const statusConfig: Record<
+  StatusKind,
+  {
+    border: string;
+    badgeVariant: 'success' | 'warning' | 'danger' | 'neutral';
+    icon: string;
+    description: string;
+    ariaLabel: string;
+  }
+> = {
   healthy: {
     border: 'border-success',
     badgeVariant: 'success',
@@ -33,7 +36,8 @@ const statusConfig: Record<StatusKind, {
     border: 'border-warning',
     badgeVariant: 'warning',
     icon: '⚠',
-    description: 'Service is experiencing issues but remains partially functional. Some features may be unavailable or slow.',
+    description:
+      'Service is experiencing issues but remains partially functional. Some features may be unavailable or slow.',
     ariaLabel: 'Status: Degraded - Service has reduced functionality',
   },
   down: {
@@ -47,7 +51,8 @@ const statusConfig: Record<StatusKind, {
     border: 'border-border',
     badgeVariant: 'neutral',
     icon: '?',
-    description: 'Unable to determine service status. Check may have timed out or service is unreachable.',
+    description:
+      'Unable to determine service status. Check may have timed out or service is unreachable.',
     ariaLabel: 'Status: Unknown - Cannot determine service status',
   },
 };
@@ -64,7 +69,7 @@ export default function StatusCard({
   meta = [],
   lastCheck,
   statusDetails,
-  className = ''
+  className = '',
 }: StatusCardProps) {
   const config = statusConfig[status];
 
@@ -92,7 +97,11 @@ export default function StatusCard({
   const tooltipContent = statusDetails || config.description;
 
   return (
-    <Card className={`border-2 ${config.border} ${className}`} role="group" aria-label={`${title} ${config.ariaLabel}`}>
+    <Card
+      className={`border-2 ${config.border} ${className}`}
+      role="group"
+      aria-label={`${title} ${config.ariaLabel}`}
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {icon && (
@@ -125,7 +134,10 @@ export default function StatusCard({
       {meta.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
           {meta.map((m, i) => (
-            <div key={i} className="bg-surface-hover rounded-lg p-3 border border-border min-h-[64px]">
+            <div
+              key={i}
+              className="bg-surface-hover rounded-lg p-3 border border-border min-h-[64px]"
+            >
               <div className="text-xs text-muted mb-1">{m.label}</div>
               <div className="text-sm font-semibold text-text leading-tight">{m.value}</div>
             </div>

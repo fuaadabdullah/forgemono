@@ -44,10 +44,12 @@ export LOCAL_LLM_API_KEY="goblin-llm-hrDD-3IO83-YpusDBHXV_V0r7Lx9sMtvEs4CWBnF2kE
 **Issue:** Supabase password is incorrect or expired
 
 **What was done:**
+
 - Created helper script: `backend/update_db_password.py`
 - Script will safely update and test new password
 
 **Action Required:**
+
 1. Go to: https://supabase.com/dashboard/project/dhxoowakvmobjxsffpst/settings/database
 2. Click "Reset database password"
 3. Copy the new password
@@ -61,11 +63,13 @@ export LOCAL_LLM_API_KEY="goblin-llm-hrDD-3IO83-YpusDBHXV_V0r7Lx9sMtvEs4CWBnF2kE
 **Issue:** Vite module not found
 
 **What was done:**
+
 - Ran `npm install` at monorepo root
 - Installed 260 packages including Vite 4.5.14
 - Frontend dev server now starts successfully
 
 **Verified:**
+
 ```
 ✅ Vite v4.5.14 installed
 ✅ Dev server running at http://localhost:3000/
@@ -73,6 +77,7 @@ export LOCAL_LLM_API_KEY="goblin-llm-hrDD-3IO83-YpusDBHXV_V0r7Lx9sMtvEs4CWBnF2kE
 ```
 
 **How to start:**
+
 ```bash
 
 # From monorepo root
@@ -84,11 +89,11 @@ npm run --workspace=goblin-assistant-frontend dev
 
 ## Current Status Summary
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Local LLM API Key | ✅ FIXED | Secure key generated and set |
-| Frontend Dependencies | ✅ FIXED | Vite installed, dev server working |
-| Database Connection | ⏳ PENDING | Needs password reset in Supabase |
+| Component               | Status     | Notes                              |
+| ----------------------- | ---------- | ---------------------------------- |
+| Local LLM API Key       | ✅ FIXED   | Secure key generated and set       |
+| Frontend Dependencies   | ✅ FIXED   | Vite installed, dev server working |
+| Database Connection     | ⏳ PENDING | Needs password reset in Supabase   |
 | Local Ollama (Kamatera) | ✅ WORKING | 4 models available, real execution |
 
 ---

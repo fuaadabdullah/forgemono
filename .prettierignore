@@ -1,0 +1,76 @@
+# Ignore Helm templates and other files Prettier can't safely parse
+infra/charts/**/templates/**
+infra/charts/**/values.yaml
+infra/charts/**/Chart.yaml
+
+# Generated / archive files
+.archive/**
+archive/**/api/**/*.json
+archive/**/openapi*.json
+
+# Large build / target folders
+**/target/**
+**/dist/**
+**/build/**
+
+# Node modules and lock files
+node_modules/**
+**/*.lock
+
+# Images, svgs and diagrams that are not source-editable
+*.svg
+docs/diagrams/*.svg
+content/assets/og/*.svg
+GoblinOS/desktop/public/*.svg
+
+# Reports and other non-source artifacts
+tools/goblin-email-purge/reports/**
+final_quality_report.json
+**/*-report*/**/*.html
+**/playwright-report/**
+**/public/test.html
+**/scripts/test-*.html
+
+# Ignore common binary blobs
+**/*.min.js
+**/*.bundle.js
+
+# Editor/IDE caches
+.vscode/**
+.idea/**
+
+# Ignore Python files and other non-JS/TS files that shouldn't be formatted
+**/*.py
+**/*.sh
+**/*.md
+**/*.txt
+**/*.rst
+**/*.adoc
+**/*.toml
+**/*.yaml
+**/*.yml
+**/*.ini
+**/*.cfg
+**/*.conf
+**/*.dockerfile
+**/*.Dockerfile
+**/Makefile
+**/Procfile
+**/*.ico
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.webp
+**/*.avif
+**/*.mp4
+**/*.woff
+**/*.woff2
+**/*.ttf
+**/*.eot
+**/__pycache__/**
+**/*.pyc
+**/coverage/**
+**/.pytest_cache/**
+**/.next/cache/**
+**/.vercel/**
+

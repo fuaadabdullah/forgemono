@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from '@jest/globals';
 
 // Mock the runtimeClient used by tests
-vi.mock('../api/api-client', () => {
+jest.mock('../api/api-client', () => {
   return {
     runtimeClient: {
       getGoblins: async () => [

@@ -15,7 +15,7 @@ const ROOT = join(__dirname, '..');
 const CHECKS = {
   passed: [],
   failed: [],
-  warnings: []
+  warnings: [],
 };
 
 function checkExists(filePath, description) {
@@ -64,32 +64,44 @@ checkExists('src/theme/theme.js', 'Theme JS utilities exist');
 
 // 2. Theme CSS has required variables
 console.log('\n🎨 Checking CSS variable definitions...\n');
-checkFileContains('src/theme/index.css', {
-  'neutrals': /--bg:\s*#071117/,
-  'brand colors': /--primary:\s*#06D06A/,
-  'high-contrast': /\.goblinos-high-contrast/,
-  'reduced motion': /@media\s*\(prefers-reduced-motion:\s*reduce\)/,
-  'focus indicators': /:focus-visible/,
-  'skip link': /\.skip-link/
-}, 'Theme CSS has required tokens and accessibility features');
+checkFileContains(
+  'src/theme/index.css',
+  {
+    neutrals: /--bg:\s*#071117/,
+    'brand colors': /--primary:\s*#06D06A/,
+    'high-contrast': /\.goblinos-high-contrast/,
+    'reduced motion': /@media\s*\(prefers-reduced-motion:\s*reduce\)/,
+    'focus indicators': /:focus-visible/,
+    'skip link': /\.skip-link/,
+  },
+  'Theme CSS has required tokens and accessibility features'
+);
 
 // 3. Theme JS has required exports
 console.log('\n⚙️  Checking theme utilities...\n');
-checkFileContains('src/theme/theme.js', {
-  'setThemeVars': /export function setThemeVars/,
-  'enableHighContrast': /export function enableHighContrast/,
-  'initializeTheme': /export function initializeTheme/,
-  'THEME_PRESETS': /export const THEME_PRESETS/,
-  'system preferences': /matchMedia\('.*prefers-contrast.*'\)/
-}, 'Theme utilities have all required exports');
+checkFileContains(
+  'src/theme/theme.js',
+  {
+    setThemeVars: /export function setThemeVars/,
+    enableHighContrast: /export function enableHighContrast/,
+    initializeTheme: /export function initializeTheme/,
+    THEME_PRESETS: /export const THEME_PRESETS/,
+    'system preferences': /matchMedia\('.*prefers-contrast.*'\)/,
+  },
+  'Theme utilities have all required exports'
+);
 
 // 4. App.tsx integration
 console.log('\n🔌 Checking app integration...\n');
-checkFileContains('src/App.tsx', {
-  'theme import': /import.*from\s+['"]\.\/theme\/theme['"]/,
-  'css import': /import\s+['"]\.\/theme\/index\.css['"]/,
-  'initialization': /initializeTheme\(\)/
-}, 'App.tsx imports and initializes theme system');
+checkFileContains(
+  'src/App.tsx',
+  {
+    'theme import': /import.*from\s+['"]\.\/theme\/theme['"]/,
+    'css import': /import\s+['"]\.\/theme\/index\.css['"]/,
+    initialization: /initializeTheme\(\)/,
+  },
+  'App.tsx imports and initializes theme system'
+);
 
 // 5. Tailwind config uses CSS vars
 console.log('\n🎨 Checking Tailwind integration...\n');
@@ -134,13 +146,13 @@ console.log(`⚠️  Warnings: ${CHECKS.warnings.length}\n`);
 
 if (CHECKS.failed.length > 0) {
   console.log('Failed Checks:\n');
-  CHECKS.failed.forEach(msg => console.log(`  ${msg}`));
+  CHECKS.failed.forEach((msg) => console.log(`  ${msg}`));
   console.log('');
 }
 
 if (CHECKS.warnings.length > 0) {
   console.log('Warnings:\n');
-  CHECKS.warnings.forEach(msg => console.log(`  ${msg}`));
+  CHECKS.warnings.forEach((msg) => console.log(`  ${msg}`));
   console.log('');
 }
 

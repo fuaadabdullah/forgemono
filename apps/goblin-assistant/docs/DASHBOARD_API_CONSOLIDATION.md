@@ -48,9 +48,11 @@ def decorator(func: Callable)
 **Endpoints**:
 
 #### GET `/api/dashboard/status`
+
 - **Cache**: 10 seconds
 - **Returns**: Compact status for all services
 - **Response**:
+
   ```json
 
   {
@@ -88,10 +90,12 @@ def decorator(func: Callable)
   ```
 
 #### GET `/api/dashboard/metrics/{service}`
+
 - **Cache**: 30 seconds
 - **Returns**: Service-specific metrics (latency history, etc.)
 
 **Service Check Functions** (internal):
+
 - `check_backend_status()` - Health check with latency measurement
 - `check_vector_db_status()` - Chroma/Qdrant status, collections count
 - `check_mcp_status()` - MCP server connectivity (ports 8765, 8766)
@@ -129,13 +133,14 @@ async getDashboardMetrics(service: string): Promise<ServiceMetricsResponse>
 ```
 
 **Legacy Methods** (marked LEGACY - use dashboard endpoints instead):
+
 - `getChromaStatus()`, `getMCPStatus()`, `getRaptorStatus()`, `getSandboxStatus()`, `getCostTracking()`
 
 ### 2. Dashboard Component Update (`src/components/EnhancedDashboard.tsx`)
 
 **Before** (6+ API calls):
-```typescript
 
+```typescript
 const [backendHealth, chromaStatus, mcpStatus, ragStatus, sandboxStatus, costData] =
   await Promise.allSettled([
     apiClient.getHealth(),
@@ -151,12 +156,13 @@ const [backendHealth, chromaStatus, mcpStatus, ragStatus, sandboxStatus, costDat
 
 ```typescript
 const [statusResult, costsResult] = await Promise.allSettled([
-  apiClient.getDashboardStatus(),  // Single consolidated call!
-  apiClient.getDashboardCosts(),    // Cached 60s
+  apiClient.getDashboardStatus(), // Single consolidated call!
+  apiClient.getDashboardCosts(), // Cached 60s
 ]);
 ```
 
 **Benefits**:
+
 - Simpler error handling (2 promises instead of 6)
 - Faster initial load (parallel consolidated calls)
 - Less network overhead
@@ -168,11 +174,11 @@ const [statusResult, costsResult] = await Promise.allSettled([
 
 ### Cache TTLs
 
-| Endpoint | TTL | Rationale |
-|----------|-----|-----------|
-| `/api/dashboard/status` | 10s | Service status changes frequently, need near-real-time updates |
-| `/api/dashboard/costs` | 60s | **AGGRESSIVE** - Costs change slowly, expensive DB queries |
-| `/api/dashboard/metrics/{service}` | 30s | Metrics aggregation is expensive, 30s is acceptable staleness |
+| Endpoint                           | TTL | Rationale                                                      |
+| ---------------------------------- | --- | -------------------------------------------------------------- |
+| `/api/dashboard/status`            | 10s | Service status changes frequently, need near-real-time updates |
+| `/api/dashboard/costs`             | 60s | **AGGRESSIVE** - Costs change slowly, expensive DB queries     |
+| `/api/dashboard/metrics/{service}` | 30s | Metrics aggregation is expensive, 30s is acceptable staleness  |
 
 ### Cache Implementation
 
@@ -331,7 +337,6 @@ asyncio.run(cache.get("test"))  # Returns None
 **Proposed**: Exponential backoff when services are healthy
 
 ```typescript
-
 // Pseudocode
 let pollInterval = 30000; // Start at 30s
 
@@ -422,6 +427,7 @@ async def startup():
 **Status**: ✅ **COMPLETE** - Dashboard API consolidation with aggressive caching
 
 **Next Steps**:
+
 1. Test in production environment
 2. Monitor cache hit rates and performance gains
 3. Consider WebSocket implementation for real-time updates

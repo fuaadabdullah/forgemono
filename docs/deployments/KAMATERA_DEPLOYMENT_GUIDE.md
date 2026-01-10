@@ -36,6 +36,7 @@ chmod +x bootstrap_inference.sh
 ### Step 3: Deploy Server 2 (Router Node - 45.61.51.220)
 
 **In Kamatera Console:**
+
 1. Find server with IP: 45.61.51.220
 2. Click "Actions" → "Access via Console" (opens new window)
 3. In the console, run these commands:
@@ -138,6 +139,7 @@ journalctl -u local-llm-proxy -n 10 --no-pager
 ```
 
 **Test Server 2 (45.61.51.220):**
+
 ```bash
 
 # Health check
@@ -213,6 +215,7 @@ curl -H "x-api-key: $PUBLIC_KEY" \
 ## 🔧 TROUBLESHOOTING
 
 If bootstrap fails:
+
 ```bash
 
 # Check logs

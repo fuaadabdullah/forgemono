@@ -1,5 +1,5 @@
 ---
-description: "ONBOARDING_TARIQ"
+description: 'ONBOARDING_TARIQ'
 ---
 
 # Onboarding: Tariq Fletcher → GoblinOS

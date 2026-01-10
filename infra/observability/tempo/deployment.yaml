@@ -17,22 +17,22 @@ spec:
         - name: tempo
           image: grafana/tempo:1.6.0
           args:
-            - "--config.file=/etc/tempo/config.yaml"
+            - '--config.file=/etc/tempo/config.yaml'
           ports:
             - containerPort: 9411
           resources:
             requests:
-              cpu: "100m"
-              memory: "128Mi"
+              cpu: '100m'
+              memory: '128Mi'
             limits:
-              cpu: "500m"
-              memory: "512Mi"
+              cpu: '500m'
+              memory: '512Mi'
           volumeMounts:
             - name: config
               mountPath: /etc/tempo
           env:
             - name: AWS_REGION
-              value: "us-east-1"
+              value: 'us-east-1'
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:

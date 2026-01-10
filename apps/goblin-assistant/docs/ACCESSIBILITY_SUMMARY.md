@@ -21,13 +21,13 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 
 #### Quick Contrast Sanity Map (Use This When Designing)
 
-| Token pairing | When to use it | Minimum ratio | Notes |
-| --- | --- | --- | --- |
-| `--primary` accents on `--bg` | Icons, focus rings, tiny neon wires | 3.0:1 (large text/graphics) | Keep text brief or add outline. |
-| `--primary-600` text on `--surface` | Headlines on lighter cards | 4.5:1 | Darker green stays punchy without haloing. |
-| `--text` on `--bg` / `--surface` | Paragraphs, forms, system copy | 4.5:1 | Default body style. Never swap to off-white. |
-| `--cta` buttons with `--text-inverse` | Important/destructive CTAs | 4.5:1 | If ratio dips, switch to `--cta-600` background or add 1px border using `--border-hover`. |
-| `--muted` on `--surface` | Labels, helper text | 4.5:1 | For disabled states, drop opacity instead of custom hex. |
+| Token pairing                         | When to use it                      | Minimum ratio               | Notes                                                                                     |
+| ------------------------------------- | ----------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------- |
+| `--primary` accents on `--bg`         | Icons, focus rings, tiny neon wires | 3.0:1 (large text/graphics) | Keep text brief or add outline.                                                           |
+| `--primary-600` text on `--surface`   | Headlines on lighter cards          | 4.5:1                       | Darker green stays punchy without haloing.                                                |
+| `--text` on `--bg` / `--surface`      | Paragraphs, forms, system copy      | 4.5:1                       | Default body style. Never swap to off-white.                                              |
+| `--cta` buttons with `--text-inverse` | Important/destructive CTAs          | 4.5:1                       | If ratio dips, switch to `--cta-600` background or add 1px border using `--border-hover`. |
+| `--muted` on `--surface`              | Labels, helper text                 | 4.5:1                       | For disabled states, drop opacity instead of custom hex.                                  |
 
 **Workflow**: Sketch the layout, map every text/shape to the table above, then run `node scripts/check-contrast.js` to confirm.
 
@@ -165,6 +165,7 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 - No accessibility testing procedures
 
 ### After Accessibility Implementation:
+
 ✅ **WCAG AA compliant** (all contrast ratios verified)
 ✅ **Motion-sensitive** (respects prefers-reduced-motion)
 ✅ **High-contrast mode** (toggle with localStorage persistence)

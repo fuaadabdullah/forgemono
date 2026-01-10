@@ -29,7 +29,7 @@ const SearchPage: React.FC = () => {
     if (collectionsData && collectionsData.length > 0 && !selectedCollection) {
       // Assume apiClient returns array of { id, name }
       const first = collectionsData[0];
-      const name = typeof first === 'string' ? first : (first.name || '');
+      const name = typeof first === 'string' ? first : first.name || '';
       setSelectedCollection(name);
     }
   }, [collectionsData, selectedCollection]);
@@ -42,14 +42,17 @@ const SearchPage: React.FC = () => {
       // We need a collectionId; if collectionsData items are objects use their id, else fallback to name mapping
       let collectionId: number | undefined;
       if (collectionsData) {
-        const match = collectionsData.find((c: any) => (typeof c === 'string' ? c === selectedCollection : c.name === selectedCollection));
+        const match = collectionsData.find((c: any) =>
+          typeof c === 'string' ? c === selectedCollection : c.name === selectedCollection
+        );
         if (match && typeof match === 'object') collectionId = match.id;
       }
       // If no numeric id, bail with message (backend mismatch)
       if (collectionId === undefined) {
         // Fallback: query directly via temporary fetch until api supports name-based searchDocuments
-        const IS_VERCEL = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
-        const baseUrl = IS_VERCEL ? '' : (env.fastApiUrl || 'http://127.0.0.1:8001');
+        const IS_VERCEL =
+          typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
+        const baseUrl = IS_VERCEL ? '' : env.fastApiUrl || 'http://127.0.0.1:8001';
         const response = await fetch(`${baseUrl}/search/query`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -64,7 +67,11 @@ const SearchPage: React.FC = () => {
         setResults(data.results);
         return;
       }
-      const searchResponse = await searchDocuments({ collectionId, query: query.trim(), limit: 20 });
+      const searchResponse = await searchDocuments({
+        collectionId,
+        query: query.trim(),
+        limit: 20,
+      });
       // Assume apiClient.searchDocuments returns { results }
       const out = (searchResponse as any)?.results || [];
       setResults(out);
@@ -151,7 +158,7 @@ const SearchPage: React.FC = () => {
         )}
 
         {/* Empty State */}
-  {!query && !searching && results.length === 0 && (
+        {!query && !searching && results.length === 0 && (
           <div className="text-center py-16">
             <div className="w-20 h-20 bg-surface-hover rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-4xl">🔍</span>
@@ -164,14 +171,15 @@ const SearchPage: React.FC = () => {
         )}
 
         {/* No Results */}
-  {!searching && !error && results.length === 0 && query && (
+        {!searching && !error && results.length === 0 && query && (
           <div className="text-center py-16">
             <div className="w-20 h-20 bg-surface-hover rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-4xl">📄</span>
             </div>
             <h3 className="text-lg font-medium text-text mb-2">No results found</h3>
             <p className="text-muted">
-              Try adjusting your search query or check if documents are indexed in the selected collection.
+              Try adjusting your search query or check if documents are indexed in the selected
+              collection.
             </p>
           </div>
         )}
@@ -190,9 +198,7 @@ const SearchPage: React.FC = () => {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">📄</span>
-                    <span className="text-sm font-medium text-text">
-                      Document {index + 1}
-                    </span>
+                    <span className="text-sm font-medium text-text">Document {index + 1}</span>
                   </div>
                   {result.distance !== undefined && (
                     <span className="text-xs text-muted bg-surface-hover px-2 py-1 rounded">
@@ -200,9 +206,7 @@ const SearchPage: React.FC = () => {
                     </span>
                   )}
                 </div>
-                <p className="text-text mb-4 leading-relaxed">
-                  {result.document}
-                </p>
+                <p className="text-text mb-4 leading-relaxed">{result.document}</p>
                 {result.metadata && Object.keys(result.metadata).length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(result.metadata).map(([key, value]) => (

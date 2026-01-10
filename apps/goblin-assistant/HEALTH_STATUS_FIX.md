@@ -21,6 +21,7 @@ Fixed the "degraded" status display issue. The services were actually healthy, b
   - Does NOT affect core app functionality
 
 ### Why It Showed "Degraded"
+
 The overall health endpoint returns "degraded" when ANY check fails, including external AI provider network tests. This is technically correct but confusing because:
 
 - Core services (DB, vector DB, sandbox) were all healthy
@@ -29,6 +30,7 @@ The overall health endpoint returns "degraded" when ANY check fails, including e
 ## Changes Made
 
 ### 1. Fixed API Client Endpoints (`src/api/client-axios.ts`)
+
 Updated all health check endpoints to match backend routes:
 
 - `/health/chroma` → `/health/chroma/status`
@@ -61,8 +63,15 @@ Updated all health check endpoints to match backend routes:
 {
   "status": "degraded",
   "checks": {
-    "database": { "status": "healthy", "host": "aws-0-us-west-2.pooler.supabase.com", "port": 6543 },
-    "vector_db": { "status": "healthy", "path": "/Users/fuaadabdullah/ForgeMonorepo/chroma_db/chroma.sqlite3" },
+    "database": {
+      "status": "healthy",
+      "host": "aws-0-us-west-2.pooler.supabase.com",
+      "port": 6543
+    },
+    "vector_db": {
+      "status": "healthy",
+      "path": "/Users/fuaadabdullah/ForgeMonorepo/chroma_db/chroma.sqlite3"
+    },
     "providers": [
       { "Anthropic": { "enabled": true, "status": "unreachable" } },
       { "OpenAI": { "enabled": true, "status": "unreachable" } },
@@ -75,6 +84,7 @@ Updated all health check endpoints to match backend routes:
 ```
 
 ### Individual Service Endpoints
+
 - **Sandbox**: `{"status":"healthy","active_jobs":0,"queue_size":0}`
 - **Chroma**: `{"status":"healthy","collections":0,"documents":0}`
 - **MCP**: Returns list of active MCP servers
@@ -83,18 +93,23 @@ Updated all health check endpoints to match backend routes:
 ## What To Do Next
 
 ### Immediate Action Required
+
 **Reload your browser** at `http://localhost:3000`
+
 - The frontend will now fetch data from the corrected endpoints
 - Dashboard should show Vector DB and Sandbox as healthy
 - The overall "degraded" badge will still show because AI providers are unreachable, but individual service cards will be green
 
 ### If AI Providers Show Unreachable
+
 This is NORMAL when:
+
 1. You're working offline
 2. You're behind a firewall/VPN that blocks AI APIs
 3. The APIs are experiencing issues
 
 **To verify network connectivity:**
+
 ```bash
 
 # Test if you can reach OpenAI
@@ -109,6 +124,7 @@ If you CAN reach these APIs but health checks still fail, check your API keys in
 - `apps/goblin-assistant/backend/.env`
 
 ### Optional: Disable Provider Health Checks
+
 If you want to work offline without seeing "degraded" status:
 
 Edit `apps/goblin-assistant/backend/.env` and add:
@@ -121,6 +137,7 @@ GEMINI_ENABLED=false
 ```
 
 Then restart the backend:
+
 ```bash
 
 # Kill existing backend
@@ -140,6 +157,7 @@ curl -s http://localhost:8001/health/all | python3 -m json.tool
 ```
 
 ### Check Individual Services
+
 ```bash
 
 # Vector DB
@@ -159,11 +177,13 @@ ps aux | grep "vite.*3000" | grep -v grep
 ```
 
 ## Files Changed
+
 1. `src/api/client-axios.ts` - Fixed all health endpoint URLs
 2. `src/components/EnhancedDashboard.tsx` - Fixed status interpretation and metrics
 3. `goblin-assistant/.env` - Updated `VITE_FASTAPI_URL=http://localhost:8001`
 
 ## Quality Gates
+
 - ✅ Backend running and healthy
 - ✅ All core services (DB, vector DB, sandbox) healthy
 - ✅ Frontend running on port 3000

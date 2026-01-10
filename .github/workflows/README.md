@@ -50,17 +50,17 @@ Set these in your repository settings under **Settings → Secrets and variables
 
 ### Required Secrets
 
-| Secret | Description | Where to get it |
-|--------|-------------|-----------------|
-| `TF_TOKEN` | Terraform Cloud API token | [app.terraform.io/app/settings/tokens](https://app.terraform.io/app/settings/tokens) |
-| `GITHUB_TOKEN` | Auto-provided by GitHub | (Automatic - no setup needed) |
+| Secret         | Description               | Where to get it                                                                      |
+| -------------- | ------------------------- | ------------------------------------------------------------------------------------ |
+| `TF_TOKEN`     | Terraform Cloud API token | [app.terraform.io/app/settings/tokens](https://app.terraform.io/app/settings/tokens) |
+| `GITHUB_TOKEN` | Auto-provided by GitHub   | (Automatic - no setup needed)                                                        |
 
 ### Optional Secrets
 
-| Secret | Description | When needed |
-|--------|-------------|-------------|
-| `DOCKERHUB_USERNAME` | Docker Hub username | If using Docker Hub instead of GHCR |
-| `DOCKERHUB_TOKEN` | Docker Hub access token | If using Docker Hub instead of GHCR |
+| Secret               | Description             | When needed                         |
+| -------------------- | ----------------------- | ----------------------------------- |
+| `DOCKERHUB_USERNAME` | Docker Hub username     | If using Docker Hub instead of GHCR |
+| `DOCKERHUB_TOKEN`    | Docker Hub access token | If using Docker Hub instead of GHCR |
 
 ## Setup Instructions
 
@@ -118,14 +118,14 @@ For Terraform deployments:
 
 ## Differences from CircleCI
 
-| Feature | CircleCI | GitHub Actions |
-|---------|----------|----------------|
-| Docker Registry | GHCR | GHCR |
-| Terraform State | Terraform Cloud | Terraform Cloud |
-| Security Scanning | tfsec + Checkov | tfsec + Checkov |
-| Manual Approvals | Yes (staging/prod) | Manual trigger only |
-| Cost | Credits-based | Minutes-based |
-| Setup | Contexts required | Repository secrets |
+| Feature           | CircleCI           | GitHub Actions      |
+| ----------------- | ------------------ | ------------------- |
+| Docker Registry   | GHCR               | GHCR                |
+| Terraform State   | Terraform Cloud    | Terraform Cloud     |
+| Security Scanning | tfsec + Checkov    | tfsec + Checkov     |
+| Manual Approvals  | Yes (staging/prod) | Manual trigger only |
+| Cost              | Credits-based      | Minutes-based       |
+| Setup             | Contexts required  | Repository secrets  |
 
 ## Troubleshooting
 

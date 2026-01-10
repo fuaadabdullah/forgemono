@@ -12,20 +12,20 @@ spec:
       app.kubernetes.io/name: cost-analyzer
 
   endpoints:
-  - port: metrics
-    interval: 30s
-    path: /metrics
-    scheme: http
+    - port: metrics
+      interval: 30s
+      path: /metrics
+      scheme: http
 
-    # Relabeling
-    relabelings:
-    - sourceLabels: [__meta_kubernetes_pod_name]
-      targetLabel: pod
-    - sourceLabels: [__meta_kubernetes_pod_node_name]
-      targetLabel: node
-    - sourceLabels: [__meta_kubernetes_namespace]
-      targetLabel: namespace
+      # Relabeling
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: node
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
 
   namespaceSelector:
     matchNames:
-    - kubecost
+      - kubecost

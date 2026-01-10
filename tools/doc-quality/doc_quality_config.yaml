@@ -3,25 +3,25 @@
 
 # API Configuration
 api:
-  url: "https://thomasena-auxochromic-joziah.ngrok-free.dev"
+  url: 'https://thomasena-auxochromic-joziah.ngrok-free.dev'
   timeout: 15
   retries: 3
 
 # Local and hosted model configurations
 models:
   phi3:
-    url: "http://localhost:7860/v1/chat/completions"
+    url: 'http://localhost:7860/v1/chat/completions'
     timeout: 5
     enabled: true
-    model_name: "models/Phi-3-mini-4k-instruct-q4.gguf"
-    provider: "local"
+    model_name: 'models/Phi-3-mini-4k-instruct-q4.gguf'
+    provider: 'local'
     soft_fallback: false
 
   raptor:
-    url: "https://thomasena-auxochromic-joziah.ngrok-free.dev"
+    url: 'https://thomasena-auxochromic-joziah.ngrok-free.dev'
     timeout: 20
     enabled: true
-    provider: "raptor_api"
+    provider: 'raptor_api'
 
 # Quality Thresholds
 quality:
@@ -53,22 +53,22 @@ thresholds:
 files:
   # Directories to scan for documentation
   directories:
-    - "docs"
-    - "."
+    - 'docs'
+    - '.'
 
   # File extensions to check
   extensions:
-    - ".md"
-    - ".txt"
-    - ".rst"
-    - ".adoc"
+    - '.md'
+    - '.txt'
+    - '.rst'
+    - '.adoc'
 
   # Patterns to exclude
   exclude_patterns:
-    - "**/node_modules/**"
-    - "**/.git/**"
-    - "**/__pycache__/**"
-    - "**/.*"
+    - '**/node_modules/**'
+    - '**/.git/**'
+    - '**/__pycache__/**'
+    - '**/.*'
 
 # Batch Processing
 batch:

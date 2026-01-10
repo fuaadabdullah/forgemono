@@ -53,7 +53,7 @@ const CostBreakdownChart: React.FC<CostBreakdownChartProps> = ({ data }) => {
           <YAxis
             stroke="#9ca3af"
             fontSize={12}
-            tickFormatter={value => `$${Number(value).toFixed(4)}`}
+            tickFormatter={(value) => `$${Number(value).toFixed(4)}`}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(100, 116, 139, 0.1)' }} />
           <Legend iconType="circle" />

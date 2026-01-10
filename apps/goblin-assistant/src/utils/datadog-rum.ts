@@ -57,7 +57,7 @@ export async function initDatadog(): Promise<void> {
     const [rumModule, logsModule, reactModule] = await Promise.all([
       import('@datadog/browser-rum'),
       import('@datadog/browser-logs'),
-      import('@datadog/browser-rum-react')
+      import('@datadog/browser-rum-react'),
     ]);
 
     datadogRum = rumModule.datadogRum;

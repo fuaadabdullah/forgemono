@@ -1,6 +1,7 @@
 # Lighthouse Audit Quick Reference Card
 
 ## 🎯 Your Mission
+
 Audit 7 pages, record scores, document issues.
 
 ---
@@ -9,45 +10,45 @@ Audit 7 pages, record scores, document issues.
 
 ### Dashboard (`/`)
 
-- [ ] Score: ___/100
-- [ ] Passed: ___
-- [ ] Issues: ________________________
+- [ ] Score: \_\_\_/100
+- [ ] Passed: \_\_\_
+- [ ] Issues: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ### Chat (`/chat`)
 
-- [ ] Score: ___/100
-- [ ] Passed: ___
-- [ ] Issues: ________________________
+- [ ] Score: \_\_\_/100
+- [ ] Passed: \_\_\_
+- [ ] Issues: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ### Search (`/search`)
 
-- [ ] Score: ___/100
-- [ ] Passed: ___
-- [ ] Issues: ________________________
+- [ ] Score: \_\_\_/100
+- [ ] Passed: \_\_\_
+- [ ] Issues: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ### Settings (`/settings`)
 
-- [ ] Score: ___/100
-- [ ] Passed: ___
-- [ ] Issues: ________________________
+- [ ] Score: \_\_\_/100
+- [ ] Passed: \_\_\_
+- [ ] Issues: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ### Providers (`/providers`)
 
-- [ ] Score: ___/100
-- [ ] Passed: ___
-- [ ] Issues: ________________________
+- [ ] Score: \_\_\_/100
+- [ ] Passed: \_\_\_
+- [ ] Issues: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ### Logs (`/logs`)
 
-- [ ] Score: ___/100
-- [ ] Passed: ___
-- [ ] Issues: ________________________
+- [ ] Score: \_\_\_/100
+- [ ] Passed: \_\_\_
+- [ ] Issues: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ### Sandbox (`/sandbox`)
 
-- [ ] Score: ___/100
-- [ ] Passed: ___
-- [ ] Issues: ________________________
+- [ ] Score: \_\_\_/100
+- [ ] Passed: \_\_\_
+- [ ] Issues: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 ---
 
@@ -64,12 +65,12 @@ Audit 7 pages, record scores, document issues.
 
 ## 📊 Score Interpretation
 
-| Score | Meaning |
-|-------|---------|
+| Score  | Meaning                 |
+| ------ | ----------------------- |
 | 90-100 | ✅ Excellent - Ship it! |
-| 75-89 | ⚠️ Good - Minor tweaks |
-| 50-74 | 🟠 Needs work |
-| 0-49 | ❌ Critical issues |
+| 75-89  | ⚠️ Good - Minor tweaks  |
+| 50-74  | 🟠 Needs work           |
+| 0-49   | ❌ Critical issues      |
 
 ---
 
@@ -105,6 +106,7 @@ After all 7 audits:
      failed: []
    }
    ```
+
 3. Run: `node scripts/summarize-lighthouse-results.js`
 4. Review: `docs/ACCESSIBILITY_AUDIT_RESULTS.md`
 

@@ -89,9 +89,7 @@ export default function HealthCard({
         disabled={!expandable}
       >
         <div className="flex items-center gap-4">
-          <div className="flex items-center justify-center w-8 h-8 text-2xl">
-            {icon}
-          </div>
+          <div className="flex items-center justify-center w-8 h-8 text-2xl">{icon}</div>
           <div className="text-left">
             <h3 className="text-sm font-semibold text-text">{title}</h3>
             <span className={`text-xs px-2 py-0.5 rounded-full ${config.badge}`}>
@@ -141,7 +139,10 @@ export default function HealthCard({
           {metrics.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4">
               {metrics.map((metric, idx) => (
-                <div key={idx} className="bg-surface-hover rounded-lg p-4 border border-border min-h-[72px]">
+                <div
+                  key={idx}
+                  className="bg-surface-hover rounded-lg p-4 border border-border min-h-[72px]"
+                >
                   <div className="text-xs text-muted mb-1">{metric.label}</div>
                   <div className="text-lg font-semibold text-text leading-tight">
                     {metric.value}
@@ -166,13 +167,8 @@ export default function HealthCard({
               </h4>
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {errors.map((error, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-surface border border-danger rounded p-2"
-                  >
-                    <div className="text-xs text-danger font-mono">
-                      {error.message}
-                    </div>
+                  <div key={idx} className="bg-surface border border-danger rounded p-2">
+                    <div className="text-xs text-danger font-mono">{error.message}</div>
                     <div className="text-xs text-muted mt-1">
                       {new Date(error.timestamp).toLocaleTimeString()}
                     </div>
