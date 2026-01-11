@@ -16,7 +16,6 @@ max_budget_per_hour = 10.0
 preferred_providers_under_budget = [
   "ollama_kamatera",
   "llamacpp_kamatera",
-  "ollama",
   "openai",
 ]
 
@@ -71,17 +70,6 @@ default_timeout_ms = 10000
 bandwidth_score = 0.8
 supports_cot = true
 cot_suppression_prompt = "Answer concisely."
-
-[providers.ollama]
-name = "Ollama (Local)"
-endpoint = "http://127.0.0.1:11434"
-capabilities = ["chat", "reasoning", "code", "embedding"]
-models = ["qwen2.5:3b", "deepseek-coder:1.3b", "gemma:2b", "phi3:3.8b"]
-priority_tier = 0
-cost_score = 0.0
-default_timeout_ms = 30000
-bandwidth_score = 0.5
-supports_cot = false
 
 [providers.groq]
 name = "Groq"
@@ -147,16 +135,21 @@ bandwidth_score = 0.75
 supports_cot = true
 cot_suppression_prompt = "Answer directly."
 
+# Primary Ollama server (Server 2 - 192.175.23.150) - WORKING
 [providers.ollama_kamatera]
-name = "Ollama (Kamatera)"
-endpoint = "http://45.61.60.3:8002"
+name = "Ollama (Kamatera Server 2)"
+endpoint = "http://192.175.23.150:8002"
 capabilities = ["chat", "reasoning", "code", "embedding"]
 models = [
-  "phi3:3.8b",
-  "gemma:2b",
-  "qwen2.5:3b",
-  "deepseek-coder:1.3b",
-  "mistral:7b",
+  "phi3:latest",
+  "gemma2:latest",
+  "qwen2.5:latest",
+  "codellama:latest",
+  "mistral:latest",
+  "llama3.1:latest",
+  "goblin-simple:latest",
+  "goblin-medium:latest",
+  "goblin-complex:latest",
 ]
 priority_tier = 0
 cost_score = 0.0
@@ -164,21 +157,66 @@ default_timeout_ms = 30000
 bandwidth_score = 0.8
 supports_cot = false
 api_key_env = "LOCAL_LLM_API_KEY"
-invoke_path = "/chat/completions"
+invoke_path = "/api/generate"
 
-[providers.llamacpp_kamatera]
-name = "llama.cpp (Kamatera)"
-endpoint = "http://45.61.60.3:8002"
+# GCP Ollama Server (Replaces Kamatera) - Cost-optimized e2-medium preemptible
+[providers.ollama_gcp]
+name = "Ollama (GCP us-central1)"
+endpoint = "http://34.60.255.199:11434"
 capabilities = ["chat", "reasoning", "code"]
-models = [
-  "phi-3-mini-4k-instruct-q4",
-  "llama-2-7b-chat-q4_k_m",
-  "mistral-7b-instruct-v0.2-q4_k_m",
-]
+models = ["qwen2.5:3b", "llama3.2:1b"]
 priority_tier = 0
 cost_score = 0.0
-default_timeout_ms = 30000
+default_timeout_ms = 20000
 bandwidth_score = 0.9
 supports_cot = false
 api_key_env = "LOCAL_LLM_API_KEY"
-invoke_path = "/chat/completions"
+invoke_path = "/api/generate"
+default_model = "qwen2.5:3b"
+
+# GCP LlamaCPP Server (Replaces Kamatera) - Cost-optimized e2-standard-4 preemptible
+[providers.llamacpp_gcp]
+name = "llama.cpp (GCP us-central1)"
+endpoint = "http://136.119.9.188:8000"
+capabilities = ["chat", "reasoning", "code"]
+models = ["qwen2.5-3b-instruct-q4_k_m"]
+priority_tier = 0
+cost_score = 0.0
+default_timeout_ms = 20000
+bandwidth_score = 0.9
+supports_cot = false
+api_key_env = "LOCAL_LLM_API_KEY"
+invoke_path = "/v1/chat/completions"
+default_model = "qwen2.5-3b-instruct-q4_k_m"
+
+# Kamatera Router API (Server 1 - 45.61.51.220) - Backup provider
+[providers.llamacpp_kamatera]
+name = "llama.cpp Router (Kamatera Server 1)"
+endpoint = "http://45.61.51.220:8000"
+capabilities = ["chat", "reasoning", "code"]
+models = [
+  "qwen2.5:latest",
+  "gemma2:latest",
+  "codellama:latest",
+  "llama3.1:latest",
+]
+priority_tier = 1
+cost_score = 0.0
+default_timeout_ms = 30000
+bandwidth_score = 0.8
+supports_cot = false
+api_key_env = "LOCAL_LLM_API_KEY"
+invoke_path = "/v1/chat/completions"
+default_model = "qwen2.5:latest"
+
+[providers.mock]
+name = "Mock Provider"
+endpoint = "mock://localhost"
+capabilities = ["chat", "reasoning", "code", "embedding"]
+models = ["mock-gpt", "mock-claude", "mock-phi"]
+priority_tier = 99
+cost_score = 0.0
+default_timeout_ms = 1000
+bandwidth_score = 1.0
+supports_cot = false
+force_fallback = true

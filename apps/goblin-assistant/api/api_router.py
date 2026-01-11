@@ -24,6 +24,9 @@ class SimpleChatMessage(BaseModel):
 class SimpleChatRequest(BaseModel):
     messages: List[SimpleChatMessage]
     model: Optional[str] = None
+    provider: Optional[str] = (
+        None  # Allow specifying provider (e.g., "ollama_gcp", "llamacpp_gcp")
+    )
     stream: Optional[bool] = False
 
 
@@ -59,9 +62,9 @@ async def simple_chat(request: SimpleChatRequest):
             "model": request.model,
         }
 
-        # Invoke provider (auto-selects llamacpp_kamatera if available)
+        # Invoke provider (use request.provider if specified, otherwise auto-select)
         response = await invoke_provider(
-            pid=None,  # Auto-select best provider
+            pid=request.provider,  # Use specified provider or None for auto-select
             model=request.model,
             payload=payload,
             timeout_ms=30000,
