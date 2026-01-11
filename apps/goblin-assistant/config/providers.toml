@@ -84,6 +84,21 @@ bandwidth_score = 0.95
 supports_cot = true
 cot_suppression_prompt = "Be direct."
 
+[providers.siliconeflow]
+name = "SiliconeFlow"
+endpoint = "https://api.siliconflow.com"
+capabilities = ["chat", "reasoning", "code"]
+models = ["Qwen/Qwen2.5-7B-Instruct", "Qwen/Qwen2.5-Coder-7B-Instruct", "deepseek-ai/DeepSeek-V2.5"]
+api_key_env = "SILICONEFLOW_API_KEY"
+priority_tier = 2
+cost_score = 0.3
+default_timeout_ms = 10000
+bandwidth_score = 0.9
+supports_cot = true
+cot_suppression_prompt = "Be direct."
+invoke_path = "/v1/chat/completions"
+default_model = "Qwen/Qwen2.5-7B-Instruct"
+
 [providers.together]
 name = "Together AI"
 endpoint = "https://api.together.xyz"
@@ -135,9 +150,9 @@ bandwidth_score = 0.75
 supports_cot = true
 cot_suppression_prompt = "Answer directly."
 
-# Primary Ollama server (Server 2 - 192.175.23.150) - WORKING
+# Primary Ollama server (Server 2 - 192.175.23.150) - DISABLED (unreachable since 2026-01-11)
 [providers.ollama_kamatera]
-name = "Ollama (Kamatera Server 2)"
+name = "Ollama (Kamatera Server 2) - DISABLED"
 endpoint = "http://192.175.23.150:8002"
 capabilities = ["chat", "reasoning", "code", "embedding"]
 models = [
@@ -151,13 +166,14 @@ models = [
   "goblin-medium:latest",
   "goblin-complex:latest",
 ]
-priority_tier = 0
+priority_tier = 99  # DISABLED - unreachable
 cost_score = 0.0
 default_timeout_ms = 30000
 bandwidth_score = 0.8
 supports_cot = false
 api_key_env = "LOCAL_LLM_API_KEY"
 invoke_path = "/api/generate"
+is_active = false  # DISABLED
 
 # GCP Ollama Server (Replaces Kamatera) - Cost-optimized e2-medium preemptible
 [providers.ollama_gcp]
@@ -177,7 +193,7 @@ default_model = "qwen2.5:3b"
 # GCP LlamaCPP Server (Replaces Kamatera) - Cost-optimized e2-standard-4 preemptible
 [providers.llamacpp_gcp]
 name = "llama.cpp (GCP us-central1)"
-endpoint = "http://136.119.9.188:8000"
+endpoint = "http://34.132.226.143:8000"
 capabilities = ["chat", "reasoning", "code"]
 models = ["qwen2.5-3b-instruct-q4_k_m"]
 priority_tier = 0
@@ -189,9 +205,9 @@ api_key_env = "LOCAL_LLM_API_KEY"
 invoke_path = "/v1/chat/completions"
 default_model = "qwen2.5-3b-instruct-q4_k_m"
 
-# Kamatera Router API (Server 1 - 45.61.51.220) - Backup provider
+# Kamatera Router API (Server 1 - 45.61.51.220) - DISABLED (unreachable since 2026-01-11)
 [providers.llamacpp_kamatera]
-name = "llama.cpp Router (Kamatera Server 1)"
+name = "llama.cpp Router (Kamatera Server 1) - DISABLED"
 endpoint = "http://45.61.51.220:8000"
 capabilities = ["chat", "reasoning", "code"]
 models = [
@@ -200,7 +216,7 @@ models = [
   "codellama:latest",
   "llama3.1:latest",
 ]
-priority_tier = 1
+priority_tier = 99  # DISABLED - unreachable
 cost_score = 0.0
 default_timeout_ms = 30000
 bandwidth_score = 0.8
@@ -208,6 +224,7 @@ supports_cot = false
 api_key_env = "LOCAL_LLM_API_KEY"
 invoke_path = "/v1/chat/completions"
 default_model = "qwen2.5:latest"
+is_active = false  # DISABLED
 
 [providers.mock]
 name = "Mock Provider"

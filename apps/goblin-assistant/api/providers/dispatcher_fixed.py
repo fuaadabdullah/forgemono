@@ -1,8 +1,15 @@
 """
 Provider dispatcher that routes requests to appropriate provider implementations.
+
+Updated: 2026-01-11
+- Integrated with smart router for intelligent provider selection
+- Added health monitoring integration
+- Removed dead Kamatera providers from priority list
+- GCP providers now primary for cost optimization
 """
 
 import os
+import logging
 from typing import Dict, Any
 from .base import BaseProvider
 from .openai import OpenAIProvider
@@ -13,8 +20,22 @@ from .kamatera_ollama import KamateraOllamaProvider
 from .kamatera_llamacpp import KamateraLlamaCppProvider
 from .groq import GroqProvider
 from .gemini import GeminiProvider
+from .siliconeflow import SiliconeFlowProvider
 from .generic import GenericProvider
 from .mock_provider import MockProvider
+
+# Import smart router (optional - graceful fallback if not available)
+try:
+    from api.services.smart_router import smart_router, RoutingStrategy
+    from api.services.provider_health import health_monitor
+
+    SMART_ROUTING_AVAILABLE = True
+except ImportError:
+    SMART_ROUTING_AVAILABLE = False
+    smart_router = None
+    health_monitor = None
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 try:
@@ -105,6 +126,12 @@ class ProviderDispatcher:
                 "endpoint": "https://generativelanguage.googleapis.com",
                 "api_key_env": "GOOGLE_API_KEY",
             },
+            "siliconeflow": {
+                "endpoint": "https://api.siliconflow.com",
+                "api_key_env": "SILICONEFLOW_API_KEY",
+                "invoke_path": "/v1/chat/completions",
+                "default_model": "Qwen/Qwen2.5-7B-Instruct",
+            },
         }
 
     def _get_provider_config(self, provider_id: str) -> Dict[str, Any]:
@@ -137,7 +164,7 @@ class ProviderDispatcher:
             provider_id in ["llamacpp", "llamacpp_kamatera", "llamacpp_gcp"]
             or "127.0.0.1:8080" in endpoint
             or "192.175.23.150:8000" in endpoint
-            or "136.119.9.188:8000" in endpoint  # GCP LlamaCPP
+            or "34.132.226.143:8000" in endpoint  # GCP LlamaCPP
             or "ngrok.io" in endpoint
         ):
             return LlamaCPPProvider.from_config(config)
@@ -148,6 +175,8 @@ class ProviderDispatcher:
             or "generativelanguage.googleapis.com" in endpoint
         ):
             return GeminiProvider.from_config(config)
+        elif provider_id == "siliconeflow" or "siliconflow.com" in endpoint:
+            return SiliconeFlowProvider.from_config(config)
         elif provider_id == "mock":
             return MockProvider({"default_model": "mock-gpt"})
         elif provider_id in [
@@ -170,41 +199,96 @@ class ProviderDispatcher:
             self._providers[provider_id] = self._create_provider(provider_id, config)
         return self._providers[provider_id]
 
-    async def _auto_select_provider(self) -> str:
-        """Auto-select the best available provider based on configuration."""
-        # Priority order: OpenAI -> Anthropic -> Groq -> Google -> GCP LLMs -> Local -> Legacy Kamatera
+    async def _auto_select_provider(self, messages: list = None) -> str:
+        """
+        Auto-select the best available provider.
+
+        Updated priority order (2026-01-11):
+        1. GCP Ollama (free, fast, healthy)
+        2. GCP llama.cpp (free, healthy)
+        3. Groq (very cheap, fast)
+        4. SiliconeFlow (cheap)
+        5. DeepSeek (good for code)
+        6. OpenAI (quality fallback)
+        7. Anthropic (premium fallback)
+
+        Dead/Disabled:
+        - Kamatera servers (unreachable since 2026-01-11)
+        """
+        # Use smart router if available
+        if SMART_ROUTING_AVAILABLE and smart_router is not None:
+            try:
+                selection = await smart_router.select_provider(
+                    messages=messages or [],
+                )
+                logger.info(
+                    f"Smart router selected: {selection.provider_id} ({selection.reason})"
+                )
+                return selection.provider_id
+            except Exception as e:
+                logger.warning(
+                    f"Smart router failed, falling back to basic selection: {e}"
+                )
+
+        # Updated priority order: Cost-optimized, healthy providers first
+        # GCP providers are FREE and HEALTHY as of 2026-01-11
         priority_providers = [
-            ("openai", "OPENAI_API_KEY"),
-            ("anthropic", "ANTHROPIC_API_KEY"),
-            ("groq", "GROQ_API_KEY"),
-            ("google", "GOOGLE_API_KEY"),
-            ("ollama_gcp", "OLLAMA_GCP_URL"),
-            ("llamacpp_gcp", "LLAMACPP_GCP_URL"),
-            ("ollama", None),  # Local Ollama, no key required
-            ("llamacpp_kamatera", "LOCAL_LLM_API_KEY"),  # Legacy
-            ("ollama_kamatera", "LOCAL_LLM_API_KEY"),  # Legacy
+            # Tier 0: Free/Local (GCP)
+            ("ollama_gcp", "OLLAMA_GCP_URL", True),  # Free, healthy
+            ("llamacpp_gcp", "LLAMACPP_GCP_URL", True),  # Free, healthy
+            # Tier 1: Very cheap cloud
+            ("groq", "GROQ_API_KEY", False),  # Fast + cheap
+            ("siliconeflow", "SILICONEFLOW_API_KEY", False),
+            # Tier 2: Budget cloud
+            ("deepseek", "DEEPSEEK_API_KEY", False),  # Good for code
+            # Tier 3: Standard cloud
+            ("openai", "OPENAI_API_KEY", False),
+            ("anthropic", "ANTHROPIC_API_KEY", False),
+            ("google", "GOOGLE_API_KEY", False),
+            # Tier 4: Local fallback
+            ("ollama", None, True),  # Local Ollama
+            # DISABLED: Dead Kamatera servers (unreachable since 2026-01-11)
+            # ("llamacpp_kamatera", "LOCAL_LLM_API_KEY", True),
+            # ("ollama_kamatera", "LOCAL_LLM_API_KEY", True),
         ]
 
-        for provider_id, env_var in priority_providers:
+        for provider_id, env_var, is_local in priority_providers:
             config = self._get_provider_config(provider_id)
             if not config:
                 continue
 
-            # If no env_var required, provider is available
+            # Check health if smart routing is available
+            if SMART_ROUTING_AVAILABLE and health_monitor is not None:
+                if not health_monitor.is_available(provider_id):
+                    logger.debug(f"Skipping {provider_id}: unhealthy")
+                    continue
+
+            # If no env_var required (local providers)
             if env_var is None:
-                print(f"Auto-selected provider: {provider_id} (no key required)")
+                logger.info(f"Auto-selected provider: {provider_id} (no key required)")
                 return provider_id
 
             # Check if env var is set
             env_value = os.getenv(env_var, "")
             if config and env_value:
-                print(
+                logger.info(
                     f"Auto-selected provider: {provider_id} (configured via {env_var})"
                 )
                 return provider_id
 
+            # For local providers with optional env vars, check URL directly
+            if is_local and env_var and env_var.endswith("_URL"):
+                endpoint = config.get("endpoint", "")
+                if (
+                    endpoint and endpoint != "http://localhost:11434"
+                ):  # Has custom endpoint
+                    logger.info(
+                        f"Auto-selected provider: {provider_id} (local endpoint configured)"
+                    )
+                    return provider_id
+
         # Fallback to mock for development stability if nothing else works
-        print("Warning: No providers available, falling back to mock")
+        logger.warning("No providers available, falling back to mock")
         return "mock"
 
     async def invoke_provider(
@@ -217,11 +301,18 @@ class ProviderDispatcher:
     ) -> Dict[str, Any]:
         """
         Invoke a provider with the given parameters.
+
+        Updated (2026-01-11):
+        - Uses smart router for provider selection when provider_id is None
+        - Supports automatic fallback on provider failure
+        - Integrates with health monitoring
         """
-        # Handle None provider_id - auto-select best available
-        if provider_id is None:
-            provider_id = await self._auto_select_provider()
-            print(f"Auto-selected provider: {provider_id}")
+        messages = payload.get("messages", [])
+
+        # Handle None or "auto" provider_id - use smart routing
+        if provider_id is None or provider_id == "auto":
+            provider_id = await self._auto_select_provider(messages)
+            logger.info(f"Auto-selected provider: {provider_id}")
 
         config = self._get_provider_config(provider_id)
         if not config:
