@@ -778,7 +778,7 @@ export default function ChatPage() {
                   variant="outline"
                   size="sm"
                   onClick={clearChat}
-                  className="border-white/30 text-white hover:bg-white/10 font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 backdrop-blur-sm"
+                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 backdrop-blur-sm"
                 >
                   New Chat
                 </Button>
@@ -787,7 +787,7 @@ export default function ChatPage() {
                   size="sm"
                   onClick={regenerateResponse}
                   disabled={isTyping || messages.length === 0}
-                  className="border-white/30 text-white hover:bg-white/10 font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 backdrop-blur-sm"
+                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 disabled:bg-white/5 disabled:text-white/50 disabled:border-white/10 font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 backdrop-blur-sm"
                 >
                   Regenerate
                 </Button>
