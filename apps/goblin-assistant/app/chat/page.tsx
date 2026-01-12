@@ -204,13 +204,13 @@ export default function ChatPage() {
 
     try {
       // Use the correct API base URL from environment variables
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8004';
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://goblin-backend.fly.dev';
 
       // Get conversation history for context
       const conversationMessages = messages
         .filter(msg => msg.status !== 'error') // Exclude error messages from context
         .map(msg => ({
-          role: msg.type,
+          role: msg.type === 'user' ? 'user' : 'assistant',
           content: msg.content
         }));
 
@@ -228,8 +228,8 @@ export default function ChatPage() {
         },
         body: JSON.stringify({
           messages: conversationMessages,
-          provider: 'ollama_gcp', // Use GCP Ollama provider
-          model: 'qwen2.5:3b'
+          provider: 'openai', // Use OpenAI for reliable responses
+          model: 'gpt-4o-mini' // Fast and cost-effective model
         })
       });
 
@@ -252,22 +252,28 @@ export default function ChatPage() {
 
       const responseData = await sendResponse.json();
 
-      // Validate Goblin Assistant API response structure
-      if (!responseData || typeof responseData !== 'object') {
-        throw new Error('Invalid response format: expected object');
+      // Handle different response formats from the backend
+      let assistantContent = '';
+      
+      // Try Goblin Assistant API format first
+      if (responseData.result?.text) {
+        assistantContent = responseData.result.text;
+      } else if (responseData.result?.response) {
+        assistantContent = responseData.result.response;
+      } else if (responseData.response) {
+        assistantContent = responseData.response;
+      } else if (responseData.choices?.[0]?.message?.content) {
+        // OpenAI-compatible format
+        assistantContent = responseData.choices[0].message.content;
+      } else if (responseData.text) {
+        assistantContent = responseData.text;
+      } else if (responseData.content) {
+        assistantContent = responseData.content;
       }
-
-      // Check if the request was successful
-      if (!responseData.ok) {
-        const errorMsg = responseData.error || 'Unknown error occurred';
-        throw new Error(`API Error: ${errorMsg}`);
-      }
-
-      // Extract the response text
-      const assistantContent = responseData.result?.text || responseData.result?.response || '';
       
       if (!assistantContent || typeof assistantContent !== 'string') {
-        throw new Error('Invalid response format: missing or invalid response content');
+        console.error('Response format:', responseData);
+        throw new Error('Could not parse response from AI');
       }
 
       // Create assistant message from validated response
@@ -373,35 +379,28 @@ export default function ChatPage() {
         setIsTyping(true);
 
         try {
-          // Use the correct API base URL and key from environment variables
-          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8003';
-          const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-
-          if (!apiKey) {
-            throw new Error('API key not configured. Please set NEXT_PUBLIC_API_KEY in your environment.');
-          }
+          // Use the correct API base URL from environment variables
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://goblin-backend.fly.dev';
 
           // Get conversation history up to the last user message for context
           const conversationMessages = messages
             .slice(0, lastAssistantMessageIndex)
             .filter(msg => msg.status !== 'error') // Exclude error messages from context
             .map(msg => ({
-              role: msg.type,
+              role: msg.type === 'user' ? 'user' : 'assistant',
               content: msg.content
             }));
 
-          // Send message using OpenAI-compatible API
-          const sendResponse = await fetch(`${apiBaseUrl}/chat/completions`, {
+          // Send message using Goblin Assistant API
+          const sendResponse = await fetch(`${apiBaseUrl}/api/chat`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': apiKey
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              model: 'goblin-simple:latest',
               messages: conversationMessages,
-              max_tokens: 500,
-              temperature: 0.9 // Higher temperature for more varied responses
+              provider: 'openai',
+              model: 'gpt-4o-mini'
             })
           });
 
@@ -423,21 +422,35 @@ export default function ChatPage() {
 
           const responseData = await sendResponse.json();
 
-          // Validate response structure
-          if (!responseData.choices || !Array.isArray(responseData.choices) || responseData.choices.length === 0) {
-            throw new Error('Invalid response format for regeneration');
+          // Handle different response formats from the backend
+          let assistantContent = '';
+          
+          // Try Goblin Assistant API format first
+          if (responseData.result?.text) {
+            assistantContent = responseData.result.text;
+          } else if (responseData.result?.response) {
+            assistantContent = responseData.result.response;
+          } else if (responseData.response) {
+            assistantContent = responseData.response;
+          } else if (responseData.choices?.[0]?.message?.content) {
+            // OpenAI-compatible format
+            assistantContent = responseData.choices[0].message.content;
+          } else if (responseData.text) {
+            assistantContent = responseData.text;
+          } else if (responseData.content) {
+            assistantContent = responseData.content;
           }
-
-          const choice = responseData.choices[0];
-          if (!choice.message || !choice.message.content || typeof choice.message.content !== 'string') {
-            throw new Error('Invalid response content for regeneration');
+          
+          if (!assistantContent || typeof assistantContent !== 'string') {
+            console.error('Response format:', responseData);
+            throw new Error('Could not parse response from AI');
           }
 
           // Create new assistant message
           const newAssistantMessage: Message = {
             id: 'regenerated-' + Date.now(),
             type: 'assistant',
-            content: choice.message.content.trim(),
+            content: assistantContent.trim(),
             timestamp: new Date(),
             status: 'sent'
           };
