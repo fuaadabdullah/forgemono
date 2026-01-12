@@ -1,6 +1,9 @@
 ---
-description: 'ONBOARDING_TARIQ'
+title: "ONBOARDING TARIQ"
+description: "Onboarding: Tariq Fletcher → GoblinOS"
 ---
+
+
 
 # Onboarding: Tariq Fletcher → GoblinOS
 

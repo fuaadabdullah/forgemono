@@ -23,9 +23,9 @@ echo "🌐 Deploying to Vercel..."
 vercel --prod
 
 echo "✅ Frontend deployment complete!"
-echo "🔗 URL: https://goblin-assistant.vercel.app"
+echo "🔗 URL: https://goblin.fuaad.ai"
 echo ""
 echo "Next steps:"
-echo "1. Deploy backend to Fly.io (see FLY_DEPLOYMENT.md or run ./deploy-backend.sh fly)"
+echo "1. Deploy backend to Fly.io (run ./deploy-fly.sh)"
 echo "2. Configure environment variables in Vercel dashboard"
 echo "3. Test the deployed application"

@@ -1,3 +1,8 @@
+---
+title: "CODE OF CONDUCT"
+description: "Code of Conduct"
+---
+
 # Code of Conduct
 
 ## Our Pledge

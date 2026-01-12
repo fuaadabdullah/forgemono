@@ -1,3 +1,8 @@
+---
+title: "RESPONSIVE TESTING"
+description: "Responsive Design Testing Guide"
+---
+
 # Responsive Design Testing Guide
 
 ## Quick Viewport Testing

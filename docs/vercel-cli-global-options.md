@@ -1,3 +1,8 @@
+---
+title: "vercel-cli-global-options"
+description: "Vercel CLI Global Options"
+---
+
 # Vercel CLI Global Options
 
 Copy page

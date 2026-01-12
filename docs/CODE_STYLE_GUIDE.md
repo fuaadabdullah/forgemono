@@ -1,3 +1,8 @@
+---
+title: "CODE STYLE GUIDE"
+description: "Goblin Assistant Code Style & Patterns Guide"
+---
+
 # Goblin Assistant Code Style & Patterns Guide
 
 ## 🎯 Foundational Principles

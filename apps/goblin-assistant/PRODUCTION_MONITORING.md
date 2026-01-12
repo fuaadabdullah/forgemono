@@ -1,3 +1,8 @@
+---
+title: "PRODUCTION MONITORING"
+description: "Production Configuration Guide"
+---
+
 This document has moved into the canonical backend documentation folder:
 
 - apps/goblin-assistant/backend/docs/PRODUCTION_MONITORING.md

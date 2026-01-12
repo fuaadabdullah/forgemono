@@ -41,10 +41,10 @@ class SimpleChatResponse(BaseModel):
 @router.post("/chat", response_model=SimpleChatResponse)
 async def simple_chat(request: SimpleChatRequest):
     """
-    Simple chat endpoint that routes to Kamatera LLM provider.
+    Simple chat endpoint that routes to GCP LLM providers.
 
     This is the main endpoint for the frontend to use for chat functionality.
-    It automatically routes to the best available provider (Kamatera by default).
+    It defaults to the GCP Ollama server with qwen2.5:3b model.
 
     Example:
         POST /api/chat
@@ -56,16 +56,20 @@ async def simple_chat(request: SimpleChatRequest):
         # Convert messages to dict format
         messages = [{"role": m.role, "content": m.content} for m in request.messages]
 
+        # Default to GCP Ollama provider with qwen2.5:3b model if not specified
+        provider = request.provider or "ollama_gcp"
+        model = request.model or "qwen2.5:3b"
+
         # Create payload for provider
         payload = {
             "messages": messages,
-            "model": request.model,
+            "model": model,
         }
 
-        # Invoke provider (use request.provider if specified, otherwise auto-select)
+        # Invoke provider
         response = await invoke_provider(
-            pid=request.provider,  # Use specified provider or None for auto-select
-            model=request.model,
+            pid=provider,
+            model=model,
             payload=payload,
             timeout_ms=30000,
             stream=request.stream,

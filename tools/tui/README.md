@@ -1,6 +1,9 @@
 ---
-description: 'README'
+title: "README"
+description: "Goblin Quick TUI (Textual)"
 ---
+
+
 
 # Goblin Quick TUI (Textual)
 

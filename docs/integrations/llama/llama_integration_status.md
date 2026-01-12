@@ -1,3 +1,8 @@
+---
+title: "llama integration status"
+description: "llama.cpp Integration Complete"
+---
+
 # llama.cpp Integration Complete
 
 ## Status: ✅ INTEGRATED

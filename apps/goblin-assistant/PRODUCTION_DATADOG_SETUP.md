@@ -7,7 +7,7 @@ This guide covers the complete setup for deploying the Goblin Assistant with Dat
 ## Prerequisites
 
 - Datadog account with RUM and Logs enabled
-- Vercel/Netlify account for deployment
+- Vercel account for deployment
 - Access to production environment variables
 
 ---
@@ -62,14 +62,7 @@ vercel env add VITE_DD_ENV production
 vercel env add VITE_DD_VERSION production
 ```
 
-#### Netlify:
-
-Add to Site Settings > Environment Variables:
-
-- `VITE_DD_APPLICATION_ID`
-- `VITE_DD_CLIENT_TOKEN`
-- `VITE_DD_ENV`
-- `VITE_DD_VERSION`
+> Note: Netlify deployment and related instructions were removed from this guide. Use Vercel or your preferred hosting provider and set environment variables accordingly.
 
 ---
 
@@ -84,9 +77,6 @@ Add to Site Settings > Environment Variables:
 
 # Or manually with Vercel
 vercel --prod=false
-
-# Or manually with Netlify
-netlify deploy --dir=dist
 ```
 
 ### Step 2.2: Run Automated Tests
@@ -210,22 +200,15 @@ echo $VITE_DD_ENV
 ### Step 5.2: Deploy to Production
 
 ```bash
-# Using the Netlify deployment script (recommended)
-./deploy-netlify.sh
-
-# Or using the general deployment script
-./deploy.sh netlify
-
-# For staging deployment
-./deploy-netlify.sh --staging
-./deploy.sh netlify-staging
+# Using the general deployment script (preferred)
+./deploy.sh vercel
 ```
 
-### Step 5.3: Set Environment Variables in Netlify
+# Step 5.3: Set Environment Variables in your hosting provider
 
-After deployment, configure environment variables in Netlify dashboard:
+After deployment, configure environment variables in your hosting provider's dashboard (e.g., Vercel):
 
-1. Go to your Netlify site dashboard
+1. Go to your hosting provider site dashboard
 2. Navigate to Site Settings > Environment Variables
 3. Add the following variables:
    - `VITE_DD_APPLICATION_ID` = your Datadog Application ID
@@ -238,7 +221,7 @@ After deployment, configure environment variables in Netlify dashboard:
 
 ### Step 5.4: Post-Deployment Verification
 
-1. **Check Application Loads**: Visit the Netlify deployment URL
+1. **Check Application Loads**: Visit your hosting provider's deployment URL (e.g., your Vercel site)
 2. **Verify Datadog Data**: Check RUM dashboard for new data
 3. **Test Error Scenarios**: Try error conditions safely
 4. **Monitor for 24 Hours**: Watch dashboards for anomalies

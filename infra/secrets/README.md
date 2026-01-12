@@ -1,11 +1,9 @@
----title: SOPS Secrets Management
-type: how-to
-project: ForgeMonorepo
-status: published
-owner: GoblinOS
-description: "README"
-
 ---
+title: "README"
+description: "SOPS Secrets Management"
+---
+
+
 
 # SOPS Secrets Management
 

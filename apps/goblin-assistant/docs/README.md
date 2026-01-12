@@ -1,3 +1,8 @@
+---
+title: "README"
+description: "Goblin Assistant — Frontend Documentation (Canonical)"
+---
+
 # Goblin Assistant — Frontend Documentation (Canonical)
 
 This folder is the canonical location for all frontend-specific documentation and guides for the GoblinOS Assistant UI.

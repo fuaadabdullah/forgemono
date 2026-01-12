@@ -179,7 +179,7 @@ jobs:
           destination: docker/image-digest.txt
 
   # --------------------------------------------------------------------------
-  # Terraform: Security Scan (tfsec + checkov)
+  # Terraform: Security Scan (tfsec + checkov) - Enhanced
   # --------------------------------------------------------------------------
   terraform-security-scan:
     executor: python-executor
@@ -187,16 +187,16 @@ jobs:
       - checkout
       - install-security-tools
       - run:
-          name: Run tfsec
+          name: Run tfsec with SARIF output
           command: |
             cd goblin-infra
-            tfsec . --format=json --out=tfsec-results.json || true
+            tfsec . --format=json --out=tfsec-results.json --format=sarif --out=tfsec-results.sarif || true
             tfsec . --soft-fail || echo "tfsec found issues (review required)"
       - run:
-          name: Run checkov
+          name: Run checkov with SARIF output
           command: |
             cd goblin-infra
-            checkov -d . --output=json --output-file=checkov-results.json || true
+            checkov -d . --output=json --output-file=checkov-results.json --output=sarif --output-file=checkov-results.sarif || true
             checkov -d . --soft-fail || echo "checkov found issues (review required)"
       - store_artifacts:
           path: goblin-infra/tfsec-results.json
@@ -204,6 +204,12 @@ jobs:
       - store_artifacts:
           path: goblin-infra/checkov-results.json
           destination: security/checkov-results.json
+      - store_artifacts:
+          path: goblin-infra/tfsec-results.sarif
+          destination: security/tfsec-results.sarif
+      - store_artifacts:
+          path: goblin-infra/checkov-results.sarif
+          destination: security/checkov-results.sarif
 
   # --------------------------------------------------------------------------
   # Terraform: Plan (Dev)

@@ -1,3 +1,8 @@
+---
+title: "REMOVED SECRETS"
+description: "Removed/Archived Sensitive Files"
+---
+
 # Removed/Archived Sensitive Files
 
 The following files were removed from git tracking and moved into `.archive/removed-secrets/` on the working tree (ignored by .gitignore). Please transfer these files securely to your vault (e.g., Bitwarden / 1Password), then remove them from the archive.

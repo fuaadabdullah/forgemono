@@ -1,0 +1,190 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║              🔧 GOBLIN ASSISTANT CHAT FIX - CHECKLIST                        ║
+║                                                                              ║
+║  Issues: ❌ "All servers unavailable" error                                 ║
+║          ❌ End-to-end chat completions failing                             ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+QUICK REFERENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+Servers:
+  • Router:      45.61.51.220:8000    (API endpoint)
+  • Inference:   192.175.23.150:8002  (LLM inference)
+
+Root Causes:
+  ❌ Firewall blocks traffic on port 8002
+  ❌ Router INFERENCE_URL = 172.16.0.1:8002 (WRONG IP)
+  ✅ Solution: Fix firewall + update config + restart services
+
+═══════════════════════════════════════════════════════════════════════════════
+
+EXECUTION CHECKLIST
+═══════════════════════════════════════════════════════════════════════════════
+
+PHASE 1: AUTOMATED FIX (5-10 minutes)
+─────────────────────────────────────────────────────────────────────────────
+
+[ ] Read: IMMEDIATE_ACTION.sh or GOBLIN_CHAT_FIX_SUMMARY.md
+
+[ ] Run automated script:
+    cd /Users/fuaadabdullah/ForgeMonorepo
+    bash kamatera_infrastructure_fix.sh
+
+[ ] Automated script will:
+    ✓ Configure firewall on Inference Server
+    ✓ Configure firewall on Router Server
+    ✓ Update Router INFERENCE_URL configuration
+    ✓ Restart both services
+    ✓ Test connectivity
+    ✓ Test chat completion
+
+[ ] Review output for any errors
+
+PHASE 2: MANUAL FIX (IF AUTOMATED FAILS)
+─────────────────────────────────────────────────────────────────────────────
+
+[ ] Run manual guide:
+    bash kamatera_manual_fix_guide.sh
+
+[ ] Follow printed instructions for each server:
+
+    [ ] Inference Server (192.175.23.150):
+        ✓ SSH into server
+        ✓ Configure firewall: ufw allow from 45.61.51.220 port 8002
+        ✓ Restart service: systemctl restart local-llm-proxy
+
+    [ ] Router Server (45.61.51.220):
+        ✓ SSH into server
+        ✓ Configure firewall: ufw allow out to 192.175.23.150 port 8002
+        ✓ Update INFERENCE_URL to http://192.175.23.150:8002
+        ✓ Restart service: systemctl restart goblin-router
+
+PHASE 3: VERIFICATION (5 minutes)
+─────────────────────────────────────────────────────────────────────────────
+
+[ ] Test 1 - TCP Connectivity:
+    ssh root@45.61.51.220
+    timeout 5 bash -c 'echo > /dev/tcp/192.175.23.150/8002'
+    Expected: Success (port open)
+
+[ ] Test 2 - Health Endpoint:
+    curl http://192.175.23.150:8002/health -H 'X-API-Key: ...'
+    Expected: JSON with "healthy" status
+
+[ ] Test 3 - Chat Completion:
+    curl -X POST http://45.61.51.220:8000/v1/chat/completions \
+      -H 'Content-Type: application/json' \
+      -d '{...}'
+    Expected: Chat response, NOT "All servers unavailable"
+
+[ ] Test 4 - Frontend:
+    Open: https://goblin.fuaad.ai
+    Send: Test message
+    Expected: LLM response (not error)
+
+PHASE 4: MONITORING (Optional but Recommended)
+─────────────────────────────────────────────────────────────────────────────
+
+[ ] Watch Router logs while testing:
+    ssh root@45.61.51.220
+    sudo journalctl -u goblin-router -f
+
+    Look for:
+    ✅ "FAILOVER DEACTIVATED" - means health check now passes
+    ❌ "Inference health check failed" - means still broken
+
+[ ] Watch Inference logs:
+    ssh root@192.175.23.150
+    sudo journalctl -u local-llm-proxy -f
+
+═══════════════════════════════════════════════════════════════════════════════
+
+DOCUMENTATION FILES
+═══════════════════════════════════════════════════════════════════════════════
+
+📄 IMMEDIATE_ACTION.sh
+   └─ Quick reference guide (this file)
+
+🚀 kamatera_infrastructure_fix.sh
+   └─ Automated SSH-based fix script
+
+📋 kamatera_manual_fix_guide.sh
+   └─ Step-by-step manual instructions
+
+📚 GOBLIN_CHAT_FIX_SUMMARY.md
+   └─ Executive summary with quick reference
+
+📖 ROUTER_NETWORK_FIX_CLEAN.md
+   └─ Comprehensive implementation guide
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════════
+
+If chat still fails after running fix:
+
+[ ] Verify firewall rules are in place:
+    ssh root@192.175.23.150 'sudo ufw status | grep 8002'
+    ssh root@45.61.51.220 'sudo ufw status | grep 192.175'
+
+[ ] Check if INFERENCE_URL was updated:
+    ssh root@45.61.51.220 'grep INFERENCE_URL /etc/systemd/system/goblin-router.service'
+    Expected: http://192.175.23.150:8002
+
+[ ] Check service is running:
+    ssh root@45.61.51.220 'sudo systemctl status goblin-router --no-pager'
+    ssh root@192.175.23.150 'sudo systemctl status local-llm-proxy --no-pager'
+
+[ ] Check port is listening:
+    ssh root@192.175.23.150 'sudo ss -tlnp | grep 8002'
+    ssh root@45.61.51.220 'sudo ss -tlnp | grep 8000'
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ROLLBACK (IF SOMETHING GOES WRONG)
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] Remove firewall rules:
+    ssh root@192.175.23.150 'sudo ufw delete allow from 45.61.51.220 to any port 8002'
+    ssh root@45.61.51.220 'sudo ufw delete allow out to 192.175.23.150 port 8002'
+
+[ ] Restart services:
+    ssh root@45.61.51.220 'sudo systemctl restart goblin-router'
+
+═══════════════════════════════════════════════════════════════════════════════
+
+SUCCESS INDICATORS
+═══════════════════════════════════════════════════════════════════════════════
+
+After fix is applied correctly:
+
+✅ Router logs show: "FAILOVER DEACTIVATED: Inference server restored"
+✅ Chat endpoint returns response with content (not error)
+✅ Frontend at goblin.fuaad.ai responds to messages
+✅ LLM provides quality responses
+✅ No "All servers unavailable" errors
+
+═══════════════════════════════════════════════════════════════════════════════
+
+NEXT STEPS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Choose automated or manual approach
+2. Run the fix
+3. Run verification tests
+4. Test in frontend
+5. Monitor logs if needed
+6. Enjoy working chat! 🎉
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Questions? See documentation files for detailed information.
+
+Created: January 6, 2026
+Status: Ready for Deployment
+
+═══════════════════════════════════════════════════════════════════════════════

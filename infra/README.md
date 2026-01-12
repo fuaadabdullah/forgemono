@@ -1,11 +1,9 @@
----title: Infrastructure
-type: reference
-project: ForgeMonorepo
-status: draft
-owner: GoblinOS
-description: "README"
-
 ---
+title: "README"
+description: "Documentation for README"
+---
+
+
 
 Devcontainer, Docker Compose, reverse proxy, and Kubernetes configurations.
 
@@ -26,7 +24,7 @@ To use:
 1. "Reopen in Container" when prompted
 1. Use VS Code tasks for service startup/testing
 
-See `../docs/WORKSPACE_OVERVIEW.md` and `../docs/API_KEYS_MANAGEMENT.md` for architecture and secrets setup.
+See `../docs/README.md` and `../docs/API_KEYS_MANAGEMENT.md` for architecture and secrets setup.
 
 ## Contents
 

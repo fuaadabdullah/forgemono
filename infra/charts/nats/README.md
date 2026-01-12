@@ -1,12 +1,9 @@
----title: NATS JetStream for Overmind
-type: reference
-project: GoblinOS/Overmind
-status: published
-owner: GoblinOS
-goblin_name: Overmind NATS
-description: "README"
-
 ---
+title: "README"
+description: "NATS JetStream Messaging"
+---
+
+
 
 # NATS JetStream Messaging
 

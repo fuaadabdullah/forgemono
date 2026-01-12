@@ -1,3 +1,8 @@
+---
+title: "raptor mini"
+description: "Raptor Mini — Lightweight Diagnostics"
+---
+
 # Raptor Mini — Lightweight Diagnostics
 
 A compact diagnostics module that provides minimal performance logging, crash tracing, and a simple ini-driven configuration.

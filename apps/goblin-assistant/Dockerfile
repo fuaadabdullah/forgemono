@@ -27,9 +27,9 @@ COPY . /app
 # Ensure backend is importable: make sure /app on PYTHONPATH and workdir is /app
 ENV PYTHONPATH=/app
 
-# Make sure backend is a package (helpful if missing __init__.py)
+# Make sure api is a package (helpful if missing __init__.py)
 # Note: This will create an empty __init__.py if it doesn't exist
-RUN if [ -d /app/backend ] && [ ! -f /app/backend/__init__.py ]; then touch /app/backend/__init__.py; fi || true
+RUN if [ -d /app/api ] && [ ! -f /app/api/__init__.py ]; then touch /app/api/__init__.py; fi || true
 
 # Expose the app port
 ENV PORT=8001

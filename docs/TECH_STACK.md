@@ -1,3 +1,8 @@
+---
+title: "TECH STACK"
+description: "Tech Stack (short summary)"
+---
+
 # Tech Stack (short summary)
 
 A concise directory of the primary technologies, frameworks, and services used in this monorepo with a one-liner and evidence file links for each.

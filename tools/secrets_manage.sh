@@ -45,4 +45,3 @@ EOF
 echo "Helper created: use the commands above to securely add secrets to smithy or your CI."
 
 exit 0
-

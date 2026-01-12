@@ -11,8 +11,20 @@ try:
     from routing.router import top_providers_for, route_task, route_task_sync
 except ImportError:
     # Fallback if routing module is not available
-    def top_providers_for(capability: str, **kwargs) -> List[str]:
+    def top_providers_for(
+        capability: str, prefer_local=False, prefer_cost=False, limit=6
+    ) -> List[str]:
         return ["openai", "anthropic", "gemini", "ollama"]
+
+    async def route_task(
+        task_type: str,
+        payload: Dict[str, Any],
+        prefer_local: bool = False,
+        prefer_cost: bool = False,
+        max_retries: int = 2,
+        stream: bool = False,
+    ) -> Dict[str, Any]:
+        return {"ok": False, "error": "Routing system not available", "fallback": True}
 
     def route_task_sync(*args, **kwargs) -> Dict[str, Any]:
         return {"ok": False, "error": "Routing system not available"}
@@ -52,10 +64,18 @@ async def get_available_providers():
         result = list(set(providers))  # Remove duplicates
         print(f"DEBUG: Final providers: {result}")
         return result
-    except Exception as e:
-        print(f"DEBUG: Exception in get_available_providers: {e}")
+    except Exception:
+        print("DEBUG: Exception in get_available_providers")
         # Fallback to basic providers if routing system fails
-        return ["openai", "anthropic", "gemini", "ollama", "groq", "deepseek"]
+        return [
+            "openai",
+            "anthropic",
+            "gemini",
+            "ollama",
+            "groq",
+            "deepseek",
+            "siliconeflow",
+        ]
 
 
 @router.get("/providers/{capability}", response_model=List[str])
@@ -63,15 +83,24 @@ async def get_providers_for_capability(capability: str):
     """Get providers that support a specific capability"""
     try:
         return top_providers_for(capability)
-    except Exception as e:
+    except Exception:
         return ["openai", "anthropic"]  # Fallback
 
 
 @router.post("/route")
 async def route_request(request: RouteRequest):
-    """Route a task to the best available provider"""
+    """Route a task to the best available provider.
+
+    Provider selection algorithm considers:
+    - Performance vs cost optimization flags
+    - Local vs cloud provider preference
+    - Retry logic with exponential backoff
+    - Provider health and availability status
+    """
     try:
         # Call the async route_task function directly
+        # The router module handles provider selection based on capabilities
+        # and optimization preferences (prefer_local, prefer_cost)
         result = await route_task(
             task_type=request.task_type,
             payload=request.payload,
@@ -83,17 +112,3 @@ async def route_request(request: RouteRequest):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Routing failed: {str(e)}")
-
-
-@router.get("/health")
-async def routing_health():
-    """Check if the routing system is operational"""
-    try:
-        providers = top_providers_for("chat")
-        return {
-            "status": "healthy",
-            "providers_available": len(providers),
-            "routing_system": "active",
-        }
-    except Exception as e:
-        return {"status": "degraded", "error": str(e), "routing_system": "fallback"}

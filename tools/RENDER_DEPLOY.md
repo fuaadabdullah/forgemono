@@ -1,3 +1,10 @@
+---
+title: "RENDER_DEPLOY"
+description: "Deploying FastAPI backend to Render (simple, low-cost option)"
+---
+
+
+
 # Deploying FastAPI backend to Render (simple, low-cost option)
 
 Render is a simple and affordable hosting option for FastAPI applications. The free tier or low-tier paid plans are typically cheaper than upgrading a Vercel team for extra serverless functions.

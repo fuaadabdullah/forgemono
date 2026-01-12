@@ -1,3 +1,8 @@
+---
+title: "MONITORING SETUP"
+description: "Simplified Observability & Monitoring Setup"
+---
+
 # Simplified Observability & Monitoring Setup
 
 ## Overview

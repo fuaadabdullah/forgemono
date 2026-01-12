@@ -1,12 +1,9 @@
----title: Kubecost Cost Monitoring for Overmind
-type: reference
-project: GoblinOS/Overmind
-status: published
-owner: GoblinOS
-goblin_name: Overmind Cost Monitor
-description: "README"
-
 ---
+title: "README"
+description: "Kubecost Cost Monitoring"
+---
+
+
 
 # Kubecost Cost Monitoring
 

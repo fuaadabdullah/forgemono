@@ -1,6 +1,9 @@
 ---
-description: 'AGENT_TOOLS'
+title: "AGENT_TOOLS"
+description: "Agent Tooling Quick Reference"
 ---
+
+
 
 # Agent Tooling Quick Reference
 

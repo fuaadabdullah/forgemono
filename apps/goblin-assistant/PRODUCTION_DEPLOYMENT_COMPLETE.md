@@ -264,10 +264,10 @@ alembic upgrade head
 
 2. **Frontend to Vercel**
 
-   ```bash
+  ```bash
 
-   ./deploy-frontend.sh
-   ```
+  ./deploy.sh vercel
+  ```
 
 3. **Database Migration**
 

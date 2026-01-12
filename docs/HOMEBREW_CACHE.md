@@ -1,6 +1,9 @@
 ---
-description: 'HOMEBREW_CACHE'
+title: "HOMEBREW CACHE"
+description: "Homebrew cache / temp — per-user (recommended)"
 ---
+
+
 
 # Homebrew cache / temp — per-user (recommended)
 

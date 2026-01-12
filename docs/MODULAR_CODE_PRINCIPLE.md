@@ -1,3 +1,8 @@
+---
+title: "MODULAR CODE PRINCIPLE"
+description: "Documentation for MODULAR CODE PRINCIPLE"
+---
+
 ## Modular Code Principle
 
 This file provides a short guide and a checklist to help developers design modular code in the ForgeMonorepo projects.

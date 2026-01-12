@@ -1,3 +1,8 @@
+---
+title: "COMPONENT ARCHITECTURE GUIDELINES"
+description: "Component Architecture Guidelines"
+---
+
 # Component Architecture Guidelines
 
 ## Overview

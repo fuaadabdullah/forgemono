@@ -1,6 +1,9 @@
 ---
-description: 'CONTRIBUTING'
+title: "CONTRIBUTING"
+description: "Contributing Guidelines"
 ---
+
+
 
 # Contributing Guidelines
 

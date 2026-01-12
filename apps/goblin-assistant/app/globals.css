@@ -1,0 +1,87 @@
+/**
+ * Next.js App Global Styles
+ * Entry point for all application styles including Tailwind and GoblinOS Theme
+ */
+
+@import '../src/styles/goblin-theme.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base application styles */
+body {
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Component and layout styles */
+@layer components {
+  .container {
+    @apply mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .btn-primary {
+    @apply bg-accent-green text-bg-primary hover:bg-accent-green-bright;
+  }
+  
+  .btn-secondary {
+    @apply bg-bg-tertiary text-text-primary border-border-medium hover:bg-bg-hover;
+  }
+  
+  .card {
+    @apply bg-bg-secondary border-border-subtle rounded-md p-4 transition-all;
+  }
+  
+  .card:hover {
+    @apply border-border-medium bg-bg-tertiary;
+  }
+  
+  .input {
+    @apply w-full px-3 py-2 bg-bg-tertiary border-border-medium rounded-md text-text-primary font-mono focus:outline-none focus:border-accent-green focus:ring-2 focus:ring-accent-green-alpha;
+  }
+  
+  .input::placeholder {
+    @apply text-text-tertiary;
+  }
+}
+
+/* Utility styles */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .text-accent {
+    @apply text-accent-green;
+  }
+  
+  .bg-goblin {
+    @apply bg-bg-primary;
+  }
+  
+  .text-goblin {
+    @apply text-text-primary;
+  }
+  
+  .border-goblin {
+    @apply border-border-subtle;
+  }
+  
+  .glow {
+    @apply shadow-[0_0_10px_rgba(0,255,136,0.3)];
+  }
+  
+  .glow-strong {
+    @apply shadow-[0_0_20px_rgba(0,255,136,0.5)];
+  }
+}

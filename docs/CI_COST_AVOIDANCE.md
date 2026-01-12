@@ -1,3 +1,8 @@
+---
+title: "CI COST AVOIDANCE"
+description: "CI/CD Cost Avoidance Guide"
+---
+
 # CI/CD Cost Avoidance Guide
 
 This document outlines optimizations implemented to stay within free tier limits for CircleCI and GitHub Actions.

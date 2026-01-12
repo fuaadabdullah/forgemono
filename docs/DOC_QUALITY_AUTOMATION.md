@@ -1,3 +1,8 @@
+---
+title: "DOC QUALITY AUTOMATION"
+description: "Documentation Quality Automation"
+---
+
 # Documentation Quality Automation
 
 This system provides automated quality checks for ForgeMonorepo documentation using the Raptor Mini API.
@@ -11,7 +16,7 @@ This system provides automated quality checks for ForgeMonorepo documentation us
 python3 tools/doc-quality/doc_quality_check.py
 
 # Check specific files
-python3 tools/doc-quality/doc_quality_check.py docs/README.md docs/WORKSPACE_OVERVIEW.md
+python3 tools/doc-quality/doc_quality_check.py docs/README.md docs/README.md
 
 # CI mode with quality gate
 python3 tools/doc-quality/doc_quality_check.py --ci --min-score 70

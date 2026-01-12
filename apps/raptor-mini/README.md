@@ -1,3 +1,8 @@
+---
+title: "README"
+description: "Raptor Mini Service"
+---
+
 # Raptor Mini Service
 
 Cloud-hosted Raptor Mini LLM service with local development fallback.

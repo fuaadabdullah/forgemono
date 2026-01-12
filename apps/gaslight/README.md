@@ -1,3 +1,8 @@
+---
+title: "README"
+description: "Gaslight Workspace"
+---
+
 # Gaslight Workspace
 
 This folder contains a small workspace for the Gaslight project — a Unity 2D (URP) game with a Python FastAPI backend.

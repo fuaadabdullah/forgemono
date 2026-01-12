@@ -1,3 +1,8 @@
+---
+title: "STATE MANAGEMENT GUIDELINES"
+description: "Frontend State Management Guidelines"
+---
+
 # Frontend State Management Guidelines
 
 ## Overview

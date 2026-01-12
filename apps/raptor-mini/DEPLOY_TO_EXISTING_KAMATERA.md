@@ -1,3 +1,8 @@
+---
+title: "DEPLOY TO EXISTING KAMATERA"
+description: "Raptor Mini - Manual Deployment to Existing Kamatera Server"
+---
+
 # Raptor Mini - Manual Deployment to Existing Kamatera Server
 
 ## Prerequisites

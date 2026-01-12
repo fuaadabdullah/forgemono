@@ -1,3 +1,10 @@
+---
+title: "README"
+description: "Goblin Email Purge — Safe Starter Pack"
+---
+
+
+
 # Goblin Email Purge — Safe Starter Pack
 
 A developer-oriented tool that scans IMAP inboxes for dating-related messages, identifies candidate services, and generates a safe cleanup plan. Designed to be non-destructive by default (dry run). Use with caution.

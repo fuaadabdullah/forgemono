@@ -1,111 +1,83 @@
 ---
-description: 'README'
+description: 'ForgeMonorepo - Unified workspace for GoblinOS and related projects'
 ---
 
 # ForgeMonorepo
 
 Unified workspace for GoblinOS and related projects. This repo houses the GoblinOS platform, infrastructure assets, tools, and portfolio/demo projects.
 
-## Project Map
+## What is ForgeMonorepo?
 
-- `apps/` — Active polyglot applications and projects (Python, Node.js, etc.)
-- `GoblinOS/` — Primary platform (pnpm workspace: packages, docs, CI). See `GoblinOS/README.md`.
-- `infra/` — Devcontainer, docker-compose, and deployment scaffolding.
-- `tools/` — Utility scripts, TUI helpers, release tools.
-- `portfolio/` — Personal assets (resume, future project write-ups).
-- `artifacts/` — Generated outputs (e.g., reports, SARIF).
+A comprehensive development workspace containing:
 
-### Key Docs
-
-- Overmind Agent overview: `docs/agents/overmind.md`
-- GoblinOS Assistant Architecture: `apps/goblin-assistant/docs/ARCHITECTURE_OVERVIEW.md`
-- GoblinOS Assistant Core Identity: `apps/goblin-assistant/docs/CORE_IDENTITY.md`
-- Repository docs: `docs/` (top-level canonical docs)
+- **GoblinOS Platform**: AI orchestration platform with extensible plugin system
+- **Multiple Applications**: Polyglot applications (Python, Node.js, etc.) in `apps/`
+- **Infrastructure as Code**: Deployment and infrastructure automation
+- **Development Tools**: Utilities, scripts, and automation tools
+- **Documentation System**: AI-powered documentation with quality analysis
 
 ## Quick Start
 
-Prereqs: Node 20/22 + pnpm, Python 3.11+, Docker Desktop, Git.
+Get started quickly with the essential setup:
 
 ```bash
-# Clone and open
 git clone <this-repo>
 cd ForgeMonorepo
-
-# GoblinOS
-cd GoblinOS
 pnpm install
-pnpm build
-pnpm test
 ```
 
-For AI features (Ollama) and deeper commands, see `GoblinOS/README.md`.
+For complete setup instructions, see **[Getting Started](docs/getting-started.md)**.
 
-## Documentation System
+## Project Structure
 
-Complete documentation pipeline with AI analysis, diagram generation, and CI validation.
-
-### Setup
-
-```bash
-
-# Install dependencies
-pip install frontmatter click requests
-npm install -g markdownlint-cli markdown-link-check prettier @mermaid-js/mermaid-cli
-
-# Configure Raptor Mini (Colab deployment)
-cp .env.example .env
-
-# Edit .env with your Colab Raptor endpoint URL
+```text
+ForgeMonorepo/
+├── apps/           # Active applications (goblin-assistant, gaslight, etc.)
+├── GoblinOS/       # Core platform (pnpm workspace)
+├── infra/          # Infrastructure as code
+├── tools/          # Utility scripts and automation
+├── docs/           # Documentation and guides
+├── portfolio/      # Personal assets and demos
+└── artifacts/      # Generated outputs
 ```
 
-### Usage
+For detailed project structure and organization, see **[Project Structure](docs/project-structure.md)**.
 
-```bash
-# Create new document
-python scripts/doc_cli.py new docs/my-feature.md --type feature
+## Key Applications
 
-# Validate document
-python scripts/doc_cli.py validate docs/my-feature.md
+- **goblin-assistant**: AI assistant with web interface, API backend, and model routing
+- **gaslight**: Authentication and user management services
+- **forge-lite**: Financial/trading applications
+- **python**: Standalone Python utilities and tools
 
-# Generate diagrams from code comments
-python scripts/doc_cli.py diagrams apps/my-app/src/
+## Development
 
-# AI analysis with Colab-deployed Raptor Mini
-python scripts/doc_cli.py analyze docs/my-feature.md --url https://your-colab-endpoint.ngrok.io
+Complete development environment setup, testing, and contribution guidelines available in **[Getting Started](docs/getting-started.md)**.
 
-# Full audit
-python scripts/doc_cli.py audit docs/
-```
+## Deployment
 
-### Features
+Production deployment procedures, checklists, and infrastructure details in **[Deployment](docs/deployment.md)**.
 
-- **Standardized Templates**: Frontmatter-based document structure
-- **AI Quality Analysis**: Raptor Mini integration for scoring and suggestions
-- **Automatic Diagrams**: Mermaid diagram extraction and rendering from code
-- **CI/CD Validation**: GitHub Actions for automated quality checks
-- **Resource Efficient**: Uses Colab-deployed Raptor Mini instead of local Ollama
+## Documentation
+
+AI-powered documentation system with quality analysis and automated validation. Learn more in **[Documentation System](docs/documentation-system.md)**.
 
 ## Onboarding
 
-- Start with `docs/WORKSPACE_OVERVIEW.md` for structure and conventions.
-- Follow `docs/ONBOARDING_TARIQ.md` for step-by-step setup to contribute to GoblinOS.
-- See `docs/development/CONTRIBUTING.md` for branch/PR standards and local checks.
+New to the project? Start with **[Onboarding Guide](docs/onboarding.md)** for complete setup and getting started instructions.
 
-## Notes
+## Key Resources
 
-- Legacy demos may have shipped with their own `.git` history—these should be promoted into `apps/` or converted to submodules. See `docs/WORKSPACE_OVERVIEW.md` for guidance.
+- **[Getting Started](docs/getting-started.md)**: Development environment setup
+- **[Project Structure](docs/project-structure.md)**: Repository organization and architecture
+- **[Deployment](docs/deployment.md)**: Production deployment procedures
+- **[Documentation System](docs/documentation-system.md)**: AI analysis and quality tools
+- **[Onboarding](docs/onboarding.md)**: Guide for new developers
 
-# Goblin Assistant
+## Contributing
 
-Welcome to the Goblin Assistant project.
+See **[Getting Started](docs/getting-started.md)** for development setup and contribution guidelines.
 
-## Quick Links
+## License
 
-- [Development Guide](docs/development/CONTRIBUTING.md)
-- [Architecture](docs/architecture/ARCHITECTURE.md)
-- [Deployment](docs/deployment/DEPLOYMENT_README.md)
-- [Security](docs/security/SECURITY.md)
-
-## Getting Started
-
-See [docs/development/setup.md](docs/development/setup.md)
+See `LICENSE` file for details.

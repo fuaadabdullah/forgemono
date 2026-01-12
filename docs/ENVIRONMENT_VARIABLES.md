@@ -1,3 +1,8 @@
+---
+title: "ENVIRONMENT VARIABLES"
+description: "Documentation for ENVIRONMENT VARIABLES"
+---
+
 ## Environment Variables & .env Usage
 
 This repo follows a conservative policy: do not commit secrets as `.env` files. Keep only `.env.example` files in the repository and move live `.env` files to your secure vault (Bitwarden, 1Password, or equivalent). When in doubt, prefer `ENV` variables on CI/CD or managed secrets stores.

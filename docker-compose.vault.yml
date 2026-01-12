@@ -8,7 +8,7 @@ services:
     ports:
       - '8200:8200'
     environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=goblin-vault-root-token
+      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_DEV_ROOT_TOKEN_ID}
       - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
       - VAULT_ADDR=http://0.0.0.0:8200
     volumes:
@@ -28,7 +28,7 @@ services:
     environment:
       - POSTGRES_DB=goblin_assistant
       - POSTGRES_USER=vault_admin
-      - POSTGRES_PASSWORD=vault_password
+      - POSTGRES_PASSWORD=${VAULT_POSTGRES_PASSWORD}
     ports:
       - '5432:5432'
     volumes:

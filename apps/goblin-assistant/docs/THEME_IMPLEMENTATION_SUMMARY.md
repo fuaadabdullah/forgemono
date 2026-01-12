@@ -227,7 +227,7 @@ node scripts/verify-theme-system.js
 
 - **[THEME_SYSTEM.md](./THEME_SYSTEM.md)** - Complete implementation guide
 - **[ACCESSIBILITY_CERTIFICATION.md](./ACCESSIBILITY_CERTIFICATION.md)** - WCAG 2.1 audit
-- **[LIGHTHOUSE_FINAL_REPORT.md](./LIGHTHOUSE_FINAL_REPORT.md)** - Perfect accessibility score
+- **[LIGHTHOUSE_AUDIT_GUIDE.md](../../docs/LIGHTHOUSE_AUDIT_GUIDE.md)** - Perfect accessibility score
 - **[AXE_AUDIT_RESULTS.md](./AXE_AUDIT_RESULTS.md)** - 0 violations
 
 ---

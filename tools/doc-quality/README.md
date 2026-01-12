@@ -1,3 +1,10 @@
+---
+title: "README"
+description: "Documentation Quality Checker"
+---
+
+
+
 # Documentation Quality Checker
 
 A CLI tool for automated documentation quality analysis using AI-powered scoring via the Raptor Mini API.
@@ -18,7 +25,7 @@ A CLI tool for automated documentation quality analysis using AI-powered scoring
 python3 doc_quality_check.py
 
 # Check specific files
-python3 doc_quality_check.py docs/README.md docs/WORKSPACE_OVERVIEW.md
+python3 doc_quality_check.py docs/README.md docs/README.md
 
 # CI mode with quality gate
 python3 doc_quality_check.py --ci --min-score 70

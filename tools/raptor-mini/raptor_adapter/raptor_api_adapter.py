@@ -69,7 +69,7 @@ class RaptorApiAdapter(ModelAdapter):
                 logger.info(f"Raptor API adapter initialized: {self.base_url}")
             else:
                 logger.warning(f"Raptor API health check failed, but proceeding with initialization: {self.base_url}")
-            
+
             self._initialized = True
             return True
 

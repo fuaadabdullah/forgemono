@@ -1,3 +1,8 @@
+---
+title: "SECURITY"
+description: "🔒 Security Implementation Guide"
+---
+
 # 🔒 Security Implementation Guide
 
 ## Content Security Policy (CSP)

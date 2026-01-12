@@ -1,3 +1,8 @@
+---
+title: "PASSKEY FRONTEND INTEGRATION"
+description: "Passkey / WebAuthn — Frontend Integration Examples"
+---
+
 # Passkey / WebAuthn — Frontend Integration Examples
 
 This file contains frontend integration examples for WebAuthn (passkey) flows.

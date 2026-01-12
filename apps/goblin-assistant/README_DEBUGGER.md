@@ -1,3 +1,8 @@
+---
+title: "README DEBUGGER"
+description: "GoblinOS Assistant Debugger"
+---
+
 # GoblinOS Assistant Debugger
 
 This module provides AI-powered debugging assistance for the GoblinOS Assistant demo, featuring intelligent model routing between Raptor (for quick tasks) and fallback LLMs (for complex reasoning).

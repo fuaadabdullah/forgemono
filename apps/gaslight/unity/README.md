@@ -1,3 +1,8 @@
+---
+title: "README"
+description: "Unity — Gaslight"
+---
+
 # Unity — Gaslight
 
 This folder should hold the Unity project for Gaslight.

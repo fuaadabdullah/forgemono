@@ -1,5 +1,5 @@
 import pytest
-from backend.debugger.model_router import ModelRouter
+from api.debugger.model_router import ModelRouter
 
 
 @pytest.fixture(autouse=True)

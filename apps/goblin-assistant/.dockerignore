@@ -1,32 +1,90 @@
-# flyctl launch added from .gitignore
-**/.vercel
+# Docker ignore file for Goblin Assistant
+# Exclude files and directories that don't need to be in the Docker image
 
-# flyctl launch added from .pytest_cache/.gitignore
-# Created by pytest automatically.
-.pytest_cache/**/*
+# Version control
+.git
+.gitignore
+.gitattributes
 
-# flyctl launch added from backend/.pytest_cache/.gitignore
-# Created by pytest automatically.
-backend/.pytest_cache/**/*
+# Python cache and virtual environments
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+.pytest_cache
+.mypy_cache
+.coverage
+htmlcov/
+.tox/
+.nox/
+.venv/
+venv/
+env/
 
-# flyctl launch added from infra/secrets/.gitignore
-# Ignore all decrypted files
-infra/secrets/**/*.dec.yaml
-infra/secrets/**/*.dec.yml
-infra/secrets/**/*.dec.json
+# Node.js (if any frontend assets)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Ignore backup files
-infra/secrets/**/*.bak
-infra/secrets/**/*~
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Ignore editor temp files
-infra/secrets/**/.*.swp
-infra/secrets/**/.*.swo
+# OS files
+.DS_Store
+Thumbs.db
+*.log
 
-# flyctl launch added from tools/goblin-email-purge/.gitignore
-tools/goblin-email-purge/**/venv
-tools/goblin-email-purge/**/__pycache__
-tools/goblin-email-purge/**/reports
-tools/goblin-email-purge/**/*.pyc
-tools/goblin-email-purge/**/.env
-fly.toml
+# Documentation and examples
+README.md
+docs/
+examples/
+*.md
+
+# Test files (unless needed at runtime)
+tests/
+test_*.py
+*_test.py
+
+# Development tools
+scripts/
+tools/
+.github/
+.circleci/
+
+# Local configuration
+.env*
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Backup files
+*.bak
+*.backup
+*.tmp
+
+# Large data files
+data/
+models/
+vector_db/
+chroma_db/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# CI/CD files
+.github/
+.circleci/
+.dockerignore
+.dockerfile
+Dockerfile*

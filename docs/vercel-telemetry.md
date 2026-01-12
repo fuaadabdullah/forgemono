@@ -1,3 +1,8 @@
+---
+title: "vercel-telemetry"
+description: "Telemetry"
+---
+
 # Telemetry
 
 Copy page

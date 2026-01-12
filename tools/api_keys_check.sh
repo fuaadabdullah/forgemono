@@ -84,4 +84,3 @@ if [ -f "$GITIGNORE" ]; then
 fi
 
 echo "[api_keys_check] API key configuration is valid"
-

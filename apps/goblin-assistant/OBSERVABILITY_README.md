@@ -1,3 +1,8 @@
+---
+title: "OBSERVABILITY README"
+description: "Goblin Assistant OpenTelemetry Observability Setup"
+---
+
 # Goblin Assistant OpenTelemetry Observability Setup
 
 This document describes the comprehensive OpenTelemetry instrumentation implemented for the Goblin Assistant application to address observability gaps and unify monitoring systems.

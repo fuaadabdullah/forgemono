@@ -1,6 +1,9 @@
 ---
-description: 'TAURI_UPDATER'
+title: "TAURI_UPDATER"
+description: "Tauri updater — suggested config snippet"
 ---
+
+
 
 # Tauri updater — suggested config snippet
 

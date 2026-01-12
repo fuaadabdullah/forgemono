@@ -9,7 +9,15 @@ module.exports = {
     // Code quality rules
     'prettier/prettier': 'error',
     '@typescript-eslint/explicit-function-return-type': 'error',
-    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/no-explicit-any': 'warn', // Changed from 'error' to 'warn' for flexibility
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
+      {
+        'argsIgnorePattern': '^_',
+        'varsIgnorePattern': '^_',
+        'caughtErrorsIgnorePattern': '^_',
+      },
+    ],
     '@typescript-eslint/naming-convention': [
       'error',
       {

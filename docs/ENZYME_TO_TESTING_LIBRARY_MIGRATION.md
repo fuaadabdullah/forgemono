@@ -1,3 +1,8 @@
+---
+title: "ENZYME TO TESTING LIBRARY MIGRATION"
+description: "Enzyme to Testing Library Migration Guide"
+---
+
 # Enzyme to Testing Library Migration Guide
 
 This guide provides comprehensive strategies for migrating React component tests from Enzyme to Testing Library, including automated tools and best practices.

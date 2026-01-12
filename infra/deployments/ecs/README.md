@@ -1,3 +1,10 @@
+---
+title: "README"
+description: "Forge Lite API - ECS Deployment Guide"
+---
+
+
+
 # Forge Lite API - ECS Deployment Guide
 
 This directory contains the complete ECS deployment configuration for the Forge Lite API backend.

@@ -1,3 +1,8 @@
+---
+title: "API QUICK REF"
+description: "Dashboard API Quick Reference"
+---
+
 # Dashboard API Quick Reference
 
 ## New Endpoints

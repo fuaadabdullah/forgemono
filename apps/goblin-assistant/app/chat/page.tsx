@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowUp, User, Loader, Star, MessageSquare } from 'lucide-react';
+import { ArrowUp, User, Loader, Star, MessageSquare, Copy, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/input';
@@ -36,6 +36,7 @@ export default function ChatPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -116,6 +117,34 @@ export default function ChatPage() {
       shouldAutoScroll.current = isNearBottom;
       setShowScrollButton(isScrolledUp);
     }
+  };
+
+  // Keyboard shortcuts handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + K: Focus input
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+      // Ctrl/Cmd + L: Clear chat
+      if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+        e.preventDefault();
+        clearChat();
+      }
+      // Escape: Blur input
+      if (e.key === 'Escape') {
+        inputRef.current?.blur();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Focus management
+  const focusInput = () => {
+    inputRef.current?.focus();
   };
 
   // Scroll to bottom function
@@ -307,10 +336,7 @@ export default function ChatPage() {
     }
   };
 
-  const handleVoiceInput = () => {
-    // TODO: Implement Web Speech API for voice input
-    alert('Voice input feature coming soon!');
-  };
+
 
   const clearChat = () => {
     const welcomeMessage: Message = {
@@ -448,6 +474,86 @@ export default function ChatPage() {
     }
   };
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      // Could add a toast notification here
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+  const handleVoiceInput = async () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice input is not supported in this browser. Please use Chrome, Edge, or Safari.');
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInputValue(prev => prev + (prev ? ' ' : '') + transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognition.start();
+  };
+
+  const formatMessageContent = (content: string) => {
+    // Basic code block detection and formatting
+    const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codeBlockRegex.exec(content)) !== null) {
+      // Add text before code block
+      if (match.index > lastIndex) {
+        parts.push({
+          type: 'text',
+          content: content.slice(lastIndex, match.index)
+        });
+      }
+
+      // Add code block
+      parts.push({
+        type: 'code',
+        language: match[1] || '',
+        content: match[2].trim()
+      });
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < content.length) {
+      parts.push({
+        type: 'text',
+        content: content.slice(lastIndex)
+      });
+    }
+
+    return parts.length > 0 ? parts : [{ type: 'text', content }];
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Animated Background */}
@@ -504,49 +610,116 @@ export default function ChatPage() {
             ref={messagesContainerRef}
             onScroll={handleScroll}
             className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-xl max-h-[60vh] overflow-y-auto"
+            role="log"
+            aria-live="polite"
+            aria-label="Chat messages"
           >
             <div className="space-y-6">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`flex items-start space-x-3 max-w-xs lg:max-w-md ${
-                    message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''
-                  }`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      message.type === 'user'
-                        ? 'bg-gradient-to-r from-emerald-500 to-blue-500'
-                        : 'bg-gradient-to-r from-purple-500 to-pink-500'
+              {messages.map((message) => {
+                const contentParts = formatMessageContent(message.content);
+                return (
+                  <div
+                    key={message.id}
+                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} group`}
+                  >
+                    <div className={`flex items-start space-x-3 max-w-xs lg:max-w-2xl ${
+                      message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''
                     }`}>
-                      {message.type === 'user' ? (
-                        <User className="w-4 h-4 text-white" />
-                      ) : (
-                        <MessageSquare className="w-4 h-4 text-white" />
-                      )}
-                    </div>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        message.type === 'user'
+                          ? 'bg-gradient-to-r from-emerald-500 to-blue-500 shadow-lg shadow-emerald-500/20'
+                          : 'bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/20'
+                      }`}>
+                        {message.type === 'user' ? (
+                          <User className="w-4 h-4 text-white" />
+                        ) : (
+                          <MessageSquare className="w-4 h-4 text-white" />
+                        )}
+                      </div>
 
-                    <div className={`px-4 py-3 rounded-2xl ${
-                      message.type === 'user'
-                        ? 'bg-gradient-to-r from-emerald-500/20 to-blue-500/20 text-white border border-white/20'
-                        : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white border border-white/20'
-                    }`}>
-                      <p className="text-sm leading-relaxed">{message.content}</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-slate-300">
-                          {message.timestamp.toLocaleTimeString()}
-                        </span>
-                        {message.status === 'sending' && (
-                          <Loader className="w-3 h-3 text-slate-300 animate-spin" />
-                        )}
-                        {message.status === 'error' && (
-                          <span className="text-xs text-red-400">Failed to send</span>
-                        )}
+                      <div className={`relative px-4 py-3 rounded-2xl ${
+                        message.type === 'user'
+                          ? 'bg-gradient-to-r from-emerald-500/20 to-blue-500/20 text-white border border-emerald-500/30'
+                          : 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white border border-purple-500/30'
+                      }`}>
+                        {/* Message Actions */}
+                        <div className={`absolute top-2 ${
+                          message.type === 'user' ? 'left-2' : 'right-2'
+                        } opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
+                          <Button
+                            onClick={() => copyToClipboard(message.content)}
+                            size="icon"
+                            variant="ghost"
+                            className="w-6 h-6 hover:bg-white/10 text-slate-400 hover:text-white"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                          {message.type === 'assistant' && message.status === 'sent' && (
+                            <Button
+                              onClick={regenerateResponse}
+                              size="icon"
+                              variant="ghost"
+                              disabled={isTyping}
+                              className="w-6 h-6 hover:bg-white/10 text-slate-400 hover:text-white ml-1"
+                            >
+                              <RotateCcw className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Message Content */}
+                        <div className="space-y-2">
+                          {contentParts.map((part, index) => (
+                            <div key={index}>
+                              {part.type === 'text' ? (
+                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{part.content}</p>
+                              ) : (
+                                <div className="bg-slate-800/50 border border-slate-600 rounded-lg p-3 mt-2">
+                                  {part.language && (
+                                    <div className="text-xs text-slate-400 mb-2 font-mono">
+                                      {part.language}
+                                    </div>
+                                  )}
+                                  <pre className="text-sm font-mono text-slate-200 overflow-x-auto">
+                                    <code>{part.content}</code>
+                                  </pre>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Message Footer */}
+                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/10">
+                          <span className="text-xs text-slate-400">
+                            {message.timestamp.toLocaleTimeString()}
+                          </span>
+                          <div className="flex items-center space-x-2">
+                            {message.status === 'sending' && (
+                              <div className="flex items-center space-x-1">
+                                <Loader className="w-3 h-3 text-slate-400 animate-spin" />
+                                <span className="text-xs text-slate-400">Sending...</span>
+                              </div>
+                            )}
+                            {message.status === 'error' && (
+                              <span className="text-xs text-red-400 flex items-center space-x-1">
+                                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                                <span>Failed</span>
+                              </span>
+                            )}
+                            {message.status === 'sent' && (
+                              <span className="text-xs text-green-400 flex items-center space-x-1">
+                                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                <span>Sent</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {/* Typing Indicator */}
               {isTyping && (
@@ -583,23 +756,63 @@ export default function ChatPage() {
         </main>
 
         {/* Input Area */}
-        <footer className="container mx-auto px-6 pb-8">
-          <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-4 shadow-xl">
-            <div className="flex items-end space-x-4">
+        <footer className="container mx-auto px-4 sm:px-6 pb-6 sm:pb-8">
+          <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-4 sm:p-6 shadow-xl">
+            {/* Multi-line Input Area */}
+            <div className="flex items-end space-x-3 sm:space-x-4">
+              {/* Voice Input Button */}
+              <Button
+                onClick={handleVoiceInput}
+                disabled={isTyping}
+                variant="outline"
+                size="icon"
+                className={`flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl border-white/20 ${
+                  isRecording
+                    ? 'bg-red-500/20 border-red-500/50 text-red-400 animate-pulse'
+                    : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
+                } transition-all duration-200`}
+              >
+                {isRecording ? '🎙️' : '🎤'}
+              </Button>
+
               {/* Input Field */}
               <div className="flex-1 relative">
-                <Input
-                  ref={inputRef}
+                <textarea
+                  ref={inputRef as any}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Type your message here..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage(inputValue);
+                    }
+                  }}
+                  placeholder="Type your message here... (Shift+Enter for new line)"
                   disabled={isTyping}
-                  className="w-full bg-white/10 border-white/20 text-white placeholder-slate-400 focus:border-white/40 focus:ring-0 focus:outline-none pr-16"
+                  rows={1}
+                  className="w-full bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20 rounded-xl px-4 py-3 pr-12 resize-none min-h-[48px] max-h-32 focus:outline-none transition-all duration-200"
+                  style={{
+                    height: 'auto',
+                    minHeight: '48px'
+                  }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = Math.min(target.scrollHeight, 128) + 'px';
+                  }}
                 />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <Badge variant="outline" className="bg-white/10 border-white/20 text-slate-300 text-xs">
-                    Press Enter to send
+                <div className="absolute right-3 bottom-3 flex items-center space-x-2">
+                  <Badge
+                    variant="outline"
+                    className={`text-xs transition-colors ${
+                      inputValue.length > 900
+                        ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400'
+                        : inputValue.length > 950
+                        ? 'bg-red-500/20 border-red-500/50 text-red-400'
+                        : 'bg-white/10 border-white/20 text-slate-400'
+                    }`}
+                  >
+                    {inputValue.length}/1000
                   </Badge>
                 </div>
               </div>
@@ -608,31 +821,60 @@ export default function ChatPage() {
               <Button
                 onClick={() => handleSendMessage(inputValue)}
                 disabled={!inputValue.trim() || isTyping}
-                className="bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/25 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className={`flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl font-semibold transition-all duration-300 ${
+                  inputValue.trim() && !isTyping
+                    ? 'bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl hover:shadow-emerald-500/25 transform hover:-translate-y-1 hover:scale-105'
+                    : 'bg-slate-600/50 text-slate-400 cursor-not-allowed'
+                }`}
+                size="icon"
               >
-                <ArrowUp className="w-5 h-5" />
+                {isTyping ? (
+                  <Loader className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                ) : (
+                  <ArrowUp className="w-5 h-5 sm:w-6 sm:h-6" />
+                )}
               </Button>
             </div>
 
-            {/* Quick Actions */}
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/20">
-              <div className="flex items-center space-x-2 text-slate-400 text-sm">
-                <Badge variant="outline" className="bg-white/10 border-white/20 text-slate-300">
+            {/* Quick Actions & Status */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-4 pt-4 border-t border-white/20 space-y-3 sm:space-y-0">
+              <div className="flex flex-wrap items-center gap-2 text-slate-400 text-sm">
+                <Badge variant="outline" className="bg-white/10 border-white/20 text-slate-300 text-xs">
                   Multi-model routing
                 </Badge>
-                <Badge variant="outline" className="bg-white/10 border-white/20 text-slate-300">
+                <Badge variant="outline" className="bg-white/10 border-white/20 text-slate-300 text-xs">
                   Privacy first
                 </Badge>
-                <Badge variant="outline" className="bg-white/10 border-white/20 text-slate-300">
+                <Badge variant="outline" className="bg-white/10 border-white/20 text-slate-300 text-xs">
                   Real-time responses
                 </Badge>
               </div>
 
               <div className="flex items-center space-x-4 text-xs text-slate-400">
-                <span className={`${inputValue.length > 900 ? 'text-yellow-400' : inputValue.length > 950 ? 'text-red-400' : ''}`}>
-                  {inputValue.length}/1000
+                <span className="hidden sm:inline">
+                  {messages.length} messages • Ready to chat
                 </span>
-                <span>{messages.length} messages • Ready to chat</span>
+                <span className="sm:hidden">
+                  {messages.length} msgs
+                </span>
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>Online</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Keyboard Shortcuts & Mobile Hints */}
+            <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0">
+              <div className="hidden sm:flex items-center space-x-4 text-xs text-slate-500">
+                <span>⌘K Focus input</span>
+                <span>⌘L Clear chat</span>
+                <span>Esc Blur input</span>
+              </div>
+              <div className="sm:hidden">
+                <p className="text-xs text-slate-500 text-center">
+                  Tap voice button or type your message • Press Enter to send
+                </p>
               </div>
             </div>
           </div>

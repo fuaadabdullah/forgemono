@@ -15,3 +15,6 @@ dist/
 .vercel/
 .env*
 !.env.example
+
+# Exclude Next.js cache to reduce deployment size
+.next/cache/

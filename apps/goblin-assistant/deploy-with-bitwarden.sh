@@ -172,4 +172,3 @@ echo "   1. Test the deployed application"
 echo "   2. Monitor logs for any issues"
 echo "   3. Remove .env.backup files if everything works"
 echo ""
-

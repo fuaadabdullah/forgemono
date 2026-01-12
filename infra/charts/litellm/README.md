@@ -1,11 +1,9 @@
----title: LiteLLM Gateway Helm Chart
-type: reference
-project: ForgeMonorepo
-status: published
-owner: GoblinOS
-description: "README"
-
 ---
+title: "README"
+description: "LiteLLM Gateway - Universal Model Gateway"
+---
+
+
 
 # LiteLLM Gateway - Universal Model Gateway
 

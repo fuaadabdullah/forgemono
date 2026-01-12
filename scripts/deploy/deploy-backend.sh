@@ -84,18 +84,25 @@ deploy_to_fly() {
         return
     fi
 
+    # Set app name and environment based on ENVIRONMENT variable
+    APP_NAME="goblin-assistant"
+    if [ "$ENVIRONMENT" = "staging" ]; then
+        APP_NAME="goblin-assistant-staging"
+    fi
+
     if [ -f fly.toml ]; then
         print_status "Using existing fly.toml (not overwriting). Creating backup: fly.toml.bak"
         cp fly.toml fly.toml.bak
     else
-        print_status "Creating fly.toml..."
+        print_status "Creating fly.toml for $ENVIRONMENT environment..."
         cat > fly.toml << EOF
-app = "goblin-assistant"
+app = "$APP_NAME"
 primary_region = "iad"
 
 [env]
 LOG_LEVEL = "info"
 PORT = "8001"
+ENV = "$ENVIRONMENT"
 
 [build]
 dockerfile = "Dockerfile"
@@ -124,9 +131,6 @@ grace_period = "5s"
 [[mounts]]
 source = "chroma-db"
 destination = "/app/chroma_db"
-
-[env]
-  ENV = "production"
 EOF
 
     print_status "Deploying to Fly.io..."
@@ -185,9 +189,10 @@ main() {
     echo ""
 
     # Validate environment
-    if [ ! -f ".env.production" ]; then
-        print_error ".env.production file not found!"
-        print_status "Please create .env.production with your production environment variables"
+    ENV_FILE=".env.$ENVIRONMENT"
+    if [ ! -f "$ENV_FILE" ]; then
+        print_error "$ENV_FILE file not found!"
+        print_status "Please create $ENV_FILE with your $ENVIRONMENT environment variables"
         exit 1
     fi
 

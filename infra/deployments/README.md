@@ -1,3 +1,10 @@
+---
+title: "README"
+description: "Deployment Templates"
+---
+
+
+
 # Deployment Templates
 
 This folder contains ready-to-customize deployment templates and CI workflows for common Kubernetes targets and ECS. These templates are designed to work with the unified telemetry plan mentioned in the docs.

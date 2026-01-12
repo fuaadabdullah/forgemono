@@ -247,4 +247,3 @@ echo "6. Monitor resources:"
 echo "   ssh -i ~/kamatera_key root@$SERVER_IP 'ai-resource-monitor.sh --display'"
 echo "   ssh -i ~/kamatera_key root@$SERVER_IP 'journalctl -u ai-resource-monitor -f'"
 echo "   ssh -i ~/kamatera_key root@$SERVER_IP 'journalctl -u ai-resource-manager -f'"
-

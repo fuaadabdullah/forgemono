@@ -1,8 +1,8 @@
-# Project Documentation
+---
+title: "README"
+description: "Documentation for README"
+---
 
-Welcome to the documentation hub. Navigate to the relevant section:
 
-- [Architecture](architecture/ARCHITECTURE.md)
-- [Deployment](deployment/DEPLOYMENT_README.md)
-- [Development](development/CONTRIBUTING.md)
-- [Security](security/SECURITY.md)
+
+**Last Updated**: December 2025

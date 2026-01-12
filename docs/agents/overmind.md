@@ -1,12 +1,9 @@
----title: Overmind — Chief Goblin Agent
-type: reference
-project: GoblinOS
-owner: GoblinOS
-goblin_name: Overmind
-status: published
-description: "overmind"
-
 ---
+title: "overmind"
+description: "Overmind"
+---
+
+
 
 # Overmind
 

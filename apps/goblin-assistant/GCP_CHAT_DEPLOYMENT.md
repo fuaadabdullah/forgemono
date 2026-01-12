@@ -28,7 +28,7 @@ Successfully migrated Goblin Assistant chat functionality from unreachable Kamat
 
 ### LlamaCPP Server
 - **VM Name**: `goblin-llamacpp-server`
-- **IP**: `136.119.9.188:8000`
+- **IP**: `34.132.226.143:8000`
 - **Instance**: `e2-standard-4` (4 vCPU, 16GB RAM)
 - **Type**: Preemptible
 - **Cost**: ~$36/month
@@ -79,7 +79,7 @@ Successfully migrated Goblin Assistant chat functionality from unreachable Kamat
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8004
 OLLAMA_GCP_URL=http://34.60.255.199:11434
-LLAMACPP_GCP_URL=http://136.119.9.188:8000
+LLAMACPP_GCP_URL=http://34.132.226.143:8000
 ```
 
 ## Deployment Steps
@@ -108,7 +108,7 @@ LLAMACPP_GCP_URL=http://136.119.9.188:8000
    ```bash
    fly secrets set \
      OLLAMA_GCP_URL=http://34.60.255.199:11434 \
-     LLAMACPP_GCP_URL=http://136.119.9.188:8000 \
+     LLAMACPP_GCP_URL=http://34.132.226.143:8000 \
      -a goblin-assistant-backend
    ```
 
@@ -187,7 +187,7 @@ curl -X POST http://localhost:8004/api/chat \
 curl http://34.60.255.199:11434/api/tags
 
 # Check LlamaCPP (when ready)
-curl http://136.119.9.188:8000/v1/models
+curl http://34.132.226.143:8000/v1/models
 ```
 
 ## Monitoring
@@ -292,7 +292,7 @@ If issues arise with GCP providers:
 feat: Migrate chat to GCP infrastructure with cost-optimized LLMs
 
 - Deploy Ollama server to GCP (34.60.255.199:11434)
-- Deploy LlamaCPP server to GCP (136.119.9.188:8000)
+- Deploy LlamaCPP server to GCP (34.132.226.143:8000)
 - Update frontend to use /api/chat endpoint
 - Add provider parameter to SimpleChatRequest
 - Configure ollama_gcp and llamacpp_gcp providers

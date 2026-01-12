@@ -1,3 +1,8 @@
+---
+title: "quality report"
+description: "Documentation Quality Report"
+---
+
 # Documentation Quality Report
 
 Generated: 2025-12-11 17:34:40

@@ -1,12 +1,9 @@
----title: KEDA Autoscaling for Overmind
-type: reference
-project: GoblinOS/Overmind
-status: published
-owner: GoblinOS
-goblin_name: Overmind KEDA
-description: "README"
-
 ---
+title: "README"
+description: "KEDA Autoscaling"
+---
+
+
 
 # KEDA Autoscaling
 

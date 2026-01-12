@@ -1,3 +1,8 @@
+---
+title: "COMPONENT GUIDELINES"
+description: "Component Guidelines"
+---
+
 # Component Guidelines
 
 ## Size Limits

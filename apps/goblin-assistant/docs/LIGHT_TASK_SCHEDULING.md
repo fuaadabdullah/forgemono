@@ -1,3 +1,8 @@
+---
+title: "LIGHT TASK SCHEDULING"
+description: "Light Task Scheduling Patterns"
+---
+
 # Light Task Scheduling Patterns
 
 This document outlines three lightweight alternatives to Celery for simple periodic and request-triggered tasks in the Goblin Assistant backend.

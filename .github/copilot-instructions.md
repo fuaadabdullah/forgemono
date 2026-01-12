@@ -243,7 +243,7 @@ PORTFOLIO_DIR=/path/to/project bash tools/portfolio_env.sh dev
 - ✅ Use `.env.local` for local dev (gitignored)
 - ✅ We use Bitwarden as the team's primary vault for storing and rotating secrets (Bitwarden or
   equivalent vaults like 1Password, HashiCorp Vault, AWS Secrets Manager may be used when
-  appropriate). Follow `docs/SECRETS_HANDLING.md` and `infra/secrets/README.md` for access patterns
+  appropriate). Follow `docs/SECRETS_MANAGEMENT.md` and `infra/secrets/README.md` for access patterns
   and automation.
 
 ## AI Assistant Workflow
@@ -285,9 +285,7 @@ on PR validation workflows.
   testing pipelines locally.
 
 - Secret management: Use Bitwarden + CircleCI contexts. Do NOT commit secrets into the repo; follow
-  `docs/SECRETS_HANDLING.md`.
-
-Note: If you require heavy Docker builds in CI, we recommend CircleCI self-hosted runners (see
+    `docs/SECRETS_MANAGEMENT.md`.Note: If you require heavy Docker builds in CI, we recommend CircleCI self-hosted runners (see
 `.circleci/SETUP.md`) instead of public runners.
 
 - ✅ Single-file edits and refactoring
@@ -403,7 +401,7 @@ Mini API. This tool helps maintain high-quality documentation standards across t
 python3 tools/doc-quality/doc_quality_check.py
 
 # Check specific files
-python3 tools/doc-quality/doc_quality_check.py docs/README.md docs/WORKSPACE_OVERVIEW.md
+python3 tools/doc-quality/doc_quality_check.py docs/README.md docs/README.md
 
 # CI mode with quality gates
 python3 tools/doc-quality/doc_quality_check.py --ci --min-score 70
@@ -536,7 +534,7 @@ The tool is particularly useful for:
 
   - Access Control & Encryption: Use RBAC and least-privilege for all storage; encrypt data at rest
     and in transit, and store keys in Bitwarden or a managed secrets store (see
-    `docs/SECRETS_HANDLING.md`).
+    `docs/SECRETS_MANAGEMENT.md`).
 
   - RAG / Sources: When returning generated answers with citations, only include permitted data and
     add `source` metadata. If a source is flagged as restricted, avoid showing it in answers or
@@ -571,7 +569,7 @@ The tool is particularly useful for:
     retention, and privacy checks required to push the change to production.
 
 See `apps/goblin-assistant/backend/docs/MONITORING_IMPLEMENTATION.md`,
-`apps/goblin-assistant/backend/docs/PRODUCTION_MONITORING.md`, and `docs/SECRETS_HANDLING.md` for
+`apps/goblin-assistant/backend/docs/PRODUCTION_MONITORING.md`, and `docs/SECRETS_MANAGEMENT.md` for
 canonical patterns and retention/rotation schedules.
 
 ### For Developers
@@ -583,7 +581,7 @@ canonical patterns and retention/rotation schedules.
 ## Links & Resources
 
 - **GoblinOS Config**: `GoblinOS/goblins.yaml`
-- **Monorepo Docs**: `docs/WORKSPACE_OVERVIEW.md`
+- **Monorepo Docs**: `docs/README.md`
 
 ---
 

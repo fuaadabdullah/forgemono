@@ -183,10 +183,10 @@ function generateReport(results) {
 
   let markdown = `# Lighthouse Accessibility Audit Results
 
-**Audit Date**: ${auditDate}  
-**Auditor**: Automated Lighthouse Runner  
-**Tool**: Chrome Lighthouse (Programmatic)  
-**Target**: WCAG 2.1 Level AA compliance  
+**Audit Date**: ${auditDate}
+**Auditor**: Automated Lighthouse Runner
+**Tool**: Chrome Lighthouse (Programmatic)
+**Target**: WCAG 2.1 Level AA compliance
 
 ---
 
@@ -211,8 +211,8 @@ function generateReport(results) {
     if (result.error) {
       markdown += `### ❌ ${result.name.charAt(0).toUpperCase() + result.name.slice(1)} Page
 
-**Error**: Could not complete audit  
-**Message**: ${result.error}  
+**Error**: Could not complete audit
+**Message**: ${result.error}
 
 ---
 
@@ -226,10 +226,10 @@ function generateReport(results) {
 
     markdown += `### ${emoji} ${pageTitle} Page
 
-**Score**: ${result.score}/100 (${status})  
-**URL**: \`${result.url}\`  
-**Passed Audits**: ${result.passed}  
-**Timestamp**: ${result.timestamp}  
+**Score**: ${result.score}/100 (${status})
+**URL**: \`${result.url}\`
+**Passed Audits**: ${result.passed}
+**Timestamp**: ${result.timestamp}
 
 `;
 
@@ -306,8 +306,8 @@ Priority fixes needed:
 
   markdown += `---
 
-**Generated**: ${new Date().toISOString()}  
-**Script**: \`scripts/run-lighthouse-audit.js\`  
+**Generated**: ${new Date().toISOString()}
+**Script**: \`scripts/run-lighthouse-audit.js\`
 **Command**: \`node scripts/run-lighthouse-audit.js\`
 `;
 

@@ -1,0 +1,25 @@
+{
+  "ping": {
+    "Inference": "reachable",
+    "Router": "reachable"
+  },
+  "ports": {
+    "Inference_8002": "closed",
+    "Router_8000": "open"
+  },
+  "http": {
+    "inference": "error: HTTPConnectionPool(host='192.175.23.150', port=8002): Max retries exceeded with url: /api/tags (Caused by ConnectTimeoutError(<HTTPConnection(host='192.175.23.150', port=8002) at 0x10967f770>, 'Connection to 192.175.23.150 timed out. (connect timeout=10)'))",
+    "router_health": "failed: 404",
+    "router_chat": "failed: 503"
+  },
+  "analysis": {
+    "inference_reachable": true,
+    "router_reachable": true,
+    "inference_port_open": false,
+    "router_port_open": true,
+    "inference_http_ok": false,
+    "router_health_ok": false,
+    "router_chat_ok": false,
+    "issue_confirmed": false
+  }
+}

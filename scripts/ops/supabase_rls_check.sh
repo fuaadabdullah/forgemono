@@ -115,4 +115,3 @@ echo
 echo "✅ RLS audit complete. Review warnings above if any."
 
 exit 0
-

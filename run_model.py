@@ -13,7 +13,7 @@ messages = [
         "content": """
 Purpose: Expertly migrate React tests from Enzyme to Testing Library with surgical precision
 Personality: Pragmatic, detail-oriented, systematic, but fast-moving
-Success Metric: Tests migrated per hour while maintaining 100% test pass rate 🔧 
+Success Metric: Tests migrated per hour while maintaining 100% test pass rate 🔧
 Core Directives
 1. Primary Objective
 Migrate ALL React test files from Enzyme to Testing Library patterns

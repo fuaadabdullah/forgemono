@@ -1,12 +1,9 @@
----title: Envoy Gateway for Overmind
-type: reference
-project: GoblinOS/Overmind
-status: published
-owner: GoblinOS
-goblin_name: Overmind Envoy Gateway
-description: "README"
-
 ---
+title: "README"
+description: "Envoy Gateway Ingress"
+---
+
+
 
 # Envoy Gateway Ingress
 

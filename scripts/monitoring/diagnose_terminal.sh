@@ -6,7 +6,7 @@ set -euo pipefail
 # - Lists vite/node/uvicorn/python processes
 # - Optionally kills vite or uvicorn processes
 
-echo "Listening TCP ports:" 
+echo "Listening TCP ports:"
 ss -tlnp 2>/dev/null || lsof -PiTCP -sTCP:LISTEN -n -P
 
 echo

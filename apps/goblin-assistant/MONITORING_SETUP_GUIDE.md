@@ -1,3 +1,8 @@
+---
+title: "MONITORING SETUP GUIDE"
+description: "Goblin Assistant Monitoring Setup Guide"
+---
+
 # Goblin Assistant Monitoring Setup Guide
 
 ## 🎯 Monitoring Overview
@@ -11,9 +16,9 @@ Your Goblin Assistant application now has comprehensive monitoring set up with:
 
 ## 📊 Current Monitoring Status
 
-### Frontend (Netlify)
+### Frontend (Hosting)
 
-- **URL**: <https://goblin-assistant.netlify.app>
+- **URL**: Set to your hosting provider (e.g., Vercel site or custom domain)
 - **Datadog RUM**: Environment variables configured (needs your credentials)
 - **Status**: Ready for Datadog setup
 
@@ -38,7 +43,7 @@ cd /Users/fuaadabdullah/ForgeMonorepo/goblin-assistant
 This script will:
 
 - Guide you through creating a Datadog RUM application
-- Configure environment variables in Netlify
+- Configure environment variables in your hosting provider dashboard (e.g., Vercel)
 - Redeploy with monitoring enabled
 
 ### 2. Enable Vercel Analytics
@@ -122,7 +127,7 @@ Keep your Datadog Application ID and Client Token secure:
 
 ### Test Frontend Monitoring
 
-1. Visit <https://goblin-assistant.netlify.app>
+1. Visit your frontend site URL (e.g., https://goblin.fuaad.ai or your Vercel deployment)
 2. Open browser DevTools (F12)
 3. Go to Console tab
 4. Run: `throw new Error('Test error for Datadog')`

@@ -1,3 +1,8 @@
+---
+title: "JIRA GITHUB INTEGRATION"
+description: "Jira and GitHub Enterprise Server Integration Guide"
+---
+
 # Jira and GitHub Enterprise Server Integration Guide
 
 This guide provides step-by-step instructions for connecting GitHub Enterprise Server to Jira Cloud using the GitHub for Atlassian app.

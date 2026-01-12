@@ -29,7 +29,7 @@ echo ""
 echo -e "${BLUE}[1/6]${NC} Checking GCP infrastructure..."
 
 OLLAMA_URL="http://34.60.255.199:11434"
-LLAMACPP_URL="http://136.119.9.188:8000"
+LLAMACPP_URL="http://34.132.226.143:8000"
 
 if curl -s -f "$OLLAMA_URL/api/tags" > /dev/null 2>&1; then
     echo -e "  ${GREEN}✓${NC} Ollama server accessible: $OLLAMA_URL"

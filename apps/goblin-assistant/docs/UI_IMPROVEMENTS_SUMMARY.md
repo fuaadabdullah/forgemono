@@ -437,7 +437,7 @@ node ../../tools/axe-smoke.js
 
 **Documentation**:
 
-- Main overview: `docs/WORKSPACE_OVERVIEW.md`
+- Main overview: `docs/README.md`
 - AI instructions: `.github/copilot-instructions.md`
 - Responsive guide: `docs/RESPONSIVE_TESTING.md`
 

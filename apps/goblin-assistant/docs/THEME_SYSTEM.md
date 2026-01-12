@@ -347,7 +347,7 @@ tailwind.config.js     # Maps CSS vars to Tailwind utilities
 ## 🔗 Related Documentation
 
 - [ACCESSIBILITY_CERTIFICATION.md](./ACCESSIBILITY_CERTIFICATION.md) - WCAG 2.1 Level AA audit
-- [LIGHTHOUSE_FINAL_REPORT.md](./LIGHTHOUSE_FINAL_REPORT.md) - 100/100 accessibility score
+- [LIGHTHOUSE_AUDIT_GUIDE.md](../../docs/LIGHTHOUSE_AUDIT_GUIDE.md) - 100/100 accessibility score
 - [AXE_AUDIT_RESULTS.md](./AXE_AUDIT_RESULTS.md) - 0 violations across all pages
 
 ---

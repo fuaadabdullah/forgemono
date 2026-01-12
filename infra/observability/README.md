@@ -1,6 +1,9 @@
 ---
-description: 'README'
+title: "README"
+description: "Observability manifests"
 ---
+
+
 
 # Observability manifests
 

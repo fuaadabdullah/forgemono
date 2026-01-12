@@ -1,3 +1,8 @@
+---
+title: "README"
+description: "Raptor Mini Colab Automation"
+---
+
 # Raptor Mini Colab Automation
 
 This script automates the deployment of Raptor Mini to Google Colab with ngrok tunneling.

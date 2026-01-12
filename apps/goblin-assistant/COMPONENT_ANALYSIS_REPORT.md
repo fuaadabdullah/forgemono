@@ -1,3 +1,8 @@
+---
+title: "COMPONENT ANALYSIS REPORT"
+description: "Component Complexity Analysis Report"
+---
+
 # Component Complexity Analysis Report
 
 ## Executive Summary

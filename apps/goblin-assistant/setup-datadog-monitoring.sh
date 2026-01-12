@@ -31,14 +31,9 @@ print_step() {
     echo -e "${BLUE}[STEP]${NC} $1"
 }
 
-# Check if Netlify CLI is available
-check_netlify() {
-    if ! command -v netlify &> /dev/null; then
-        print_error "Netlify CLI is not installed. Please install it first:"
-        echo "npm install -g netlify-cli"
-        exit 1
-    fi
-}
+# Previously required Netlify CLI; Netlify deployment support has been removed.
+# The script now writes environment variables to .env.production and advises
+# the user to set platform-specific environment variables (e.g., Vercel, Fly, or other).
 
 # Get Datadog credentials from user
 get_datadog_credentials() {
@@ -65,16 +60,21 @@ get_datadog_credentials() {
     print_status "Credentials received ✓"
 }
 
-# Update Netlify environment variables
-update_netlify_env() {
-    print_step "Updating Netlify environment variables..."
+# Update environment variables (written to .env.production)
+update_env_file() {
+    print_step "Writing environment variables to .env.production..."
 
-    netlify env:set VITE_DD_APPLICATION_ID "$DD_APP_ID"
-    netlify env:set VITE_DD_CLIENT_TOKEN "$DD_CLIENT_TOKEN"
-    netlify env:set VITE_DD_ENV production
-    netlify env:set VITE_DD_VERSION 1.0.0
+    env_file=".env.production"
+    echo "VITE_DD_APPLICATION_ID=$DD_APP_ID" > "$env_file"
+    echo "VITE_DD_CLIENT_TOKEN=$DD_CLIENT_TOKEN" >> "$env_file"
+    echo "VITE_DD_ENV=production" >> "$env_file"
+    echo "VITE_DD_VERSION=1.0.0" >> "$env_file"
+    echo "VITE_FASTAPI_URL=https://api.goblin-assistant.com" >> "$env_file"
+    echo "VITE_GOBLIN_RUNTIME=fastapi" >> "$env_file"
+    echo "VITE_MOCK_API=false" >> "$env_file"
 
-    print_status "Environment variables updated ✓"
+    print_status "Env vars written to $env_file"
+    print_status "Please set these variables in your hosting provider dashboard (e.g., Vercel) for production deployments."
 }
 
 # Test the setup
@@ -105,17 +105,16 @@ test_setup() {
 redeploy_production() {
     print_step "Redeploying to production with monitoring..."
 
-    print_status "Triggering production deployment..."
-    netlify deploy --prod --dir=dist
+    print_status "Triggering production deployment via supported provider..."
+    print_status "This script doesn't trigger provider deployments; run your platform command (e.g., 'vercel --prod') or use your CI."
 
-    print_status "Production deployment completed ✓"
+    print_status "Redeploy step complete - ensure your hosting provider picks up the updated env vars."
 }
 
 # Main setup function
 main() {
-    check_netlify
     get_datadog_credentials
-    update_netlify_env
+    update_env_file
     test_setup
     redeploy_production
 
@@ -123,7 +122,7 @@ main() {
     print_status "🎉 Datadog monitoring setup completed!"
     echo ""
     echo "📋 Next steps:"
-    echo "1. Visit https://goblin-assistant.netlify.app"
+    echo "1. Visit your production URL (e.g., https://goblin.fuaad.ai or Vercel host)"
     echo "2. Check Datadog RUM dashboard for user sessions"
     echo "3. Generate some test errors to verify error tracking"
     echo "4. Set up alerts in Datadog (see PRODUCTION_DATADOG_SETUP.md)"

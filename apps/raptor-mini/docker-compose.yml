@@ -6,7 +6,7 @@ services:
     ports:
       - '8080:8080'
     environment:
-      - API_KEY=supersecretkey
+      - API_KEY=${RAPTOR_API_KEY}
       - MODEL_NAME=raptor-mini
     volumes:
       - ./models/raptor-mini:/models/raptor-mini:ro

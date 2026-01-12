@@ -1,6 +1,9 @@
 ---
-description: 'README'
+title: "README"
+description: "OpenTelemetry Collector Helm Chart"
 ---
+
+
 
 # OpenTelemetry Collector Helm Chart
 

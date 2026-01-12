@@ -1,3 +1,8 @@
+---
+title: "SECURITY REMEDIATION"
+description: "Repo Secrets Remediation & Best Practices"
+---
+
 # Repo Secrets Remediation & Best Practices
 
 This document contains recommended steps to remediate exposed secrets, purge secrets from git history, rotate keys, and set automation to prevent future leaks.

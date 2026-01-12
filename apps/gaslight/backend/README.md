@@ -1,3 +1,8 @@
+---
+title: "README"
+description: "Backend (FastAPI)"
+---
+
 # Backend (FastAPI)
 
 This folder contains a minimal FastAPI backend scaffold for Gaslight.

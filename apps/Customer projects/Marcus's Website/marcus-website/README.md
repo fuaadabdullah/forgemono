@@ -1,3 +1,8 @@
+---
+title: "README"
+description: "Marcus's Website - Elbey Projects"
+---
+
 # Marcus's Website - Elbey Projects
 
 A complete website template for Elbey Projects, a mobile mechanic business, built with Next.js 15 and TypeScript.

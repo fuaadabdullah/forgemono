@@ -1,3 +1,8 @@
+---
+title: "VISUAL TESTING"
+description: "Visual Regression Testing - Quick Reference"
+---
+
 # Visual Regression Testing - Quick Reference
 
 ## Start Storybook

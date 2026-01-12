@@ -53,4 +53,3 @@ echo "   curl -X POST http://localhost:8002/v1/chat/completions \\"
 echo "         -H 'Content-Type: application/json' \\"
 echo "         -H 'Authorization: Bearer <LOCAL_LLM_API_KEY>' \\"
 echo "         -d '{\"model\":\"raptor-mini\",\"messages\":[{\"role\":\"user\",\"content\":\"Hello!\"}]}'"
-

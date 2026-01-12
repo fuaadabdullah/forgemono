@@ -1,3 +1,10 @@
+---
+title: "README"
+description: "Raptor Mini"
+---
+
+
+
 # Raptor Mini
 
 A lightweight diagnostics and AI-powered documentation analysis system for the ForgeMonorepo.

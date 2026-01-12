@@ -1,7 +1,7 @@
 // Test script to verify monitoring functionality
 import https from 'https';
 
-const baseUrl = 'https://goblin-assistant.netlify.app';
+const baseUrl = process.env.BASE_URL || 'http://localhost:4173';
 
 console.log('🧪 Testing Goblin Assistant Monitoring\n');
 
@@ -37,7 +37,7 @@ https
               console.log(`   ✅ API Status: ${res.statusCode}`);
               console.log('\n🎉 Monitoring test completed!');
               console.log('\n📋 Next steps:');
-              console.log('   - Visit https://goblin-assistant.netlify.app/error-testing');
+              console.log(`   - Visit ${baseUrl}/error-testing`);
               console.log('   - Click error testing buttons to generate test errors');
               console.log('   - Check Datadog dashboard for user sessions and errors');
               console.log('   - Look for "GoblinOS Assistant" service-tagged errors');
@@ -46,7 +46,7 @@ https
               console.log('   ⚠️  API not accessible (expected in development)');
               console.log('\n🎉 Basic monitoring test completed!');
               console.log('\n�� Next steps:');
-              console.log('   - Visit https://goblin-assistant.netlify.app/error-testing');
+              console.log(`   - Visit ${baseUrl}/error-testing`);
               console.log('   - Click error testing buttons to generate test errors');
               console.log('   - Check Datadog dashboard for user sessions and errors');
               console.log('   - Look for "GoblinOS Assistant" service-tagged errors');

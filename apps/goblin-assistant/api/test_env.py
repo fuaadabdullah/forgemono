@@ -16,13 +16,17 @@ print(
     f"GEMINI_API_KEY: {'***' + os.getenv('GEMINI_API_KEY', '')[-4:] if os.getenv('GEMINI_API_KEY') else 'Not set'}"
 )
 
-# Test Flask import
+# Test FastAPI import
 try:
-    from flask import Flask
+    import importlib.util
 
-    print("Flask import: OK")
-except ImportError as e:
-    print(f"Flask import: FAILED - {e}")
+    spec = importlib.util.find_spec("main")
+    if spec is not None:
+        print("FastAPI main module: AVAILABLE")
+    else:
+        print("FastAPI main module: NOT FOUND")
+except Exception as e:
+    print(f"FastAPI check: FAILED - {e}")
 
 # Test database initialization
 try:

@@ -24,7 +24,7 @@ fi
 
 if lsof -i :3000 > /dev/null 2>&1; then
     echo -e "${RED}❌ Port 3000 already in use. Stopping existing frontend...${NC}"
-    pkill -f "vite" || true
+    pkill -f "next" || true
     sleep 2
 fi
 
@@ -47,7 +47,7 @@ fi
 echo -e "${GREEN}✅ Backend running at http://localhost:8000${NC}"
 
 # Start frontend
-echo -e "${BLUE}🎨 Starting Vite frontend on port 3000...${NC}"
+echo -e "${BLUE}🎨 Starting Next.js frontend on port 3000...${NC}"
 cd "$SCRIPT_DIR/../.."  # Go to monorepo root
 nohup pnpm dev --host 0.0.0.0 </dev/null > /tmp/goblin-frontend.log 2>&1 &
 FRONTEND_PID=$!
@@ -78,5 +78,5 @@ echo "  Backend:  tail -f /tmp/goblin-backend.log"
 echo "  Frontend: tail -f /tmp/goblin-frontend.log"
 echo ""
 echo "🛑 To stop servers:"
-echo "  pkill -f 'uvicorn.*main:app' && pkill -f 'vite'"
+echo "  pkill -f 'uvicorn.*main:app' && pkill -f 'next'"
 echo ""

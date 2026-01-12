@@ -1,3 +1,10 @@
+---
+title: "README"
+description: "Scripts Directory"
+---
+
+
+
 # Scripts Directory
 
 This directory contains all operational scripts for the ForgeMonorepo, organized by purpose. These scripts provide flexibility and portability that CI/CD platforms can't fully replace.

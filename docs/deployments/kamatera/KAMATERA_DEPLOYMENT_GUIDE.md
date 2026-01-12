@@ -1,3 +1,8 @@
+---
+title: "KAMATERA DEPLOYMENT GUIDE"
+description: "Update system first"
+---
+
 ## 🚀 KAMATERA DEPLOYMENT EXECUTION GUIDE
 
 ### Step 1: Access Kamatera Console

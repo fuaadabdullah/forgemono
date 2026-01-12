@@ -1,3 +1,8 @@
+---
+title: "README"
+description: "Goblin Assistant Screenshots"
+---
+
 # Goblin Assistant Screenshots
 
 This directory contains screenshots showcasing the key features and interface of the Goblin Assistant application.

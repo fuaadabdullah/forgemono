@@ -1,0 +1,192 @@
+# Enhanced Pre-commit Configuration for CI/CD Optimization
+# Provides fast local validation to catch issues before CI
+
+repos:
+  # Python code quality
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.3
+    hooks:
+      - id: ruff
+        name: Ruff Linting
+        args: [--fix, --exit-non-zero-on-fix]
+        exclude: ^(tests/fixtures|examples|docs)/
+        pass_filenames: true
+        always_run: false
+        stages: [commit]
+        files: \.py$
+        types: [python]
+        log_file: logs/pre-commit-ruff.log
+
+      - id: ruff-format
+        name: Ruff Formatting
+        exclude: ^(tests/fixtures|examples|docs)/
+        pass_filenames: true
+        always_run: false
+        stages: [commit]
+        files: \.py$
+        types: [python]
+        log_file: logs/pre-commit-format.log
+
+  # Security scanning
+  - repo: https://github.com/gitguardian/ggshield
+    rev: v1.34.0
+    hooks:
+      - id: ggshield
+        name: GitGuardian Secret Detection
+        description: Detect secrets and credentials in code
+        entry: ggshield secret scan pre-commit
+        language: python
+        log_file: logs/pre-commit-secrets.log
+        always_run: true
+        stages: [commit]
+
+  # Terraform validation
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.98.1
+    hooks:
+      - id: terraform_fmt
+        name: Terraform Formatting
+        description: Format Terraform code
+        exclude: ^(examples|docs)/
+        log_file: logs/pre-commit-terraform.log
+        always_run: false
+        stages: [commit]
+        files: \.tf$
+
+      - id: terraform_validate
+        name: Terraform Validation
+        description: Validate Terraform syntax
+        exclude: ^(examples|docs)/
+        log_file: logs/pre-commit-terraform-validate.log
+        always_run: false
+        stages: [commit]
+        files: \.tf$
+
+      - id: terraform_tfsec
+        name: Terraform Security Scan
+        description: Security scanning for Terraform
+        exclude: ^(examples|docs)/
+        log_file: logs/pre-commit-tfsec.log
+        always_run: false
+        stages: [commit]
+        files: \.tf$
+
+  # Docker validation
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0-rc1
+    hooks:
+      - id: hadolint-docker
+        name: Dockerfile Linting
+        description: Lint Dockerfiles for best practices
+        entry: hadolint
+        language: golang
+        log_file: logs/pre-commit-docker.log
+        always_run: false
+        stages: [commit]
+        files: Dockerfile.*
+
+  # YAML validation
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        name: YAML Linting
+        description: Validate YAML syntax and style
+        args: [--config-file=.yamllint.yml]
+        log_file: logs/pre-commit-yaml.log
+        always_run: false
+        stages: [commit]
+        files: \.(yml|yaml)$
+
+  # JSON validation
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.31.0
+    hooks:
+      - id: check-github-workflows
+        name: GitHub Workflows Validation
+        description: Validate GitHub Actions workflows
+        log_file: logs/pre-commit-github-actions.log
+        always_run: false
+        stages: [commit]
+        files: \.github/workflows/.*\.ya?ml$
+
+      - id: check-circleci
+        name: CircleCI Validation
+        description: Validate CircleCI configuration
+        log_file: logs/pre-commit-circleci.log
+        always_run: false
+        stages: [commit]
+        files: \.circleci/config\.ya?ml$
+
+  # Git hooks for commit message validation
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: 3.24.0
+    hooks:
+      - id: commitizen
+        name: Commitizen Validation
+        description: Validate commit message format
+        entry: cz check --rev-range
+        log_file: logs/pre-commit-commitizen.log
+        always_run: true
+        stages: [commit-msg]
+
+  # Performance and dependency checks
+  - repo: local
+    hooks:
+      - id: dependency-check
+        name: Dependency Security Check
+        entry: scripts/ci-cd/check-dependencies.sh
+        language: script
+        log_file: logs/pre-commit-dependencies.log
+        always_run: false
+        stages: [commit]
+        files: ^(requirements\.txt|package\.json|pyproject\.toml)$
+
+      - id: performance-check
+        name: Performance Impact Check
+        entry: scripts/ci-cd/check-performance.sh
+        language: script
+        log_file: logs/pre-commit-performance.log
+        always_run: false
+        stages: [commit]
+        files: \.(py|js|ts)$
+
+      - id: ci-cd-validation
+        name: CI/CD Configuration Check
+        entry: scripts/ci-cd/validate-cicd.sh
+        language: script
+        log_file: logs/pre-commit-cicd.log
+        always_run: false
+        stages: [commit]
+        files: ^(\.circleci/|\.github/workflows/|scripts/ci-cd/)
+
+# Global configuration
+default_language_version:
+  python: python3.11
+
+default_stages: [commit]
+
+# Exclude files/directories
+exclude: |
+  (?x)^(
+      node_modules/|
+      .git/|
+      .venv/|
+      venv/|
+      __pycache__/|
+      \.pytest_cache/|
+      \.mypy_cache/|
+      build/|
+      dist/|
+      \.vscode/|
+      \.idea/|
+      \.DS_Store|
+      \.env.*|
+      \.log$
+  )$
+
+# Fail fast configuration
+fail_fast: false
+
+# Verbose output
+verbose: true

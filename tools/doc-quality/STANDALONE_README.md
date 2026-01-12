@@ -1,3 +1,10 @@
+---
+title: "STANDALONE_README"
+description: "Goblin Assistant Mini - Standalone Documentation Quality Checker"
+---
+
+
+
 # Goblin Assistant Mini - Standalone Documentation Quality Checker
 
 A standalone version of the documentation quality analysis tool that works without external dependencies, featuring both local LLM analysis and heuristic fallbacks.

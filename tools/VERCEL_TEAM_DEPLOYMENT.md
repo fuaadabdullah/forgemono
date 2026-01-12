@@ -1,3 +1,10 @@
+---
+title: "VERCEL_TEAM_DEPLOYMENT"
+description: "Creating a Vercel Team and Deploying Projects (Pro plan)"
+---
+
+
+
 # Creating a Vercel Team and Deploying Projects (Pro plan)
 
 This guide shows how to create a Vercel team, upgrade it to Pro, and move a project to that team for deployments that require more than 12 serverless functions.

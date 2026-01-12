@@ -1,5 +1,6 @@
-import { Button } from '../ui';
-import { RefreshCw, Settings } from 'lucide-react';
+import React from 'react';
+import { Button } from '../../components/ui';
+import { RefreshCw, Play, Pause } from 'lucide-react';
 
 interface DashboardHeaderProps {
   onRefresh: () => void;
@@ -8,50 +9,44 @@ interface DashboardHeaderProps {
   loading: boolean;
 }
 
-/**
- * Dashboard header with title, refresh controls, and settings
- */
-export function DashboardHeader({
-  onRefresh,
-  autoRefresh,
-  onToggleAutoRefresh,
-  loading,
-}: DashboardHeaderProps) {
+export function DashboardHeader({ onRefresh, autoRefresh, onToggleAutoRefresh, loading }: DashboardHeaderProps) {
   return (
-    <div className="flex items-center justify-between mb-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">System Health Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Real-time monitoring of all Goblin Assistant services and infrastructure
-        </p>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <Button
-          variant={autoRefresh ? 'primary' : 'secondary'}
-          size="sm"
-          onClick={onToggleAutoRefresh}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
-          Auto Refresh
-        </Button>
-
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onRefresh}
-          disabled={loading}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-
-        <Button variant="secondary" size="sm" className="flex items-center gap-2">
-          <Settings className="h-4 w-4" />
-          Settings
-        </Button>
+    <div className="bg-white rounded-lg border p-6 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm text-gray-600">System Overview & Status</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRefresh}
+            disabled={loading}
+            className="flex items-center space-x-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </Button>
+          <Button
+            variant={autoRefresh ? "default" : "outline"}
+            size="sm"
+            onClick={onToggleAutoRefresh}
+            className="flex items-center space-x-2"
+          >
+            {autoRefresh ? (
+              <>
+                <Pause className="h-4 w-4" />
+                <span>Stop Auto-refresh</span>
+              </>
+            ) : (
+              <>
+                <Play className="h-4 w-4" />
+                <span>Auto-refresh</span>
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

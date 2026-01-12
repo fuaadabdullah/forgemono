@@ -1,3 +1,8 @@
+---
+title: "LLM LOCAL ONBOARDING"
+description: "Local LLM Onboarding (Goblin Assistant)"
+---
+
 # Local LLM Onboarding (Goblin Assistant)
 
 This document describes recommended hardware, supported weight formats, download and conversion steps, and quick-start commands to run a local LLM for development and offline usage with Goblin Assistant.

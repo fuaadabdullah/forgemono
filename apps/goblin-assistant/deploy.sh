@@ -76,68 +76,7 @@ deploy_vercel() {
     print_status "Vercel deployment completed ✓"
 }
 
-# Deploy to Netlify
-deploy_netlify() {
-    print_status "Deploying to Netlify..."
-
-    # Check if netlify.toml exists
-    if [ ! -f "netlify.toml" ]; then
-        print_error "netlify.toml not found. Please ensure Netlify configuration is set up."
-        exit 1
-    fi
-
-    # Install Netlify CLI if not present
-    if ! command -v netlify &> /dev/null; then
-        print_status "Installing Netlify CLI..."
-        npm i -g netlify-cli
-    fi
-
-    # Check if already logged in to Netlify
-    if ! netlify status &> /dev/null; then
-        print_warning "Not logged in to Netlify. Please run 'netlify login' first."
-        print_status "After logging in, run this script again."
-        exit 1
-    fi
-
-    # Determine environment
-    local ENV_TYPE="production"
-    if [ "$1" = "staging" ]; then
-        ENV_TYPE="staging"
-        print_status "Deploying to Netlify staging environment..."
-    else
-        print_status "Deploying to Netlify production..."
-    fi
-
-    # Set environment variables based on deployment type
-    if [ "$ENV_TYPE" = "staging" ]; then
-        export VITE_DD_ENV="staging"
-        # Load staging environment variables if they exist
-        if [ -f ".env.staging" ]; then
-            export $(grep -v '^#' .env.staging | xargs)
-        fi
-    else
-        export VITE_DD_ENV="production"
-        # Load production environment variables if they exist
-        if [ -f ".env.production" ]; then
-            export $(grep -v '^#' .env.production | xargs)
-        fi
-    fi
-
-    # Deploy to Netlify
-    if [ "$ENV_TYPE" = "staging" ]; then
-        netlify deploy --dir=dist --alias staging
-    else
-        netlify deploy --prod --dir=dist
-    fi
-
-    if [ $? -eq 0 ]; then
-        print_status "Netlify deployment completed ✓"
-        print_status "Site URL will be shown above"
-    else
-        print_error "Netlify deployment failed!"
-        exit 1
-    fi
-}
+# Netlify deployment target removed. Use Vercel or other supported hosting instead.
 
 # Deploy to GitHub Pages
 deploy_github_pages() {
@@ -158,7 +97,7 @@ test_build() {
     print_status "Testing production build locally..."
 
     # Start preview server in background
-    npx vite preview --port 4173 &
+    npx next start -p 4173 &
     PREVIEW_PID=$!
 
     # Wait a moment for server to start
@@ -193,12 +132,7 @@ main() {
         "vercel")
             deploy_vercel
             ;;
-        "netlify")
-            deploy_netlify "production"
-            ;;
-        "netlify-staging")
-            deploy_netlify "staging"
-            ;;
+        # Netlify targets removed; Vercel and GitHub remain supported.
         "github")
             deploy_github_pages
             ;;
@@ -207,10 +141,8 @@ main() {
             ;;
         *)
             print_error "Invalid deployment target: $DEPLOY_TARGET"
-            echo "Usage: $0 [vercel|netlify|netlify-staging|github|test]"
+            echo "Usage: $0 [vercel|github|test]"
             echo "  vercel          - Deploy to Vercel production"
-            echo "  netlify         - Deploy to Netlify production"
-            echo "  netlify-staging - Deploy to Netlify staging"
             echo "  github          - Deploy to GitHub Pages"
             echo "  test            - Test build locally (default)"
             exit 1

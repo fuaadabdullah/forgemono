@@ -71,4 +71,3 @@ fi
 
 echo "Done. Current disk usage:"
 df -h | sed -n '1p;/\/Volumes\//p;/\/Users\//p'
-

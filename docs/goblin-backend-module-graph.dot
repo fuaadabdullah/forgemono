@@ -157,7 +157,7 @@ digraph goblin_backend {
   AnthropicProvider -> Anthropic_provider_infer;
   AnthropicProvider -> Anthropic_provider_health;
   OllamaProvider -> Ollama_provider_infer;
-  
+
   // Provider classes use adapter client to make requests
   OpenAIProvider -> OpenAI [label="uses adapter client"];
   AnthropicProvider -> Anthropic [label="uses adapter client"];
@@ -288,7 +288,7 @@ digraph goblin_backend {
   // Services use provider registry for configuration & discovery
   RoutingService -> ProviderRegistry [label="uses get_provider_registry()"];
   RoutingService -> ProviderRegistry_get_provider [label="calls -> get_provider(name)", style=dotted];
-  
+
   DecisionEngine -> ProviderRegistry [label="queries -> registry"];
   DecisionEngine -> ProviderRegistry_get_provider [label="calls -> get_provider(name)", style=dotted];
   DecisionEngine -> OpenAI_list_models [label="queries->list_models()"];

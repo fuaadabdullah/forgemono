@@ -1,3 +1,8 @@
+---
+title: "vercel-linking-projects"
+description: "Linking Projects with Vercel CLI"
+---
+
 # Linking Projects with Vercel CLI
 
 Copy page

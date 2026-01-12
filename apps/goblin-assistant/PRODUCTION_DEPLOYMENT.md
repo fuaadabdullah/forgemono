@@ -28,7 +28,7 @@ This guide covers deploying the Goblin Assistant application to production using
 4. **Deploy Frontend**
 
    ```bash
-   ./deploy-frontend.sh
+   ./deploy.sh vercel
    ```
 
 ## 📋 Detailed Deployment Steps

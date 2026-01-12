@@ -13,7 +13,7 @@ This comprehensive guide covers advanced AI development techniques with detailed
 ## Core Principles
 
 1. Data quality is paramount for model performance and reliability
-2. Model validation prevents overfitting and ensures generalization  
+2. Model validation prevents overfitting and ensures generalization
 3. Continuous monitoring improves long-term results and catches issues early
 
 ## Implementation Example
@@ -40,7 +40,7 @@ for test_name, content in [("Basic Content", basic_content), ("Quality Content",
     print(f"\n📄 {test_name}:")
     payload = {'content': content, 'analysis_type': 'comprehensive'}
     response = requests.post(url, json=payload, timeout=10)
-    
+
     if response.status_code == 200:
         result = response.json()
         print(f"   Score: {result['score']}/100")
@@ -48,4 +48,3 @@ for test_name, content in [("Basic Content", basic_content), ("Quality Content",
         print(f"   Weakness: {result['weakness']}")
     else:
         print(f"   ❌ Error: {response.status_code}")
-
