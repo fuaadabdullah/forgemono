@@ -42,10 +42,14 @@ const publicRoutes = [
   '/login',
   '/register',
   '/api/auth',
+  '/api/chat', // Chat API endpoint - public for demo purposes
+  '/api/providers', // Providers API - public
+  '/api/routing', // Routing API - public
   '/',
   '/chat', // Allow direct access to chat for demo purposes
   '/dashboard', // Dashboard now redirects to chat
   '/api/health', // Health check should be public
+  '/health', // Health check direct path
 ];
 
 // Routes that should never require auth (even for sub-paths)
@@ -196,12 +200,13 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
+     * - api (API routes - these are proxied to backend)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - health (health check endpoint)
      * - public files with extensions
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|health|.*\\.).*)',
   ],
 };
