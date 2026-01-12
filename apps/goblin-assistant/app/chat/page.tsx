@@ -289,13 +289,12 @@ export default function ChatPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'text/event-stream, application/json'
         },
         body: JSON.stringify({
           messages: conversationMessages,
           provider: 'openai', // Use OpenAI for reliable responses
           model: 'gpt-4o-mini', // Fast and cost-effective model
-          stream: true // Request streaming if available
+          stream: false // Disable streaming - backend returns null with stream:true
         })
       });
 
