@@ -14,7 +14,7 @@ export default function LoginPage() {
 
   const handleSuccess = () => {
     setError(null);
-    router.push('/dashboard');
+    router.push('/chat');
   };
 
   const handleError = (message: string) => {

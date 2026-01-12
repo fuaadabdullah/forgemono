@@ -30,8 +30,12 @@ function verifyJWT(token: string, secret: string): { isValid: boolean; payload?:
 const protectedRoutes = [
   '/api/analytics',
   '/api/chat',
-  '/dashboard',
   '/settings',
+];
+
+// Routes that require admin role
+const adminRoutes = [
+  '/admin',
 ];
 
 // Routes that are public (exact matches or prefixes)
@@ -41,6 +45,7 @@ const publicRoutes = [
   '/api/auth',
   '/',
   '/chat', // Allow direct access to chat for demo purposes
+  '/dashboard', // Dashboard now redirects to chat
   '/api/health', // Health check should be public
 ];
 
@@ -52,6 +57,11 @@ const alwaysPublicRoutes = [
   '/public',
   '/api/health',
 ];
+
+function isAdminRoute(pathname: string): boolean {
+  const normalizedPath = pathname.replace(/\/+/g, '/').replace(/\/$/, '');
+  return adminRoutes.some(route => normalizedPath.startsWith(route));
+}
 
 function isProtectedRoute(pathname: string): boolean {
   // Normalize pathname to prevent bypass attempts
@@ -72,8 +82,8 @@ function isProtectedRoute(pathname: string): boolean {
     return false;
   }
 
-  // Check if it's a protected route
-  return protectedRoutes.some(route => normalizedPath.startsWith(route));
+  // Check if it's a protected route or admin route
+  return protectedRoutes.some(route => normalizedPath.startsWith(route)) || isAdminRoute(normalizedPath);
 }
 
 // JWT Configuration - don't throw during initialization
@@ -160,9 +170,26 @@ export function middleware(request: NextRequest) {
     );
   }
 
-  return NextResponse.next();
+  // Check admin role for admin routes
+  if (isAdminRoute(pathname)) {
+    const payload = tokenValidation.payload;
+    const userRole = payload?.role || payload?.user_role || 'user';
+    const isAdmin = userRole === 'admin' || userRole === 'superadmin' || payload?.is_admin === true;
+    
+    if (!isAdmin) {
+      // Redirect non-admins to chat (forbidden from admin area)
+      if (request.headers.get('accept')?.includes('text/html')) {
+        return NextResponse.redirect(new URL('/chat?error=admin_required', request.url));
+      }
+      
+      // Return 403 for API requests
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+  }
 
-  // Allow all other routes
   return NextResponse.next();
 }
 

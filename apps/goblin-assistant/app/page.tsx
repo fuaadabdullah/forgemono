@@ -15,11 +15,11 @@ export default function Home() {
   }, []);
 
   const handleGetStarted = () => {
-    router.push('/dashboard');
+    router.push('/chat');
   };
 
   const handleLearnMore = () => {
-    router.push('/dashboard');
+    router.push('/chat');
   };
 
   const features = [
