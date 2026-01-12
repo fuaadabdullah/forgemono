@@ -4,13 +4,21 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ArrowUp, User, Loader, Star, MessageSquare, Copy, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/input';
 
 interface Message {
   id: string;
   type: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  status?: 'sending' | 'sent' | 'error';
+}
+
+// For localStorage deserialization (timestamp is stored as string)
+interface StoredMessage {
+  id: string;
+  type: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
   status?: 'sending' | 'sent' | 'error';
 }
 
@@ -21,39 +29,52 @@ interface ChatSession {
   createdAt: Date;
 }
 
-interface SendMessageResponse {
-  message_id: string;
-  response: string;
-  provider: string;
-  model: string;
-  timestamp: string;
-}
-
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isComposing, setIsComposing] = useState(false);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const shouldAutoScroll = useRef(true);
+  const draftSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Persistent user ID stored in localStorage
-  const [userId] = useState<string>(() => {
+  // Load draft from localStorage on mount
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('goblin_user_id');
-      if (stored) return stored;
+      const storedDraft = localStorage.getItem('goblin_chat_draft');
+      if (storedDraft) {
+        setInputValue(storedDraft);
+      }
     }
-    const newId = 'user-' + crypto.randomUUID();
+  }, []);
+
+  // Debounced save of draft to localStorage
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('goblin_user_id', newId);
+      // Clear any pending timeout
+      if (draftSaveTimeoutRef.current) {
+        clearTimeout(draftSaveTimeoutRef.current);
+      }
+      // Debounce: save after 500ms of no typing
+      draftSaveTimeoutRef.current = setTimeout(() => {
+        if (inputValue.trim()) {
+          localStorage.setItem('goblin_chat_draft', inputValue);
+        } else {
+          localStorage.removeItem('goblin_chat_draft');
+        }
+      }, 500);
     }
-    return newId;
-  });
+    return () => {
+      if (draftSaveTimeoutRef.current) {
+        clearTimeout(draftSaveTimeoutRef.current);
+      }
+    };
+  }, [inputValue]);
 
   // Load messages from localStorage on mount
   useEffect(() => {
@@ -61,7 +82,7 @@ export default function ChatPage() {
       const storedMessages = localStorage.getItem('goblin_chat_messages');
       if (storedMessages) {
         try {
-          const parsedMessages = JSON.parse(storedMessages).map((msg: any) => ({
+          const parsedMessages = JSON.parse(storedMessages).map((msg: StoredMessage) => ({
             ...msg,
             timestamp: new Date(msg.timestamp)
           }));
@@ -142,11 +163,6 @@ export default function ChatPage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Focus management
-  const focusInput = () => {
-    inputRef.current?.focus();
-  };
-
   // Scroll to bottom function
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -171,6 +187,49 @@ export default function ChatPage() {
 
     setMessages([welcomeMessage]);
     setCurrentSession(newSession);
+  };
+
+  // Sanitize user input to redact potential PII and secrets before sending to API
+  const sanitizeForModel = (text: string): string => {
+    let sanitized = text;
+    
+    // Redact email addresses
+    sanitized = sanitized.replace(
+      /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+      '[EMAIL_REDACTED]'
+    );
+    
+    // Redact phone numbers (various formats)
+    sanitized = sanitized.replace(
+      /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g,
+      '[PHONE_REDACTED]'
+    );
+    
+    // Redact SSN-like patterns (XXX-XX-XXXX)
+    sanitized = sanitized.replace(
+      /\b\d{3}-\d{2}-\d{4}\b/g,
+      '[SSN_REDACTED]'
+    );
+    
+    // Redact credit card-like patterns (16 digits with optional separators)
+    sanitized = sanitized.replace(
+      /\b(?:\d{4}[-\s]?){3}\d{4}\b/g,
+      '[CC_REDACTED]'
+    );
+    
+    // Redact API key-like patterns (long alphanumeric strings with specific prefixes)
+    sanitized = sanitized.replace(
+      /\b(sk-|pk-|api[_-]?key[_-]?|token[_-]?)[a-zA-Z0-9]{20,}\b/gi,
+      '[API_KEY_REDACTED]'
+    );
+    
+    // Redact JWT-like patterns
+    sanitized = sanitized.replace(
+      /\beyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\b/g,
+      '[JWT_REDACTED]'
+    );
+    
+    return sanitized;
   };
 
   const handleSendMessage = async (content: string) => {
@@ -200,36 +259,42 @@ export default function ChatPage() {
     // Add user message to messages
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
+    // Clear draft from localStorage on send
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('goblin_chat_draft');
+    }
     setIsTyping(true);
 
     try {
       // Use the correct API base URL from environment variables
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://goblin-backend.fly.dev';
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8004';
 
-      // Get conversation history for context
+      // Get conversation history for context, sanitizing content before sending to API
       const conversationMessages = messages
         .filter(msg => msg.status !== 'error') // Exclude error messages from context
         .map(msg => ({
           role: msg.type === 'user' ? 'user' : 'assistant',
-          content: msg.content
+          content: sanitizeForModel(msg.content)
         }));
 
-      // Add the new user message to the conversation
+      // Add the new user message to the conversation (sanitized)
       conversationMessages.push({
         role: 'user',
-        content: content.trim()
+        content: sanitizeForModel(content.trim())
       });
 
-      // Send message using Goblin Assistant API
+      // Send message using Goblin Assistant API with streaming support
       const sendResponse = await fetch(`${apiBaseUrl}/api/chat`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream, application/json'
         },
         body: JSON.stringify({
           messages: conversationMessages,
           provider: 'openai', // Use OpenAI for reliable responses
-          model: 'gpt-4o-mini' // Fast and cost-effective model
+          model: 'gpt-4o-mini', // Fast and cost-effective model
+          stream: true // Request streaming if available
         })
       });
 
@@ -243,58 +308,142 @@ export default function ChatPage() {
           } else if (errorData.detail) {
             errorMessage = errorData.detail;
           }
-        } catch (e) {
+        } catch {
           // If we can't parse error body, use status text
           errorMessage = `Failed to send message: ${sendResponse.status} ${sendResponse.statusText}`;
         }
         throw new Error(errorMessage);
       }
 
-      const responseData = await sendResponse.json();
+      // Update user message status to 'sent' immediately after successful request
+      setMessages(prev => prev.map(m => 
+        m.id === userMessage.id ? { ...m, status: 'sent' as const } : m
+      ));
 
-      // Handle different response formats from the backend
-      let assistantContent = '';
-      
-      // Try Goblin Assistant API format first
-      if (responseData.result?.text) {
-        assistantContent = responseData.result.text;
-      } else if (responseData.result?.response) {
-        assistantContent = responseData.result.response;
-      } else if (responseData.response) {
-        assistantContent = responseData.response;
-      } else if (responseData.choices?.[0]?.message?.content) {
-        // OpenAI-compatible format
-        assistantContent = responseData.choices[0].message.content;
-      } else if (responseData.text) {
-        assistantContent = responseData.text;
-      } else if (responseData.content) {
-        assistantContent = responseData.content;
-      }
-      
-      if (!assistantContent || typeof assistantContent !== 'string') {
-        console.error('Response format:', responseData);
-        throw new Error('Could not parse response from AI');
-      }
+      // Check if response is streaming (SSE) or regular JSON
+      const contentType = sendResponse.headers.get('content-type') || '';
+      const isStreaming = contentType.includes('text/event-stream') || contentType.includes('text/plain');
 
-      // Create assistant message from validated response
-      const assistantMessage: Message = {
-        id: 'assistant-' + Date.now(),
-        type: 'assistant',
-        content: assistantContent.trim(),
-        timestamp: new Date(),
-        status: 'sent'
-      };
+      if (isStreaming && sendResponse.body) {
+        // Handle streaming response
+        const assistantMessageId = 'assistant-' + Date.now();
+        let streamedContent = '';
 
-      setMessages(prev => [...prev, assistantMessage]);
-
-      // Update current session with new messages
-      setCurrentSession(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          messages: [...prev.messages, userMessage, assistantMessage]
+        // Create placeholder assistant message for streaming
+        const streamingMessage: Message = {
+          id: assistantMessageId,
+          type: 'assistant',
+          content: '',
+          timestamp: new Date(),
+          status: 'sending'
         };
-      });
+        setMessages(prev => [...prev, streamingMessage]);
+
+        const reader = sendResponse.body.getReader();
+        const decoder = new TextDecoder();
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            
+            // Parse SSE format: data: {...}\n\n
+            const lines = chunk.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') continue;
+                
+                try {
+                  const parsed = JSON.parse(data);
+                  // Handle OpenAI-compatible streaming format
+                  const delta = parsed.choices?.[0]?.delta?.content || 
+                               parsed.content || 
+                               parsed.text || 
+                               '';
+                  if (delta) {
+                    streamedContent += delta;
+                    // Update the message content incrementally
+                    setMessages(prev => prev.map(m => 
+                      m.id === assistantMessageId 
+                        ? { ...m, content: streamedContent }
+                        : m
+                    ));
+                  }
+                } catch {
+                  // If not JSON, treat as plain text chunk
+                  if (data.trim()) {
+                    streamedContent += data;
+                    setMessages(prev => prev.map(m => 
+                      m.id === assistantMessageId 
+                        ? { ...m, content: streamedContent }
+                        : m
+                    ));
+                  }
+                }
+              } else if (line.trim() && !line.startsWith(':')) {
+                // Handle plain text streaming (non-SSE)
+                streamedContent += line;
+                setMessages(prev => prev.map(m => 
+                  m.id === assistantMessageId 
+                    ? { ...m, content: streamedContent }
+                    : m
+                ));
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+        // Mark streaming complete
+        setMessages(prev => prev.map(m => 
+          m.id === assistantMessageId 
+            ? { ...m, status: 'sent' as const, content: streamedContent.trim() || 'No response received.' }
+            : m
+        ));
+
+      } else {
+        // Handle non-streaming JSON response (fallback)
+        const responseData = await sendResponse.json();
+
+        // Handle different response formats from the backend
+        let assistantContent = '';
+        
+        // Try Goblin Assistant API format first
+        if (responseData.result?.text) {
+          assistantContent = responseData.result.text;
+        } else if (responseData.result?.response) {
+          assistantContent = responseData.result.response;
+        } else if (responseData.response) {
+          assistantContent = responseData.response;
+        } else if (responseData.choices?.[0]?.message?.content) {
+          // OpenAI-compatible format
+          assistantContent = responseData.choices[0].message.content;
+        } else if (responseData.text) {
+          assistantContent = responseData.text;
+        } else if (responseData.content) {
+          assistantContent = responseData.content;
+        }
+        
+        if (!assistantContent || typeof assistantContent !== 'string') {
+          console.error('Response format:', responseData);
+          throw new Error('Could not parse response from AI');
+        }
+
+        // Create assistant message from validated response
+        const assistantMessage: Message = {
+          id: 'assistant-' + Date.now(),
+          type: 'assistant',
+          content: assistantContent.trim(),
+          timestamp: new Date(),
+          status: 'sent'
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+      }
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -335,15 +484,6 @@ export default function ChatPage() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage(inputValue);
-    }
-  };
-
-
-
   const clearChat = () => {
     const welcomeMessage: Message = {
       id: 'welcome',
@@ -372,23 +512,21 @@ export default function ChatPage() {
         .filter(msg => msg.type === 'user');
 
       if (userMessages.length > 0) {
-        const lastUserMessage = userMessages[userMessages.length - 1];
-
         // Remove the last assistant message
         setMessages(prev => prev.slice(0, lastAssistantMessageIndex));
         setIsTyping(true);
 
         try {
           // Use the correct API base URL from environment variables
-          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://goblin-backend.fly.dev';
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8004';
 
-          // Get conversation history up to the last user message for context
+          // Get conversation history up to the last user message for context (sanitized)
           const conversationMessages = messages
             .slice(0, lastAssistantMessageIndex)
             .filter(msg => msg.status !== 'error') // Exclude error messages from context
             .map(msg => ({
               role: msg.type === 'user' ? 'user' : 'assistant',
-              content: msg.content
+              content: sanitizeForModel(msg.content)
             }));
 
           // Send message using Goblin Assistant API
@@ -414,7 +552,7 @@ export default function ChatPage() {
               } else if (errorData.detail) {
                 errorMessage = errorData.detail;
               }
-            } catch (e) {
+            } catch {
               errorMessage = `Failed to regenerate: ${sendResponse.status} ${sendResponse.statusText}`;
             }
             throw new Error(errorMessage);
@@ -487,6 +625,30 @@ export default function ChatPage() {
     }
   };
 
+  // Retry a failed user message
+  const retryMessage = async (failedMessageId: string) => {
+    // Find the user message before the error message
+    const errorIndex = messages.findIndex(m => m.id === failedMessageId);
+    if (errorIndex === -1) return;
+
+    // Look for the last user message before this error
+    let userMessageToRetry: Message | null = null;
+    for (let i = errorIndex - 1; i >= 0; i--) {
+      if (messages[i].type === 'user') {
+        userMessageToRetry = messages[i];
+        break;
+      }
+    }
+
+    if (!userMessageToRetry) return;
+
+    // Remove the error message and retry sending
+    setMessages(prev => prev.filter(m => m.id !== failedMessageId));
+    
+    // Resend the user's original message
+    await handleSendMessage(userMessageToRetry.content);
+  };
+
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -496,14 +658,27 @@ export default function ChatPage() {
     }
   };
 
+  // State for voice input error message
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+
   const handleVoiceInput = async () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Voice input is not supported in this browser. Please use Chrome, Edge, or Safari.');
+    // Check for Speech Recognition support (Web Speech API)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const windowAny = window as any;
+    const SpeechRecognitionAPI = windowAny.SpeechRecognition || windowAny.webkitSpeechRecognition;
+
+    if (!SpeechRecognitionAPI) {
+      setVoiceError('Voice input is not supported in this browser. Please use Chrome, Edge, or Safari.');
+      // Clear error after 5 seconds
+      setTimeout(() => setVoiceError(null), 5000);
       return;
     }
 
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+    // Clear any previous error
+    setVoiceError(null);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recognition = new SpeechRecognitionAPI() as any;
 
     recognition.continuous = false;
     recognition.interimResults = false;
@@ -513,14 +688,18 @@ export default function ChatPage() {
       setIsRecording(true);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setInputValue(prev => prev + (prev ? ' ' : '') + transcript);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsRecording(false);
+      setVoiceError('Speech recognition error. Please try again.');
+      setTimeout(() => setVoiceError(null), 5000);
     };
 
     recognition.onend = () => {
@@ -625,6 +804,7 @@ export default function ChatPage() {
             className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-xl max-h-[60vh] overflow-y-auto"
             role="log"
             aria-live="polite"
+            aria-atomic="true"
             aria-label="Chat messages"
           >
             <div className="space-y-6">
@@ -715,10 +895,22 @@ export default function ChatPage() {
                               </div>
                             )}
                             {message.status === 'error' && (
-                              <span className="text-xs text-red-400 flex items-center space-x-1">
-                                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                                <span>Failed</span>
-                              </span>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs text-red-400 flex items-center space-x-1">
+                                  <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                                  <span>Failed</span>
+                                </span>
+                                <Button
+                                  onClick={() => retryMessage(message.id)}
+                                  size="sm"
+                                  variant="ghost"
+                                  disabled={isTyping}
+                                  className="text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2 py-1 h-auto"
+                                >
+                                  <RotateCcw className="w-3 h-3 mr-1" />
+                                  Retry
+                                </Button>
+                              </div>
                             )}
                             {message.status === 'sent' && (
                               <span className="text-xs text-green-400 flex items-center space-x-1">
@@ -744,8 +936,8 @@ export default function ChatPage() {
                     <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-white/20 rounded-2xl px-4 py-3">
                       <div className="flex space-x-2">
                         <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce animation-delay-100"></div>
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce animation-delay-200"></div>
                       </div>
                     </div>
                   </div>
@@ -771,6 +963,13 @@ export default function ChatPage() {
         {/* Input Area */}
         <footer className="container mx-auto px-4 sm:px-6 pb-6 sm:pb-8">
           <div className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-4 sm:p-6 shadow-xl">
+            {/* Voice Error Message */}
+            {voiceError && (
+              <div className="mb-4 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                {voiceError}
+              </div>
+            )}
+
             {/* Multi-line Input Area */}
             <div className="flex items-end space-x-3 sm:space-x-4">
               {/* Voice Input Button */}
@@ -790,32 +989,35 @@ export default function ChatPage() {
 
               {/* Input Field */}
               <div className="flex-1 relative">
+                <label htmlFor="chat-input" className="sr-only">Type your message</label>
                 <textarea
-                  ref={inputRef as any}
+                  ref={inputRef}
+                  id="chat-input"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
+                    if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
                       e.preventDefault();
                       handleSendMessage(inputValue);
                     }
                   }}
+                  onCompositionStart={() => setIsComposing(true)}
+                  onCompositionEnd={() => setIsComposing(false)}
                   placeholder="Type your message here... (Shift+Enter for new line)"
                   disabled={isTyping}
                   rows={1}
-                  className="w-full bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20 rounded-xl px-4 py-3 pr-12 resize-none min-h-[48px] max-h-32 focus:outline-none transition-all duration-200"
-                  style={{
-                    height: 'auto',
-                    minHeight: '48px'
-                  }}
+                  aria-label="Chat input"
+                  aria-describedby="character-count"
+                  className="w-full bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20 rounded-xl px-4 py-3 pr-12 resize-none min-h-[48px] max-h-32 focus:outline-none transition-all duration-200 textarea-auto-height"
                   onInput={(e) => {
-                    const target = e.target as HTMLTextAreaElement;
+                    const target = e.target as EventTarget & HTMLTextAreaElement;
                     target.style.height = 'auto';
                     target.style.height = Math.min(target.scrollHeight, 128) + 'px';
                   }}
                 />
                 <div className="absolute right-3 bottom-3 flex items-center space-x-2">
                   <Badge
+                    id="character-count"
                     variant="outline"
                     className={`text-xs transition-colors ${
                       inputValue.length > 900

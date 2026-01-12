@@ -84,4 +84,19 @@ body {
   .glow-strong {
     @apply shadow-[0_0_20px_rgba(0,255,136,0.5)];
   }
+
+  /* Animation delay utilities for typing indicator */
+  .animation-delay-100 {
+    animation-delay: 0.1s;
+  }
+
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+  }
+
+  /* Textarea auto-height utility */
+  .textarea-auto-height {
+    height: auto;
+    min-height: 48px;
+  }
 }
