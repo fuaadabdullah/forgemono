@@ -10,6 +10,7 @@
   "env": {
     "BACKEND_URL": "https://goblin-backend.fly.dev",
     "NEXT_PUBLIC_API_URL": "https://goblin-backend.fly.dev",
+    "NEXT_PUBLIC_API_BASE_URL": "https://goblin-backend.fly.dev",
     "NEXT_PUBLIC_DOMAIN": "goblinosassistant.duckdns.org"
   },
   "rewrites": [

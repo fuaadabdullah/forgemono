@@ -266,8 +266,8 @@ export default function ChatPage() {
     setIsTyping(true);
 
     try {
-      // Use the correct API base URL from environment variables
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8004';
+      // Use the correct API base URL from environment variables (check both names for compatibility)
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://goblin-backend.fly.dev';
 
       // Get conversation history for context, sanitizing content before sending to API
       const conversationMessages = messages
