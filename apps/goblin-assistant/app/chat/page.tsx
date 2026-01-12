@@ -449,11 +449,17 @@ export default function ChatPage() {
     } catch (error) {
       console.error('Error sending message:', error);
 
+      // Update user message status to 'error'
+      setMessages(prev => prev.map(m => 
+        m.id === userMessage.id ? { ...m, status: 'error' as const } : m
+      ));
+
       // Map technical errors to user-friendly messages
       let userFriendlyMessage = 'I apologize, but I encountered an error. Please try again.';
 
       if (error instanceof Error) {
         const errorMsg = error.message.toLowerCase();
+        console.error('Error details:', error.message);
 
         if (errorMsg.includes('401') || errorMsg.includes('unauthorized') || errorMsg.includes('api key') || errorMsg.includes('invalid public api key')) {
           userFriendlyMessage = 'Authentication failed. Please check your API key configuration.';
@@ -463,10 +469,15 @@ export default function ChatPage() {
           userFriendlyMessage = 'Too many requests. Please wait a moment and try again.';
         } else if (errorMsg.includes('500') || errorMsg.includes('internal server error')) {
           userFriendlyMessage = 'Server error occurred. Please try again in a few moments.';
-        } else if (errorMsg.includes('network') || errorMsg.includes('connection')) {
+        } else if (errorMsg.includes('network') || errorMsg.includes('connection') || errorMsg.includes('failed to fetch')) {
           userFriendlyMessage = 'Connection error. Please check your internet connection and try again.';
         } else if (errorMsg.includes('timeout')) {
           userFriendlyMessage = 'Request timed out. Please try again.';
+        } else if (errorMsg.includes('could not parse')) {
+          userFriendlyMessage = 'Received an unexpected response format. Please try again.';
+        } else {
+          // Show actual error in development for debugging
+          userFriendlyMessage = `Error: ${error.message}`;
         }
       }
 
