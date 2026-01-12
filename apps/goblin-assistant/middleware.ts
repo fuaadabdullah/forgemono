@@ -29,7 +29,6 @@ function verifyJWT(token: string, secret: string): { isValid: boolean; payload?:
 // Routes that require authentication
 const protectedRoutes = [
   '/api/analytics',
-  '/api/chat',
   '/settings',
 ];
 
