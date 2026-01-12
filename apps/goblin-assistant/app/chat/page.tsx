@@ -266,8 +266,9 @@ export default function ChatPage() {
     setIsTyping(true);
 
     try {
-      // Use the correct API base URL from environment variables (check both names for compatibility)
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://goblin-backend.fly.dev';
+      // Use relative URL to go through Next.js API routes (which proxy to backend via vercel.json rewrites)
+      // This avoids CORS issues and ensures the request goes through our middleware
+      const apiBaseUrl = '';
 
       // Get conversation history for context, sanitizing content before sending to API
       const conversationMessages = messages
@@ -283,7 +284,7 @@ export default function ChatPage() {
         content: sanitizeForModel(content.trim())
       });
 
-      // Send message using Goblin Assistant API with streaming support
+      // Send message using same-origin API route (proxied to backend)
       const sendResponse = await fetch(`${apiBaseUrl}/api/chat`, {
         method: 'POST',
         headers: {
