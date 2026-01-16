@@ -31,8 +31,15 @@ interface ChatSession {
   createdAt: Date;
 }
 
+// Language names for system prompt
+const languageNames: Record<string, string> = {
+  en: 'English',
+  ar: 'Arabic',
+  zh: 'Mandarin Chinese',
+};
+
 export default function ChatPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -287,6 +294,18 @@ export default function ChatPage() {
         content: sanitizeForModel(content.trim())
       });
 
+      // Build system message with language instruction
+      const targetLanguage = languageNames[locale] || 'English';
+      const systemMessage = locale !== 'en' 
+        ? `You are a helpful AI assistant. You MUST respond in ${targetLanguage}. Always use ${targetLanguage} for your responses, regardless of what language the user writes in.`
+        : 'You are a helpful AI assistant.';
+
+      // Prepare messages array with system message first
+      const messagesWithSystem = [
+        { role: 'system', content: systemMessage },
+        ...conversationMessages
+      ];
+
       // Send message using same-origin API route (proxied to backend)
       const sendResponse = await fetch(`${apiBaseUrl}/api/chat`, {
         method: 'POST',
@@ -294,7 +313,7 @@ export default function ChatPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: conversationMessages,
+          messages: messagesWithSystem,
           provider: 'openai', // Use OpenAI for reliable responses
           model: 'gpt-4o-mini', // Fast and cost-effective model
           stream: false // Disable streaming - backend returns null with stream:true
@@ -543,6 +562,18 @@ export default function ChatPage() {
               content: sanitizeForModel(msg.content)
             }));
 
+          // Build system message with language instruction
+          const targetLanguage = languageNames[locale] || 'English';
+          const systemMessage = locale !== 'en' 
+            ? `You are a helpful AI assistant. You MUST respond in ${targetLanguage}. Always use ${targetLanguage} for your responses, regardless of what language the user writes in.`
+            : 'You are a helpful AI assistant.';
+
+          // Prepare messages array with system message first
+          const messagesWithSystem = [
+            { role: 'system', content: systemMessage },
+            ...conversationMessages
+          ];
+
           // Send message using Goblin Assistant API
           const sendResponse = await fetch(`${apiBaseUrl}/api/chat`, {
             method: 'POST',
@@ -550,7 +581,7 @@ export default function ChatPage() {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              messages: conversationMessages,
+              messages: messagesWithSystem,
               provider: 'openai',
               model: 'gpt-4o-mini'
             })
