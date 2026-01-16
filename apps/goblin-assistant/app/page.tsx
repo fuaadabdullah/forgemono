@@ -5,10 +5,13 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, Cpu, Users, Database, Globe, Star, TrendingUp, MessageSquare, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Badge } from '@/components/ui/Badge';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useTranslation } from '@/i18n';
 
 export default function Home() {
   const router = useRouter();
   const [isLoaded, setIsLoaded] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setIsLoaded(true);
@@ -25,41 +28,41 @@ export default function Home() {
   const features = [
     {
       icon: <Cpu className="w-6 h-6" />,
-      title: "Intelligent Routing",
-      description: "Automatically selects the best AI model for each task based on complexity, cost, and performance."
+      title: t('home.features.intelligentRouting.title'),
+      description: t('home.features.intelligentRouting.description')
     },
     {
       icon: <TrendingUp className="w-6 h-6" />,
-      title: "Privacy First",
-      description: "Your data stays secure with local processing options and encrypted cloud connections."
+      title: t('home.features.privacyFirst.title'),
+      description: t('home.features.privacyFirst.description')
     },
     {
       icon: <DollarSign className="w-6 h-6" />,
-      title: "Multi-Provider",
-      description: "Access multiple AI providers seamlessly with intelligent fallback and load balancing."
+      title: t('home.features.multiProvider.title'),
+      description: t('home.features.multiProvider.description')
     },
     {
       icon: <Users className="w-6 h-6" />,
-      title: "Developer Focused",
-      description: "Built for developers with comprehensive APIs, webhooks, and integration tools."
+      title: t('home.features.developerFocused.title'),
+      description: t('home.features.developerFocused.description')
     }
   ];
 
   const useCases = [
     {
       icon: <MessageSquare className="w-8 h-8" />,
-      title: "Code Assistance",
-      description: "Get help with debugging, code reviews, and implementation guidance."
+      title: t('home.useCases.codeAssistance.title'),
+      description: t('home.useCases.codeAssistance.description')
     },
     {
       icon: <Database className="w-8 h-8" />,
-      title: "Data Analysis",
-      description: "Analyze datasets, generate insights, and create visualizations."
+      title: t('home.useCases.dataAnalysis.title'),
+      description: t('home.useCases.dataAnalysis.description')
     },
     {
       icon: <Globe className="w-8 h-8" />,
-      title: "Research & Learning",
-      description: "Access knowledge from multiple sources with intelligent summarization."
+      title: t('home.useCases.research.title'),
+      description: t('home.useCases.research.description')
     }
   ];
 
@@ -78,30 +81,35 @@ export default function Home() {
       <div className="relative z-10">
         {/* Navigation */}
         <nav className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-between rtl-preserve">
+            <div className="flex items-center space-x-4 rtl:space-x-reverse">
               <div className="w-10 h-10 bg-gradient-to-r from-accent-green to-info rounded-xl flex items-center justify-center shadow-lg shadow-accent-green/20">
                 <Star className="w-6 h-6 text-bg-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-text-primary font-mono">GoblinOS Assistant</h1>
-                <p className="text-xs text-text-secondary font-mono">Your intelligent development companion</p>
+                <h1 className="text-xl font-bold text-text-primary font-mono">{t('home.title')}</h1>
+                <p className="text-xs text-text-secondary font-mono">{t('home.subtitle')}</p>
               </div>
             </div>
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-4 rtl:space-x-reverse">
               <Button variant="ghost" className="text-text-secondary hover:text-text-primary font-mono">
-                Documentation
+                {t('nav.documentation')}
               </Button>
               <Button variant="ghost" className="text-text-secondary hover:text-text-primary font-mono">
-                API
+                {t('nav.api')}
               </Button>
+              <LanguageSwitcher variant="compact" />
               <Button 
                 onClick={handleGetStarted}
                 className="bg-accent-green text-bg-primary hover:bg-accent-green-bright font-semibold px-6 py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-accent-green/25 glow"
               >
-                Get Started
-                <ArrowRight className="w-4 h-4 ml-2" />
+                {t('home.getStarted')}
+                <ArrowRight className="w-4 h-4 ms-2" />
               </Button>
+            </div>
+            {/* Mobile Language Switcher */}
+            <div className="md:hidden">
+              <LanguageSwitcher variant="minimal" />
             </div>
           </div>
         </nav>
@@ -111,18 +119,18 @@ export default function Home() {
           <div className="text-center max-w-4xl mx-auto">
             {/* Badge */}
             <Badge variant="outline" className="bg-bg-secondary border-border-subtle text-text-primary mb-6 backdrop-blur-sm font-mono">
-              <Star className="w-4 h-4 mr-2" />
-              AI-Powered Development Assistant
+              <Star className="w-4 h-4 me-2" />
+              {t('home.badge')}
             </Badge>
 
             {/* Title */}
             <h1 className={`text-5xl md:text-7xl font-bold text-text-primary mb-6 transition-all duration-1000 ${
               isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             } font-mono`}>
-              Build Smarter.
+              {t('home.heroTitle')}
               <br />
               <span className="bg-gradient-to-r from-accent-green via-info to-warning bg-clip-text text-transparent">
-                Work Faster.
+                {t('home.heroTitleHighlight')}
               </span>
             </h1>
 
@@ -130,8 +138,7 @@ export default function Home() {
             <p className={`text-xl text-text-secondary mb-12 max-w-2xl mx-auto leading-relaxed transition-all duration-1000 delay-300 ${
               isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             } font-mono`}>
-              Experience the future of AI-assisted development. Intelligent routing, 
-              privacy-first design, and seamless multi-provider integration—all in one powerful platform.
+              {t('home.heroDescription')}
             </p>
 
             {/* CTA Buttons */}
@@ -143,8 +150,8 @@ export default function Home() {
                 size="lg"
                 className="bg-accent-green text-bg-primary hover:bg-accent-green-bright font-semibold px-8 py-3 rounded-lg text-lg transition-all duration-300 hover:shadow-xl hover:shadow-accent-green/25 transform hover:-translate-y-1 glow"
               >
-                Start Building
-                <ArrowRight className="w-5 h-5 ml-3" />
+                {t('home.startBuilding')}
+                <ArrowRight className="w-5 h-5 ms-3" />
               </Button>
               <Button 
                 onClick={handleLearnMore}
@@ -152,7 +159,7 @@ export default function Home() {
                 size="lg"
                 className="border-border-medium text-text-primary hover:bg-bg-tertiary font-semibold px-8 py-3 rounded-lg text-lg transition-all duration-300 backdrop-blur-sm font-mono"
               >
-                View Dashboard
+                {t('home.viewDashboard')}
               </Button>
             </div>
 
@@ -162,15 +169,15 @@ export default function Home() {
             }`}>
               <div className="text-center group hover:bg-bg-tertiary p-6 rounded-xl transition-all duration-300">
                 <div className="text-3xl font-bold text-accent-green mb-2">100%</div>
-                <div className="text-text-secondary text-sm font-mono">Privacy First</div>
+                <div className="text-text-secondary text-sm font-mono">{t('home.stats.privacyFirst')}</div>
               </div>
               <div className="text-center group hover:bg-bg-tertiary p-6 rounded-xl transition-all duration-300">
                 <div className="text-3xl font-bold text-info mb-2">Multi</div>
-                <div className="text-text-secondary text-sm font-mono">Provider Support</div>
+                <div className="text-text-secondary text-sm font-mono">{t('home.stats.multiProvider')}</div>
               </div>
               <div className="text-center group hover:bg-bg-tertiary p-6 rounded-xl transition-all duration-300">
                 <div className="text-3xl font-bold text-warning mb-2">Smart</div>
-                <div className="text-text-secondary text-sm font-mono">Routing</div>
+                <div className="text-text-secondary text-sm font-mono">{t('home.stats.smartRouting')}</div>
               </div>
             </div>
           </div>
@@ -197,8 +204,8 @@ export default function Home() {
         {/* Use Cases Section */}
         <section className="container mx-auto px-6 pb-20">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-text-primary mb-4 font-mono">Perfect For</h2>
-            <p className="text-text-secondary text-lg font-mono">Discover how GoblinOS Assistant can transform your workflow</p>
+            <h2 className="text-4xl font-bold text-text-primary mb-4 font-mono">{t('home.useCases.title')}</h2>
+            <p className="text-text-secondary text-lg font-mono">{t('home.useCases.subtitle')}</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {useCases.map((useCase, index) => (
@@ -220,11 +227,10 @@ export default function Home() {
         <section className="container mx-auto px-6 pb-20">
           <div className="bg-gradient-to-r from-accent-green/20 to-info/20 border border-border-medium rounded-3xl p-12 text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-6 font-mono">
-              Ready to Supercharge Your Development?
+              {t('home.cta.title')}
             </h2>
             <p className="text-text-secondary text-lg mb-8 max-w-2xl mx-auto font-mono">
-              Join developers who are already building the future with intelligent AI assistance.
-              Get started in seconds and experience the difference.
+              {t('home.cta.description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -232,15 +238,15 @@ export default function Home() {
                 size="lg"
                 className="bg-accent-green text-bg-primary hover:bg-accent-green-bright font-semibold px-10 py-4 rounded-lg text-lg transition-all duration-300 hover:shadow-xl hover:shadow-accent-green/25 transform hover:-translate-y-1 glow"
               >
-                Get Started Free
-                <ArrowRight className="w-5 h-5 ml-3" />
+                {t('home.getStartedFree')}
+                <ArrowRight className="w-5 h-5 ms-3" />
               </Button>
               <Button 
                 variant="outline"
                 size="lg"
                 className="border-border-medium text-text-primary hover:bg-bg-tertiary font-semibold px-10 py-4 rounded-lg text-lg transition-all duration-300 backdrop-blur-sm font-mono"
               >
-                View Live Demo
+                {t('home.viewLiveDemo')}
               </Button>
             </div>
           </div>

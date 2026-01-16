@@ -100,3 +100,148 @@ body {
     min-height: 48px;
   }
 }
+
+/* RTL (Right-to-Left) Support for Arabic */
+html[dir="rtl"] {
+  direction: rtl;
+}
+
+html.rtl {
+  direction: rtl;
+}
+
+/* RTL-specific spacing and layout adjustments */
+html[dir="rtl"] .ml-auto,
+html.rtl .ml-auto {
+  margin-left: unset;
+  margin-right: auto;
+}
+
+html[dir="rtl"] .mr-auto,
+html.rtl .mr-auto {
+  margin-right: unset;
+  margin-left: auto;
+}
+
+/* Flip icons and arrows in RTL */
+html[dir="rtl"] .rtl-flip,
+html.rtl .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* RTL text alignment adjustments */
+html[dir="rtl"] .text-left,
+html.rtl .text-left {
+  text-align: right;
+}
+
+html[dir="rtl"] .text-right,
+html.rtl .text-right {
+  text-align: left;
+}
+
+/* RTL flex adjustments */
+html[dir="rtl"] .flex-row,
+html.rtl .flex-row {
+  flex-direction: row-reverse;
+}
+
+/* Preserve flex direction where needed */
+html[dir="rtl"] .rtl-preserve,
+html.rtl .rtl-preserve {
+  flex-direction: row;
+}
+
+/* RTL padding and margin utility overrides */
+html[dir="rtl"] .pl-4,
+html.rtl .pl-4 {
+  padding-left: unset;
+  padding-right: 1rem;
+}
+
+html[dir="rtl"] .pr-4,
+html.rtl .pr-4 {
+  padding-right: unset;
+  padding-left: 1rem;
+}
+
+html[dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]),
+html.rtl .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
+
+/* RTL-aware border radius */
+html[dir="rtl"] .rounded-l-lg,
+html.rtl .rounded-l-lg {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+html[dir="rtl"] .rounded-r-lg,
+html.rtl .rounded-r-lg {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+}
+
+/* Message bubbles RTL support */
+html[dir="rtl"] .message-user,
+html.rtl .message-user {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+html[dir="rtl"] .message-assistant,
+html.rtl .message-assistant {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+/* Ensure icons stay readable in RTL */
+html[dir="rtl"] svg.lucide,
+html.rtl svg.lucide {
+  /* Don't flip most icons */
+}
+
+/* Specific icons that should flip in RTL */
+html[dir="rtl"] .lucide-arrow-right,
+html.rtl .lucide-arrow-right {
+  transform: scaleX(-1);
+}
+
+html[dir="rtl"] .lucide-arrow-left,
+html.rtl .lucide-arrow-left {
+  transform: scaleX(-1);
+}
+
+html[dir="rtl"] .lucide-chevron-right,
+html.rtl .lucide-chevron-right {
+  transform: scaleX(-1);
+}
+
+html[dir="rtl"] .lucide-chevron-left,
+html.rtl .lucide-chevron-left {
+  transform: scaleX(-1);
+}
+
+/* Arabic font support */
+html[lang="ar"] {
+  font-family: 'Noto Sans Arabic', 'Segoe UI', 'Arial', sans-serif;
+}
+
+/* Chinese font support */
+html[lang="zh"] {
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'SimHei', sans-serif;
+}
+
+/* Preserve monospace font for code blocks regardless of language */
+html[lang="ar"] code,
+html[lang="ar"] pre,
+html[lang="zh"] code,
+html[lang="zh"] pre {
+  font-family: var(--font-mono);
+}
+

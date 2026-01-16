@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ArrowUp, User, Loader, Star, MessageSquare, Copy, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Badge } from '@/components/ui/Badge';
+import { useTranslation } from '@/i18n';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 interface Message {
   id: string;
@@ -30,6 +32,7 @@ interface ChatSession {
 }
 
 export default function ChatPage() {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -173,14 +176,14 @@ export default function ChatPage() {
     const welcomeMessage: Message = {
       id: 'welcome',
       type: 'assistant',
-      content: "Hello! I'm your AI assistant. How can I help you today?",
+      content: t('chat.welcome'),
       timestamp: new Date(),
       status: 'sent'
     };
 
     const newSession: ChatSession = {
       id: 'session-' + Date.now(),
-      title: 'New Conversation',
+      title: t('chat.newConversation'),
       messages: [welcomeMessage],
       createdAt: new Date()
     };
@@ -240,7 +243,7 @@ export default function ChatPage() {
       const errorMessage: Message = {
         id: 'error-' + Date.now(),
         type: 'assistant',
-        content: 'Message is too long. Please keep it under 1000 characters.',
+        content: t('chat.errors.tooLong'),
         timestamp: new Date(),
         status: 'error'
       };
@@ -454,26 +457,26 @@ export default function ChatPage() {
       ));
 
       // Map technical errors to user-friendly messages
-      let userFriendlyMessage = 'I apologize, but I encountered an error. Please try again.';
+      let userFriendlyMessage = t('chat.errors.generic');
 
       if (error instanceof Error) {
         const errorMsg = error.message.toLowerCase();
         console.error('Error details:', error.message);
 
         if (errorMsg.includes('401') || errorMsg.includes('unauthorized') || errorMsg.includes('api key') || errorMsg.includes('invalid public api key')) {
-          userFriendlyMessage = 'Authentication failed. Please check your API key configuration.';
+          userFriendlyMessage = t('chat.errors.auth');
         } else if (errorMsg.includes('403') || errorMsg.includes('forbidden')) {
-          userFriendlyMessage = 'Access denied. Please check your permissions.';
+          userFriendlyMessage = t('chat.errors.forbidden');
         } else if (errorMsg.includes('429') || errorMsg.includes('rate limit')) {
-          userFriendlyMessage = 'Too many requests. Please wait a moment and try again.';
+          userFriendlyMessage = t('chat.errors.rateLimit');
         } else if (errorMsg.includes('500') || errorMsg.includes('internal server error')) {
-          userFriendlyMessage = 'Server error occurred. Please try again in a few moments.';
+          userFriendlyMessage = t('chat.errors.server');
         } else if (errorMsg.includes('network') || errorMsg.includes('connection') || errorMsg.includes('failed to fetch')) {
-          userFriendlyMessage = 'Connection error. Please check your internet connection and try again.';
+          userFriendlyMessage = t('chat.errors.network');
         } else if (errorMsg.includes('timeout')) {
-          userFriendlyMessage = 'Request timed out. Please try again.';
+          userFriendlyMessage = t('chat.errors.timeout');
         } else if (errorMsg.includes('could not parse')) {
-          userFriendlyMessage = 'Received an unexpected response format. Please try again.';
+          userFriendlyMessage = t('chat.errors.parse');
         } else {
           // Show actual error in development for debugging
           userFriendlyMessage = `Error: ${error.message}`;
@@ -499,7 +502,7 @@ export default function ChatPage() {
     const welcomeMessage: Message = {
       id: 'welcome',
       type: 'assistant',
-      content: "Hello! I'm your AI assistant. How can I help you today?",
+      content: t('chat.welcome'),
       timestamp: new Date(),
       status: 'sent'
     };
@@ -508,7 +511,7 @@ export default function ChatPage() {
     setCurrentSession({
       ...currentSession!,
       messages: [welcomeMessage],
-      title: 'New Conversation'
+      title: t('chat.newConversation')
     });
   };
 
@@ -773,25 +776,26 @@ export default function ChatPage() {
         {/* Header */}
         <header className="border-b border-white/20 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm">
           <div className="container mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+            <div className="flex items-center justify-between rtl-preserve">
+              <div className="flex items-center space-x-4 rtl:space-x-reverse">
                 <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
                   <Star className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-white">AI Chat Assistant</h1>
-                  <p className="text-slate-400 text-sm">Intelligent conversations powered by multi-model routing</p>
+                  <h1 className="text-xl font-bold text-white">{t('home.title')}</h1>
+                  <p className="text-slate-400 text-sm">{t('home.subtitle')}</p>
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                <LanguageSwitcher variant="minimal" />
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={clearChat}
                   className="bg-white/10 border-white/30 text-white hover:bg-white/20 font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 backdrop-blur-sm"
                 >
-                  New Chat
+                  {t('chat.newChat')}
                 </Button>
                 <Button
                   variant="outline"
@@ -800,7 +804,7 @@ export default function ChatPage() {
                   disabled={isTyping || messages.length === 0}
                   className="bg-white/10 border-white/30 text-white hover:bg-white/20 disabled:bg-white/5 disabled:text-white/50 disabled:border-white/10 font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 backdrop-blur-sm"
                 >
-                  Regenerate
+                  {t('chat.regenerate')}
                 </Button>
               </div>
             </div>
@@ -1014,10 +1018,10 @@ export default function ChatPage() {
                   }}
                   onCompositionStart={() => setIsComposing(true)}
                   onCompositionEnd={() => setIsComposing(false)}
-                  placeholder="Type your message here... (Shift+Enter for new line)"
+                  placeholder={t('chat.placeholder')}
                   disabled={isTyping}
                   rows={1}
-                  aria-label="Chat input"
+                  aria-label={t('chat.sendMessage')}
                   aria-describedby="character-count"
                   className="w-full bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20 rounded-xl px-4 py-3 pr-12 resize-none min-h-[48px] max-h-32 focus:outline-none transition-all duration-200 textarea-auto-height"
                   onInput={(e) => {

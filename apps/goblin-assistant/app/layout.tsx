@@ -6,6 +6,7 @@ import ErrorBoundary from '../src/components/ErrorBoundary'
 import { ThemeProvider } from '../src/theme/components/ThemeProvider';
 import { TooltipProvider } from '../src/components/ui/Tooltip';
 import { initializeTheme } from '../src/theme/index';
+import { I18nProvider } from '../src/i18n';
 
 function AppProviders({ children }: { children: React.ReactNode }) {
   // Initialize theme system on mount
@@ -14,11 +15,13 @@ function AppProviders({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <TooltipProvider>
-      <ThemeProvider>
-        {children}
-      </ThemeProvider>
-    </TooltipProvider>
+    <I18nProvider>
+      <TooltipProvider>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </TooltipProvider>
+    </I18nProvider>
   );
 }
 
