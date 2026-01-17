@@ -96,7 +96,7 @@ class ProviderDispatcher:
                 "default_model": "grok-2-latest",
             },
             "moonshot": {
-                "endpoint": "https://api.moonshot.cn",
+                "endpoint": "https://api.moonshot.ai",
                 "api_key_env": "MOONSHOT_API_KEY",
                 "invoke_path": "/v1/chat/completions",
                 "default_model": "moonshot-v1-8k",

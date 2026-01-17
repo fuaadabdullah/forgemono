@@ -91,7 +91,7 @@ class ProviderHealthMonitor:
         "llamacpp_gcp": ("http://34.132.226.143:8000", "/health"),
         "groq": ("https://api.groq.com", "/openai/v1/models"),
         "grok": ("https://api.x.ai", "/v1/models"),
-        "moonshot": ("https://api.moonshot.cn", "/v1/models"),
+        "moonshot": ("https://api.moonshot.ai", "/v1/models"),
         "openai": ("https://api.openai.com", "/v1/models"),
         "anthropic": ("https://api.anthropic.com", "/v1/messages"),
         "siliconeflow": ("https://api.siliconflow.com", "/v1/models"),

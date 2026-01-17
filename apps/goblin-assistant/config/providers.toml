@@ -101,7 +101,7 @@ default_model = "grok-2-latest"
 
 [providers.moonshot]
 name = "Moonshot AI"
-endpoint = "https://api.moonshot.cn/v1"
+endpoint = "https://api.moonshot.ai/v1"
 capabilities = ["chat", "reasoning", "code"]
 models = ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"]
 api_key_env = "MOONSHOT_API_KEY"
