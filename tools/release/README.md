@@ -1,6 +1,9 @@
 ---
-description: "README"
+title: "README"
+description: "Release & distribution helpers (macOS)"
 ---
+
+
 
 # Release & distribution helpers (macOS)
 
@@ -43,6 +46,7 @@ chmod +x tools/release/*.sh
 Run bootstrap locally:
 
 ```bash
+
 ./tools/release/bootstrap_first_run.sh
 ```
 
@@ -55,6 +59,7 @@ Create a release (example):
 Run signing & notarization (example — using API key):
 
 ```bash
+
 export APPLE_API_KEY_PATH="$HOME/keys/AuthKey_ABC123.p8"
 export APPLE_API_KEY_ID="ABC123"
 export APPLE_ISSUER_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"

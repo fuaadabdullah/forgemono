@@ -13,11 +13,11 @@ spec:
     name: api
 
   rateLimits:
-  # Rate limit by Authorization header (user token)
-  - clientSelectors:
-    - headers:
-      - name: Authorization
-        type: Distinct
-    limits:
-      requests: 100
-      unit: Second
+    # Rate limit by Authorization header (user token)
+    - clientSelectors:
+        - headers:
+            - name: Authorization
+              type: Distinct
+      limits:
+        requests: 100
+        unit: Second

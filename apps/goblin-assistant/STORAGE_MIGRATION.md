@@ -1,6 +1,12 @@
+---
+title: "STORAGE MIGRATION"
+description: "Storage Migration: In-Memory to Database"
+---
+
 # Storage Migration: In-Memory to Database
 
 ## Overview
+
 This document tracks the migration of goblin-assistant from in-memory storage to persistent database storage using SQLAlchemy and SQLite (with PostgreSQL support).
 
 ## Migration Status
@@ -37,18 +43,22 @@ This document tracks the migration of goblin-assistant from in-memory storage to
 ## Database Models Location
 
 All models are defined in:
+
 - `/apps/goblin-assistant/backend/models_base.py`
 
 Database configuration:
+
 - `/apps/goblin-assistant/backend/database.py`
 
 ## Database Setup
 
 ### Current Configuration
+
 - **Development**: SQLite (`goblin_assistant.db`)
 - **Production**: PostgreSQL (configurable via `DATABASE_URL` env var)
 
 ### Initialize Database
+
 ```bash
 cd apps/goblin-assistant
 python init_db.py
@@ -83,4 +93,5 @@ This will create all necessary tables based on the models in `models_base.py`.
 - User authentication (user_id) is currently set to None - needs proper auth integration
 
 ## Last Updated
+
 December 1, 2025

@@ -3,7 +3,7 @@ name: nats-jetstream
 description: NATS JetStream messaging for Overmind event-driven architecture
 type: application
 version: 1.0.0
-appVersion: "2.10.7"
+appVersion: '2.10.7'
 
 keywords:
   - nats

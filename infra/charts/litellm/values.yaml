@@ -4,16 +4,16 @@
 ## @param global.imageRegistry Global Docker image registry
 ## @param global.imagePullSecrets Global Docker registry secret names as an array
 global:
-  imageRegistry: ""
+  imageRegistry: ''
   imagePullSecrets: []
 
 ## @section Common parameters
 
 ## @param nameOverride String to partially override litellm.fullname
-nameOverride: ""
+nameOverride: ''
 
 ## @param fullnameOverride String to fully override litellm.fullname
-fullnameOverride: ""
+fullnameOverride: ''
 
 ## @section LiteLLM parameters
 
@@ -23,7 +23,7 @@ image:
   ## @param image.repository LiteLLM image repository
   repository: ghcr.io/berriai/litellm
   ## @param image.tag LiteLLM image tag (immutable tags are recommended)
-  tag: "main-latest"
+  tag: 'main-latest'
   ## @param image.pullPolicy LiteLLM image pull policy
   pullPolicy: IfNotPresent
   ## @param image.pullSecrets LiteLLM image pull secrets
@@ -88,7 +88,7 @@ service:
     http: 4000
   ## @param service.nodePorts.http Node port for HTTP
   nodePorts:
-    http: ""
+    http: ''
   ## @param service.sessionAffinity Control where client requests go, to the same pod or round-robin
   sessionAffinity: None
   ## @param service.annotations Additional custom annotations for LiteLLM service
@@ -121,7 +121,7 @@ metrics:
     ## @param metrics.serviceMonitor.enabled Create ServiceMonitor resource for scraping metrics
     enabled: true
     ## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor resource
-    namespace: ""
+    namespace: ''
     ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped
     interval: 30s
     ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
@@ -131,11 +131,11 @@ metrics:
 
 config:
   ## @param config.masterKey Master key for admin operations (leave empty to auto-generate)
-  masterKey: ""
+  masterKey: ''
   ## @param config.database Database URL for storing model configs and usage
-  database: ""
+  database: ''
   ## @param config.logLevel Log level (DEBUG, INFO, WARNING, ERROR)
-  logLevel: "INFO"
+  logLevel: 'INFO'
   ## @param config.dropParams Drop specific parameters to avoid provider errors
   dropParams: true
   ## @param config.setVerbose Enable verbose logging
@@ -148,7 +148,7 @@ config:
   telemetry:
     enabled: true
     ## @param config.telemetry.endpoint OTLP endpoint
-    endpoint: "http://jaeger-collector:4318/v1/traces"
+    endpoint: 'http://jaeger-collector:4318/v1/traces'
 
   ## Model configurations - define your models here
   ## Example:
@@ -156,34 +156,34 @@ config:
     - model_name: gpt-4-turbo
       litellm_params:
         model: openai/gpt-4-turbo-preview
-        api_key: "os.environ/OPENAI_API_KEY"
+        api_key: 'os.environ/OPENAI_API_KEY'
     - model_name: gemini-pro
       litellm_params:
         model: gemini/gemini-1.5-pro-latest
-        api_key: "os.environ/GEMINI_API_KEY"
+        api_key: 'os.environ/GEMINI_API_KEY'
     - model_name: deepseek-chat
       litellm_params:
         model: deepseek/deepseek-chat
-        api_key: "os.environ/DEEPSEEK_API_KEY"
+        api_key: 'os.environ/DEEPSEEK_API_KEY'
     - model_name: ollama-local
       litellm_params:
         model: ollama/llama3.2
-        api_base: "http://ollama:11434"
+        api_base: 'http://ollama:11434'
 
   ## Router settings for load balancing and fallbacks
   router:
     ## @param config.router.enabled Enable intelligent routing
     enabled: true
     ## @param config.router.routingStrategy Routing strategy (simple-shuffle, latency-based-routing, cost-based-routing)
-    routingStrategy: "latency-based-routing"
+    routingStrategy: 'latency-based-routing'
     ## @param config.router.fallbacks Enable automatic fallbacks
     fallbacks:
-      - ["gpt-4-turbo", "gemini-pro"]
-      - ["gemini-pro", "deepseek-chat"]
-      - ["deepseek-chat", "ollama-local"]
+      - ['gpt-4-turbo', 'gemini-pro']
+      - ['gemini-pro', 'deepseek-chat']
+      - ['deepseek-chat', 'ollama-local']
 
 ## @param existingSecret Name of existing secret containing API keys
-existingSecret: ""
+existingSecret: ''
 
 ## Environment variables from secrets
 envFromSecrets:
@@ -221,7 +221,7 @@ containerSecurityContext:
 ## @param serviceAccount.annotations Additional Service Account annotations
 serviceAccount:
   create: true
-  name: ""
+  name: ''
   annotations: {}
 
 ## @section NetworkPolicy parameters
@@ -250,7 +250,7 @@ persistence:
   ## @param persistence.enabled Enable persistence for logs and cache
   enabled: true
   ## @param persistence.storageClass PVC Storage Class
-  storageClass: ""
+  storageClass: ''
   ## @param persistence.size PVC Storage Request
   size: 10Gi
   ## @param persistence.accessModes PVC Access Mode

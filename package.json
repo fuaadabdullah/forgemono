@@ -5,30 +5,82 @@
     "apps/*",
     "packages/*",
     "tools/*",
-    "GoblinOS/*",
     "docs/*"
   ],
   "scripts": {
-    "dev": "pnpm --filter goblin-assistant-frontend dev",
-    "build": "pnpm --filter goblin-assistant-frontend build",
-    "test": "pnpm --filter goblin-assistant-frontend test",
+    "dev": "pnpm --filter goblin-assistant dev",
+    "build": "pnpm --filter goblin-assistant build",
+    "test": "pnpm --filter goblin-assistant test",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
     "archive:forge-lite": "bash tools/archive-forge-lite.sh",
     "workspace:refresh": "bash tools/refresh-workspace.sh",
     "tools:find-forge-lite": "bash tools/find-forge-lite-references.sh",
     "tools:ci-comment-forge-lite": "bash tools/comment-out-forge-lite-in-workflows.sh",
-    "tools:safe-remove-forge-lite": "bash tools/safe-remove-forge-lite-references.sh"
+    "tools:safe-remove-forge-lite": "bash tools/safe-remove-forge-lite-references.sh",
+    "check:naming": "node scripts/check-naming.js",
+    "validate:comments": "node scripts/validate-comments.js",
+    "migrate:enzyme-turbo": "node scripts/turbo-migrate.js",
+    "migrate:enzyme-toolkit": "node tools/migrate-tests.js",
+    "migrate:enzyme-dry-run": "node tools/migrate-tests.js --dry-run --verbose",
+    "migrate:by-type": "node scripts/migrate-by-type.js",
+    "migrate:by-type-dry-run": "node scripts/migrate-by-type.js --dry-run",
+    "analyze:components": "node scripts/analyze-react-components.js",
+    "analyze:components-csv": "node scripts/analyze-react-components.js --format csv",
+    "migrate:dashboard": "node scripts/migration-dashboard.js",
+    "migrate:interactive": "node scripts/interactive-migrate.js",
+    "migrate:swarm": "node scripts/swarm-migrate.js",
+    "migrate:swarm-assign": "node scripts/swarm-migrate.js assign",
+    "migrate:swarm-stats": "node scripts/swarm-migrate.js stats",
+    "test:turbo-setup": "npm install --save-dev @testing-library/react-codemod cli-progress",
+    "test:analyze": "node scripts/migration-dashboard.js",
+    "test:migrate-auto": "node scripts/turbo-migrate.js --pattern=\"utils|helpers|simple\"",
+    "test:generate-scripts": "node scripts/swarm-migrate.js assign",
+    "test:validate-migration": "npm test -- --testPathPattern=\"*.migrated.*\" --verbose",
+    "test:update-snapshots": "npm test -- --updateSnapshot",
+    "test:coverage": "npm test -- --coverage --coverageDirectory=coverage-migration",
+    "test:quick-start": "bash scripts/quick-start-sprint.sh",
+    "migrate:live-dashboard": "node scripts/live-dashboard.js",
+    "migrate:roi-calculator": "node scripts/roi-calculator.js",
+    "migrate:emergency-rollback": "bash scripts/emergency-rollback.sh"
   },
   "devDependencies": {
-    "@axe-core/puppeteer": "^4.11.0",
+    "@eslint/js": "^9.39.1",
+    "@mermaid-js/mermaid-cli": "^11.12.0",
+    "@typescript-eslint/eslint-plugin": "^8.47.0",
+    "@typescript-eslint/parser": "^8.47.0",
     "axe-core": "^4.11.0",
     "chrome-launcher": "^1.2.1",
+    "eslint": "^9.39.2",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "globals": "^16.5.0",
     "lighthouse": "^13.0.1",
-    "puppeteer-core": "^24.31.0"
+    "markdown-link-check": "^3.14.2",
+    "markdownlint-cli": "^0.46.0",
+    "prettier": "^3.7.4"
   },
   "pnpm": {
     "overrides": {
       "react": "18.3.1",
-      "react-dom": "18.3.1"
+      "react-dom": "18.3.1",
+      "@types/react-dom": "18.3.1"
     }
-  }
+  },
+  "dependencies": {
+    "@sentry/node": "^10.29.0"
+  },
+  "version": "1.0.0",
+  "description": "--- description: \"README\" ---",
+  "main": ".dependency-cruiser.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

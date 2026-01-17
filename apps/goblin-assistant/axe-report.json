@@ -18,10 +18,7 @@
   "toolOptions": {
     "runOnly": {
       "type": "tag",
-      "values": [
-        "wcag2a",
-        "wcag2aa"
-      ]
+      "values": ["wcag2a", "wcag2aa"]
     },
     "rules": {
       "color-contrast": {
@@ -56,13 +53,7 @@
     {
       "id": "aria-allowed-attr",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "EN-301-549",
-        "EN-9.4.1.2"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
       "description": "Ensures an element's role supports its ARIA attributes",
       "help": "Elements must only use supported ARIA attributes",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-allowed-attr?application=axeAPI",
@@ -71,13 +62,7 @@
     {
       "id": "aria-braille-equivalent",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "EN-301-549",
-        "EN-9.4.1.2"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
       "description": "Ensure aria-braillelabel and aria-brailleroledescription have a non-braille equivalent",
       "help": "aria-braille attributes must have a non-braille equivalent",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-braille-equivalent?application=axeAPI",
@@ -86,16 +71,7 @@
     {
       "id": "aria-command-name",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "TTv5",
-        "TT6.a",
-        "EN-301-549",
-        "EN-9.4.1.2",
-        "ACT"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "TTv5", "TT6.a", "EN-301-549", "EN-9.4.1.2", "ACT"],
       "description": "Ensures every ARIA button, link and menuitem has an accessible name",
       "help": "ARIA commands must have an accessible name",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-command-name?application=axeAPI",
@@ -104,13 +80,7 @@
     {
       "id": "aria-conditional-attr",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "EN-301-549",
-        "EN-9.4.1.2"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
       "description": "Ensures ARIA attributes are used as described in the specification of the element's role",
       "help": "ARIA attributes must be used as specified for the element's role",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-conditional-attr?application=axeAPI",
@@ -119,13 +89,7 @@
     {
       "id": "aria-deprecated-role",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "EN-301-549",
-        "EN-9.4.1.2"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
       "description": "Ensures elements do not use deprecated roles",
       "help": "Deprecated ARIA roles must not be used",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-deprecated-role?application=axeAPI",
@@ -151,16 +115,7 @@
     {
       "id": "aria-input-field-name",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "TTv5",
-        "TT5.c",
-        "EN-301-549",
-        "EN-9.4.1.2",
-        "ACT"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "TTv5", "TT5.c", "EN-301-549", "EN-9.4.1.2", "ACT"],
       "description": "Ensures every ARIA input field has an accessible name",
       "help": "ARIA input fields must have an accessible name",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-input-field-name?application=axeAPI",
@@ -169,13 +124,7 @@
     {
       "id": "aria-meter-name",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag111",
-        "EN-301-549",
-        "EN-9.1.1.1"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag111", "EN-301-549", "EN-9.1.1.1"],
       "description": "Ensures every ARIA meter node has an accessible name",
       "help": "ARIA meter nodes must have an accessible name",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-meter-name?application=axeAPI",
@@ -184,13 +133,7 @@
     {
       "id": "aria-progressbar-name",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag111",
-        "EN-301-549",
-        "EN-9.1.1.1"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag111", "EN-301-549", "EN-9.1.1.1"],
       "description": "Ensures every ARIA progressbar node has an accessible name",
       "help": "ARIA progressbar nodes must have an accessible name",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-progressbar-name?application=axeAPI",
@@ -199,13 +142,7 @@
     {
       "id": "aria-prohibited-attr",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "EN-301-549",
-        "EN-9.4.1.2"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
       "description": "Ensures ARIA attributes are not prohibited for an element's role",
       "help": "Elements must only use permitted ARIA attributes",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-prohibited-attr?application=axeAPI",
@@ -214,13 +151,7 @@
     {
       "id": "aria-required-attr",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "EN-301-549",
-        "EN-9.4.1.2"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
       "description": "Ensures elements with ARIA roles have all required ARIA attributes",
       "help": "Required ARIA attributes must be provided",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-required-attr?application=axeAPI",
@@ -229,13 +160,7 @@
     {
       "id": "aria-required-children",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag131",
-        "EN-301-549",
-        "EN-9.1.3.1"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag131", "EN-301-549", "EN-9.1.3.1"],
       "description": "Ensures elements with an ARIA role that require child roles contain them",
       "help": "Certain ARIA roles must contain particular children",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-required-children?application=axeAPI",
@@ -244,13 +169,7 @@
     {
       "id": "aria-required-parent",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag131",
-        "EN-301-549",
-        "EN-9.1.3.1"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag131", "EN-301-549", "EN-9.1.3.1"],
       "description": "Ensures elements with an ARIA role that require parent roles are contained by them",
       "help": "Certain ARIA roles must be contained by particular parents",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-required-parent?application=axeAPI",
@@ -259,14 +178,7 @@
     {
       "id": "aria-roledescription",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "EN-301-549",
-        "EN-9.4.1.2",
-        "deprecated"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2", "deprecated"],
       "description": "Ensure aria-roledescription is only used on elements with an implicit or explicit role",
       "help": "aria-roledescription must be on elements with a semantic role",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-roledescription?application=axeAPI",
@@ -275,13 +187,7 @@
     {
       "id": "aria-roles",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "EN-301-549",
-        "EN-9.4.1.2"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
       "description": "Ensures all elements with a role attribute use a valid value",
       "help": "ARIA roles used must conform to valid values",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-roles?application=axeAPI",
@@ -290,16 +196,7 @@
     {
       "id": "aria-toggle-field-name",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "TTv5",
-        "TT5.c",
-        "EN-301-549",
-        "EN-9.4.1.2",
-        "ACT"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "TTv5", "TT5.c", "EN-301-549", "EN-9.4.1.2", "ACT"],
       "description": "Ensures every ARIA toggle field has an accessible name",
       "help": "ARIA toggle fields must have an accessible name",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-toggle-field-name?application=axeAPI",
@@ -308,13 +205,7 @@
     {
       "id": "aria-tooltip-name",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "EN-301-549",
-        "EN-9.4.1.2"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
       "description": "Ensures every ARIA tooltip node has an accessible name",
       "help": "ARIA tooltip nodes must have an accessible name",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-tooltip-name?application=axeAPI",
@@ -323,13 +214,7 @@
     {
       "id": "aria-valid-attr-value",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "EN-301-549",
-        "EN-9.4.1.2"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
       "description": "Ensures all ARIA attributes have valid values",
       "help": "ARIA attributes must conform to valid values",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-valid-attr-value?application=axeAPI",
@@ -338,13 +223,7 @@
     {
       "id": "aria-valid-attr",
       "impact": null,
-      "tags": [
-        "cat.aria",
-        "wcag2a",
-        "wcag412",
-        "EN-301-549",
-        "EN-9.4.1.2"
-      ],
+      "tags": ["cat.aria", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
       "description": "Ensures attributes that begin with aria- are valid ARIA attributes",
       "help": "ARIA attributes must conform to valid names",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/aria-valid-attr?application=axeAPI",
@@ -409,13 +288,7 @@
     {
       "id": "definition-list",
       "impact": null,
-      "tags": [
-        "cat.structure",
-        "wcag2a",
-        "wcag131",
-        "EN-301-549",
-        "EN-9.1.3.1"
-      ],
+      "tags": ["cat.structure", "wcag2a", "wcag131", "EN-301-549", "EN-9.1.3.1"],
       "description": "Ensures <dl> elements are structured correctly",
       "help": "<dl> elements must only directly contain properly-ordered <dt> and <dd> groups, <script>, <template> or <div> elements",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/definition-list?application=axeAPI",
@@ -424,13 +297,7 @@
     {
       "id": "dlitem",
       "impact": null,
-      "tags": [
-        "cat.structure",
-        "wcag2a",
-        "wcag131",
-        "EN-301-549",
-        "EN-9.1.3.1"
-      ],
+      "tags": ["cat.structure", "wcag2a", "wcag131", "EN-301-549", "EN-9.1.3.1"],
       "description": "Ensures <dt> and <dd> elements are contained by a <dl>",
       "help": "<dt> and <dd> elements must be contained by a <dl>",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/dlitem?application=axeAPI",
@@ -439,13 +306,7 @@
     {
       "id": "duplicate-id-aria",
       "impact": null,
-      "tags": [
-        "cat.parsing",
-        "wcag2a",
-        "wcag412",
-        "EN-301-549",
-        "EN-9.4.1.2"
-      ],
+      "tags": ["cat.parsing", "wcag2a", "wcag412", "EN-301-549", "EN-9.4.1.2"],
       "description": "Ensures every id attribute value used in ARIA and in labels is unique",
       "help": "IDs used in ARIA and labels must be unique",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/duplicate-id-aria?application=axeAPI",
@@ -454,15 +315,7 @@
     {
       "id": "form-field-multiple-labels",
       "impact": null,
-      "tags": [
-        "cat.forms",
-        "wcag2a",
-        "wcag332",
-        "TTv5",
-        "TT5.c",
-        "EN-301-549",
-        "EN-9.3.3.2"
-      ],
+      "tags": ["cat.forms", "wcag2a", "wcag332", "TTv5", "TT5.c", "EN-301-549", "EN-9.3.3.2"],
       "description": "Ensures form field does not have multiple label elements",
       "help": "Form field must not have multiple label elements",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/form-field-multiple-labels?application=axeAPI",
@@ -471,15 +324,7 @@
     {
       "id": "frame-focusable-content",
       "impact": null,
-      "tags": [
-        "cat.keyboard",
-        "wcag2a",
-        "wcag211",
-        "TTv5",
-        "TT4.a",
-        "EN-301-549",
-        "EN-9.2.1.1"
-      ],
+      "tags": ["cat.keyboard", "wcag2a", "wcag211", "TTv5", "TT4.a", "EN-301-549", "EN-9.2.1.1"],
       "description": "Ensures <frame> and <iframe> elements with focusable content do not have tabindex=-1",
       "help": "Frames with focusable content must not have tabindex=-1",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/frame-focusable-content?application=axeAPI",
@@ -524,14 +369,7 @@
     {
       "id": "html-xml-lang-mismatch",
       "impact": null,
-      "tags": [
-        "cat.language",
-        "wcag2a",
-        "wcag311",
-        "EN-301-549",
-        "EN-9.3.1.1",
-        "ACT"
-      ],
+      "tags": ["cat.language", "wcag2a", "wcag311", "EN-301-549", "EN-9.3.1.1", "ACT"],
       "description": "Ensure that HTML elements with both valid lang and xml:lang attributes agree on the base language of the page",
       "help": "HTML elements with lang and xml:lang must have the same base language",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/html-xml-lang-mismatch?application=axeAPI",
@@ -623,15 +461,7 @@
     {
       "id": "link-in-text-block",
       "impact": null,
-      "tags": [
-        "cat.color",
-        "wcag2a",
-        "wcag141",
-        "TTv5",
-        "TT13.a",
-        "EN-301-549",
-        "EN-9.1.4.1"
-      ],
+      "tags": ["cat.color", "wcag2a", "wcag141", "TTv5", "TT13.a", "EN-301-549", "EN-9.1.4.1"],
       "description": "Ensure links are distinguished from surrounding text in a way that does not rely on color",
       "help": "Links must be distinguishable without relying on color",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/link-in-text-block?application=axeAPI",
@@ -662,13 +492,7 @@
     {
       "id": "list",
       "impact": null,
-      "tags": [
-        "cat.structure",
-        "wcag2a",
-        "wcag131",
-        "EN-301-549",
-        "EN-9.1.3.1"
-      ],
+      "tags": ["cat.structure", "wcag2a", "wcag131", "EN-301-549", "EN-9.1.3.1"],
       "description": "Ensures that lists are structured correctly",
       "help": "<ul> and <ol> must only directly contain <li>, <script> or <template> elements",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/list?application=axeAPI",
@@ -677,13 +501,7 @@
     {
       "id": "listitem",
       "impact": null,
-      "tags": [
-        "cat.structure",
-        "wcag2a",
-        "wcag131",
-        "EN-301-549",
-        "EN-9.1.3.1"
-      ],
+      "tags": ["cat.structure", "wcag2a", "wcag131", "EN-301-549", "EN-9.1.3.1"],
       "description": "Ensures <li> elements are used semantically",
       "help": "<li> elements must be contained in a <ul> or <ol>",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/listitem?application=axeAPI",
@@ -692,15 +510,7 @@
     {
       "id": "marquee",
       "impact": null,
-      "tags": [
-        "cat.parsing",
-        "wcag2a",
-        "wcag222",
-        "TTv5",
-        "TT2.b",
-        "EN-301-549",
-        "EN-9.2.2.2"
-      ],
+      "tags": ["cat.parsing", "wcag2a", "wcag222", "TTv5", "TT2.b", "EN-301-549", "EN-9.2.2.2"],
       "description": "Ensures <marquee> elements are not used",
       "help": "<marquee> elements are deprecated and must not be used",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/marquee?application=axeAPI",
@@ -963,9 +773,7 @@
           "none": [],
           "impact": null,
           "html": "<body class=\"neterror\" style=\"font-family: system-ui, sans-serif; font-size: 75%\">",
-          "target": [
-            "body"
-          ]
+          "target": ["body"]
         }
       ]
     },
@@ -1002,9 +810,7 @@
           "none": [],
           "impact": null,
           "html": "<button id=\"reload-button\" class=\"blue-button text-button\" data-url=\"http://localhost:5173/\">\n              <!--?lit$483686309$-->Reload\n            </button>",
-          "target": [
-            "#reload-button"
-          ]
+          "target": ["#reload-button"]
         }
       ]
     },
@@ -1046,9 +852,7 @@
           "none": [],
           "impact": null,
           "html": "<span>This <span>localhost</span> page can’t be found</span>",
-          "target": [
-            "h1 > span"
-          ]
+          "target": ["h1 > span"]
         },
         {
           "any": [
@@ -1071,9 +875,7 @@
           "none": [],
           "impact": null,
           "html": "<span>localhost</span>",
-          "target": [
-            "span > span"
-          ]
+          "target": ["span > span"]
         },
         {
           "any": [
@@ -1096,9 +898,7 @@
           "none": [],
           "impact": null,
           "html": "<p>No webpage was found for the web address: <strong>http://localhost:5173/</strong></p>",
-          "target": [
-            "p"
-          ]
+          "target": ["p"]
         },
         {
           "any": [
@@ -1121,9 +921,7 @@
           "none": [],
           "impact": null,
           "html": "<strong>http://localhost:5173/</strong>",
-          "target": [
-            "p > strong"
-          ]
+          "target": ["p > strong"]
         },
         {
           "any": [
@@ -1146,9 +944,7 @@
           "none": [],
           "impact": null,
           "html": "<div class=\"error-code\"><!--?lit$483686309$-->HTTP ERROR 404</div>",
-          "target": [
-            ".error-code"
-          ]
+          "target": [".error-code"]
         },
         {
           "any": [
@@ -1171,9 +967,7 @@
           "none": [],
           "impact": null,
           "html": "<button id=\"reload-button\" class=\"blue-button text-button\" data-url=\"http://localhost:5173/\">\n              <!--?lit$483686309$-->Reload\n            </button>",
-          "target": [
-            "#reload-button"
-          ]
+          "target": ["#reload-button"]
         }
       ]
     },
@@ -1208,9 +1002,7 @@
           "none": [],
           "impact": null,
           "html": "<html dir=\"ltr\" lang=\"en\">",
-          "target": [
-            "html"
-          ]
+          "target": ["html"]
         }
       ]
     },
@@ -1245,9 +1037,7 @@
           "none": [],
           "impact": null,
           "html": "<html dir=\"ltr\" lang=\"en\">",
-          "target": [
-            "html"
-          ]
+          "target": ["html"]
         }
       ]
     },
@@ -1282,24 +1072,14 @@
           ],
           "impact": null,
           "html": "<html dir=\"ltr\" lang=\"en\">",
-          "target": [
-            "html"
-          ]
+          "target": ["html"]
         }
       ]
     },
     {
       "id": "nested-interactive",
       "impact": null,
-      "tags": [
-        "cat.keyboard",
-        "wcag2a",
-        "wcag412",
-        "TTv5",
-        "TT6.a",
-        "EN-301-549",
-        "EN-9.4.1.2"
-      ],
+      "tags": ["cat.keyboard", "wcag2a", "wcag412", "TTv5", "TT6.a", "EN-301-549", "EN-9.4.1.2"],
       "description": "Ensures interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
       "help": "Interactive controls must not be nested",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.9/nested-interactive?application=axeAPI",
@@ -1318,9 +1098,7 @@
           "none": [],
           "impact": null,
           "html": "<button id=\"reload-button\" class=\"blue-button text-button\" data-url=\"http://localhost:5173/\">\n              <!--?lit$483686309$-->Reload\n            </button>",
-          "target": [
-            "#reload-button"
-          ]
+          "target": ["#reload-button"]
         }
       ]
     }
@@ -1356,9 +1134,7 @@
           "none": [],
           "impact": "critical",
           "html": "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0,\n                                 maximum-scale=1.0, user-scalable=no\">",
-          "target": [
-            "meta[name=\"viewport\"]"
-          ],
+          "target": ["meta[name=\"viewport\"]"],
           "failureSummary": "Fix any of the following:\n  user-scalable=no on <meta> tag disables zooming on mobile devices"
         }
       ]

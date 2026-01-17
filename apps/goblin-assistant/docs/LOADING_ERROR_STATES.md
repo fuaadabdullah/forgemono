@@ -9,6 +9,7 @@
 ## Overview
 
 Enhanced all components with:
+
 - **Skeleton UI** for loading states (replaces spinners)
 - **Friendly error states** with retry buttons
 - **ARIA live regions** (`aria-live="polite"`) for status updates
@@ -20,6 +21,7 @@ Enhanced all components with:
 ## New Loading Skeleton Components
 
 ### 1. StatusCardSkeleton ✅
+
 **Location**: `src/components/LoadingSkeleton.tsx`
 
 ```tsx
@@ -32,6 +34,7 @@ Enhanced all components with:
 - Screen reader: "Loading content..."
 
 ### 2. StatCardSkeleton ✅
+
 **Location**: `src/components/LoadingSkeleton.tsx`
 
 ```tsx
@@ -44,6 +47,7 @@ Enhanced all components with:
 - Screen reader: "Loading statistic..."
 
 ### 3. ListItemSkeleton ✅
+
 **Location**: `src/components/LoadingSkeleton.tsx`
 
 ```tsx
@@ -56,6 +60,7 @@ Enhanced all components with:
 - Screen reader: "Loading item..."
 
 ### 4. ListSkeleton ✅
+
 **Location**: `src/components/LoadingSkeleton.tsx`
 
 ```tsx
@@ -68,6 +73,7 @@ Enhanced all components with:
 - Screen reader: "Loading list..."
 
 ### 5. ProviderCardSkeleton ✅
+
 **Location**: `src/components/LoadingSkeleton.tsx`
 
 ```tsx
@@ -80,6 +86,7 @@ Enhanced all components with:
 - Screen reader: "Loading provider..."
 
 ### 6. DashboardSkeleton ✅
+
 **Location**: `src/components/LoadingSkeleton.tsx`
 
 ```tsx
@@ -98,29 +105,35 @@ Enhanced all components with:
 ### EnhancedDashboard.tsx ✅
 
 **Loading State**:
+
 - Already uses `<DashboardSkeleton />` ✓
 - Shows while fetching all service health data
 
 **Error State**:
+
 - Full-screen error with retry and reload buttons
 - Uses `<Alert variant="danger">` with embedded `<Button>` components
 - Friendly error message with troubleshooting tips
 
 **ARIA Live Region**:
+
 ```tsx
 <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
   {dashboard && `Dashboard updated. Services: ${healthyCount} healthy`}
 </div>
 ```
+
 - Announces updates when auto-refresh runs (every 30s)
 - Screen reader users hear "Dashboard updated. Services: 5 healthy"
 
 **Before**:
+
 ```tsx
 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
 ```
 
 **After**:
+
 ```tsx
 <DashboardSkeleton />
 ```
@@ -130,13 +143,18 @@ Enhanced all components with:
 ### LogsPage.tsx ✅
 
 **Loading State**:
+
 ```tsx
-{isLoading && <ListSkeleton count={8} />}
+{
+  isLoading && <ListSkeleton count={8} />;
+}
 ```
+
 - Shows 8 list item skeletons while loading logs
 - Replaces generic spinner with structured placeholder
 
 **Error State**:
+
 ```tsx
 <Alert
   variant="danger"
@@ -153,21 +171,26 @@ Enhanced all components with:
   onDismiss={() => setError(null)}
 />
 ```
+
 - Embedded retry button in error message
 - Dismissible alert for non-blocking errors
 - Friendly error messaging
 
 **ARIA Live Region**:
+
 ```tsx
 <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-  {!isLoading && logs.length > 0 &&
+  {!isLoading &&
+    logs.length > 0 &&
     `Logs updated. Showing ${filteredLogs.length} of ${logs.length} entries`}
 </div>
 ```
+
 - Announces updates when auto-refresh runs (every 5s)
 - Announces filter changes
 
 **Buttons Updated**:
+
 - Refresh button: `<Button variant="primary" loading={isLoading} />`
 - Clear button: `<Button variant="danger" />`
 
@@ -176,6 +199,7 @@ Enhanced all components with:
 ### EnhancedProvidersPage.tsx ✅
 
 **Loading State**:
+
 ```tsx
 {isLoading ? (
   <div className="space-y-2" role="status" aria-label="Loading providers">
@@ -184,10 +208,12 @@ Enhanced all components with:
   </div>
 ) : /* ... */}
 ```
+
 - Shows 3 provider card skeletons
 - Replaces "Loading..." text
 
 **Error State**:
+
 ```tsx
 <Alert
   variant="danger"
@@ -203,22 +229,27 @@ Enhanced all components with:
   dismissible
 />
 ```
+
 - Retry button with icon
 - Dismissible alert
 - Clear error messaging
 
 **ARIA Live Region**:
+
 ```tsx
 <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-  {!isLoading && providerList.length > 0 &&
+  {!isLoading &&
+    providerList.length > 0 &&
     `Providers loaded. ${providerList.length} provider${plural} available`}
   {testResult && `Test ${testResult.success ? 'passed' : 'failed'}. ${testResult.message}`}
 </div>
 ```
+
 - Announces provider loads
 - Announces test results (connection tests, prompt tests)
 
 **Buttons Updated**:
+
 - Refresh button: `<Button variant="primary" loading={isLoading} />`
 
 ---
@@ -226,17 +257,21 @@ Enhanced all components with:
 ### Orchestration.tsx ✅
 
 **ARIA Live Region**:
+
 ```tsx
 <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-  {plan && `Orchestration plan created with ${plan.steps.length} step${plural} in ${plan.total_batches} batch${plural}`}
+  {plan &&
+    `Orchestration plan created with ${plan.steps.length} step${plural} in ${plan.total_batches} batch${plural}`}
   {executionId && `Orchestration started with ID ${executionId}`}
 </div>
 ```
+
 - Announces when plan is parsed
 - Announces when execution starts
 - Announces step count and batch count
 
 **Existing Features** (already good):
+
 - Parse button uses `loading` prop ✓
 - Execute button uses `loading` prop ✓
 - Error alert uses `<Alert>` component ✓
@@ -246,19 +281,20 @@ Enhanced all components with:
 ### TaskExecution.tsx ✅
 
 **ARIA Live Region**:
+
 ```tsx
 <div className="sr-only" role="status" aria-live="polite" aria-atomic="false">
-  {isStreaming && streamOutput.length > 0 &&
-    `Received ${streamOutput.length} update${plural}`}
-  {!isStreaming && streamOutput.length > 0 && streamOutput[last]?.done &&
-    'Task completed'}
+  {isStreaming && streamOutput.length > 0 && `Received ${streamOutput.length} update${plural}`}
+  {!isStreaming && streamOutput.length > 0 && streamOutput[last]?.done && 'Task completed'}
 </div>
 ```
+
 - Announces streaming updates (aria-atomic="false" for incremental updates)
 - Announces task completion
 - Updates as new chunks arrive
 
 **Existing Features** (already good):
+
 - Execute button uses `loading` prop ✓
 - Cancel button conditionally shown ✓
 - Error alert uses `<Alert>` component ✓
@@ -272,6 +308,7 @@ Enhanced all components with:
 **Purpose**: Announce dynamic content changes to screen reader users
 
 **Implementation**:
+
 ```tsx
 <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
   {message}
@@ -279,12 +316,14 @@ Enhanced all components with:
 ```
 
 **Attributes**:
+
 - `aria-live="polite"`: Announces when user is idle (non-intrusive)
 - `aria-atomic="true"`: Read entire message on update
 - `aria-atomic="false"`: Read only changed part (for incremental updates)
 - `role="status"`: Semantic role for status messages
 
 **Used In**:
+
 - ✅ EnhancedDashboard (auto-refresh updates)
 - ✅ LogsPage (log updates, filter changes)
 - ✅ EnhancedProvidersPage (provider loads, test results)
@@ -294,11 +333,13 @@ Enhanced all components with:
 ### Loading Skeleton Roles
 
 All skeleton components use:
+
 - `role="status"`: Indicates loading state
 - `aria-label`: Describes what's loading
 - `<span className="sr-only">`: Screen reader text
 
 **Example**:
+
 ```tsx
 <div role="status" aria-label="Loading providers">
   {/* skeleton content */}
@@ -313,6 +354,7 @@ All skeleton components use:
 ### Pattern: Alert with Retry Button
 
 **Before**:
+
 ```tsx
 <div className="bg-surface border border-danger rounded-lg p-4">
   <p className="text-danger">{error}</p>
@@ -320,6 +362,7 @@ All skeleton components use:
 ```
 
 **After**:
+
 ```tsx
 <Alert
   variant="danger"
@@ -338,6 +381,7 @@ All skeleton components use:
 ```
 
 **Benefits**:
+
 - Semantic error presentation
 - Embedded interactive content (retry button)
 - Dismissible for non-blocking errors
@@ -351,7 +395,9 @@ All skeleton components use:
 ### Pattern: List Loading
 
 **Before**:
+
 ```tsx
+
 {isLoading ? (
   <div className="text-center">
     <div className="animate-spin h-12 w-12 border-b-2 border-primary" />
@@ -361,6 +407,7 @@ All skeleton components use:
 ```
 
 **After**:
+
 ```tsx
 {isLoading ? (
   <ListSkeleton count={8} />
@@ -368,6 +415,7 @@ All skeleton components use:
 ```
 
 **Benefits**:
+
 - Shows structure of expected content
 - Reduces perceived loading time
 - Better UX (users see what's coming)
@@ -376,16 +424,23 @@ All skeleton components use:
 ### Pattern: Card Loading
 
 **Before**:
+
 ```tsx
-{isLoading ? <Spinner /> : <Card {...data} />}
+{
+  isLoading ? <Spinner /> : <Card {...data} />;
+}
 ```
 
 **After**:
+
 ```tsx
-{isLoading ? <StatusCardSkeleton /> : <StatusCard {...data} />}
+{
+  isLoading ? <StatusCardSkeleton /> : <StatusCard {...data} />;
+}
 ```
 
 **Benefits**:
+
 - Matches final card layout
 - Smooth transition when data loads
 - No layout shift (CLS = 0)
@@ -417,6 +472,7 @@ Component bundles:
 ## Testing Checklist
 
 ### Screen Reader Testing
+
 - [ ] Dashboard auto-refresh announces updates
 - [ ] Logs page announces filter changes
 - [ ] Provider page announces test results
@@ -424,11 +480,13 @@ Component bundles:
 - [ ] TaskExecution announces streaming updates
 
 ### Keyboard Navigation
+
 - [ ] Retry buttons focusable and operable
 - [ ] Dismissible alerts closable with keyboard
 - [ ] Loading skeletons don't trap focus
 
 ### Visual Testing
+
 - [ ] Skeletons match final content layout
 - [ ] No layout shift when content loads
 - [ ] Error states clearly visible
@@ -439,6 +497,7 @@ Component bundles:
 ## Future Enhancements
 
 ### Potential Additions
+
 1. **Toast notifications** for non-blocking success messages
 2. **Progress indicators** for long-running operations (0-100%)
 3. **Optimistic updates** (show expected result before server confirms)
@@ -446,6 +505,7 @@ Component bundles:
 5. **Error recovery suggestions** (e.g., "Check backend logs at /logs")
 
 ### Maintenance
+
 - Keep skeleton layouts in sync with actual components
 - Update ARIA announcements when business logic changes
 - Test with actual screen readers (NVDA, JAWS, VoiceOver)
@@ -463,6 +523,7 @@ Component bundles:
 **✅ Zero layout shift** (skeletons match final layout)
 
 All loading and error states now provide:
+
 - **Visual feedback**: Skeleton UI shows expected structure
 - **Auditory feedback**: Screen reader announcements
 - **Interactive recovery**: Retry buttons in error states

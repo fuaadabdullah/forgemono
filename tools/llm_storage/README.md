@@ -1,3 +1,10 @@
+---
+title: "README"
+description: "LLM Storage Tools"
+---
+
+
+
 # LLM Storage Tools
 
 This folder contains tools to upload and manage LLM artifacts (weights, tokenizer files, configs, and license files) in Google Cloud Storage (GCS) and Google Drive.
@@ -17,9 +24,10 @@ Requirements:
 
 Example:
 
-```bash
+````bash
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/colab-reader-key.json
 python tools/llm_storage/upload_model.py --bucket goblin-assistant-llm --src ./models/7b --dest models/7b --licenses ./licenses --signed-url
-```
+```yaml
 
 Note: Do not commit credentials to the repo.
+````

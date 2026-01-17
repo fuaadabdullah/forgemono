@@ -1,26 +1,24 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import Script from "next/script";
-import SpeedInsights from "@/components/SpeedInsights";
-import "./globals.css";
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import Script from 'next/script';
+import SpeedInsights from '@/components/SpeedInsights';
+import './globals.css';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Elbey Projects - Mobile Mechanic & Engine Service",
-  description: "Professional mobile mechanic services in your area. Engine service, brakes, transmission, suspension, and diagnostics. 15 years of experience.",
+  title: 'Elbey Projects - Mobile Mechanic & Engine Service',
+  description:
+    'Professional mobile mechanic services in your area. Engine service, brakes, transmission, suspension, and diagnostics. 15 years of experience.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const GA_ID = process.env.NEXT_PUBLIC_GA_ID || process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS || "";
-  const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL || "";
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const GA_ID = process.env.NEXT_PUBLIC_GA_ID || process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS || '';
+  const FB_PIXEL_ID =
+    process.env.NEXT_PUBLIC_FB_PIXEL_ID || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL || '';
   return (
     <html lang="en">
       <head>

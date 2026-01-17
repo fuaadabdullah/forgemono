@@ -1,13 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-import os
-from dotenv import load_dotenv
+from api.config.providers import DEFAULT_PROVIDERS, DEFAULT_MODELS
 
 router = APIRouter(prefix="/settings", tags=["settings"])
-
-# Load environment variables
-load_dotenv()
 
 
 class ProviderSettings(BaseModel):
@@ -32,66 +28,6 @@ class SettingsResponse(BaseModel):
     models: List[ModelSettings]
     default_provider: Optional[str] = None
     default_model: Optional[str] = None
-
-
-# Default provider configurations
-DEFAULT_PROVIDERS = [
-    {
-        "name": "OpenAI",
-        "api_key": os.getenv("OPENAI_API_KEY"),
-        "base_url": "https://api.openai.com/v1",
-        "models": ["gpt-4", "gpt-3.5-turbo", "gpt-4-turbo"],
-        "enabled": bool(os.getenv("OPENAI_API_KEY")),
-    },
-    {
-        "name": "Anthropic",
-        "api_key": os.getenv("ANTHROPIC_API_KEY"),
-        "base_url": "https://api.anthropic.com",
-        "models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
-        "enabled": bool(os.getenv("ANTHROPIC_API_KEY")),
-    },
-    {
-        "name": "Groq",
-        "api_key": os.getenv("GROQ_API_KEY"),
-        "base_url": "https://api.groq.com/openai/v1",
-        "models": ["llama2-70b-4096", "mixtral-8x7b-32768", "gemma-7b-it"],
-        "enabled": bool(os.getenv("GROQ_API_KEY")),
-    },
-    {
-        "name": "Local LLM",
-        "api_key": None,
-        "base_url": "http://localhost:8000/v1",
-        "models": ["local-model"],
-        "enabled": True,
-    },
-]
-
-DEFAULT_MODELS = [
-    {
-        "name": "GPT-4",
-        "provider": "OpenAI",
-        "model_id": "gpt-4",
-        "temperature": 0.7,
-        "max_tokens": 4096,
-        "enabled": True,
-    },
-    {
-        "name": "Claude 3 Sonnet",
-        "provider": "Anthropic",
-        "model_id": "claude-3-sonnet-20240229",
-        "temperature": 0.7,
-        "max_tokens": 4096,
-        "enabled": True,
-    },
-    {
-        "name": "Llama 2 70B (Groq)",
-        "provider": "Groq",
-        "model_id": "llama2-70b-4096",
-        "temperature": 0.7,
-        "max_tokens": 4096,
-        "enabled": True,
-    },
-]
 
 
 @router.get("/", response_model=SettingsResponse)

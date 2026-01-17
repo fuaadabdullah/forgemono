@@ -22,9 +22,9 @@ on:
         default: 'ecs'
         type: choice
         options:
-        - ecs
-        - aks
-        - gke
+          - ecs
+          - aks
+          - gke
 
 jobs:
   deploy:

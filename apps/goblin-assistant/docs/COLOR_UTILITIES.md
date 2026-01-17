@@ -19,12 +19,12 @@ The GoblinOS color system uses **research-backed base colors** and programmatica
 ```javascript
 export const GOBLINOS_BASE_COLORS = {
   primary: '#06D06A', // Goblin green - energy, growth, tech
-  accent: '#FF2AA8',  // Magenta - eyes, highlights, special
-  cta: '#FF6A1A',     // Burnt-orange - calls-to-action
-  bg: '#071117',      // Deep charcoal - main background
+  accent: '#FF2AA8', // Magenta - eyes, highlights, special
+  cta: '#FF6A1A', // Burnt-orange - calls-to-action
+  bg: '#071117', // Deep charcoal - main background
   surface: '#0b1617', // Card/panel surface
-  text: '#E6F2F1',    // High-contrast text
-  muted: '#9AA5A8'    // Secondary text
+  text: '#E6F2F1', // High-contrast text
+  muted: '#9AA5A8', // Secondary text
 };
 ```
 
@@ -66,6 +66,7 @@ console.log(GOBLINOS_PALETTE.primary);
 ### 3. Generate CSS Variables
 
 ```bash
+
 # Preview CSS output
 node scripts/generate-theme-css.js
 
@@ -74,19 +75,20 @@ node scripts/generate-theme-css.js --output src/generated-theme.css
 ```
 
 **Output**:
+
 ```css
 :root {
-  --primary: #06D06A;
+  --primary: #06d06a;
   --primary-300: #43f99e;
   --primary-600: #04773d;
   --primary-hover: #06b75e;
 
-  --accent: #FF2AA8;
+  --accent: #ff2aa8;
   --accent-300: #ff8fd0;
   --accent-600: #cc0077;
   --accent-hover: #ff0f9b;
 
-  --cta: #FF6A1A;
+  --cta: #ff6a1a;
   --cta-300: #ffac80;
   --cta-600: #bd4200;
   --cta-hover: #ff5900;
@@ -116,9 +118,11 @@ const glowAccent = hexToRgba('#FF2AA8', 0.22);
 Generates consistent color variants from a base hex color.
 
 **Parameters**:
+
 - `hex` (string) - Base hex color (with or without #)
 
 **Returns**: Object with properties:
+
 - `base` - Original hex color
 - `light` - Lighter variant (+20% lightness)
 - `dark` - Darker variant (-18% lightness)
@@ -126,6 +130,7 @@ Generates consistent color variants from a base hex color.
 - `hover` - Hover state variant (-5% lightness)
 
 **Example**:
+
 ```javascript
 const variants = generateVariants('#06D06A');
 ```
@@ -135,12 +140,14 @@ const variants = generateVariants('#06D06A');
 Converts hex color to RGBA string for glow effects.
 
 **Parameters**:
+
 - `hex` (string) - Hex color
 - `alpha` (number) - Opacity (0-1), default: 1
 
 **Returns**: RGBA string
 
 **Example**:
+
 ```javascript
 const glow = hexToRgba('#06D06A', 0.14);
 // 'rgba(6, 208, 106, 0.14)'
@@ -151,16 +158,18 @@ const glow = hexToRgba('#06D06A', 0.14);
 Generates complete theme palette with variants for all base colors.
 
 **Parameters**:
+
 - `baseColors` (object) - Object with `primary`, `accent`, `cta` hex values
 
 **Returns**: Object with generated variants for each color
 
 **Example**:
+
 ```javascript
 const palette = generateThemePalette({
   primary: '#06D06A',
   accent: '#FF2AA8',
-  cta: '#FF6A1A'
+  cta: '#FF6A1A',
 });
 ```
 
@@ -169,11 +178,13 @@ const palette = generateThemePalette({
 Generates CSS custom properties string from palette object.
 
 **Parameters**:
+
 - `palette` (object) - Color palette with variants
 
 **Returns**: CSS string with custom properties
 
 **Example**:
+
 ```javascript
 const css = generateCssVariables(GOBLINOS_PALETTE);
 ```
@@ -251,6 +262,7 @@ node scripts/generate-theme-css.js
 ```
 
 **Expected output**:
+
 ```
 === GoblinOS Color Palette ===
 
@@ -268,21 +280,25 @@ Primary (Goblin Green):
 To change the color scheme:
 
 1. **Update base colors** in `src/utils/colorUtils.js`:
+
    ```javascript
    export const GOBLINOS_BASE_COLORS = {
-     primary: '#NEW_HEX',  // Update this
-     accent: '#NEW_HEX',   // Update this
-     cta: '#NEW_HEX'       // Update this
+     primary: '#NEW_HEX', // Update this
+     accent: '#NEW_HEX', // Update this
+     cta: '#NEW_HEX', // Update this
    };
    ```
 
 2. **Regenerate variants**:
+
    ```bash
    node scripts/generate-theme-css.js
    ```
 
 3. **Verify contrast ratios**:
+
    ```bash
+
    node scripts/check-contrast.js
    ```
 

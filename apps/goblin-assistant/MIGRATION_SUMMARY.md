@@ -5,7 +5,9 @@
 I've successfully migrated **3 out of 4** in-memory storage systems in goblin-assistant to use persistent database storage.
 
 ### 1. Task Execution Storage ✅
+
 **File**: `api/execute_router.py`
+
 - **Removed**: `TASKS = {}` in-memory dictionary
 - **Added**: Database integration using `Task` model from `models_base.py`
 - **Features**:
@@ -14,7 +16,9 @@ I've successfully migrated **3 out of 4** in-memory storage systems in goblin-as
   - Full CRUD operations via SQLAlchemy
 
 ### 2. Streaming Tasks Storage ✅
+
 **File**: `api/api_router.py`
+
 - **Removed**: `ACTIVE_STREAMS = {}` in-memory dictionary
 - **Added**: Database integration using `Stream` and `StreamChunk` models
 - **Features**:
@@ -23,7 +27,9 @@ I've successfully migrated **3 out of 4** in-memory storage systems in goblin-as
   - Cancellation updates DB status
 
 ### 3. Search Collections Storage ✅
+
 **File**: `api/search_router.py`
+
 - **Removed**: `COLLECTIONS = {}` in-memory dictionary
 - **Added**: Database integration using `SearchCollection` and `SearchDocument` models
 - **Features**:
@@ -32,7 +38,9 @@ I've successfully migrated **3 out of 4** in-memory storage systems in goblin-as
   - Proper collection management
 
 ### 4. User Authentication Storage ⚠️
+
 **File**: `api/auth/router.py`
+
 - **Status**: Still uses `users_db = {}` in-memory dictionary
 - **Reason**: Requires refactoring to resolve conflict between Pydantic `User` model and SQLAlchemy `User` model
 - **Next Steps**:
@@ -44,11 +52,13 @@ I've successfully migrated **3 out of 4** in-memory storage systems in goblin-as
 ## Database Models
 
 All database models already exist in:
+
 ```
 /apps/goblin-assistant/backend/models_base.py
 ```
 
 ### Available Models:
+
 - `User` - User authentication and profiles
 - `Task` - Task execution tracking
 - `Stream` - Streaming task management
@@ -59,6 +69,7 @@ All database models already exist in:
 ## How to Complete the Migration
 
 ### Step 1: Run Database Migration
+
 ```bash
 cd apps/goblin-assistant
 python init_db.py
@@ -67,7 +78,9 @@ python init_db.py
 This creates all the necessary tables in `goblin_assistant.db` (SQLite).
 
 ### Step 2: Verify Tables Were Created
+
 The following tables should now exist:
+
 - `users`
 - `tasks`
 - `streams`
@@ -76,10 +89,13 @@ The following tables should now exist:
 - `search_documents`
 
 ### Step 3: (Optional) Fix Auth Router
+
 If you want to complete the auth migration, you'll need to:
 
 1. Update `api/auth/router.py` to rename the Pydantic model:
+
 ```python
+
 # Change this:
 class User(BaseModel):
     ...
@@ -90,6 +106,7 @@ class UserResponse(BaseModel):
 ```
 
 2. Add database imports:
+
 ```python
 import sys
 from pathlib import Path
@@ -103,17 +120,26 @@ from models_base import User as DBUser
 3. Update all endpoints to use `db: Session = Depends(get_db)` and query `DBUser`
 
 ### Step 4: Test the Application
+
 ```bash
+
 cd apps/goblin-assistant
+
 # Start backend
 python -m uvicorn backend.main:app --reload --port 8001
 
 # Test endpoints:
+
 # - POST /execute - Create a task
+
 # - GET /execute/status/{task_id} - Check task status
+
 # - POST /api/route_task_stream_start - Start a stream
+
 # - GET /api/route_task_stream_poll/{stream_id} - Poll stream
+
 # - POST /search/collections/test/add - Add document
+
 # - POST /search/query - Search documents
 ```
 

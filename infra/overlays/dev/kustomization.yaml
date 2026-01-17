@@ -50,16 +50,16 @@ helmCharts:
           - model_name: ollama-local
             litellm_params:
               model: ollama/llama3.2
-              api_base: "http://ollama:11434"
+              api_base: 'http://ollama:11434'
           - model_name: gemini-pro
             litellm_params:
               model: gemini/gemini-1.5-pro-latest
-              api_key: "os.environ/GEMINI_API_KEY"
+              api_key: 'os.environ/GEMINI_API_KEY'
         router:
           enabled: true
-          routingStrategy: "simple-shuffle"
+          routingStrategy: 'simple-shuffle'
           fallbacks:
-            - ["gemini-pro", "ollama-local"]
+            - ['gemini-pro', 'ollama-local']
 
       resources:
         limits:

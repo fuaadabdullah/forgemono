@@ -1,0 +1,43 @@
+name: Code Quality & Formatting
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '**/*.txt'
+      - '**/*.rst'
+      - '**/*.adoc'
+      - 'scripts/**'
+      - 'templates/**'
+      - '.github/workflows/docs-ci.yml'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '**/*.txt'
+      - '**/*.rst'
+      - '**/*.adoc'
+      - 'scripts/**'
+      - 'templates/**'
+
+jobs:
+  format-check:
+    name: Check Code Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Prettier
+        run: npm install -g prettier
+
+      - name: Check formatting
+        run: prettier --check "**/*.{ts,tsx,js,jsx,json,md,html,css,scss}" --ignore-path .prettierignore

@@ -1,21 +1,111 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
-from sqlalchemy.orm import Session
+from typing import Optional, Dict, Any, List
 import uuid
 import asyncio
 import time
-import sys
-from pathlib import Path
-
-# Add backend directory to path for imports
-backend_dir = Path(__file__).parent.parent / "backend"
-sys.path.insert(0, str(backend_dir))
-
-from database import get_db
-from models_base import Stream, StreamChunk
+from .core.orchestration import create_simple_orchestration_plan
+from .write_time_router import router as write_time_router
+from .providers.dispatcher_fixed import invoke_provider
 
 router = APIRouter(prefix="/api", tags=["api"])
+
+
+# ============================================================================
+# Simple Chat Endpoint - Routes to Kamatera LLM
+# ============================================================================
+
+
+class SimpleChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class SimpleChatRequest(BaseModel):
+    messages: List[SimpleChatMessage]
+    model: Optional[str] = None
+    provider: Optional[str] = (
+        None  # Allow specifying provider (e.g., "ollama_gcp", "llamacpp_gcp")
+    )
+    stream: Optional[bool] = False
+
+
+class SimpleChatResponse(BaseModel):
+    ok: bool
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    provider: Optional[str] = None
+    model: Optional[str] = None
+
+
+@router.post("/chat", response_model=SimpleChatResponse)
+async def simple_chat(request: SimpleChatRequest):
+    """
+    Simple chat endpoint that routes to GCP LLM providers.
+
+    This is the main endpoint for the frontend to use for chat functionality.
+    It defaults to the GCP Ollama server with qwen2.5:3b model.
+
+    Example:
+        POST /api/chat
+        {
+            "messages": [{"role": "user", "content": "Hello!"}]
+        }
+    """
+    try:
+        # Convert messages to dict format
+        messages = [{"role": m.role, "content": m.content} for m in request.messages]
+
+        # Default to GCP Ollama provider with qwen2.5:3b model if not specified
+        provider = request.provider or "ollama_gcp"
+        model = request.model or "qwen2.5:3b"
+
+        # Create payload for provider
+        payload = {
+            "messages": messages,
+            "model": model,
+        }
+
+        # Invoke provider
+        response = await invoke_provider(
+            pid=provider,
+            model=model,
+            payload=payload,
+            timeout_ms=30000,
+            stream=request.stream,
+        )
+
+        if isinstance(response, dict) and response.get("ok"):
+            # Extract the text from the provider response
+            # Providers return "text" at the top level, not inside "result"
+            text = response.get("text", "")
+            return SimpleChatResponse(
+                ok=True,
+                result={"text": text} if text else response.get("result"),
+                provider=response.get("provider", "unknown"),
+                model=response.get("model", "unknown"),
+            )
+        else:
+            error_msg = (
+                response.get("error", "Unknown error")
+                if isinstance(response, dict)
+                else str(response)
+            )
+            return SimpleChatResponse(
+                ok=False,
+                error=error_msg,
+            )
+
+    except Exception as e:
+        return SimpleChatResponse(
+            ok=False,
+            error=str(e),
+        )
+
+
+# ============================================================================
+# Original API Router Endpoints
+# ============================================================================
 
 
 class RouteTaskRequest(BaseModel):
@@ -40,6 +130,12 @@ class StreamResponse(BaseModel):
     status: str = "started"
 
 
+# In-memory storage for streams (in production, use Redis or database)
+# Production implementation would use Redis for distributed stream management
+# or a message queue system (RabbitMQ, Apache Kafka) for scalability
+ACTIVE_STREAMS = {}
+
+
 @router.post("/route_task")
 async def route_task(request: RouteTaskRequest):
     """Route a task to the best available provider"""
@@ -55,42 +151,23 @@ async def route_task(request: RouteTaskRequest):
         raise HTTPException(status_code=500, detail=f"Routing failed: {str(e)}")
 
 
-@router.get("/health/stream")
-async def health_stream():
-    """Streaming health check endpoint"""
-    return {
-        "status": "healthy",
-        "timestamp": time.time(),
-        "version": "1.0.0",
-        "services": {
-            "routing": "healthy",
-            "execution": "healthy",
-            "search": "healthy",
-            "auth": "healthy",
-        },
-    }
-
-
 @router.post("/route_task_stream_start")
-async def start_stream_task(request: StreamTaskRequest, db: Session = Depends(get_db)):
+async def start_stream_task(request: StreamTaskRequest):
     """Start a streaming task"""
     try:
         stream_id = str(uuid.uuid4())
 
-        # Create stream in database
-        db_stream = Stream(
-            id=stream_id,
-            goblin=request.goblin,
-            task=request.task,
-            code=request.code,
-            provider=request.provider,
-            model=request.model,
-            status="running",
-            user_id=None,  # TODO: Add user authentication
-        )
-        db.add(db_stream)
-        db.commit()
-        db.refresh(db_stream)
+        # Store stream information
+        ACTIVE_STREAMS[stream_id] = {
+            "goblin": request.goblin,
+            "task": request.task,
+            "code": request.code,
+            "provider": request.provider,
+            "model": request.model,
+            "status": "running",
+            "chunks": [],
+            "created_at": time.time(),
+        }
 
         # Simulate task execution (in production, this would queue the task)
         asyncio.create_task(simulate_stream_task(stream_id))
@@ -98,65 +175,38 @@ async def start_stream_task(request: StreamTaskRequest, db: Session = Depends(ge
         return StreamResponse(stream_id=stream_id, status="started")
 
     except Exception as e:
-        db.rollback()
         raise HTTPException(
             status_code=500, detail=f"Failed to start stream task: {str(e)}"
         )
 
 
 @router.get("/route_task_stream_poll/{stream_id}")
-async def poll_stream_task(stream_id: str, db: Session = Depends(get_db)):
+async def poll_stream_task(stream_id: str):
     """Poll for streaming task updates"""
-    db_stream = db.query(Stream).filter(Stream.id == stream_id).first()
-
-    if not db_stream:
+    if stream_id not in ACTIVE_STREAMS:
         raise HTTPException(status_code=404, detail="Stream not found")
 
-    # Get unprocessed chunks (those created since last poll)
-    chunks = (
-        db.query(StreamChunk)
-        .filter(StreamChunk.stream_id == stream_id)
-        .order_by(StreamChunk.id)
-        .all()
-    )
+    stream = ACTIVE_STREAMS[stream_id]
 
-    # Format chunks for response
-    formatted_chunks = []
-    for chunk in chunks:
-        formatted_chunks.append(
-            {
-                "content": chunk.content,
-                "token_count": chunk.token_count,
-                "cost_delta": chunk.cost_delta,
-                "done": chunk.done,
-            }
-        )
-
-    # Delete processed chunks (except the final one)
-    if chunks and not db_stream.status == "running":
-        db.query(StreamChunk).filter(
-            StreamChunk.stream_id == stream_id, StreamChunk.done == False
-        ).delete()
-        db.commit()
+    # Return available chunks
+    chunks = stream.get("chunks", [])
+    stream["chunks"] = []  # Clear processed chunks
 
     return {
         "stream_id": stream_id,
-        "status": db_stream.status,
-        "chunks": formatted_chunks,
-        "done": db_stream.status == "completed",
+        "status": stream["status"],
+        "chunks": chunks,
+        "done": stream["status"] == "completed",
     }
 
 
 @router.post("/route_task_stream_cancel/{stream_id}")
-async def cancel_stream_task(stream_id: str, db: Session = Depends(get_db)):
+async def cancel_stream_task(stream_id: str):
     """Cancel a streaming task"""
-    db_stream = db.query(Stream).filter(Stream.id == stream_id).first()
-
-    if not db_stream:
+    if stream_id not in ACTIVE_STREAMS:
         raise HTTPException(status_code=404, detail="Stream not found")
 
-    db_stream.status = "cancelled"
-    db.commit()
+    ACTIVE_STREAMS[stream_id]["status"] = "cancelled"
 
     return {"stream_id": stream_id, "status": "cancelled"}
 
@@ -165,55 +215,42 @@ async def simulate_stream_task(stream_id: str):
     """Simulate streaming task execution"""
     await asyncio.sleep(1)  # Initial delay
 
-    # Get new database session for async task
-    from database import SessionLocal
+    if stream_id not in ACTIVE_STREAMS:
+        return
 
-    db = SessionLocal()
-    try:
-        db_stream = db.query(Stream).filter(Stream.id == stream_id).first()
-        if not db_stream:
-            return
+    stream = ACTIVE_STREAMS[stream_id]
+    response_text = (
+        f"Executed task '{stream['task']}' using goblin '{stream['goblin']}'"
+    )
 
-        response_text = (
-            f"Executed task '{db_stream.task}' using goblin '{db_stream.goblin}'"
+    # Simulate streaming chunks
+    words = response_text.split()
+    for i, word in enumerate(words):
+        await asyncio.sleep(0.1)  # Simulate processing delay
+
+        if stream["status"] == "cancelled":
+            break
+
+        chunk = {
+            "content": word + (" " if i < len(words) - 1 else ""),
+            "token_count": len(word) // 4 + 1,
+            "cost_delta": 0.001,
+            "done": False,
+        }
+
+        stream["chunks"].append(chunk)
+
+    # Mark as completed
+    if stream["status"] != "cancelled":
+        stream["status"] = "completed"
+        stream["chunks"].append(
+            {
+                "result": response_text,
+                "cost": len(words) * 0.001,
+                "tokens": sum(len(word) for word in words) // 4,
+                "done": True,
+            }
         )
-
-        # Simulate streaming chunks
-        words = response_text.split()
-        for i, word in enumerate(words):
-            await asyncio.sleep(0.1)  # Simulate processing delay
-
-            # Refresh stream status
-            db.refresh(db_stream)
-            if db_stream.status == "cancelled":
-                break
-
-            # Create chunk
-            chunk = StreamChunk(
-                stream_id=stream_id,
-                content=word + (" " if i < len(words) - 1 else ""),
-                token_count=len(word) // 4 + 1,
-                cost_delta=0.001,
-                done=False,
-            )
-            db.add(chunk)
-            db.commit()
-
-        # Mark as completed
-        if db_stream.status != "cancelled":
-            db_stream.status = "completed"
-            # Add final chunk with summary
-            final_chunk = StreamChunk(
-                stream_id=stream_id,
-                content=response_text,
-                token_count=sum(len(word) for word in words) // 4,
-                cost_delta=len(words) * 0.001,
-                done=True,
-            )
-            db.add(final_chunk)
-            db.commit()
-    finally:
-        db.close()
 
 
 @router.get("/goblins")
@@ -293,23 +330,7 @@ class ParseOrchestrationRequest(BaseModel):
 @router.post("/orchestrate/parse")
 async def parse_orchestration(request: ParseOrchestrationRequest):
     """Parse natural language into orchestration plan"""
-    # Simple parsing logic - in production, this would use NLP
-    return {
-        "steps": [
-            {
-                "id": "step1",
-                "goblin": request.default_goblin or "docs-writer",
-                "task": request.text[:100] + "..."
-                if len(request.text) > 100
-                else request.text,
-                "dependencies": [],
-                "batch": 0,
-            }
-        ],
-        "total_batches": 1,
-        "max_parallel": 1,
-        "estimated_cost": 0.05,
-    }
+    return create_simple_orchestration_plan(request.text, request.default_goblin)
 
 
 @router.post("/orchestrate/execute")

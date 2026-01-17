@@ -1,3 +1,8 @@
+---
+title: "JIRA GITHUB INTEGRATION"
+description: "Jira and GitHub Enterprise Server Integration Guide"
+---
+
 # Jira and GitHub Enterprise Server Integration Guide
 
 This guide provides step-by-step instructions for connecting GitHub Enterprise Server to Jira Cloud using the GitHub for Atlassian app.
@@ -14,10 +19,13 @@ This guide provides step-by-step instructions for connecting GitHub Enterprise S
 Your GitHub Enterprise Server must allow communication with Jira. There are two options:
 
 ### Option 1: Public-Facing URL with IP Allowlist
+
 If your server has a public URL, configure the firewall to allow Atlassian IP addresses. Refer to [GitHub IP Allowlist Setup](https://github.com/atlassian/github-for-jira/blob/main/docs/ip-allowlist.md).
 
 ### Option 2: Locked Gateway (More Secure)
+
 Create a secure gateway using the [sample reverse proxy configuration](https://github.com/atlassian/github-for-jira/blob/main/docs/sample-reverse-proxy-nginx.conf). You'll need:
+
 - Server URL for the locked gateway
 - HTTP request header name
 - API key value
@@ -40,12 +48,14 @@ Create a secure gateway using the [sample reverse proxy configuration](https://g
 ## Step 4: Create a GitHub App
 
 ### Automatic Creation (Recommended)
+
 1. Select **Automatic app creation**
 2. You'll be redirected to GitHub to create the app
 3. Give it a unique name and click **Create GitHub App**
 4. Update the Homepage URL to include your app name at `http(s)://<your-domain>/settings/apps/<app-name>`
 
 ### Manual Creation
+
 If automatic creation fails, manually create a GitHub App following the [manual setup guide](https://support.atlassian.com/jira-cloud-administration/docs/manually-create-a-github-app/).
 
 ## Step 5: Link Development Activity to Jira Work Items
@@ -61,6 +71,7 @@ To connect branches, commits, and PRs to Jira issues:
 ## Migration from Legacy DVCS Connector
 
 If using the old DVCS connector:
+
 1. Ensure all organizations are connected to GitHub for Atlassian
 2. Go to Jira Settings > Apps > DVCS Accounts
 3. Disconnect legacy connections

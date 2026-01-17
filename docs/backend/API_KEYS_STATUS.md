@@ -1,3 +1,8 @@
+---
+title: "API KEYS STATUS"
+description: "Moved from GoblinOS/API_KEYS_STATUS.md"
+---
+
 # Moved from GoblinOS/API_KEYS_STATUS.md
 
 This document provides the current status of API keys.
@@ -33,6 +38,7 @@ Checklist
 Quick commands
 
 ```bash
+
 # Add/update the YAML entry, then regenerate derived artifacts
 cd GoblinOS
 node scripts/generate-roles.js
@@ -73,7 +79,6 @@ Post-merge
 - Confirm the goblin shows in `docs/ROLES.md` and any generated UI/registry pages.
 - If the goblin requires secrets, create entries using GoblinOS vault tooling (do NOT commit secrets in the repo). Document required secrets in the goblin README with placeholders.
 
-
 ## Data Flow Diagram
 
 A data flow diagram is currently missing. Placeholder: [Insert diagram here].
@@ -90,6 +95,7 @@ All backend scripts should:
 ### Bash Example
 
 ```bash
+
 set -e
 trap 'echo "Error on line $LINENO" | tee -a logs/errors.log' ERR
 

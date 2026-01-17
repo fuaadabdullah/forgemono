@@ -15,6 +15,7 @@ Consolidated 6+ separate health check API calls into **2 optimized dashboard end
 - `/api/dashboard/metrics/{service}` - Service-specific metrics (cached 30s)
 
 **Impact**:
+
 - ✅ **83% fewer API calls** (from 6+ down to 2)
 - ✅ **90% reduced database load** (60s cost caching)
 - ✅ **Faster initial page load** (single consolidated call)
@@ -47,10 +48,13 @@ def decorator(func: Callable)
 **Endpoints**:
 
 #### GET `/api/dashboard/status`
+
 - **Cache**: 10 seconds
 - **Returns**: Compact status for all services
 - **Response**:
+
   ```json
+
   {
     "backend_api": {
       "status": "healthy",
@@ -67,9 +71,11 @@ def decorator(func: Callable)
   ```
 
 #### GET `/api/dashboard/costs`
+
 - **Cache**: 60 seconds (AGGRESSIVE!)
 - **Returns**: Aggregated cost tracking
 - **Response**:
+
   ```json
   {
     "total_cost": 12.45,
@@ -84,10 +90,12 @@ def decorator(func: Callable)
   ```
 
 #### GET `/api/dashboard/metrics/{service}`
+
 - **Cache**: 30 seconds
 - **Returns**: Service-specific metrics (latency history, etc.)
 
 **Service Check Functions** (internal):
+
 - `check_backend_status()` - Health check with latency measurement
 - `check_vector_db_status()` - Chroma/Qdrant status, collections count
 - `check_mcp_status()` - MCP server connectivity (ports 8765, 8766)
@@ -99,6 +107,7 @@ All checks run **in parallel** using `asyncio.gather()` for maximum performance.
 ### 2. Router Registration (`backend/main.py`)
 
 ```python
+
 from dashboard_router import router as dashboard_router
 
 app.include_router(dashboard_router)  # Optimized dashboard endpoints
@@ -124,11 +133,13 @@ async getDashboardMetrics(service: string): Promise<ServiceMetricsResponse>
 ```
 
 **Legacy Methods** (marked LEGACY - use dashboard endpoints instead):
+
 - `getChromaStatus()`, `getMCPStatus()`, `getRaptorStatus()`, `getSandboxStatus()`, `getCostTracking()`
 
 ### 2. Dashboard Component Update (`src/components/EnhancedDashboard.tsx`)
 
 **Before** (6+ API calls):
+
 ```typescript
 const [backendHealth, chromaStatus, mcpStatus, ragStatus, sandboxStatus, costData] =
   await Promise.allSettled([
@@ -142,14 +153,16 @@ const [backendHealth, chromaStatus, mcpStatus, ragStatus, sandboxStatus, costDat
 ```
 
 **After** (2 API calls):
+
 ```typescript
 const [statusResult, costsResult] = await Promise.allSettled([
-  apiClient.getDashboardStatus(),  // Single consolidated call!
-  apiClient.getDashboardCosts(),    // Cached 60s
+  apiClient.getDashboardStatus(), // Single consolidated call!
+  apiClient.getDashboardCosts(), // Cached 60s
 ]);
 ```
 
 **Benefits**:
+
 - Simpler error handling (2 promises instead of 6)
 - Faster initial load (parallel consolidated calls)
 - Less network overhead
@@ -161,17 +174,18 @@ const [statusResult, costsResult] = await Promise.allSettled([
 
 ### Cache TTLs
 
-| Endpoint | TTL | Rationale |
-|----------|-----|-----------|
-| `/api/dashboard/status` | 10s | Service status changes frequently, need near-real-time updates |
-| `/api/dashboard/costs` | 60s | **AGGRESSIVE** - Costs change slowly, expensive DB queries |
-| `/api/dashboard/metrics/{service}` | 30s | Metrics aggregation is expensive, 30s is acceptable staleness |
+| Endpoint                           | TTL | Rationale                                                      |
+| ---------------------------------- | --- | -------------------------------------------------------------- |
+| `/api/dashboard/status`            | 10s | Service status changes frequently, need near-real-time updates |
+| `/api/dashboard/costs`             | 60s | **AGGRESSIVE** - Costs change slowly, expensive DB queries     |
+| `/api/dashboard/metrics/{service}` | 30s | Metrics aggregation is expensive, 30s is acceptable staleness  |
 
 ### Cache Implementation
 
 **Thread-safe in-memory cache** with automatic expiration:
 
 ```python
+
 class SimpleCache:
     """Thread-safe in-memory cache with TTL"""
     def __init__(self):
@@ -180,6 +194,7 @@ class SimpleCache:
 ```
 
 **Why not Redis/external cache?**
+
 - ✅ Zero additional dependencies
 - ✅ No network latency
 - ✅ Automatic cleanup
@@ -187,6 +202,7 @@ class SimpleCache:
 - ✅ Perfect for short TTLs (10-60s)
 
 **When to use external cache?**
+
 - ⏳ If scaling to multiple backend instances
 - ⏳ If TTLs need to be longer (hours/days)
 - ⏳ If cache invalidation becomes complex
@@ -199,6 +215,7 @@ class SimpleCache:
 
 ```
 Dashboard Load:
+
 1. GET /health                    → 120ms
 2. GET /health/chroma/status      → 80ms
 3. GET /health/mcp/status         → 65ms
@@ -215,8 +232,10 @@ DB Queries: 2-3 per request (cost, latency)
 
 ```
 Dashboard Load:
+
 1. GET /api/dashboard/status      → 150ms (first call, parallel checks)
    GET /api/dashboard/status      → 0ms (cached 10s)
+
 2. GET /api/dashboard/costs       → 350ms (first call, DB query)
    GET /api/dashboard/costs       → 0ms (cached 60s)
 
@@ -228,17 +247,20 @@ DB Queries: 0 (cached for 60s)
 ### Cost Savings
 
 **Before**:
+
 - 6 API calls every page load
 - 2-3 DB queries per request
 - ~950ms latency per full dashboard refresh
 
 **After**:
+
 - 2 API calls on first load
 - 0 API calls on subsequent loads (within cache TTL)
 - 0 DB queries (for 60s after first load)
 - ~150ms latency on cached loads
 
 **Database Load Reduction**:
+
 - Cost tracking queries: **90% reduction** (cached 60s)
 - Latency queries: **100% reduction** (moved to separate endpoint)
 - Overall DB load: **85-90% reduction** during dashboard usage
@@ -267,15 +289,21 @@ time curl http://localhost:8001/api/dashboard/costs  # Should be <1ms
 ### Frontend Testing
 
 ```bash
+
 # Start dev server
 cd apps/goblin-assistant
 pnpm dev
 
 # Open browser console
+
 # Network tab should show:
+
 # 1. GET /api/dashboard/status (first load)
+
 # 2. GET /api/dashboard/costs (first load)
+
 # 3. Subsequent refreshes within 10s use cached status
+
 # 4. Subsequent refreshes within 60s use cached costs
 ```
 
@@ -341,6 +369,7 @@ async def dashboard_websocket(websocket: WebSocket):
 **Proposed**: Event-driven invalidation
 
 ```python
+
 # Invalidate cache when events occur
 async def on_provider_error(provider: str):
     await cache.clear()  # Force refresh on next request
@@ -352,6 +381,7 @@ async def on_cost_update(amount: float):
 ### 4. Redis Cache Backend
 
 **When to implement**:
+
 - Multiple backend instances (horizontal scaling)
 - Longer cache TTLs needed
 - Cross-service cache sharing
@@ -397,6 +427,7 @@ async def startup():
 **Status**: ✅ **COMPLETE** - Dashboard API consolidation with aggressive caching
 
 **Next Steps**:
+
 1. Test in production environment
 2. Monitor cache hit rates and performance gains
 3. Consider WebSocket implementation for real-time updates

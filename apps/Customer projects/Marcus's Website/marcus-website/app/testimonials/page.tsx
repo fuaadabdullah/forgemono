@@ -1,10 +1,11 @@
-import Link from "next/link";
-import { testimonials } from "@/data/testimonials";
-import { Star } from "lucide-react";
+import Link from 'next/link';
+import { testimonials } from '@/data/testimonials';
+import { Star } from 'lucide-react';
 
 export const metadata = {
-  title: "Testimonials - Elbey Projects",
-  description: "Read honest customer reviews and experiences with Elbey Projects mobile mechanic service.",
+  title: 'Testimonials - Elbey Projects',
+  description:
+    'Read honest customer reviews and experiences with Elbey Projects mobile mechanic service.',
 };
 
 export default function TestimonialsPage() {
@@ -13,7 +14,9 @@ export default function TestimonialsPage() {
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Customer Testimonials</h1>
-          <p className="text-gray-300 text-lg">Real feedback from our customers across service types and vehicle makes.</p>
+          <p className="text-gray-300 text-lg">
+            Real feedback from our customers across service types and vehicle makes.
+          </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -37,7 +40,10 @@ export default function TestimonialsPage() {
         </div>
 
         <div className="text-center mt-12">
-          <Link href="/" className="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md transition-colors">
+          <Link
+            href="/"
+            className="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md transition-colors"
+          >
             Back to Home
           </Link>
         </div>

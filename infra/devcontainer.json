@@ -1,8 +1,6 @@
 {
   "name": "ForgeMonorepo Dev Container",
-  "dockerComposeFile": [
-    "../ForgeTM/docker-compose.yml"
-  ],
+  "dockerComposeFile": ["../ForgeTM/docker-compose.yml"],
   "service": "backend",
   "workspaceFolder": "/workspace/ForgeMonorepo",
   "customizations": {

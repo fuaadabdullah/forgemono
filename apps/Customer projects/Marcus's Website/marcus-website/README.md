@@ -1,3 +1,8 @@
+---
+title: "README"
+description: "Marcus's Website - Elbey Projects"
+---
+
 # Marcus's Website - Elbey Projects
 
 A complete website template for Elbey Projects, a mobile mechanic business, built with Next.js 15 and TypeScript.
@@ -75,10 +80,12 @@ public/
 2. **Run development server**:
 
    ```bash
+
    npm run dev
    ```
 
 3. **Build for production**:
+
    ```bash
    npm run build
    npm start
@@ -99,11 +106,13 @@ public/
 1. Add your analytics IDs (Vercel environment variables or `.env.local`):
 
 ```env
+
 # Google Analytics Measurement ID (G-XXXX)
 NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+
 # Facebook Pixel ID
 NEXT_PUBLIC_FB_PIXEL_ID=123456789012345
-NEXT_PUBLIC_SITE_URL=https://yourdomain.com
+NEXT_PUBLIC_SITE_URL=<https://yourdomain.com>
 ```
 
 - **Vercel SpeedInsights**: Included in the root layout to improve performance observability in deployments.
@@ -143,7 +152,7 @@ Before the workflow runs successfully, set the following repository `Secrets` in
 
 **Required for production deployments:**
 
-- `NEXT_PUBLIC_SITE_URL` — Your production site URL (e.g., `https://elbey-projects.com`)
+- `NEXT_PUBLIC_SITE_URL` — Your production site URL (e.g., `<https://elbey-projects.com`)>
 
 **Optional analytics:**
 
@@ -237,12 +246,14 @@ This project is designed to be deployed on Vercel, Netlify, or any static hostin
 2. **Deploy**:
 
    ```bash
+
    vercel
    ```
 
    Follow the prompts to link your GitHub repository.
 
 3. **Production Deployment**:
+
    ```bash
    vercel --prod
    ```
@@ -250,13 +261,11 @@ This project is designed to be deployed on Vercel, Netlify, or any static hostin
 ### Netlify Deployment
 
 1. **Connect Repository**:
-
    - Go to [Netlify](https://netlify.com)
    - Click "New site from Git"
    - Connect your GitHub repository
 
 2. **Build Settings**:
-
    - Build command: `npm run build`
    - Publish directory: `.next`
    - Node version: 18
@@ -268,10 +277,12 @@ This project is designed to be deployed on Vercel, Netlify, or any static hostin
 1. **Build the project**:
 
    ```bash
+
    npm run build
    ```
 
 2. **Start production server**:
+
    ```bash
    npm start
    ```
@@ -281,7 +292,9 @@ This project is designed to be deployed on Vercel, Netlify, or any static hostin
 Create a `.env.local` file for local development:
 
 ```env
+
 # Add any environment variables here
+
 # NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 

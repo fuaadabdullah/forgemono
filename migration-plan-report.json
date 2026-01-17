@@ -1,0 +1,55 @@
+{
+  "timestamp": "2025-12-12T15:47:45.921Z",
+  "summary": {
+    "totalFiles": 27,
+    "categories": 3,
+    "totalEnzymeFiles": 1,
+    "estimatedTime": "NaNm"
+  },
+  "categories": {
+    "unknown": {
+      "priority": 99,
+      "description": "Unclassified test file",
+      "timeEstimate": "unknown",
+      "stats": {
+        "total": 20,
+        "enzyme": 1,
+        "react": 16,
+        "tests": 158
+      },
+      "files": [
+        {
+          "path": "apps/goblin-assistant/src/__tests__/error-scenarios.test.tsx",
+          "complexity": "complex",
+          "testCount": 15,
+          "lines": 333
+        }
+      ]
+    },
+    "presentational": {
+      "priority": 3,
+      "description": "Simple UI components, no complex logic",
+      "timeEstimate": "15min each",
+      "stats": {
+        "total": 6,
+        "enzyme": 0,
+        "react": 6,
+        "tests": 50
+      },
+      "files": []
+    },
+    "hooks": {
+      "priority": 2,
+      "description": "Custom React hooks, state management",
+      "timeEstimate": "10min each",
+      "stats": {
+        "total": 1,
+        "enzyme": 0,
+        "react": 0,
+        "tests": 3
+      },
+      "files": []
+    }
+  },
+  "errors": []
+}

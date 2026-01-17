@@ -1,0 +1,36 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Make sure we're in the repo root
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Run linting (if available)
+if command -v npx >/dev/null 2>&1; then
+  echo "🔧 Running ESLint..."
+  npx eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0 --quiet || {
+    echo "❌ ESLint failed. Fix the issues or run 'npm run lint:fix'"
+    exit 1
+  }
+
+  echo "💅 Running Prettier check..."
+  npx prettier --check . || {
+    echo "❌ Prettier check failed. Run 'npm run format' to fix"
+    exit 1
+  }
+else
+  echo "⚠️  npx not found, skipping linting checks"
+fi
+
+# Type checking (if TypeScript is available)
+if command -v npx >/dev/null 2>&1 && npx tsc --version >/dev/null 2>&1; then
+  echo "🔍 Running TypeScript type check..."
+  npx tsc --noEmit || {
+    echo "❌ TypeScript type check failed"
+    exit 1
+  }
+fi
+
+echo "✅ Pre-commit checks passed!"

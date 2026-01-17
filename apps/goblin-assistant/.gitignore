@@ -1,1 +1,10 @@
 .vercel
+.env*.local
+.env.production
+
+*storybook.log
+storybook-static
+
+# macOS metadata
+._*
+.DS_Store

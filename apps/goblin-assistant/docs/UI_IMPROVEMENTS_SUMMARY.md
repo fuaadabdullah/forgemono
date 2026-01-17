@@ -2,7 +2,7 @@
 
 **Date**: December 2, 2025
 **Status**: ✅ Implementation Complete, Testing Phase
-**Dev Server**: http://localhost:5173
+**Dev Server**: <http://localhost:5173>
 
 ## ✅ Completed Improvements
 
@@ -10,17 +10,18 @@
 
 **Enhanced `.grid-auto-fit` utility with viewport-optimized breakpoints:**
 
-| Viewport | Layout | Min Card Width |
-|----------|--------|----------------|
-| 375px (mobile) | 1 column | Full width |
-| 768px (tablet) | 2 columns | 320px |
-| 1024px (desktop) | 3 columns | 300px |
-| 1280px (wide) | 3-4 columns | 320px |
-| 1440px (ultra-wide) | 4 columns | 340px |
+| Viewport            | Layout      | Min Card Width |
+| ------------------- | ----------- | -------------- |
+| 375px (mobile)      | 1 column    | Full width     |
+| 768px (tablet)      | 2 columns   | 320px          |
+| 1024px (desktop)    | 3 columns   | 300px          |
+| 1280px (wide)       | 3-4 columns | 320px          |
+| 1440px (ultra-wide) | 4 columns   | 340px          |
 
 **Location**: `apps/goblin-assistant/src/index.css` (lines 133-166)
 
 **Benefits**:
+
 - No horizontal scroll at any viewport
 - Consistent 1rem gap spacing
 - Optimal card density per screen size
@@ -39,18 +40,24 @@
 **Location**: `apps/goblin-assistant/src/components/LoadingSkeleton.tsx`
 
 **Features**:
+
 - Pulse animation (`animate-pulse`)
 - Correct aspect ratios match actual components
 - Integrated into EnhancedDashboard loading state
 - Reduces perceived load time
 
 **Before/After**:
+
 ```tsx
 // Before
-{loading && <div>Loading...</div>}
+{
+  loading && <div>Loading...</div>;
+}
 
 // After
-{loading && <DashboardSkeleton />}
+{
+  loading && <DashboardSkeleton />;
+}
 ```
 
 ---
@@ -60,6 +67,7 @@
 **Improved error handling with two modes:**
 
 #### Critical Error (no data cached)
+
 - **Location**: Fullscreen centered modal
 - **Features**:
   - Retry button (reloads data)
@@ -69,6 +77,7 @@
   - `aria-live="assertive"` for screen readers
 
 #### Non-blocking Error (cached data available)
+
 - **Location**: Dismissible banner above content
 - **Features**:
   - Shows stale data warning
@@ -85,6 +94,7 @@
 **Added comprehensive ARIA support:**
 
 #### Live Regions
+
 ```tsx
 // Status updates announced to screen readers
 <div role="status" aria-live="polite" aria-atomic="true">
@@ -93,6 +103,7 @@
 ```
 
 #### Button Labels
+
 ```tsx
 // Clear action descriptions
 <button aria-label="Retry loading dashboard">Retry</button>
@@ -102,6 +113,7 @@
 ```
 
 #### Error Alerts
+
 ```tsx
 // Critical errors use assertive live region
 <div role="alert" aria-live="assertive">
@@ -111,12 +123,14 @@
 ```
 
 #### Responsive Layout
+
 - Mobile-friendly header: `flex-col sm:flex-row`
 - Wrapping button groups with proper spacing
 - Touch targets meet 44x44px minimum
 - Focus states on all interactive elements
 
 **WCAG 2.1 AA Compliance**:
+
 - ✅ Keyboard navigation
 - ✅ Screen reader support
 - ✅ Focus indicators
@@ -131,24 +145,19 @@
 
 ```typescript
 // Parallel data fetching
-const [
-  backendHealth,
-  chromaStatus,
-  mcpStatus,
-  ragStatus,
-  sandboxStatus,
-  costData,
-] = await Promise.allSettled([
-  apiClient.getHealth(),
-  apiClient.getChromaStatus(),
-  apiClient.getMCPStatus(),
-  apiClient.getRaptorStatus(),
-  apiClient.getSandboxStatus(),
-  apiClient.getCostTracking(),
-]);
+const [backendHealth, chromaStatus, mcpStatus, ragStatus, sandboxStatus, costData] =
+  await Promise.allSettled([
+    apiClient.getHealth(),
+    apiClient.getChromaStatus(),
+    apiClient.getMCPStatus(),
+    apiClient.getRaptorStatus(),
+    apiClient.getSandboxStatus(),
+    apiClient.getCostTracking(),
+  ]);
 ```
 
 **Features**:
+
 - Promise.allSettled for partial failure resilience
 - Fallback values for failed requests
 - 30-second auto-refresh option
@@ -165,6 +174,7 @@ const [
 **Primitive-based composition:**
 
 ```tsx
+
 // Card primitive (foundation)
 <Card
   padded={boolean}
@@ -191,6 +201,7 @@ const [
 ```
 
 **Benefits**:
+
 - Shared styling via Card primitive
 - Consistent elevation (shadow-card)
 - Uniform padding, borders, radii
@@ -215,6 +226,7 @@ const [
 ```
 
 **Checklist**:
+
 - [ ] Cards stack to 1 column at 375px
 - [ ] Grid expands to 2 columns at 768px
 - [ ] Grid shows 3 columns at 1024px
@@ -233,6 +245,7 @@ const [
 **Run axe-core smoke test:**
 
 ```bash
+
 cd apps/goblin-assistant
 
 # Install puppeteer if not already installed
@@ -243,11 +256,13 @@ node ../../tools/axe-smoke.js
 ```
 
 **Expected Output**:
+
 - `axe-report.json` with violations/passes
 - Console summary of critical issues
 - Color contrast violation list (prioritize these)
 
 **Common Issues to Fix**:
+
 - Color contrast ratios < 4.5:1
 - Missing aria-labels on icon buttons
 - Form inputs without associated labels
@@ -259,20 +274,22 @@ node ../../tools/axe-smoke.js
 
 **Current Bundle Sizes** (from latest build):
 
-| Asset | Size | Gzipped | Notes |
-|-------|------|---------|-------|
-| index.css | 8.87 kB | 2.67 kB | Theme + utilities |
-| index.js | 58.15 kB | 16.35 kB | Main bundle |
-| react.js | 175.14 kB | 57.63 kB | React runtime |
-| **Total** | ~242 kB | ~77 kB | Initial load |
+| Asset     | Size      | Gzipped  | Notes             |
+| --------- | --------- | -------- | ----------------- |
+| index.css | 8.87 kB   | 2.67 kB  | Theme + utilities |
+| index.js  | 58.15 kB  | 16.35 kB | Main bundle       |
+| react.js  | 175.14 kB | 57.63 kB | React runtime     |
+| **Total** | ~242 kB   | ~77 kB   | Initial load      |
 
 **Performance Targets**:
+
 - LCP (Largest Contentful Paint): < 2.5s
 - FID (First Input Delay): < 100ms
 - CLS (Cumulative Layout Shift): < 0.1
 - TTI (Time to Interactive): < 3.8s
 
 **Optimizations Applied**:
+
 - CSS custom properties (no runtime calc)
 - Tailwind JIT (minimal CSS)
 - Code splitting (Vite automatic)
@@ -285,42 +302,31 @@ node ../../tools/axe-smoke.js
 ### Theme Tokens (CSS Variables)
 
 **Typography** (`--font-*`):
+
 ```css
---font-sans: system-ui, -apple-system, ...
---font-mono: ui-monospace, ...
---font-size-base: 16px
---line-height-base: 1.5
---h1-size: 32px
---h2-size: 24px
---h3-size: 18px
+--font-sans:
+  system-ui, -apple-system, ... --font-mono: ui-monospace,
+  ... --font-size-base: 16px --line-height-base: 1.5 --h1-size: 32px --h2-size: 24px --h3-size: 18px;
 ```
 
 **Spacing** (`--space-*`):
+
 ```css
---space-0: 0
---space-1: 4px
---space-2: 8px
---space-3: 12px
---space-4: 16px
---space-5: 20px
---space-6: 24px
---space-7: 32px
---space-8: 40px
+--space-0: 0 --space-1: 4px --space-2: 8px --space-3: 12px --space-4: 16px --space-5: 20px
+  --space-6: 24px --space-7: 32px --space-8: 40px;
 ```
 
 **Radii** (`--radius-*`):
+
 ```css
---radius-sm: 4px
---radius-md: 8px
---radius-lg: 12px
+--radius-sm: 4px --radius-md: 8px --radius-lg: 12px;
 ```
 
 **Elevation** (`--shadow-*`):
+
 ```css
---shadow-card: 0 1px 2px rgba(0,0,0,0.3)
---glow-primary: 0 6px 24px var(--primary)
---glow-accent: 0 6px 24px var(--accent)
---glow-cta: 0 6px 24px var(--danger)
+--shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3) --glow-primary: 0 6px 24px var(--primary)
+  --glow-accent: 0 6px 24px var(--accent) --glow-cta: 0 6px 24px var(--danger);
 ```
 
 **Location**: `apps/goblin-assistant/src/theme/index.css`
@@ -330,6 +336,7 @@ node ../../tools/axe-smoke.js
 ## 📝 Files Changed
 
 ### Created
+
 1. `src/components/LoadingSkeleton.tsx` - Skeleton components
 2. `src/components/Card.tsx` - Primitive container
 3. `src/components/StatusCard.tsx` - Composed status widget
@@ -338,6 +345,7 @@ node ../../tools/axe-smoke.js
 6. `docs/UI_IMPROVEMENTS_SUMMARY.md` - This file
 
 ### Modified
+
 1. `src/index.css` - Enhanced responsive grid, shadow utilities
 2. `src/theme/index.css` - Added typography, spacing, radii tokens
 3. `src/App.tsx` - Centered container, skip link, focus management
@@ -349,15 +357,18 @@ node ../../tools/axe-smoke.js
 ## 🚀 Next Steps
 
 ### Immediate (Today)
+
 1. **Manual viewport testing** (15 min)
    - Open DevTools responsive mode
    - Test 375px, 768px, 1024px, 1280px, 1440px
    - Check checklist in `docs/RESPONSIVE_TESTING.md`
 
 2. **Run axe audit** (10 min)
+
    ```bash
    node tools/axe-smoke.js
    ```
+
    - Review `axe-report.json`
    - Note color contrast violations
    - Check missing ARIA labels
@@ -368,12 +379,14 @@ node ../../tools/axe-smoke.js
    - Fix any layout overflow issues
 
 ### Short-term (This Week)
+
 - [ ] Test on real mobile devices (iOS Safari, Chrome Android)
 - [ ] Add Playwright tests for responsive layouts
 - [ ] Performance audit with Lighthouse
 - [ ] Cross-browser testing (Safari, Firefox, Edge)
 
 ### Long-term (Nice to Have)
+
 - [ ] Add animation preferences detection (`prefers-reduced-motion`)
 - [ ] Implement dark/light mode toggle (theme already supports it)
 - [ ] Add keyboard shortcuts for dashboard actions
@@ -384,23 +397,27 @@ node ../../tools/axe-smoke.js
 ## 🎯 Success Criteria
 
 ### Responsive Design
+
 - ✅ No horizontal scrolling on any viewport
 - ✅ Cards adapt to 1, 2, 3, 4 column layouts
 - ✅ Touch targets meet 44x44px minimum
 - ⏳ Text readable at all sizes (pending verification)
 
 ### Loading States
+
 - ✅ Skeleton UI shows during initial load
 - ✅ Loading indicators on refresh
 - ✅ Disabled states prevent double-clicks
 
 ### Error Handling
+
 - ✅ Critical errors block UI with retry option
 - ✅ Non-blocking errors show banner with dismiss
 - ✅ Stale data warnings when cached
 - ✅ Backend status hints provided
 
 ### Accessibility
+
 - ✅ ARIA live regions announce updates
 - ✅ All interactive elements have labels
 - ✅ Keyboard navigation functional
@@ -408,6 +425,7 @@ node ../../tools/axe-smoke.js
 - ⏳ Color contrast meets WCAG AA (pending audit)
 
 ### Real Data
+
 - ✅ API integration complete
 - ✅ Parallel fetching with fallbacks
 - ✅ Auto-refresh option available
@@ -418,18 +436,23 @@ node ../../tools/axe-smoke.js
 ## 📞 Support
 
 **Documentation**:
-- Main overview: `docs/WORKSPACE_OVERVIEW.md`
+
+- Main overview: `docs/README.md`
 - AI instructions: `.github/copilot-instructions.md`
 - Responsive guide: `docs/RESPONSIVE_TESTING.md`
 
 **Dev Server**:
+
 ```bash
+
 cd apps/goblin-assistant
 npm run dev
+
 # → http://localhost:5173
 ```
 
 **Backend**:
+
 ```bash
 cd apps/goblin-assistant/backend
 python -m uvicorn app.main:app --reload --port 8001
@@ -437,8 +460,10 @@ python -m uvicorn app.main:app --reload --port 8001
 ```
 
 **API Health Check**:
+
 ```bash
-curl http://localhost:8001/health/all | jq
+
+curl <http://localhost:8001/health/all> | jq
 ```
 
 ---

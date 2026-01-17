@@ -21,13 +21,13 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 
 #### Quick Contrast Sanity Map (Use This When Designing)
 
-| Token pairing | When to use it | Minimum ratio | Notes |
-| --- | --- | --- | --- |
-| `--primary` accents on `--bg` | Icons, focus rings, tiny neon wires | 3.0:1 (large text/graphics) | Keep text brief or add outline. |
-| `--primary-600` text on `--surface` | Headlines on lighter cards | 4.5:1 | Darker green stays punchy without haloing. |
-| `--text` on `--bg` / `--surface` | Paragraphs, forms, system copy | 4.5:1 | Default body style. Never swap to off-white. |
-| `--cta` buttons with `--text-inverse` | Important/destructive CTAs | 4.5:1 | If ratio dips, switch to `--cta-600` background or add 1px border using `--border-hover`. |
-| `--muted` on `--surface` | Labels, helper text | 4.5:1 | For disabled states, drop opacity instead of custom hex. |
+| Token pairing                         | When to use it                      | Minimum ratio               | Notes                                                                                     |
+| ------------------------------------- | ----------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------- |
+| `--primary` accents on `--bg`         | Icons, focus rings, tiny neon wires | 3.0:1 (large text/graphics) | Keep text brief or add outline.                                                           |
+| `--primary-600` text on `--surface`   | Headlines on lighter cards          | 4.5:1                       | Darker green stays punchy without haloing.                                                |
+| `--text` on `--bg` / `--surface`      | Paragraphs, forms, system copy      | 4.5:1                       | Default body style. Never swap to off-white.                                              |
+| `--cta` buttons with `--text-inverse` | Important/destructive CTAs          | 4.5:1                       | If ratio dips, switch to `--cta-600` background or add 1px border using `--border-hover`. |
+| `--muted` on `--surface`              | Labels, helper text                 | 4.5:1                       | For disabled states, drop opacity instead of custom hex.                                  |
 
 **Workflow**: Sketch the layout, map every text/shape to the table above, then run `node scripts/check-contrast.js` to confirm.
 
@@ -38,12 +38,14 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 **Implementation**: `@media (prefers-reduced-motion: reduce)` in `index.css`
 
 **Effect**:
+
 - All animations reduced to 0.01ms (effectively instant)
 - Transitions disabled
 - Smooth scrolling disabled
 - Respects user's system-level accessibility preference
 
 **Testing**:
+
 - macOS: System Settings → Accessibility → Display → Reduce motion
 - Windows: Settings → Ease of Access → Display → Show animations
 - DevTools: Rendering tab → Emulate "prefers-reduced-motion: reduce"
@@ -51,6 +53,7 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 ### 3. High Contrast Mode ✅
 
 **Features**:
+
 - Toggle button in navigation bar (next to Logout)
 - Standard mode: Dark cyberpunk theme with goblin green (#00ff88)
 - High contrast mode: Pure black (#000000) background, pure white (#ffffff) text, brighter accents
@@ -58,6 +61,7 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 - CSS attribute-based: `[data-contrast='high']` applied to `<html>` element
 
 **Files**:
+
 - `src/hooks/useContrastMode.tsx` - Context provider and hook
 - `src/components/ContrastModeToggle.tsx` - Toggle button component
 - `src/index.css` - High-contrast CSS variables
@@ -65,6 +69,7 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 - `src/components/Navigation.tsx` - Toggle integration
 
 **Testing**:
+
 1. Click contrast toggle in navigation
 2. Verify text/backgrounds have increased contrast
 3. Reload page - preference should persist
@@ -73,12 +78,14 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 ### 4. Enhanced Focus Indicators ✅
 
 **Implementation**:
+
 - `:focus-visible` styling for all interactive elements
 - Goblin green outline (2px solid `--primary`) with offset
 - Box-shadow glow effect (rgba(0, 255, 136, 0.2))
 - Enhanced for buttons, links, inputs, textareas, selects
 
 **Testing**:
+
 - Press Tab to navigate through interactive elements
 - Verify focus indicators are visible and high-contrast
 - Check tab order is logical
@@ -86,11 +93,13 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 ### 5. Skip Link ✅
 
 **Implementation**:
+
 - Hidden off-screen by default
 - Appears at top-left when focused (first Tab)
 - Allows keyboard/screen reader users to skip navigation
 
 **Testing**:
+
 - Press Tab on page load
 - Verify skip link appears at top-left
 - Press Enter to jump to main content
@@ -100,6 +109,7 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 **Created**: `docs/ACCESSIBILITY.md` (comprehensive 300+ line guide)
 
 **Contents**:
+
 - WCAG AA compliance status with contrast ratio table
 - High-contrast mode usage and implementation
 - Motion sensitivity implementation
@@ -146,6 +156,7 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 ## 📊 Impact Summary
 
 ### Before Accessibility Implementation:
+
 - No documented contrast ratios
 - No motion sensitivity support
 - No high-contrast mode
@@ -154,6 +165,7 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 - No accessibility testing procedures
 
 ### After Accessibility Implementation:
+
 ✅ **WCAG AA compliant** (all contrast ratios verified)
 ✅ **Motion-sensitive** (respects prefers-reduced-motion)
 ✅ **High-contrast mode** (toggle with localStorage persistence)
@@ -169,6 +181,7 @@ All semantic token combinations meet or exceed WCAG AA requirements:
 **Status**: **Ready for accessibility testing**
 
 **Next Steps**:
+
 1. Run Lighthouse audit on all major pages
 2. Run axe DevTools scan and fix violations
 3. Test keyboard navigation flows

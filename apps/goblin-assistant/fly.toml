@@ -1,45 +1,40 @@
-# fly.toml app configuration file generated for goblin-assistant on 2025-12-03T15:11:10-05:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = 'goblin-assistant'
-primary_region = 'iad'
-
-[build]
-dockerfile = 'Dockerfile'
+app = "goblin-backend"
+primary_region = "iad"
 
 [env]
-LOG_LEVEL = 'info'
-PORT = '8001'
+LOG_LEVEL = "info"
+PORT = "8001"
+ENV = "production"
+OLLAMA_GCP_URL = "http://34.60.255.199:11434"
+LLAMACPP_GCP_URL = "http://34.132.226.143:8000"
+SANDBOX_ENABLED = "true"
+# Allow the frontend and duckdns domain to call the API. Comma-separated list consumed by SecurityConfig.ALLOWED_ORIGINS
+ALLOWED_ORIGINS = "https://goblinosassistant.duckdns.org,https://goblin-assistant.vercel.app,https://*.vercel.app"
+
+[build]
+  dockerfile = "Dockerfile"
 
 [processes]
-app = 'uvicorn main:app --host 0.0.0.0 --port 8001'
-
-[[mounts]]
-source = 'chroma_db'
-destination = '/app/chroma_db'
+app = "uvicorn api.main:app --host 0.0.0.0 --port 8001"
 
 [[services]]
-protocol = 'tcp'
 internal_port = 8001
-processes = ['app']
+processes = ["app"]
+protocol = "tcp"
 
 [[services.ports]]
 port = 80
-handlers = ['http']
-
+handlers = ["http"]
 [[services.ports]]
 port = 443
-handlers = ['tls', 'http']
+handlers = ["tls", "http"]
 
 [[services.http_checks]]
-interval = '15s'
-timeout = '5s'
-grace_period = '5s'
-path = '/health'
+path = "/health"
+interval = "15s"
+timeout = "5s"
+grace_period = "5s"
 
-[[vm]]
-memory = '1gb'
-cpu_kind = 'shared'
-cpus = 1
+[[mounts]]
+source = "data"
+destination = "/app/data"

@@ -1,15 +1,11 @@
-This document has moved into the canonical backend documentation folder:
-
-- apps/goblin-assistant/backend/docs/QUICKSTART_PRODUCTION.md
-
-Please update any references or links to point to the new location.
 # 🎉 Production Deployment - Quick Reference
+
+This document contains a mix of backend and frontend quickstart notes. Please update any references or links to point to canonical locations:
 
 ## Status: ✅ ALL COMPLETE
 
 ### What Was Done Today (December 1, 2025)
 
-| Task | Status | Documentation |
 |------|--------|---------------|
 | 1. API Keys Setup | ✅ Complete | `.env.production` |
 | 2. Real Task Execution | ✅ Complete | `services/goblin_executor.py` |
@@ -38,8 +34,11 @@ alembic upgrade head
 ### 2. Redis Setup (5 min)
 
 ```bash
+
 # Sign up at upstash.com
+
 # Create Redis database
+
 # Add to .env.production:
 USE_REDIS_CHALLENGES=true
 REDIS_HOST=your-host.upstash.io
@@ -55,7 +54,7 @@ cd apps/goblin-assistant
 ./deploy-backend.sh render  # or fly
 
 # Frontend
-./deploy-frontend.sh
+./deploy-vercel.sh
 
 # Update FRONTEND_URL in backend env vars
 FRONTEND_URL=https://your-production-domain.com
@@ -90,19 +89,20 @@ Before deploying, verify:
 ## 🧪 Test Production
 
 ```bash
+
 # Health check
-curl https://your-backend/health
+curl <https://your-backend/health>
 
 # Database
-curl https://your-backend/api/health/db
+curl <https://your-backend/api/health/db>
 
 # Test task execution
-curl -X POST https://your-backend/execute \
+curl -X POST <https://your-backend/execute> \
   -H "Content-Type: application/json" \
   -d '{"goblin": "test-goblin", "task": "test", "dry_run": true}'
 
 # Raptor status
-curl https://your-backend/raptor/status
+curl <https://your-backend/raptor/status>
 ```
 
 ---
@@ -122,8 +122,10 @@ python3 -c "from database import engine; engine.connect()"
 ### Redis Connection Failed
 
 ```bash
+
 # Verify Redis config
 redis-cli -h <host> -p 6379 -a <password> PING
+
 # Should return: PONG
 ```
 
@@ -140,6 +142,7 @@ bash GoblinOS/goblin-cli.sh list
 ### Migration Failed
 
 ```bash
+
 # Check current version
 alembic current
 
@@ -155,18 +158,18 @@ alembic upgrade head
 - **Supabase Dashboard**: <https://supabase.com/dashboard>
 - **Upstash Console**: <https://console.upstash.com>
 - **Render Dashboard**: <https://dashboard.render.com>
-- **Netlify Dashboard**: <https://app.netlify.com>
+- **Vercel Dashboard**: <https://vercel.com/dashboard>
 
 ---
 
 ## 📚 Full Documentation
 
-| Topic | File |
-|-------|------|
-| Complete Summary | `PRODUCTION_DEPLOYMENT_COMPLETE.md` |
-| PostgreSQL Migration | `POSTGRESQL_MIGRATION.md` |
-| WebAuthn Production | `auth/PRODUCTION_READINESS.md` |
-| Original Deployment | `PRODUCTION_DEPLOYMENT.md` |
+| Topic                | File                                |
+| -------------------- | ----------------------------------- |
+| Complete Summary     | `PRODUCTION_DEPLOYMENT_COMPLETE.md` |
+| PostgreSQL Migration | `POSTGRESQL_MIGRATION.md`           |
+| WebAuthn Production  | `auth/PRODUCTION_READINESS.md`      |
+| Original Deployment  | `PRODUCTION_DEPLOYMENT.md`          |
 
 ---
 

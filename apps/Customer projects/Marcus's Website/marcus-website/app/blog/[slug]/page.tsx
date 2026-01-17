@@ -1,7 +1,7 @@
-import { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { Calendar, Clock, ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { Calendar, Clock, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 interface BlogPost {
   id: number;
@@ -19,14 +19,16 @@ interface BlogPost {
 const blogPosts: BlogPost[] = [
   {
     id: 1,
-    title: "How to Tell If Your Suspension is Shot",
-    excerpt: "Learn the warning signs of suspension problems and why addressing them early saves you money and ensures safety.",
-    date: "2025-11-15",
-    readTime: "5 min read",
-    category: "Maintenance",
-    image: "/images/suspension-blog.jpg",
-    slug: "suspension-warning-signs",
-    metaDescription: "Learn the warning signs of suspension problems and why addressing them early saves you money and ensures safety. Expert advice from Elbey Projects mobile mechanics.",
+    title: 'How to Tell If Your Suspension is Shot',
+    excerpt:
+      'Learn the warning signs of suspension problems and why addressing them early saves you money and ensures safety.',
+    date: '2025-11-15',
+    readTime: '5 min read',
+    category: 'Maintenance',
+    image: '/images/suspension-blog.jpg',
+    slug: 'suspension-warning-signs',
+    metaDescription:
+      'Learn the warning signs of suspension problems and why addressing them early saves you money and ensures safety. Expert advice from Elbey Projects mobile mechanics.',
     content: `
 # How to Tell If Your Suspension is Shot
 
@@ -75,18 +77,20 @@ At Elbey Projects, our suspension inspections include:
 - Address issues promptly when noticed
 
 Don't wait for suspension problems to become dangerous. Contact us for a thorough inspection and keep your vehicle safe and comfortable.
-    `
+    `,
   },
   {
     id: 2,
-    title: "What a Pre-Purchase Inspection Covers",
-    excerpt: "Complete guide to what our mechanics check during a vehicle pre-purchase inspection to protect your investment.",
-    date: "2025-11-10",
-    readTime: "7 min read",
-    category: "Buying",
-    image: "/images/inspection-blog.jpg",
-    slug: "pre-purchase-inspection-guide",
-    metaDescription: "Complete guide to what mechanics check during a vehicle pre-purchase inspection. Protect your investment with our comprehensive inspection service.",
+    title: 'What a Pre-Purchase Inspection Covers',
+    excerpt:
+      'Complete guide to what our mechanics check during a vehicle pre-purchase inspection to protect your investment.',
+    date: '2025-11-10',
+    readTime: '7 min read',
+    category: 'Buying',
+    image: '/images/inspection-blog.jpg',
+    slug: 'pre-purchase-inspection-guide',
+    metaDescription:
+      'Complete guide to what mechanics check during a vehicle pre-purchase inspection. Protect your investment with our comprehensive inspection service.',
     content: `
 # What a Pre-Purchase Inspection Covers
 
@@ -170,18 +174,20 @@ Buying a used vehicle is a significant investment, and a pre-purchase inspection
 - Peace of mind guarantee
 
 Don't buy a vehicle without knowing its true condition. Our pre-purchase inspection gives you the information you need to make an informed decision.
-    `
+    `,
   },
   {
     id: 3,
-    title: "The Truth About Brake Pad Replacement",
-    excerpt: "When to replace brake pads, what to expect during service, and why quality matters for your safety.",
-    date: "2025-11-05",
-    readTime: "4 min read",
-    category: "Safety",
-    image: "/images/brakes-blog.jpg",
-    slug: "brake-pad-replacement-guide",
-    metaDescription: "When to replace brake pads, what to expect during service, and why quality matters for your safety. Expert brake service from Elbey Projects.",
+    title: 'The Truth About Brake Pad Replacement',
+    excerpt:
+      'When to replace brake pads, what to expect during service, and why quality matters for your safety.',
+    date: '2025-11-05',
+    readTime: '4 min read',
+    category: 'Safety',
+    image: '/images/brakes-blog.jpg',
+    slug: 'brake-pad-replacement-guide',
+    metaDescription:
+      'When to replace brake pads, what to expect during service, and why quality matters for your safety. Expert brake service from Elbey Projects.',
     content: `
 # The Truth About Brake Pad Replacement
 
@@ -258,18 +264,20 @@ Your brakes are not something to skimp on. Quality brake service ensures:
 - Competitive pricing
 
 Don't compromise on safety. Choose quality brake service you can trust.
-    `
+    `,
   },
   {
     id: 4,
-    title: "Mobile Mechanic vs. Shop Service: Pros and Cons",
-    excerpt: "Understanding the benefits of mobile repair services and when traditional shop service might be better.",
-    date: "2025-10-30",
-    readTime: "6 min read",
-    category: "Service",
-    image: "/images/mobile-blog.jpg",
-    slug: "mobile-vs-shop-service",
-    metaDescription: "Mobile mechanic vs. shop service: Understanding the benefits of mobile repair services and when traditional shop service might be better.",
+    title: 'Mobile Mechanic vs. Shop Service: Pros and Cons',
+    excerpt:
+      'Understanding the benefits of mobile repair services and when traditional shop service might be better.',
+    date: '2025-10-30',
+    readTime: '6 min read',
+    category: 'Service',
+    image: '/images/mobile-blog.jpg',
+    slug: 'mobile-vs-shop-service',
+    metaDescription:
+      'Mobile mechanic vs. shop service: Understanding the benefits of mobile repair services and when traditional shop service might be better.',
     content: `
 # Mobile Mechanic vs. Shop Service: Pros and Cons
 
@@ -365,8 +373,8 @@ Many customers benefit from both approaches:
 - **Shop for Major Work**: Complex repairs in a controlled environment
 
 Contact us to discuss your specific needs. We'll recommend the best service approach for your situation and vehicle.
-    `
-  }
+    `,
+  },
 ];
 
 interface PageProps {
@@ -375,11 +383,11 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = blogPosts.find(p => p.slug === slug);
+  const post = blogPosts.find((p) => p.slug === slug);
 
   if (!post) {
     return {
-      title: "Blog Post Not Found",
+      title: 'Blog Post Not Found',
     };
   }
 
@@ -395,7 +403,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: post.title,
       description: post.metaDescription,
-      type: "article",
+      type: 'article',
       publishedTime: post.date,
       images: [
         {
@@ -421,7 +429,7 @@ export async function generateStaticParams() {
 
 export default async function BlogPost({ params }: PageProps) {
   const { slug } = await params;
-  const post = blogPosts.find(p => p.slug === slug);
+  const post = blogPosts.find((p) => p.slug === slug);
 
   if (!post) {
     notFound();
@@ -449,7 +457,7 @@ export default async function BlogPost({ params }: PageProps) {
               {new Date(post.date).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
-                day: 'numeric'
+                day: 'numeric',
               })}
             </div>
             <div className="flex items-center text-gray-400 text-sm">
@@ -458,22 +466,26 @@ export default async function BlogPost({ params }: PageProps) {
             </div>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-            {post.title}
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">{post.title}</h1>
 
           {post.image && (
             <div className="max-w-2xl mx-auto mb-6">
               <picture>
-                <source srcSet={`${post.image.replace('.jpg','-256.webp')} 256w, ${post.image.replace('.jpg','.webp')} 512w`} type="image/webp" />
-                <source srcSet={`${post.image.replace('.jpg','.avif')} 512w`} type="image/avif" />
-                <img src={post.image} alt={post.title} className="w-full h-auto rounded-lg object-cover" loading="lazy" />
+                <source
+                  srcSet={`${post.image.replace('.jpg', '-256.webp')} 256w, ${post.image.replace('.jpg', '.webp')} 512w`}
+                  type="image/webp"
+                />
+                <source srcSet={`${post.image.replace('.jpg', '.avif')} 512w`} type="image/avif" />
+                <img
+                  src={post.image}
+                  alt={post.title}
+                  className="w-full h-auto rounded-lg object-cover"
+                  loading="lazy"
+                />
               </picture>
             </div>
           )}
-          <p className="text-xl text-gray-300">
-            {post.excerpt}
-          </p>
+          <p className="text-xl text-gray-300">{post.excerpt}</p>
         </div>
       </section>
 
@@ -484,7 +496,20 @@ export default async function BlogPost({ params }: PageProps) {
             <div
               className="text-gray-300 leading-relaxed"
               dangerouslySetInnerHTML={{
-                __html: post.content.replace(/\n/g, '<br />').replace(/^# (.+)$/gm, '<h2 class="text-2xl font-bold text-white mt-8 mb-4">$1</h2>').replace(/^## (.+)$/gm, '<h3 class="text-xl font-semibold text-white mt-6 mb-3">$1</h3>').replace(/^### (.+)$/gm, '<h4 class="text-lg font-medium text-white mt-4 mb-2">$1</h4>')
+                __html: post.content
+                  .replace(/\n/g, '<br />')
+                  .replace(
+                    /^# (.+)$/gm,
+                    '<h2 class="text-2xl font-bold text-white mt-8 mb-4">$1</h2>'
+                  )
+                  .replace(
+                    /^## (.+)$/gm,
+                    '<h3 class="text-xl font-semibold text-white mt-6 mb-3">$1</h3>'
+                  )
+                  .replace(
+                    /^### (.+)$/gm,
+                    '<h4 class="text-lg font-medium text-white mt-4 mb-2">$1</h4>'
+                  ),
               }}
             />
           </article>

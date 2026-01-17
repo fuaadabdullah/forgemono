@@ -5,6 +5,7 @@ This directory contains GitHub Actions workflows that serve as fallbacks/alterna
 ## Available Workflows
 
 ### 1. Backend CI (`backend-ci.yml`)
+
 - **Triggers**: Push/PR to `main` branch affecting backend code
 - **What it does**:
   - Lints Python code with ruff
@@ -12,6 +13,7 @@ This directory contains GitHub Actions workflows that serve as fallbacks/alterna
   - Uploads test results as artifacts
 
 ### 2. Docker CI (`docker-ci.yml`)
+
 - **Triggers**: Push/PR to `main` branch affecting app code or Dockerfile
 - **What it does**:
   - Builds Docker image from `apps/goblin-assistant/`
@@ -19,6 +21,7 @@ This directory contains GitHub Actions workflows that serve as fallbacks/alterna
   - Generates build provenance attestations
 
 ### 3. Terraform Security (`terraform-security.yml`)
+
 - **Triggers**: Push/PR to `main` affecting Terraform code, or daily at 3 AM UTC
 - **What it does**:
   - Runs tfsec for Terraform security scanning
@@ -26,16 +29,19 @@ This directory contains GitHub Actions workflows that serve as fallbacks/alterna
   - Uploads SARIF results to GitHub Security tab
 
 ### 4. Terraform Deploy (`terraform-deploy.yml`)
+
 - **Triggers**: Manual workflow dispatch only
 - **What it does**:
   - Plans and optionally applies Terraform changes
   - Supports dev/staging/prod environments
   - Uses Terraform Cloud for state management
 
-### 5. Manual CI/CD Pipeline (`cicd-pipeline.yml`)
-- **Triggers**: Manual workflow dispatch only
+### 5. Manual CI/CD Pipeline (now part of `backend-ci.yml`)
+
+- **Triggers**: Manual workflow dispatch only (via `workflow_dispatch` inputs to `backend-ci.yml`)
+
 - **What it does**:
-  - Allows selective running of CI components
+  - Allows selective running of CI components for the backend (lint/tests, Docker build, and Terraform security)
   - Useful for testing or one-off deployments
 
 ## Required GitHub Secrets
@@ -44,17 +50,17 @@ Set these in your repository settings under **Settings → Secrets and variables
 
 ### Required Secrets
 
-| Secret | Description | Where to get it |
-|--------|-------------|-----------------|
-| `TF_TOKEN` | Terraform Cloud API token | [app.terraform.io/app/settings/tokens](https://app.terraform.io/app/settings/tokens) |
-| `GITHUB_TOKEN` | Auto-provided by GitHub | (Automatic - no setup needed) |
+| Secret         | Description               | Where to get it                                                                      |
+| -------------- | ------------------------- | ------------------------------------------------------------------------------------ |
+| `TF_TOKEN`     | Terraform Cloud API token | [app.terraform.io/app/settings/tokens](https://app.terraform.io/app/settings/tokens) |
+| `GITHUB_TOKEN` | Auto-provided by GitHub   | (Automatic - no setup needed)                                                        |
 
 ### Optional Secrets
 
-| Secret | Description | When needed |
-|--------|-------------|-------------|
-| `DOCKERHUB_USERNAME` | Docker Hub username | If using Docker Hub instead of GHCR |
-| `DOCKERHUB_TOKEN` | Docker Hub access token | If using Docker Hub instead of GHCR |
+| Secret               | Description             | When needed                         |
+| -------------------- | ----------------------- | ----------------------------------- |
+| `DOCKERHUB_USERNAME` | Docker Hub username     | If using Docker Hub instead of GHCR |
+| `DOCKERHUB_TOKEN`    | Docker Hub access token | If using Docker Hub instead of GHCR |
 
 ## Setup Instructions
 
@@ -75,6 +81,7 @@ Set these in your repository settings under **Settings → Secrets and variables
 ### 3. Enable Required Permissions
 
 For Docker workflows, ensure the repository has:
+
 - **Settings → Actions → General → Workflow permissions**: Read and write permissions
 
 ## Usage
@@ -82,6 +89,7 @@ For Docker workflows, ensure the repository has:
 ### Automatic Triggers
 
 Most workflows run automatically on:
+
 - Pushes to `main` branch
 - Pull requests to `main` branch
 - Scheduled runs (security scans)
@@ -110,31 +118,35 @@ For Terraform deployments:
 
 ## Differences from CircleCI
 
-| Feature | CircleCI | GitHub Actions |
-|---------|----------|----------------|
-| Docker Registry | GHCR | GHCR |
-| Terraform State | Terraform Cloud | Terraform Cloud |
-| Security Scanning | tfsec + Checkov | tfsec + Checkov |
-| Manual Approvals | Yes (staging/prod) | Manual trigger only |
-| Cost | Credits-based | Minutes-based |
-| Setup | Contexts required | Repository secrets |
+| Feature           | CircleCI           | GitHub Actions      |
+| ----------------- | ------------------ | ------------------- |
+| Docker Registry   | GHCR               | GHCR                |
+| Terraform State   | Terraform Cloud    | Terraform Cloud     |
+| Security Scanning | tfsec + Checkov    | tfsec + Checkov     |
+| Manual Approvals  | Yes (staging/prod) | Manual trigger only |
+| Cost              | Credits-based      | Minutes-based       |
+| Setup             | Contexts required  | Repository secrets  |
 
 ## Troubleshooting
 
 ### Workflow doesn't run
+
 - Check that triggers match (branch names, file paths)
 - Verify required secrets are set
 - Check repository permissions
 
 ### Docker build fails
+
 - Ensure GHCR permissions are correct
 - Check that `GITHUB_TOKEN` has package write access
 
 ### Terraform fails
+
 - Verify `TF_TOKEN` is valid and has workspace access
 - Check Terraform Cloud workspace names match
 
 ### Security scans fail
+
 - Ensure Terraform files are in `goblin-infra/` directory
 - Check that workflows have read access to repository contents
 

@@ -85,4 +85,3 @@ jobs:
         run: |
           echo "If authentication failed, set EXPO_TOKEN in repo secrets."
           echo "Create a token via: https://expo.dev/accounts/[account]/settings/access-tokens"
-

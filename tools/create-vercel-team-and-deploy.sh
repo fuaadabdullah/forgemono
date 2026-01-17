@@ -35,7 +35,7 @@ print_info "Creating new team (if supported by your account)..."
 if vercel teams create "$TEAM_NAME" --yes; then
   print_info "Team create command succeeded (if you saw an interactive prompt, follow it)."
 else
-  print_warn "Team creation may have failed or is interactive (e.g. insufficient permissions)." 
+  print_warn "Team creation may have failed or is interactive (e.g. insufficient permissions)."
   print_warn "You can create a team manually in Vercel (Dashboard > Teams > New Team)."
 fi
 

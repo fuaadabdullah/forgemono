@@ -1,0 +1,80 @@
+# Documentation Quality Report
+Generated: 2025-12-10 00:57:05
+
+## Summary Statistics
+- **Total Files**: 60
+- **Successfully Analyzed**: 60
+- **Average Score**: 99.5/100
+- **Score Range**: 70.0 - 100.0
+- **High Quality (≥80)**: 59
+- **Medium Quality (60-79)**: 1
+- **Low Quality (<60)**: 0
+
+## Top Performing Files
+1. **20251209_docs_test-documentation_md.md**: 100.0/100 - unknown
+2. **20251209_emergency_deployment_procedures.md**: 100.0/100 - unknown
+3. **20251209_local_development_setup.md**: 100.0/100 - unknown
+4. **20251209_repository_overview_and_conventions.md**: 100.0/100 - unknown
+5. **20251209_test__goblin_docs_system_working.md**: 100.0/100 - unknown
+
+## Individual File Results
+- **20251209_docs_test-documentation_md.md**: 100.0/100 - unknown
+- **20251209_emergency_deployment_procedures.md**: 100.0/100 - unknown
+- **20251209_local_development_setup.md**: 100.0/100 - unknown
+- **20251209_repository_overview_and_conventions.md**: 100.0/100 - unknown
+- **20251209_test__goblin_docs_system_working.md**: 100.0/100 - unknown
+- **20251209_test_architecture_document.md**: 100.0/100 - unknown
+- **20251209_welcome_to_your_documentation_system.md**: 100.0/100 - unknown
+- **ACCESSIBILITY_AUDIT_RESULTS.md**: 100.0/100 - unknown
+- **ACCESSIBILITY_CERTIFICATION.md**: 100.0/100 - unknown
+- **AI_RESOURCE_ISOLATION.md**: 100.0/100 - unknown
+- **API_KEYS_MANAGEMENT.md**: 100.0/100 - unknown
+- **AXE_AUDIT_RESULTS.md**: 100.0/100 - unknown
+- **BACKGROUND_TASK_ARCHITECTURE.md**: 100.0/100 - unknown
+- **CI_CD_WORKFLOWS_COMPLETE.md**: 100.0/100 - unknown
+- **CI_COST_AVOIDANCE.md**: 100.0/100 - unknown
+- **DOC_QUALITY_AUTOMATION.md**: 100.0/100 - unknown
+- **GASLIGHT_BLUEPRINT.md**: 100.0/100 - unknown
+- **GITHUB_SECRETS_QUICKSTART.md**: 100.0/100 - unknown
+- **GITHUB_SECRETS_SETUP.md**: 100.0/100 - unknown
+- **GROQ_API_REFERENCE.md**: 100.0/100 - unknown
+- **HOMEBREW_CACHE.md**: 100.0/100 - unknown
+- **JIRA_GITHUB_INTEGRATION.md**: 100.0/100 - unknown
+- **KAMATERA_LLM_DEPLOYMENT.md**: 100.0/100 - unknown
+- **LIGHTHOUSE_AUDIT_GUIDE.md**: 100.0/100 - unknown
+- **LIGHTHOUSE_FINAL_REPORT.md**: 100.0/100 - unknown
+- **LIGHTHOUSE_QUICK_REF.md**: 100.0/100 - unknown
+- **LLM_LOCAL_ONBOARDING.md**: 100.0/100 - unknown
+- **LLM_STORAGE.md**: 100.0/100 - unknown
+- **MIGRATION_COMPLETE.md**: 100.0/100 - unknown
+- **MIGRATION_READY_TO_EXECUTE.md**: 100.0/100 - unknown
+- **MULTI_REPO_MIGRATION_GUIDE.md**: 100.0/100 - unknown
+- **ONBOARDING_TARIQ.md**: 100.0/100 - unknown
+- **PR_CHECKLIST.md**: 100.0/100 - unknown
+- **QUICK_START.md**: 100.0/100 - unknown
+- **RELEASE_CHECKLIST.md**: 100.0/100 - unknown
+- **REORG_PLAN.md**: 100.0/100 - unknown
+- **SECRETS_BITWARDEN.md**: 100.0/100 - unknown
+- **SECRETS_HANDLING.md**: 100.0/100 - unknown
+- **SECRETS_MANAGEMENT.md**: 100.0/100 - unknown
+- **SECRETS_MANAGEMENT_IMPROVEMENTS.md**: 100.0/100 - unknown
+- **SECURITY_REMEDIATION.md**: 100.0/100 - unknown
+- **TECH_STACK.md**: 100.0/100 - unknown
+- **WORKSPACE_OVERVIEW.md**: 100.0/100 - unknown
+- **overmind.md**: 100.0/100 - unknown
+- **API_KEYS_MANAGEMENT.md**: 70.0/100 - unknown
+- **API_KEYS_STATUS.md**: 100.0/100 - unknown
+- **DATA_FLOW_DIAGRAM.md**: 100.0/100 - unknown
+- **claude-docs-research.md**: 100.0/100 - unknown
+- **elevenlabs_quickstart.md**: 100.0/100 - unknown
+- **moonshot-api-research.md**: 100.0/100 - unknown
+- **DATADOG_SLOS.md**: 100.0/100 - unknown
+- **runbook.md**: 100.0/100 - unknown
+- **unified-telemetry-plan.md**: 100.0/100 - unknown
+- **raptor_mini.md**: 100.0/100 - unknown
+- **tool-layer.md**: 100.0/100 - unknown
+- **unity-hub-install-issues.md**: 100.0/100 - unknown
+- **vault_integration.md**: 100.0/100 - unknown
+- **vercel-cli-global-options.md**: 100.0/100 - unknown
+- **vercel-linking-projects.md**: 100.0/100 - unknown
+- **vercel-telemetry.md**: 100.0/100 - unknown

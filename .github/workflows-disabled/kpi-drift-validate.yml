@@ -2,7 +2,7 @@ name: KPI Drift Validation
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'GoblinOS/goblins.yaml'
       - '.github/workflows/kpi-drift-validate.yml'
@@ -27,4 +27,3 @@ jobs:
 
       - name: Validate KPI drift (DB optional)
         run: node GoblinOS/scripts/validate-kpi-drift.js
-

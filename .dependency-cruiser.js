@@ -29,9 +29,9 @@ module.exports = {
         orphan: true,
         pathNot: [
           '(^|/)\\.[^/]+\\.(js|cjs|mjs|ts|json)$', // dot files
-          '\\.d\\.ts$',                             // TypeScript declaration files
-          '(^|/)tsconfig\\.json$',                 // TypeScript config
-          '(^|/)package\\.json$',                  // package.json
+          '\\.d\\.ts$', // TypeScript declaration files
+          '(^|/)tsconfig\\.json$', // TypeScript config
+          '(^|/)package\\.json$', // package.json
         ],
       },
       to: {},
@@ -43,9 +43,7 @@ module.exports = {
       from: {},
       to: {
         dependencyTypes: ['core'],
-        path: [
-          '^(punycode|domain|constants|sys|_stream_wrap)$',
-        ],
+        path: ['^(punycode|domain|constants|sys|_stream_wrap)$'],
       },
     },
   ],

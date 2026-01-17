@@ -13,16 +13,16 @@ spec:
     name: api
 
   rateLimits:
-  # Rate limit by IP address
-  - clientSelectors:
-    - headers:
-      - name: X-Forwarded-For
-        type: Distinct
-    limits:
-      requests: 10
-      unit: Second
+    # Rate limit by IP address
+    - clientSelectors:
+        - headers:
+            - name: X-Forwarded-For
+              type: Distinct
+      limits:
+        requests: 10
+        unit: Second
 
-  # Fallback: limit by connection
-  - limits:
-      requests: 20
-      unit: Second
+    # Fallback: limit by connection
+    - limits:
+        requests: 20
+        unit: Second

@@ -21,6 +21,7 @@ Visit `http://localhost:6006` to see your component library.
 ### Visual Testing with Chromatic
 
 ```bash
+
 # Run visual tests (requires CHROMATIC_PROJECT_TOKEN)
 npm run chromatic
 ```
@@ -30,6 +31,7 @@ npm run chromatic
 All UI components have Storybook stories documenting their variants and states:
 
 ### UI Components (`src/components/ui/`)
+
 - **Button** - All variants (default, primary, secondary, danger, ghost), sizes (sm, md, lg)
 - **Badge** - Status badges (success, warning, danger, neutral) with icons
 - **Alert** - Alert types (info, success, warning, danger) with dismissible option
@@ -38,6 +40,7 @@ All UI components have Storybook stories documenting their variants and states:
 - **IconButton** - Icon-only buttons with accessibility
 
 ### Application Components (`src/components/`)
+
 - **StatusCard** - Health status cards (healthy, degraded, down, unknown)
 - **LoadingSkeleton** - All skeleton loading states
 
@@ -80,6 +83,7 @@ export const Primary: Story = {
 For stories that show multiple variants:
 
 ```typescript
+
 export const AllVariants: Story = {
   render: () => (
     <div className="flex gap-4">
@@ -99,12 +103,15 @@ export const AllVariants: Story = {
 ### Initial Configuration
 
 1. **Create Chromatic Project**
+
    ```bash
    npx chromatic --project-token=<your-token>
    ```
 
 2. **Add Token to Environment**
+
    ```bash
+
    # .env.local (DO NOT COMMIT)
    CHROMATIC_PROJECT_TOKEN=your_token_here
    ```
@@ -130,6 +137,7 @@ export const AllVariants: Story = {
 ### What Gets Tested
 
 Chromatic automatically tests:
+
 - ✅ All story variants and states
 - ✅ Responsive breakpoints
 - ✅ Browser compatibility (Chrome, Firefox, Safari)
@@ -163,7 +171,9 @@ test('matches snapshot', () => {
 ```
 
 Update snapshots:
+
 ```bash
+
 npm test -- -u
 ```
 
@@ -200,6 +210,7 @@ jobs:
 ### PR Integration
 
 Chromatic comments on PRs with:
+
 - Visual diff screenshots
 - Link to full review interface
 - Status check (pass/changes detected)
@@ -207,23 +218,27 @@ Chromatic comments on PRs with:
 ## Best Practices
 
 ### 1. Story Coverage
+
 - ✅ Cover all component variants
 - ✅ Include edge cases (empty states, long text)
 - ✅ Test interactive states (hover, focus, disabled)
 - ✅ Document accessibility requirements
 
 ### 2. Visual Stability
+
 - ❌ Avoid random data in stories
 - ❌ Don't use Date.now() or timestamps
 - ✅ Use fixed mock data
 - ✅ Stabilize animations for testing
 
 ### 3. Performance
+
 - Keep story bundles small
 - Lazy load heavy components
 - Use `parameters.chromatic.disableSnapshot` for non-visual stories
 
 ### 4. Accessibility
+
 - Every interactive component needs `aria-label`
 - Test keyboard navigation
 - Document screen reader behavior
@@ -234,6 +249,7 @@ Chromatic comments on PRs with:
 ### Storybook Won't Start
 
 ```bash
+
 # Clear cache and restart
 rm -rf node_modules/.cache
 npm run storybook
@@ -242,17 +258,19 @@ npm run storybook
 ### Import Errors
 
 Check that components use correct export style:
+
 ```typescript
 // ✅ Default export
-export default function MyComponent() { }
+export default function MyComponent() {}
 
 // ❌ Named export (requires different import)
-export function MyComponent() { }
+export function MyComponent() {}
 ```
 
 ### Chromatic Timeout
 
 ```bash
+
 # Increase timeout
 npm run chromatic -- --build-timeout=600000
 ```
@@ -260,6 +278,7 @@ npm run chromatic -- --build-timeout=600000
 ### False Positives
 
 Add ignore regions:
+
 ```typescript
 parameters: {
   chromatic: {
@@ -278,12 +297,14 @@ parameters: {
 ## Metrics
 
 ### Current Coverage
+
 - **UI Components**: 6/6 (100%)
 - **Application Components**: 2/2 (100%)
 - **Total Stories**: 68 stories
 - **Variants Tested**: 150+ component states
 
 ### Quality Gates
+
 - ✅ All components have stories
 - ✅ Accessibility addon enabled
 - ✅ Auto-docs generated

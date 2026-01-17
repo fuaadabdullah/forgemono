@@ -1,75 +1,29 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../../api/client-axios';
-import { queryKeys } from '../../lib/queryClient';
-
-/**
- * Hook to fetch provider settings
- */
-// Types for provider settings
+// Stub implementation for useSettings hook
 export interface ProviderConfig {
-  id?: number;
+  id: string;
   name: string;
+  type: string;
+  status: string;
   enabled: boolean;
   priority?: number;
-  weight?: number;
-  api_key?: string;
-  base_url?: string;
   models?: string[];
+  base_url?: string;
+  api_key?: string;
 }
 
-export const useProviderSettings = () => {
-  return useQuery<ProviderConfig[]>({
-    queryKey: queryKeys.providers,
-    queryFn: async () => (await apiClient.getProviderSettings()) as ProviderConfig[],
-  });
-};
+export function useProviderSettings() {
+  return {
+    settings: [],
+    isLoading: false,
+    error: null,
+    refetch: () => {},
+  };
+}
 
-/**
- * Hook to fetch model configurations
- */
-export const useModelConfigs = () => {
-  return useQuery({
-    queryKey: queryKeys.modelConfigs,
-    queryFn: () => apiClient.getModelConfigs(),
-  });
-};
-
-/**
- * Hook to fetch global settings
- */
-export const useGlobalSettings = () => {
-  return useQuery({
-    queryKey: queryKeys.globalSettings,
-    queryFn: () => apiClient.getGlobalSettings(),
-  });
-};
-
-/**
- * Hook to update a provider
- */
-export const useUpdateProvider = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ providerId, provider }: { providerId: number; provider: any }) =>
-      apiClient.updateProvider(providerId, provider),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.providers });
-    },
-  });
-};
-
-/**
- * Hook to update global setting
- */
-export const useUpdateGlobalSetting = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ key, value }: { key: string; value: string }) =>
-      apiClient.updateGlobalSetting(key, value),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.globalSettings });
-    },
-  });
-};
+export function useSettings() {
+  return {
+    settings: {},
+    isLoading: false,
+    error: null,
+  };
+}

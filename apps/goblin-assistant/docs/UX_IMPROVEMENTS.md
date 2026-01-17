@@ -9,6 +9,7 @@
 ## Overview
 
 Enhanced status cards with:
+
 - ✅ **Color-coded status chips** with semantic variants (already existed, now with better ARIA)
 - ✅ **Accessible tooltips** explaining status meanings
 - ✅ **Context-specific status details** for degraded/down states
@@ -24,6 +25,7 @@ Enhanced status cards with:
 **Location**: `src/components/ui/Tooltip.tsx`
 
 **Features**:
+
 - Accessible with ARIA attributes (`role="tooltip"`, `aria-describedby`)
 - Shows on hover and keyboard focus
 - Configurable delay (default 300ms)
@@ -34,21 +36,24 @@ Enhanced status cards with:
 - Respects reduced motion preferences
 
 **Usage**:
+
 ```tsx
 import { Tooltip } from './ui';
 
 <Tooltip content="Additional information" position="bottom">
   <Badge>Status</Badge>
-</Tooltip>
+</Tooltip>;
 ```
 
 **Props**:
+
 - `content: ReactNode` - Tooltip content (text or JSX)
 - `children: ReactNode` - Element to wrap
 - `position?: 'top' | 'bottom' | 'left' | 'right'` - Tooltip position (default: 'top')
 - `delay?: number` - Show delay in ms (default: 300)
 
 **Accessibility**:
+
 - Unique `id` generated for each tooltip
 - `aria-describedby` links trigger to tooltip
 - `role="tooltip"` for semantic meaning
@@ -67,8 +72,8 @@ interface StatusCardProps {
   status: 'healthy' | 'degraded' | 'down' | 'unknown';
   icon?: ReactNode;
   meta?: Array<{ label: string; value: string | number }>;
-  lastCheck?: string;           // NEW: ISO timestamp
-  statusDetails?: string;        // NEW: Custom tooltip text
+  lastCheck?: string; // NEW: ISO timestamp
+  statusDetails?: string; // NEW: Custom tooltip text
   className?: string;
 }
 ```
@@ -76,6 +81,7 @@ interface StatusCardProps {
 ### Status Configuration
 
 **Before**:
+
 ```tsx
 const statusConfig = {
   healthy: { border: 'border-success', badgeVariant: 'success', icon: '✓' },
@@ -84,6 +90,7 @@ const statusConfig = {
 ```
 
 **After**:
+
 ```tsx
 const statusConfig = {
   healthy: {
@@ -97,7 +104,8 @@ const statusConfig = {
     border: 'border-warning',
     badgeVariant: 'warning',
     icon: '⚠',
-    description: 'Service is experiencing issues but remains partially functional. Some features may be unavailable or slow.',
+    description:
+      'Service is experiencing issues but remains partially functional. Some features may be unavailable or slow.',
     ariaLabel: 'Status: Degraded - Service has reduced functionality',
   },
   down: {
@@ -111,7 +119,8 @@ const statusConfig = {
     border: 'border-border',
     badgeVariant: 'neutral',
     icon: '?',
-    description: 'Unable to determine service status. Check may have timed out or service is unreachable.',
+    description:
+      'Unable to determine service status. Check may have timed out or service is unreachable.',
     ariaLabel: 'Status: Unknown - Cannot determine service status',
   },
 };
@@ -132,12 +141,14 @@ const formatLastCheck = (timestamp?: string) => {
 ```
 
 **Display**:
+
 - Shown in top-right corner of status card
 - Uses muted text color for non-intrusive appearance
 - Full timestamp shown on hover (browser native `title` attribute)
 - Automatically formatted based on time elapsed
 
 **Example**:
+
 ```tsx
 <StatusCard
   title="Backend API"
@@ -150,6 +161,7 @@ const formatLastCheck = (timestamp?: string) => {
 ### Context-Specific Tooltips
 
 **Generic Tooltip** (default):
+
 ```tsx
 <StatusCard
   title="Backend API"
@@ -160,6 +172,7 @@ const formatLastCheck = (timestamp?: string) => {
 ```
 
 **Custom Tooltip** (specific details):
+
 ```tsx
 <StatusCard
   title="Vector DB (Chroma)"
@@ -172,6 +185,7 @@ const formatLastCheck = (timestamp?: string) => {
 ### Visual Layout
 
 **Before**:
+
 ```
 ┌─────────────────────────────────┐
 │ ⚡ Backend API                   │
@@ -185,6 +199,7 @@ const formatLastCheck = (timestamp?: string) => {
 ```
 
 **After**:
+
 ```
 ┌─────────────────────────────────┐
 │ ⚡ Backend API            5m ago │
@@ -234,11 +249,13 @@ const formatLastCheck = (timestamp?: string) => {
 ### Screen Reader Experience
 
 **Before**:
+
 ```
 "Backend API status healthy"
 ```
 
 **After**:
+
 ```
 "Backend API Status: Healthy - Service is fully operational
 Last checked 5 minutes ago
@@ -248,26 +265,32 @@ Hover for more information"
 ### ARIA Enhancements
 
 1. **Card-level ARIA**:
+
    ```tsx
    <Card
      role="group"
      aria-label={`${title} ${config.ariaLabel}`}
    >
    ```
+
    - Groups related status information
    - Provides complete status context
 
 2. **Badge ARIA**:
+
    ```tsx
+
    <Badge
      variant={config.badgeVariant}
      aria-label={config.ariaLabel}
    >
    ```
+
    - Semantic status announcement
    - Includes status meaning, not just label
 
 3. **Tooltip ARIA**:
+
    ```tsx
    <div aria-describedby={tooltipId}>
      <Badge>Degraded</Badge>
@@ -276,6 +299,7 @@ Hover for more information"
      Service is experiencing issues...
    </div>
    ```
+
    - Links badge to descriptive tooltip
    - Screen readers announce description on focus
 
@@ -292,14 +316,15 @@ Hover for more information"
 
 ### Status Colors (already implemented, now enhanced)
 
-| Status    | Border Color | Badge Variant | Icon | Semantic Meaning              |
-|-----------|--------------|---------------|------|-------------------------------|
-| Healthy   | Green        | success       | ✓    | Fully operational             |
-| Degraded  | Orange       | warning       | ⚠    | Partial functionality         |
-| Down      | Red          | danger        | ✗    | Completely unavailable        |
-| Unknown   | Gray         | neutral       | ?    | Cannot determine status       |
+| Status   | Border Color | Badge Variant | Icon | Semantic Meaning        |
+| -------- | ------------ | ------------- | ---- | ----------------------- |
+| Healthy  | Green        | success       | ✓    | Fully operational       |
+| Degraded | Orange       | warning       | ⚠    | Partial functionality   |
+| Down     | Red          | danger        | ✗    | Completely unavailable  |
+| Unknown  | Gray         | neutral       | ?    | Cannot determine status |
 
 **WCAG Compliance**:
+
 - All color combinations meet WCAG AA contrast ratios
 - Status communicated through icon + text + color (triple redundancy)
 - Color is not the sole indicator of status
@@ -309,6 +334,7 @@ Hover for more information"
 ## Usage Examples
 
 ### Basic Usage
+
 ```tsx
 <StatusCard
   title="Backend API"
@@ -323,6 +349,7 @@ Hover for more information"
 ```
 
 ### With Custom Tooltip
+
 ```tsx
 <StatusCard
   title="Vector DB"
@@ -338,6 +365,7 @@ Hover for more information"
 ```
 
 ### Without Timestamp
+
 ```tsx
 <StatusCard
   title="Quick Links"
@@ -360,6 +388,7 @@ Hover for more information"
 ✓ Built in 4.03s
 
 Bundle sizes:
+
 - index.js: 66.15 kB (gzip: 18.94 kB) [+3.5 kB raw, +1.45 kB gzip]
 - StatusCard: Includes Tooltip component
 - Tooltip: ~1.2 kB (gzip: ~0.5 kB)
@@ -373,6 +402,7 @@ Bundle sizes:
 ## Testing Checklist
 
 ### Visual Testing
+
 - [x] Tooltips appear on hover with 300ms delay
 - [x] Tooltips show on keyboard focus
 - [x] Last-updated timestamps display correctly
@@ -381,6 +411,7 @@ Bundle sizes:
 - [x] Tooltip arrow points to trigger element
 
 ### Accessibility Testing
+
 - [ ] Screen readers announce full status with context
 - [ ] Tooltips linked via `aria-describedby`
 - [ ] Keyboard users can access all tooltips
@@ -388,6 +419,7 @@ Bundle sizes:
 - [ ] Status communicated without color alone
 
 ### Functional Testing
+
 - [ ] Tooltips dismiss on blur/mouse leave
 - [ ] Multiple tooltips can exist without ID conflicts
 - [ ] Long tooltip text wraps correctly (max-w-xs)
@@ -395,6 +427,7 @@ Bundle sizes:
 - [ ] Custom statusDetails override default descriptions
 
 ### Responsive Testing
+
 - [ ] Tooltips don't overflow viewport edges
 - [ ] Timestamps visible on mobile (375px)
 - [ ] Badge + timestamp layout works on narrow cards
@@ -449,6 +482,7 @@ Bundle sizes:
 **✅ Context-specific details** for degraded/down states
 
 All status cards now provide:
+
 - **Visual clarity**: Timestamps show data freshness
 - **Contextual help**: Tooltips explain status meanings
 - **Accessibility**: Full ARIA support with semantic labels

@@ -4,7 +4,6 @@ This document has moved into the canonical backend documentation folder:
 
 Please update any references or links to point to the new location.
 
-
 ---
 
 ## Testing Summary
@@ -37,7 +36,7 @@ Please update any references or links to point to the new location.
 - [ ] Set backend timeout (60s recommended)
 - [ ] Add rate limiting middleware
 - [ ] Configure structured logging (JSON)
-- [ ] Set up monitoring/alerting (Datadog, Sentry)
+- [ ] Set up monitoring/alerting (Sentry)
 - [ ] Verify all `VITE_*` env vars in frontend `.env.production`
 - [ ] Verify all backend env vars in `backend/.env` or secrets manager
 - [ ] Test API keys (OpenAI, Anthropic, etc.) are valid
@@ -59,6 +58,7 @@ VITE_MOCK_API=false
 **Backend** (`.env` or secrets manager):
 
 ```bash
+
 # Required
 DATABASE_URL=postgresql://...
 ROUTING_ENCRYPTION_KEY=...
@@ -74,7 +74,6 @@ GROK_API_KEY=...
 
 # Optional but recommended
 SENTRY_DSN=...
-DATADOG_API_KEY=...
 LOG_LEVEL=INFO
 PORT=8001
 ```
@@ -93,10 +92,11 @@ gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker \
 ### Deployment Command (Frontend)
 
 ```bash
+
 # Build
 npm run build
 
-# Serve with static server (or deploy to Vercel/Netlify)
+# Serve with static server (or deploy to Vercel)
 npx serve -s dist -l 3000
 ```
 
@@ -106,14 +106,12 @@ npx serve -s dist -l 3000
 
 ### Most Used Endpoints
 
-
 #### Health & Monitoring
 
 - `GET /health` - Simple health check
 - `GET /health/all` - Full system status
 - `GET /health/chroma/status` - Vector DB status
 - `GET /health/sandbox/status` - Sandbox status
-
 
 #### Authentication
 
@@ -124,13 +122,11 @@ npx serve -s dist -l 3000
 - `POST /auth/passkey/auth` - Passkey login
 - `GET /auth/me` - Get current user
 
-
 #### Chat
 
 - `POST /chat/completions` - Create chat completion (auto-routed to best model)
 - `GET /chat/models` - List available models
 - `GET /chat/routing-info` - Get routing information
-
 
 #### Settings
 
@@ -141,14 +137,12 @@ npx serve -s dist -l 3000
 - `POST /settings/providers/reorder` - Reorder providers
 - `POST /settings/providers/{id}/priority` - Set priority
 
-
 #### Task Execution
 
 - `POST /execute/` - Create orchestration plan
 - `POST /execute/orchestrate/parse` - Parse text to plan
 - `POST /execute/orchestrate/execute?plan_id=X` - Execute plan
 - `GET /execute/status/{task_id}` - Get execution status
-
 
 #### Routing
 
@@ -170,7 +164,7 @@ npx serve -s dist -l 3000
 
 1. **Immediate**: Update CORS configuration for production domains
 2. **High Priority**: Add rate limiting and structured logging
-3. **Medium Priority**: Set up monitoring/alerting (Datadog, Sentry)
+3. **Medium Priority**: Set up monitoring/alerting (Sentry)
 4. **Before Deploy**: Run full integration test suite
 5. **Post-Deploy**: Monitor error rates and latency in first 24h
 

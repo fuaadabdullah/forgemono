@@ -1,6 +1,9 @@
 ---
-description: "ONBOARDING_TARIQ"
+title: "ONBOARDING TARIQ"
+description: "Onboarding: Tariq Fletcher → GoblinOS"
 ---
+
+
 
 # Onboarding: Tariq Fletcher → GoblinOS
 
@@ -32,6 +35,7 @@ pnpm test
 Option A — Docker (recommended):
 
 ```bash
+
 cd GoblinOS/packages/goblins/overmind
 docker-compose up -d ollama
 ```
@@ -49,8 +53,10 @@ Set `OLLAMA_BASE_URL` in `GoblinOS/.env` if not default.
 ## 4) Environment Variables
 
 ```bash
+
 cd GoblinOS
 cp .env.example .env
+
 # Fill in any required keys
 ```
 

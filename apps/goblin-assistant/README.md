@@ -1,67 +1,17 @@
 # GoblinOS Assistant
 
-A comprehensive AI-powered development assistant built with FastAPI, featuring intelligent model routing and specialized debugging capabilities.
+## Core Value
+
+GoblinOS Assistant gives you a lean, powerful AI teammate for software tasks and everyday stuff — one that automatically picks the best LLM or AI provider for the job, balancing quality, cost, and speed.
+
+### Core identity & tagline
+
+GoblinOS is a multi-provider, privacy-first AI assistant platform that routes workloads across cloud and local models for maximum control and cost-efficiency. For a short, focused description of our architecture, characteristics, and target users, see `docs/CORE_IDENTITY.md`.
 
 ## Overview
 
 GoblinOS Assistant is a comprehensive AI-powered development assistant with multiple components working together to provide intelligent software development support. It features intelligent model routing that automatically selects the most appropriate AI model based on task complexity, ensuring optimal performance and cost efficiency.
-
-## Components
-
-### 🏗️ Backend API (`backend/`)
-
-- **Framework**: FastAPI (Python)
-- **Purpose**: Main API service handling AI processing and development assistance
-Note: Most backend-specific documentation has been consolidated under the canonical backend repository folder at `apps/goblin-assistant/backend/docs` (e.g. endpoint audits, monitoring, production quick-starts). See that folder for the canonical docs.
-
-- **Features**: Intelligent model routing, debugging tools, error analysis, code suggestions
-
-### 🎨 Frontend UI (`src/`)
-
-- **Framework**: React + Vite (TypeScript)
-- **Purpose**: User interface for interacting with the AI assistant
-- **Features**: Web-based interface for development tasks and AI interactions
-
-### 🛠️ Infrastructure (`infra/` + `goblin-infra/`)
-
-- **Tools**: Terraform, Cloudflare Workers, Docker
-- **Purpose**: Deployment, hosting, and scaling infrastructure
-- **Environments**: Dev, staging, production with automated CI/CD via CircleCI
-
-### 💾 Database & API Layer (`api/`, database files)
-
-- **Database**: SQLite (`goblin_assistant.db`)
-- **Purpose**: Data persistence, user sessions, and API routing
-- **Features**: SQLAlchemy integration, database migrations
-
-### 📊 Monitoring & Observability (`datadog/`)
-
-- **Tools**: Datadog integration
-- **Purpose**: Application monitoring, performance tracking, and alerting
-- **Features**: Real-time metrics, error tracking, and health monitoring
-
-## Features
-
-### 🤖 Intelligent Model Routing
-
-- **Smart Task Classification**: Automatically routes tasks to appropriate AI models
-- **Raptor Integration**: Low-latency responses for routine debugging tasks
-- **Fallback Support**: Complex reasoning tasks route to more capable LLMs
-- **Cost Optimization**: Efficient model selection based on task requirements
-
-### 🔧 AI-Powered Debugging
-
-- **Error Analysis**: Intelligent error trace summarization
-- **Code Suggestions**: Quick fixes and refactoring recommendations
-- **Unit Test Generation**: Automated test case suggestions
-- **Function Inference**: Smart function naming from code patterns
-
-### 🚀 Production-Ready Architecture
-
-- **FastAPI Framework**: High-performance async API with automatic OpenAPI docs
-- **CORS Support**: Configurable cross-origin resource sharing
-- **Health Monitoring**: Built-in health check endpoints
-- **Environment Configuration**: Secure credential management
+See `docs/ARCHITECTURE_OVERVIEW.md` for a compact architecture diagram and request flow.
 
 ## Quick Start
 
@@ -125,88 +75,21 @@ Note: Most backend-specific documentation has been consolidated under the canoni
    curl http://localhost:8000/health
    ```
 
-## API Documentation
+## Documentation
 
-### Core Endpoints
+- **[Components](./docs/components.md)** - Detailed breakdown of all system components
+- **[Features](./docs/features.md)** - Complete feature overview and capabilities
+- **[Setup & Configuration](./docs/setup.md)** - Comprehensive setup and configuration guide
+- **[Architecture](./docs/architecture.md)** - System architecture and design decisions
+- **[Deployment](./docs/deployment.md)** - Deployment guides and production setup
+- **[Contributing](./docs/contributing.md)** - Contribution guidelines and development workflow
+- **[Troubleshooting](./docs/troubleshooting.md)** - Common issues and solutions
 
-#### Health Check
+## Related Documentation
 
-```http
-GET /health
-```
-
-Response:
-
-```json
-{
-  "status": "healthy"
-}
-```
-
-#### Root Endpoint
-
-```http
-GET /
-```
-
-Response:
-
-```json
-{
-  "message": "GoblinOS Assistant Backend API"
-}
-```
-
-### Debugging Endpoints
-
-The assistant provides specialized debugging capabilities through the `/debugger` endpoints. See [Debugger Documentation](./README_DEBUGGER.md) for detailed API specifications.
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env.local` file in the `backend/` directory:
-
-```bash
-# Raptor model configuration (for quick debug tasks)
-RAPTOR_URL=https://your-raptor-endpoint/api
-RAPTOR_API_KEY=your-raptor-api-key
-
-# Fallback model configuration (existing LLM)
-FALLBACK_MODEL_URL=https://your-llm-endpoint/api
-FALLBACK_MODEL_KEY=your-llm-api-key
-```
-
-### Security Notes
-
-- Never commit `.env.local` files to version control
-- Use strong, unique API keys for each service
-- **Recommended**: Use Bitwarden vault for secrets management (see [Bitwarden Vault Setup](./docs/BITWARDEN_VAULT_SETUP.md))
-- Consider using a secrets management service in production
-- Rotate API keys regularly
-
-### Production Hardening & Checklist
-
-The following items are recommended before deploying to production. The app is usable in development without them, but production deployments should follow these steps to ensure security and reliability.
-
-- Use a managed secrets store (Vault, AWS Secrets Manager, Azure KeyVault) for provider API keys instead of file-based storage (e.g., `backend/api_keys.json`). If you store API keys in your database, make sure they're encrypted (see `backend/services/encryption.py`) and access-controlled.
-- Enable `USE_REDIS_CHALLENGES=true` and configure Redis for passkey challenge storage (recommended in `backend/PRODUCTION_DEPLOYMENT_GUIDE.md`).
-- Use Redis (or similar) for rate limiting and task queues (RQ). The in-memory rate limiter is intended for local development and won't scale across instances.
-- Ensure `ROUTING_ENCRYPTION_KEY` is configured and protected — it's used for decrypting provider API keys stored in DB.
-- Run `ProviderProbeWorker` (or enable routing probe worker) in a background worker to continuously monitor provider health and gather metrics.
-- Disable any debug endpoints or routes (e.g., local-llm-proxy admin endpoints) in production and ensure proper API key validation for local proxies.
-- Configure Prometheus to scrape `/metrics` and set up alerts on provider health, error rates, and request latency.
-- Set up a log aggregation pipeline (Datadog/ELK/CloudWatch) and ensure logs do not capture raw secret values. Configure structured logging (`X-Correlation-ID`) for traceability.
-- Use a distributed session/store for `task_queue` (Redis) and ensure backups for persistent data (Postgres or backups of SQLite if used temporarily).
-- Implement a secrets rotation policy and an automated process for rotating encryption keys and API keys.
-
-### Frontend Security Checklist
-
-- Ensure no secrets are exposed via `VITE_` variables (client `VITE_` envs are public). Move secrets to the backend / secrets manager.
-- Use HttpOnly, Secure cookies for session/JWT tokens instead of localStorage to reduce XSS risks.
-- Authenticate streaming endpoints using cookies or short-lived signed stream tokens; do not put secrets into URL query strings.
-- Add a CSP and sanitize any HTML rendered from model output to prevent XSS.
-- Configure CORS to allow only the specific production frontend domains (do not use `*` in production).
+- [ForgeMonorepo Documentation](../../docs/README.md) - Overall project structure
+- [Backend Documentation](./backend/docs/) - Backend-specific documentation
+- [API Documentation](./docs/setup.md#api-documentation) - Complete API reference
 
 ## Development
 
@@ -232,6 +115,7 @@ apps/goblin-assistant/
 #### Unit Tests
 
 ```bash
+
 python -m pytest tests/ -v
 ```
 
@@ -244,18 +128,42 @@ python test_debugger.py
 #### All Tests
 
 ```bash
+
 python -m pytest tests/ && python test_debugger.py
 ```
 
 ### Development Server
 
 ```bash
-# With auto-reload for development
+# Backend - With auto-reload for development
 uvicorn backend.main:app --reload --port 8000
 
-# Production deployment
+# Backend - Production deployment
 uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ```
+
+### Frontend Development
+
+The frontend is built with Next.js 14.2.15 (App Router) + TypeScript.
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server with hot reloading
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Start production server
+pnpm start
+
+# Run Storybook (component development)
+pnpm storybook
+```
+
+**Migration Notes**: The frontend was recently migrated from Vite to Next.js. All pages are now located in the `app/` directory using Next.js App Router. The development server provides hot reloading and all modern Next.js features.
 
 ## Architecture
 
@@ -287,6 +195,56 @@ graph TB
 - **Debugger Router**: Specialized endpoints for debugging assistance
 - **Environment Config**: Secure credential and endpoint management
 
+## Migration to Next.js
+
+The frontend was recently migrated from Vite + React Router to Next.js 14.2.15 with App Router. Key changes:
+
+### What Changed
+- **Framework**: Vite → Next.js App Router
+- **Routing**: React Router → Next.js file-based routing (`app/` directory)
+- **Pages**: `src/pages/` → `app/` routes
+- **Environment Variables**: `VITE_*` → `NEXT_PUBLIC_*`
+- **Build System**: Vite → Next.js with Turbopack
+- **Storybook**: `@storybook/react-vite` → `@storybook/nextjs`
+
+### File Structure
+```
+app/
+├── layout.tsx          # Root layout
+├── page.tsx           # Home page (/)
+├── dashboard/
+│   └── page.tsx       # /dashboard
+├── chat/
+│   └── page.tsx       # /chat
+├── login/
+│   └── page.tsx       # /login
+└── ...
+src/
+├── components/        # Shared components
+├── hooks/            # React hooks
+├── store/            # State management
+└── ...
+```
+
+### Development Commands
+```bash
+# Development (replaces npm run dev)
+pnpm dev
+
+# Build (replaces npm run build)
+pnpm build
+
+# Storybook (updated framework)
+pnpm storybook
+```
+
+### Migration Notes
+- All pages now use `'use client'` directive for client components
+- Navigation uses `useRouter` from `next/navigation` instead of `useNavigate`
+- Search params use `useSearchParams` instead of `useSearchParams` from React Router
+- Environment variables changed from `VITE_*` to `NEXT_PUBLIC_*`
+- Import paths adjusted to `../../src/` from app routes
+
 ## Deployment
 
 ### Production Pipeline (Recommended)
@@ -308,6 +266,7 @@ The **villain-level production pipeline** combines Bitwarden CLI, CircleCI, and 
 For testing or emergency deployments:
 
 ```bash
+
 # Load production secrets from Bitwarden
 source scripts/load_env.sh
 
@@ -328,6 +287,7 @@ uvicorn backend.main:app --reload
 #### Docker Deployment
 
 ```dockerfile
+
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -378,6 +338,7 @@ cd apps/goblin-assistant
 **Environment Variables**: Verify `.env.local` exists and contains valid keys:
 
 ```bash
+
 ls -la backend/.env.local
 ```
 
@@ -392,6 +353,7 @@ uvicorn backend.main:app --port 8001
 Enable detailed logging:
 
 ```bash
+
 export PYTHONPATH=/Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant
 python -c "import logging; logging.basicConfig(level=logging.DEBUG)"
 ```
@@ -399,7 +361,7 @@ python -c "import logging; logging.basicConfig(level=logging.DEBUG)"
 ## Related Documentation
 
 - [Debugger API Documentation](./README_DEBUGGER.md) - Detailed debugger endpoint specifications
-- [ForgeMonorepo Documentation](../../docs/WORKSPACE_OVERVIEW.md) - Overall project structure
+- [ForgeMonorepo Documentation](../../docs/README.md) - Overall project structure
 - [GoblinOS Guilds](../../GoblinOS/docs/ROLES.md) - Team roles and responsibilities
 
 ## License

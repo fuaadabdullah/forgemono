@@ -1,0 +1,103 @@
+name: Database Backup
+
+on:
+  schedule:
+    # Run daily at 3:00 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to backup'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
+
+jobs:
+  backup:
+    name: Create Database Backup
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Install AWS CLI
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Fetch secrets from Bitwarden
+        if: env.ENVIRONMENT == 'production'
+        run: |
+          # Install Bitwarden CLI
+          curl -L "https://vault.bitwarden.com/download/?app=cli&platform=linux" -o bw.zip
+          unzip bw.zip
+          sudo install bw /usr/local/bin/
+
+          # Login to Bitwarden (use API key for CI)
+          bw login --apikey
+          bw sync
+
+          # Export database credentials
+          export DATABASE_URL=$(bw get password "DATABASE_URL")
+          echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
+
+      - name: Set staging environment
+        if: env.ENVIRONMENT == 'staging'
+        run: |
+          echo "DATABASE_URL=${{ secrets.STAGING_DATABASE_URL }}" >> $GITHUB_ENV
+          echo "BACKUP_BUCKET=${{ secrets.STAGING_BACKUP_BUCKET || 'goblin-backups-staging' }}" >> $GITHUB_ENV
+
+      - name: Set production environment
+        if: env.ENVIRONMENT == 'production'
+        run: |
+          echo "DATABASE_URL=${{ secrets.PROD_DATABASE_URL }}" >> $GITHUB_ENV
+          echo "BACKUP_BUCKET=${{ secrets.BACKUP_BUCKET || 'goblin-backups' }}" >> $GITHUB_ENV
+          echo "AWS_ENDPOINT=${{ secrets.AWS_R2_ENDPOINT }}" >> $GITHUB_ENV
+
+      - name: Run database backup
+        run: |
+          chmod +x scripts/backup/pg_backup.sh
+          ./scripts/backup/pg_backup.sh
+
+      - name: Notify on failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: "Database backup failed for ${{ env.ENVIRONMENT }} environment"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify on success
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "Database backup completed successfully for ${{ env.ENVIRONMENT }} environment"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

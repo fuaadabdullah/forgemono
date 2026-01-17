@@ -1,12 +1,9 @@
----title: Envoy Gateway for Overmind
-type: reference
-project: GoblinOS/Overmind
-status: published
-owner: GoblinOS
-goblin_name: Overmind Envoy Gateway
-description: "README"
-
 ---
+title: "README"
+description: "Envoy Gateway Ingress"
+---
+
+
 
 # Envoy Gateway Ingress
 
@@ -46,6 +43,7 @@ Internet
 └─────────┘      └──────────┘   └──────────┘
 
 Hostnames:
+
 - dashboard.overmind.example.com → Dashboard
 - api.overmind.example.com → API
 - api.overmind.example.com/bridge → Bridge
@@ -73,6 +71,7 @@ kubectl wait --timeout=5m -n envoy-gateway-system \
 ### Deploy Gateway Resources
 
 ```bash
+
 # Apply Gateway and HTTPRoutes
 kubectl apply -f gateway/gateway.yaml
 kubectl apply -f gateway/httproutes/
@@ -97,14 +96,15 @@ kubectl get gateway overmind-gateway -n overmind-prod \
 ### Test Routing
 
 ```bash
+
 # Test dashboard route
-curl -H "Host: dashboard.overmind.example.com" http://<gateway-address>/
+curl -H "Host: dashboard.overmind.example.com" <http://<gateway-address>/>
 
 # Test API route
-curl -H "Host: api.overmind.example.com" http://<gateway-address>/health
+curl -H "Host: api.overmind.example.com" <http://<gateway-address>/health>
 
 # Test bridge route
-curl -H "Host: api.overmind.example.com" http://<gateway-address>/bridge/health
+curl -H "Host: api.overmind.example.com" <http://<gateway-address>/bridge/health>
 ```
 
 ## Gateway Configuration
@@ -122,22 +122,22 @@ metadata:
 spec:
   gatewayClassName: eg
   listeners:
-  # HTTP (redirect to HTTPS)
-  - name: http
-    protocol: HTTP
-    port: 80
-    hostname: "*.overmind.example.com"
+    # HTTP (redirect to HTTPS)
+    - name: http
+      protocol: HTTP
+      port: 80
+      hostname: '*.overmind.example.com'
 
-  # HTTPS
-  - name: https
-    protocol: HTTPS
-    port: 443
-    hostname: "*.overmind.example.com"
-    tls:
-      mode: Terminate
-      certificateRefs:
-      - name: overmind-tls
-        kind: Secret
+    # HTTPS
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: '*.overmind.example.com'
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: overmind-tls
+            kind: Secret
 ```
 
 ### HTTPRoute - Dashboard
@@ -152,20 +152,20 @@ metadata:
   namespace: overmind-prod
 spec:
   parentRefs:
-  - name: overmind-gateway
-    sectionName: https
+    - name: overmind-gateway
+      sectionName: https
 
   hostnames:
-  - dashboard.overmind.example.com
+    - dashboard.overmind.example.com
 
   rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: overmind-dashboard
-      port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: overmind-dashboard
+          port: 80
 ```
 
 ### HTTPRoute - API with Rate Limiting
@@ -180,46 +180,46 @@ metadata:
   namespace: overmind-prod
 spec:
   parentRefs:
-  - name: overmind-gateway
-    sectionName: https
+    - name: overmind-gateway
+      sectionName: https
 
   hostnames:
-  - api.overmind.example.com
+    - api.overmind.example.com
 
   rules:
-  # API endpoints (with auth)
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /api
-      headers:
-      - name: Authorization
-        value: .+
-        type: RegularExpression
-    filters:
-    - type: ExtensionRef
-      extensionRef:
-        group: gateway.envoyproxy.io
-        kind: RateLimitPolicy
-        name: authenticated-rate-limit
-    backendRefs:
-    - name: overmind-api
-      port: 8000
+    # API endpoints (with auth)
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+          headers:
+            - name: Authorization
+              value: .+
+              type: RegularExpression
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.envoyproxy.io
+            kind: RateLimitPolicy
+            name: authenticated-rate-limit
+      backendRefs:
+        - name: overmind-api
+          port: 8000
 
-  # Public endpoints (no auth, stricter limits)
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /api
-    filters:
-    - type: ExtensionRef
-      extensionRef:
-        group: gateway.envoyproxy.io
-        kind: RateLimitPolicy
-        name: anonymous-rate-limit
-    backendRefs:
-    - name: overmind-api
-      port: 8000
+    # Public endpoints (no auth, stricter limits)
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.envoyproxy.io
+            kind: RateLimitPolicy
+            name: anonymous-rate-limit
+      backendRefs:
+        - name: overmind-api
+          port: 8000
 ```
 
 ## Rate Limiting
@@ -236,13 +236,13 @@ metadata:
   namespace: overmind-prod
 spec:
   rateLimits:
-  - clientSelectors:
-    - headers:
-      - name: X-Forwarded-For
-        type: Distinct
-    limits:
-      requests: 10
-      unit: Second
+    - clientSelectors:
+        - headers:
+            - name: X-Forwarded-For
+              type: Distinct
+      limits:
+        requests: 10
+        unit: Second
 ```
 
 ### RateLimitPolicy - Authenticated
@@ -257,13 +257,13 @@ metadata:
   namespace: overmind-prod
 spec:
   rateLimits:
-  - clientSelectors:
-    - headers:
-      - name: Authorization
-        type: Distinct
-    limits:
-      requests: 100
-      unit: Second
+    - clientSelectors:
+        - headers:
+            - name: Authorization
+              type: Distinct
+      limits:
+        requests: 100
+        unit: Second
 ```
 
 ### RateLimitPolicy - Global
@@ -283,9 +283,9 @@ spec:
     name: overmind-gateway
 
   rateLimits:
-  - limits:
-      requests: 1000
-      unit: Second
+    - limits:
+        requests: 1000
+        unit: Second
 ```
 
 ## Backend TLS (mTLS)
@@ -302,15 +302,15 @@ metadata:
   namespace: overmind-prod
 spec:
   targetRef:
-    group: ""
+    group: ''
     kind: Service
     name: overmind-api
 
   tls:
     hostname: overmind-api.overmind-prod.svc.cluster.local
     caCertRefs:
-    - name: overmind-ca
-      kind: ConfigMap
+      - name: overmind-ca
+        kind: ConfigMap
 ```
 
 ## CORS Configuration
@@ -333,22 +333,22 @@ spec:
 
   cors:
     allowOrigins:
-    - https://dashboard.overmind.example.com
-    - https://*.overmind.example.com
+      - <https://dashboard.overmind.example.com>
+      - <https://*.overmind.example.com>
     allowMethods:
-    - GET
-    - POST
-    - PUT
-    - DELETE
-    - OPTIONS
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
     allowHeaders:
-    - Content-Type
-    - Authorization
-    - X-Request-ID
+      - Content-Type
+      - Authorization
+      - X-Request-ID
     exposeHeaders:
-    - X-Request-ID
-    - X-RateLimit-Limit
-    - X-RateLimit-Remaining
+      - X-Request-ID
+      - X-RateLimit-Limit
+      - X-RateLimit-Remaining
     maxAge: 86400
     allowCredentials: true
 ```
@@ -374,17 +374,17 @@ spec:
   headers:
     response:
       add:
-      - name: X-Frame-Options
-        value: DENY
-      - name: X-Content-Type-Options
-        value: nosniff
-      - name: X-XSS-Protection
-        value: "1; mode=block"
-      - name: Strict-Transport-Security
-        value: max-age=31536000; includeSubDomains
+        - name: X-Frame-Options
+          value: DENY
+        - name: X-Content-Type-Options
+          value: nosniff
+        - name: X-XSS-Protection
+          value: '1; mode=block'
+        - name: Strict-Transport-Security
+          value: max-age=31536000; includeSubDomains
       remove:
-      - Server
-      - X-Powered-By
+        - Server
+        - X-Powered-By
 ```
 
 ## Circuit Breaking
@@ -401,7 +401,7 @@ metadata:
   namespace: overmind-prod
 spec:
   targetRef:
-    group: ""
+    group: ''
     kind: Service
     name: overmind-api
 
@@ -439,13 +439,13 @@ spec:
     perRetryTimeout: 10s
     retryOn:
       httpStatusCodes:
-      - 500
-      - 502
-      - 503
-      - 504
+        - 500
+        - 502
+        - 503
+        - 504
       triggers:
-      - connect-failure
-      - retriable-4xx
+        - connect-failure
+        - retriable-4xx
 ```
 
 ## Observability
@@ -464,16 +464,16 @@ spec:
   telemetry:
     accessLog:
       settings:
-      - format:
-          type: JSON
-          json:
-            timestamp: "%START_TIME%"
-            protocol: "%PROTOCOL%"
-            method: "%REQ(:METHOD)%"
-            path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
-            responseCode: "%RESPONSE_CODE%"
-            duration: "%DURATION%"
-            upstreamHost: "%UPSTREAM_HOST%"
+        - format:
+            type: JSON
+            json:
+              timestamp: '%START_TIME%'
+              protocol: '%PROTOCOL%'
+              method: '%REQ(:METHOD)%'
+              path: '%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%'
+              responseCode: '%RESPONSE_CODE%'
+              duration: '%DURATION%'
+              upstreamHost: '%UPSTREAM_HOST%'
 
     metrics:
       prometheus:
@@ -500,7 +500,7 @@ kubectl port-forward -n envoy-gateway-system \
 # Query metrics
 curl http://localhost:19000/stats/prometheus
 
-# Key metrics:
+# Key metrics
 # envoy_http_downstream_rq_total
 # envoy_http_downstream_rq_xx (2xx, 4xx, 5xx)
 # envoy_cluster_upstream_rq_time
@@ -510,6 +510,7 @@ curl http://localhost:19000/stats/prometheus
 ### Access Logs
 
 ```bash
+
 # View Envoy proxy logs
 kubectl logs -n envoy-gateway-system \
   -l gateway.envoyproxy.io/owning-gateway-name=overmind-gateway \
@@ -534,6 +535,7 @@ kubectl get events -n overmind-prod --sort-by='.lastTimestamp'
 ### 404 errors
 
 ```bash
+
 # Verify HTTPRoute
 kubectl describe httproute api -n overmind-prod
 
@@ -541,7 +543,7 @@ kubectl describe httproute api -n overmind-prod
 kubectl get httproute -n overmind-prod -o yaml
 
 # Test with verbose curl
-curl -vH "Host: api.overmind.example.com" http://<gateway-address>/api/health
+curl -vH "Host: api.overmind.example.com" <http://<gateway-address>/api/health>
 ```
 
 ### Rate limiting not working
@@ -561,6 +563,7 @@ done
 ### TLS certificate issues
 
 ```bash
+
 # Verify secret exists
 kubectl get secret overmind-tls -n overmind-prod
 
@@ -572,13 +575,13 @@ kubectl get secret overmind-tls -n overmind-prod -o jsonpath='{.data.tls\.crt}' 
 ## Best Practices
 
 1. **Use Gateway API** - Standard, portable across implementations
-2. **Enable TLS** - Always terminate TLS at gateway
-3. **Rate limit by route** - Different limits for different endpoints
-4. **Add security headers** - Protect against common attacks
-5. **Enable circuit breaking** - Prevent cascading failures
-6. **Configure timeouts** - Don't wait forever for backends
-7. **Use retries wisely** - Only for idempotent operations
-8. **Monitor metrics** - Track request rates, errors, latencies
+1. **Enable TLS** - Always terminate TLS at gateway
+1. **Rate limit by route** - Different limits for different endpoints
+1. **Add security headers** - Protect against common attacks
+1. **Enable circuit breaking** - Prevent cascading failures
+1. **Configure timeouts** - Don't wait forever for backends
+1. **Use retries wisely** - Only for idempotent operations
+1. **Monitor metrics** - Track request rates, errors, latencies
 
 ## Migration from nginx Ingress
 
@@ -592,7 +595,9 @@ kubectl get secret overmind-tls -n overmind-prod -o jsonpath='{.data.tls\.crt}' 
 ### Step 2: Test Envoy Gateway
 
 ```bash
+
 # Verify all routes work
+
 # Test rate limiting, CORS, etc.
 ```
 
@@ -606,6 +611,7 @@ kubectl get secret overmind-tls -n overmind-prod -o jsonpath='{.data.tls\.crt}' 
 ### Step 4: Decommission nginx
 
 ```bash
+
 # After successful migration
 kubectl delete ingress --all -n overmind-prod
 ```

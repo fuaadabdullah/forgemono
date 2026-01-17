@@ -3,7 +3,7 @@ name: otel-collector
 description: OpenTelemetry Collector stack with DaemonSet + central deployment exporters for Tempo/Loki/Prometheus.
 type: application
 version: 0.1.0
-appVersion: "0.96.0"
+appVersion: '0.96.0'
 keywords:
   - observability
   - opentelemetry

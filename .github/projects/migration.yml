@@ -1,0 +1,216 @@
+name: Test Migration Board
+description: Track Enzyme to Testing Library migration progress
+
+columns:
+  - name: Backlog
+    description: Tests identified for migration
+    automations:
+      - adds: 'label:"needs-migration"'
+      - adds: 'label:"enzyme-migration"'
+
+  - name: Ready
+    description: Tests ready for migration
+    automations:
+      - moves: 'label:"migration-ready"'
+      - removes: 'label:"blocked"'
+
+  - name: In Progress
+    description: Currently being migrated
+    automations:
+      - moves: 'label:"migrating"'
+      - adds: 'assignee:*'
+
+  - name: Review
+    description: Migration completed, needs review
+    automations:
+      - moves: 'label:"needs-review"'
+      - removes: 'label:"migrating"'
+
+  - name: Done
+    description: Migration completed and validated
+    automations:
+      - closes: 'label:"migration-complete"'
+      - removes: 'label:"needs-migration"'
+
+workflows:
+  triage-migration:
+    name: Triage Migration Tasks
+    on: issues.labeled
+    if: "contains(github.event.label.name, 'needs-migration')"
+    jobs:
+      triage:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Analyze test complexity
+            uses: actions/github-script@v6
+            with:
+              script: |
+                const issue = context.payload.issue;
+                const body = issue.body || '';
+
+                // Extract complexity from issue body or calculate based on labels
+                let complexity = 'medium';
+                if (body.includes('complexity: high') || issue.labels.some(l => l.name.includes('complex'))) {
+                  complexity = 'high';
+                } else if (body.includes('complexity: low') || issue.labels.some(l => l.name.includes('simple'))) {
+                  complexity = 'low';
+                }
+
+                // Assign based on complexity
+                const assignees = {
+                  high: ['senior-dev'],
+                  medium: ['mid-dev'],
+                  low: ['junior-dev']
+                };
+
+                const assignee = assignees[complexity] || ['junior-dev'];
+
+                await github.rest.issues.addAssignees({
+                  issue_number: issue.number,
+                  assignees: assignee
+                });
+
+                // Add complexity label
+                await github.rest.issues.addLabels({
+                  issue_number: issue.number,
+                  labels: [`complexity:${complexity}`]
+                });
+
+  assign-components:
+    name: Assign Component Migration Tasks
+    on: issue.created
+    if: "contains(github.event.issue.labels.*.name, 'component-migration')"
+    jobs:
+      assign:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Assign based on component type
+            uses: actions/github-script@v6
+            with:
+              script: |
+                const issue = context.payload.issue;
+                const title = issue.title.toLowerCase();
+
+                let assignee = 'junior-dev'; // default
+
+                // Assign based on component type
+                if (title.includes('button') || title.includes('input') || title.includes('modal')) {
+                  assignee = 'junior-dev';
+                } else if (title.includes('form') || title.includes('table') || title.includes('chart')) {
+                  assignee = 'mid-dev';
+                } else if (title.includes('complex') || title.includes('wizard') || title.includes('dashboard')) {
+                  assignee = 'senior-dev';
+                }
+
+                await github.rest.issues.addAssignees({
+                  issue_number: issue.number,
+                  assignees: [assignee]
+                });
+
+  validate-migration:
+    name: Validate Migration Completion
+    on: pull_request.labeled
+    if: "github.event.label.name == 'migration-complete'"
+    jobs:
+      validate:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v3
+          - name: Setup Node.js
+            uses: actions/setup-node@v3
+            with:
+              node-version: '18'
+          - name: Install dependencies
+            run: npm ci
+          - name: Run tests
+            run: npm test -- --testPathPattern="${{ github.event.pull_request.title }}"
+          - name: Run migration validation
+            run: node scripts/validate-migration.js
+
+automation_rules:
+  # Auto-close issues when PR is merged
+  - name: Close migration issues on merge
+    on: pull_request.closed
+    if: 'github.event.pull_request.merged == true'
+    jobs:
+      close:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Close related issues
+            uses: actions/github-script@v6
+            with:
+              script: |
+                const pr = context.payload.pull_request;
+                const body = pr.body || '';
+
+                // Extract issue numbers from PR body
+                const issueRegex = /#(\d+)/g;
+                const issues = [];
+                let match;
+
+                while ((match = issueRegex.exec(body)) !== null) {
+                  issues.push(parseInt(match[1]));
+                }
+
+                // Close issues
+                for (const issueNumber of issues) {
+                  await github.rest.issues.update({
+                    issue_number: issueNumber,
+                    state: 'closed'
+                  });
+                }
+
+  # Daily migration progress report
+  - name: Daily Migration Report
+    on:
+      schedule:
+        - cron: '0 9 * * 1-5' # Monday-Friday at 9 AM
+    jobs:
+      report:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v3
+          - name: Generate migration report
+            run: node scripts/migration-dashboard.js --report
+          - name: Post to Slack
+            uses: slackapi/slack-github-action@v1.23.0
+            with:
+              channel-id: 'migration-updates'
+              slack-message: "Daily Migration Report:\n${{ steps.report.outputs.summary }}"
+
+labels:
+  - name: needs-migration
+    color: 'd73a49'
+    description: 'Test needs migration from Enzyme to Testing Library'
+
+  - name: migration-ready
+    color: 'fbca04'
+    description: 'Test is ready for migration'
+
+  - name: migrating
+    color: '0052cc'
+    description: 'Test is currently being migrated'
+
+  - name: needs-review
+    color: 'fbca04'
+    description: 'Migration completed, needs review'
+
+  - name: migration-complete
+    color: '0e8a16'
+    description: 'Migration completed and validated'
+
+  - name: enzyme-migration
+    color: 'b60205'
+    description: 'Part of Enzyme to Testing Library migration'
+
+  - name: complexity:high
+    color: 'd73a49'
+    description: 'High complexity migration task'
+
+  - name: complexity:medium
+    color: 'fbca04'
+    description: 'Medium complexity migration task'
+
+  - name: complexity:low
+    color: '0e8a16'
+    description: 'Low complexity migration task'

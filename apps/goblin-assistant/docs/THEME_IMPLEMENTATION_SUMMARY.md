@@ -9,18 +9,22 @@
 ## 🎯 What We Built
 
 ### 1. Modular Theme Architecture ✅
+
 Created a centralized theme system with:
+
 - **CSS Variables**: Single source of truth in `src/theme/index.css`
 - **Runtime Utilities**: JavaScript helpers in `src/theme/theme.js`
 - **Theme Presets**: 3 ready-to-use color schemes (default, nocturne, ember)
 
 ### 2. App Integration ✅
+
 - Imported theme CSS and JS into App.tsx
 - Configured Tailwind to use CSS variables
 - Initialized theme system on app mount
 - Consolidated duplicate CSS variable definitions
 
 ### 3. Accessibility Features ✅
+
 - **High-Contrast Mode**: Toggle button in navigation bar
 - **System Preference Detection**: Auto-applies `prefers-contrast: high`
 - **Reduced Motion Support**: Respects `prefers-reduced-motion` media query
@@ -58,6 +62,7 @@ apps/goblin-assistant/
 ## 🎨 Theme System Features
 
 ### CSS Variables (35 tokens)
+
 - **Neutrals**: bg, surface, text, muted
 - **Brand Colors**: primary, accent, cta (with 300/600 variants)
 - **Semantic**: success, warning, danger, info
@@ -65,23 +70,26 @@ apps/goblin-assistant/
 - **Layout**: border, divider
 
 ### JavaScript API
+
 ```javascript
 import {
-  setThemeVars,           // Manual color override
-  enableHighContrast,     // Toggle contrast mode
-  initializeTheme,        // Auto-init on mount
-  applyThemePreset,       // Switch preset (default/nocturne/ember)
-  THEME_PRESETS           // Available presets
+  setThemeVars, // Manual color override
+  enableHighContrast, // Toggle contrast mode
+  initializeTheme, // Auto-init on mount
+  applyThemePreset, // Switch preset (default/nocturne/ember)
+  THEME_PRESETS, // Available presets
 } from './theme/theme';
 ```
 
 ### High-Contrast Mode
+
 - **Toggle**: Button in navigation bar (already existed!)
 - **Persistence**: Saved to localStorage
 - **System Detection**: Auto-applies `prefers-contrast: high`
 - **WCAG AAA**: Pure black background, pure white text, 21:1 contrast
 
 ### Reduced Motion
+
 - **CSS Media Query**: Disables animations for users with motion sensitivity
 - **JavaScript Detection**: Sets `data-motion-reduced` attribute on `<html>`
 - **Comprehensive**: Covers `.glitch`, `.scanlines`, `.pulse`, `.bounce`, `.spin`
@@ -91,12 +99,15 @@ import {
 ## ✅ Verification
 
 Run automated checks:
+
 ```bash
+
 cd apps/goblin-assistant
 node scripts/verify-theme-system.js
 ```
 
 **Results**: ✅ 8/8 checks passing
+
 - Theme module files exist
 - CSS variables defined with accessibility
 - Theme utilities exported
@@ -110,6 +121,7 @@ node scripts/verify-theme-system.js
 ## 🎯 Achievements
 
 ### Priority 1: Create Theme Module ✅
+
 - [x] Created `src/theme/index.css` with 35 CSS variables
 - [x] Created `src/theme/theme.js` with 6 runtime utilities
 - [x] Defined 3 theme presets (default, nocturne, ember)
@@ -117,6 +129,7 @@ node scripts/verify-theme-system.js
 - [x] Added reduced motion media query
 
 ### Priority 2: Wire into App Root ✅
+
 - [x] Imported theme CSS in App.tsx
 - [x] Imported theme JS utilities
 - [x] Called `initializeTheme()` on mount
@@ -124,12 +137,14 @@ node scripts/verify-theme-system.js
 - [x] Cleaned up unused color tokens
 
 ### Priority 3: Replace Hard-coded Colors ✅
+
 - [x] Searched for hex color literals (50+ matches found)
 - [x] Removed duplicate CSS variables from index.css (67 lines)
 - [x] Added `@import './theme/index.css'` to index.css
 - [x] Verified single source of truth
 
 ### Priority 4: High-Contrast Toggle + Reduced Motion ✅
+
 - [x] High-contrast toggle already implemented (ContrastModeToggle.tsx)
 - [x] Uses same class name (`.goblinos-high-contrast`)
 - [x] Persists to localStorage
@@ -142,6 +157,7 @@ node scripts/verify-theme-system.js
 ## 📊 Before vs After
 
 ### Before (Hard-coded Colors)
+
 ```tsx
 // Scattered hex values throughout codebase
 <div style={{ color: '#06D06A', background: '#071117' }}>
@@ -154,7 +170,9 @@ node scripts/verify-theme-system.js
 ```
 
 ### After (Modular Theme System)
+
 ```tsx
+
 // Clean Tailwind utility classes
 <div className="text-primary bg-bg">
   <button className="bg-cta hover:bg-cta-600 shadow-glow-cta">
@@ -167,6 +185,7 @@ node scripts/verify-theme-system.js
 ```
 
 **Benefits**:
+
 - ✅ Single source of truth (`theme/index.css`)
 - ✅ Runtime theme switching (no rebuild needed)
 - ✅ High-contrast mode with system detection
@@ -179,21 +198,25 @@ node scripts/verify-theme-system.js
 ## 🚀 Next Steps (Followup Sessions)
 
 ### Priority 5: Theme Preview/Storybook
+
 - Visual component library
 - Interactive theme switcher
 - Live contrast checker
 
 ### Priority 6: Automated Accessibility Checks
+
 - Integrate Lighthouse/axe-core into CI
 - Run on every PR
 - Maintain 100/100 score
 
 ### Priority 7: Logo Optimization
+
 - Convert to WebP
 - Generate responsive variants
 - Implement `<picture>` element
 
 ### Priority 8: Command Palette
+
 - Cmd+K keyboard shortcut
 - Fuzzy search commands
 - Quick theme switcher
@@ -204,7 +227,7 @@ node scripts/verify-theme-system.js
 
 - **[THEME_SYSTEM.md](./THEME_SYSTEM.md)** - Complete implementation guide
 - **[ACCESSIBILITY_CERTIFICATION.md](./ACCESSIBILITY_CERTIFICATION.md)** - WCAG 2.1 audit
-- **[LIGHTHOUSE_FINAL_REPORT.md](./LIGHTHOUSE_FINAL_REPORT.md)** - Perfect accessibility score
+- **[LIGHTHOUSE_AUDIT_GUIDE.md](../../docs/LIGHTHOUSE_AUDIT_GUIDE.md)** - Perfect accessibility score
 - **[AXE_AUDIT_RESULTS.md](./AXE_AUDIT_RESULTS.md)** - 0 violations
 
 ---

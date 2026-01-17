@@ -1,8 +1,9 @@
-import { Metadata } from "next";
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - Elbey Projects",
-  description: "Privacy policy for Elbey Projects mobile mechanic services. Learn how we protect and handle your personal information.",
+  title: 'Privacy Policy - Elbey Projects',
+  description:
+    'Privacy policy for Elbey Projects mobile mechanic services. Learn how we protect and handle your personal information.',
 };
 
 export default function Privacy() {
@@ -12,9 +13,7 @@ export default function Privacy() {
         <h1 className="text-4xl font-bold mb-8 text-white">Privacy Policy</h1>
 
         <div className="prose prose-invert max-w-none">
-          <p className="text-gray-300 mb-6">
-            Last updated: November 16, 2025
-          </p>
+          <p className="text-gray-300 mb-6">Last updated: November 16, 2025</p>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-white">Information We Collect</h2>
@@ -30,9 +29,7 @@ export default function Privacy() {
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-white">How We Use Your Information</h2>
-            <p className="text-gray-300 mb-4">
-              We use the information we collect to:
-            </p>
+            <p className="text-gray-300 mb-4">We use the information we collect to:</p>
             <ul className="list-disc pl-6 text-gray-300 space-y-2">
               <li>Provide and improve our services</li>
               <li>Communicate with you about your service requests</li>
@@ -44,16 +41,17 @@ export default function Privacy() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-white">Information Sharing</h2>
             <p className="text-gray-300 mb-4">
-              We do not sell, trade, or otherwise transfer your personal information to third parties without your consent,
-              except as described in this policy or as required by law.
+              We do not sell, trade, or otherwise transfer your personal information to third
+              parties without your consent, except as described in this policy or as required by
+              law.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-white">Data Security</h2>
             <p className="text-gray-300 mb-4">
-              We implement appropriate security measures to protect your personal information against unauthorized access,
-              alteration, disclosure, or destruction.
+              We implement appropriate security measures to protect your personal information
+              against unauthorized access, alteration, disclosure, or destruction.
             </p>
           </section>
 

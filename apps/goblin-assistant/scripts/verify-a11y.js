@@ -28,43 +28,43 @@ const checks = [
   {
     name: 'High-Contrast Mode CSS',
     pattern: /\.goblinos-high-contrast/,
-    description: 'CSS variables for high-contrast mode'
+    description: 'CSS variables for high-contrast mode',
   },
   {
     name: 'Reduced Motion Support',
     pattern: /@media \(prefers-reduced-motion: reduce\)/,
-    description: 'Media query for motion sensitivity'
+    description: 'Media query for motion sensitivity',
   },
   {
     name: 'Focus Indicators',
     pattern: /:focus-visible/,
-    description: 'Keyboard navigation focus styles'
+    description: 'Keyboard navigation focus styles',
   },
   {
     name: 'Skip Link',
     pattern: /\.skip-link/,
-    description: 'Skip to main content link'
+    description: 'Skip to main content link',
   },
   {
     name: 'Enhanced Button Focus',
     pattern: /button:focus-visible/,
-    description: 'Button-specific focus enhancement'
+    description: 'Button-specific focus enhancement',
   },
   {
     name: 'Enhanced Input Focus',
     pattern: /input:focus-visible/,
-    description: 'Input-specific focus enhancement'
+    description: 'Input-specific focus enhancement',
   },
   {
     name: 'Scanlines Effect',
     pattern: /\.scanlines::after/,
-    description: 'CRT scanline overlay effect'
-  }
+    description: 'CRT scanline overlay effect',
+  },
 ];
 
 let allPassed = true;
 
-checks.forEach(check => {
+checks.forEach((check) => {
   const found = check.pattern.test(css);
   const status = found ? '✅ FOUND' : '❌ MISSING';
 
@@ -82,12 +82,12 @@ console.log('========================================\n');
 // Check component files exist
 const componentsToCheck = [
   '../src/hooks/useContrastMode.tsx',
-  '../src/components/ContrastModeToggle.tsx'
+  '../src/components/ContrastModeToggle.tsx',
 ];
 
 console.log('Component Files:\n');
 
-componentsToCheck.forEach(filePath => {
+componentsToCheck.forEach((filePath) => {
   const fullPath = path.join(__dirname, filePath);
   const exists = fs.existsSync(fullPath);
   const status = exists ? '✅ EXISTS' : '❌ MISSING';

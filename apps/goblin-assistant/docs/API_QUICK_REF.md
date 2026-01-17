@@ -1,3 +1,8 @@
+---
+title: "API QUICK REF"
+description: "Dashboard API Quick Reference"
+---
+
 # Dashboard API Quick Reference
 
 ## New Endpoints
@@ -74,30 +79,31 @@ const [backend, chroma, mcp, rag, sandbox, costs] = await Promise.allSettled([
 
 ```typescript
 const [status, costs] = await Promise.allSettled([
-  apiClient.getDashboardStatus(),  // Consolidated!
-  apiClient.getDashboardCosts(),   // Cached 60s
+  apiClient.getDashboardStatus(), // Consolidated!
+  apiClient.getDashboardCosts(), // Cached 60s
 ]);
 ```
 
 ## Cache Behavior
 
-| Endpoint | TTL | First Call | Cached Call |
-|----------|-----|------------|-------------|
-| `/api/dashboard/status` | 10s | ~150ms | <1ms |
-| `/api/dashboard/costs` | 60s | ~350ms | <1ms |
-| `/api/dashboard/metrics/{service}` | 30s | ~200ms | <1ms |
+| Endpoint                           | TTL | First Call | Cached Call |
+| ---------------------------------- | --- | ---------- | ----------- |
+| `/api/dashboard/status`            | 10s | ~150ms     | <1ms        |
+| `/api/dashboard/costs`             | 60s | ~350ms     | <1ms        |
+| `/api/dashboard/metrics/{service}` | 30s | ~200ms     | <1ms        |
 
 ## Testing Cache
 
 ```bash
+
 # First call (slow - hits DB)
-time curl http://localhost:8001/api/dashboard/costs
+time curl <http://localhost:8001/api/dashboard/costs>
 
 # Second call within 60s (instant - cached)
-time curl http://localhost:8001/api/dashboard/costs
+time curl <http://localhost:8001/api/dashboard/costs>
 
 # Wait 61 seconds, call again (slow - cache expired)
-sleep 61 && time curl http://localhost:8001/api/dashboard/costs
+sleep 61 && time curl <http://localhost:8001/api/dashboard/costs>
 ```
 
 ## Performance Gains

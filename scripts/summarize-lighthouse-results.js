@@ -21,44 +21,44 @@ const auditResults = {
     score: null, // Fill in (0-100)
     passed: null,
     warnings: [],
-    failed: []
+    failed: [],
   },
   chat: {
     score: null,
     passed: null,
     warnings: [],
-    failed: []
+    failed: [],
   },
   search: {
     score: null,
     passed: null,
     warnings: [],
-    failed: []
+    failed: [],
   },
   settings: {
     score: null,
     passed: null,
     warnings: [],
-    failed: []
+    failed: [],
   },
   providers: {
     score: null,
     passed: null,
     warnings: [],
-    failed: []
+    failed: [],
   },
   logs: {
     score: null,
     passed: null,
     warnings: [],
-    failed: []
+    failed: [],
   },
   sandbox: {
     score: null,
     passed: null,
     warnings: [],
-    failed: []
-  }
+    failed: [],
+  },
 };
 
 // Metadata
@@ -83,7 +83,7 @@ function getScoreStatus(score) {
 
 function generateReport() {
   const pages = Object.entries(auditResults);
-  const scores = pages.map(([_, data]) => data.score).filter(s => s !== null);
+  const scores = pages.map(([_, data]) => data.score).filter((s) => s !== null);
 
   if (scores.length === 0) {
     console.error('❌ No scores found. Please fill in auditResults object in this script.');
@@ -111,7 +111,7 @@ function generateReport() {
 | **Average Score** | ${avgScore}/100 ${getScoreEmoji(parseFloat(avgScore))} |
 | **Highest Score** | ${maxScore}/100 |
 | **Lowest Score** | ${minScore}/100 |
-| **Pages ≥90** | ${scores.filter(s => s >= 90).length}/${scores.length} |
+| **Pages ≥90** | ${scores.filter((s) => s >= 90).length}/${scores.length} |
 | **Status** | ${avgScore >= 90 ? '✅ Production Ready' : avgScore >= 75 ? '⚠️ Minor Issues' : '❌ Needs Work'} |
 
 ---
@@ -137,17 +137,20 @@ function generateReport() {
 
     if (data.warnings && data.warnings.length > 0) {
       markdown += `**⚠️ Warnings** (${data.warnings.length}):\n`;
-      data.warnings.forEach(w => markdown += `- ${w}\n`);
+      data.warnings.forEach((w) => (markdown += `- ${w}\n`));
       markdown += '\n';
     }
 
     if (data.failed && data.failed.length > 0) {
       markdown += `**❌ Failed Audits** (${data.failed.length}):\n`;
-      data.failed.forEach(f => markdown += `- ${f}\n`);
+      data.failed.forEach((f) => (markdown += `- ${f}\n`));
       markdown += '\n';
     }
 
-    if ((!data.warnings || data.warnings.length === 0) && (!data.failed || data.failed.length === 0)) {
+    if (
+      (!data.warnings || data.warnings.length === 0) &&
+      (!data.failed || data.failed.length === 0)
+    ) {
       markdown += `✅ No issues found!\n\n`;
     }
 
@@ -263,7 +266,15 @@ try {
   const outputPath = path.join(__dirname, '../docs/ACCESSIBILITY_AUDIT_RESULTS.md');
   fs.writeFileSync(outputPath, report, 'utf8');
   console.log(`✅ Report generated: ${outputPath}`);
-  console.log(`📊 Average Score: ${(Object.values(auditResults).map(d => d.score).filter(s => s !== null).reduce((a, b) => a + b, 0) / Object.values(auditResults).filter(d => d.score !== null).length).toFixed(1)}/100`);
+  console.log(
+    `📊 Average Score: ${(
+      Object.values(auditResults)
+        .map((d) => d.score)
+        .filter((s) => s !== null)
+        .reduce((a, b) => a + b, 0) /
+      Object.values(auditResults).filter((d) => d.score !== null).length
+    ).toFixed(1)}/100`
+  );
 } catch (error) {
   console.error('❌ Error generating report:', error.message);
   process.exit(1);

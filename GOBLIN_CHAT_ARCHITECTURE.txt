@@ -1,0 +1,238 @@
+================================================================================
+  GOBLIN ASSISTANT - CHAT ARCHITECTURE & FLOW
+================================================================================
+
+CURRENT ARCHITECTURE:
+═══════════════════
+
+Frontend (Next.js 15)              Backend (FastAPI)
+┌─────────────────────┐            ┌──────────────────────┐
+│  /app/chat/page.tsx │            │  /api/chat_router.py │
+│  - Message handling │◄──HTTP─────► - Conversation mgmt  │
+│  - UI rendering     │  (JSON)     │ - Provider routing   │
+│  - State management │            │ - Message storage    │
+└─────────────────────┘            └──────────────────────┘
+        ▲                                    ▲
+        │                                    │
+        │ User Input                         │ Dispatcher
+        │                                    │ invoke_provider()
+        ▼                                    ▼
+   ┌─────────┐                        ┌─────────────┐
+   │ Browser │                        │ AI Provider │
+   │ Storage │                        │  (OpenAI,   │
+   └─────────┘                        │  Anthropic) │
+                                      └─────────────┘
+
+
+MESSAGE FLOW (Current - BROKEN):
+════════════════════════════════
+
+1. User types message
+   ▼
+2. handleSendMessage() called
+   ▼
+3. POST /chat/conversations (NO AUTH HEADERS) ❌
+   ├─ user_id: "user-" + Date.now() (NEW EACH TIME) ❌
+   ├─ title: "New Conversation"
+   └─ ❌ NO AUTHENTICATION
+   ▼
+4. Response parsing (NO VALIDATION) ❌
+   ├─ Access messageData.conversation_id
+   ├─ ❌ No error handling if missing
+   └─ ❌ No validation of response structure
+   ▼
+5. POST /chat/conversations/{id}/messages (NO AUTH HEADERS) ❌
+   ├─ message: content
+   ├─ provider: null (auto-select)
+   ├─ model: null (default)
+   └─ ❌ NO AUTHENTICATION
+   ▼
+6. Backend response parsing (VULNERABLE) ❌
+   ├─ Extract response_content
+   ├─ ❌ Full backend error details shown to user
+   ├─ ❌ No input validation
+   └─ ❌ No XSS protection
+   ▼
+7. Display to user
+   └─ User sees error message with backend details
+
+
+API ENDPOINTS:
+══════════════
+
+POST /chat/conversations
+  ├─ Header: x-api-key (REQUIRED but missing in frontend) ❌
+  ├─ Body:
+  │  ├─ user_id: string (optional, but should be authenticated)
+  │  └─ title: string (optional)
+  └─ Response:
+     ├─ conversation_id: string
+     ├─ title: string
+     └─ created_at: ISO string
+
+POST /chat/conversations/{conversation_id}/messages
+  ├─ Header: x-api-key (REQUIRED but missing in frontend) ❌
+  ├─ Body:
+  │  ├─ message: string
+  │  ├─ provider: string | null
+  │  ├─ model: string | null
+  │  └─ stream: boolean (false)
+  └─ Response:
+     ├─ message_id: string
+     ├─ response: string ✓ (correctly used in frontend)
+     ├─ provider: string
+     ├─ model: string
+     └─ timestamp: ISO string
+
+GET /chat/conversations
+  ├─ Query: user_id, limit
+  └─ Returns: List[ConversationInfo]
+
+GET /chat/conversations/{conversation_id}
+  └─ Returns: Conversation with full message history
+
+
+STATE MANAGEMENT (BROKEN):
+═════════════════════════
+
+const [messages, setMessages] = useState<Message[]>([])
+  - Stores UI messages
+  - Updated on send/receive
+  - Lost on page refresh ❌
+
+const [currentSession, setCurrentSession] = useState<ChatSession | null>(null)
+  - Stores conversation metadata
+  - ❌ Gets out of sync with messages array
+  - ❌ Session ID lost on refresh
+  - ❌ User ID changes on each request
+
+❌ NO PERSISTENT STORAGE (localStorage)
+❌ NO USER SESSION RECOVERY
+
+
+AUTHENTICATION FLOW (BROKEN):
+═════════════════════════════
+
+Expected:
+┌─────┐  API Key    ┌───────┐
+│ App │────────────►│ Backend│
+└─────┘             └───────┘
+       x-api-key: "token123"
+
+Current:
+┌─────┐              ┌───────┐
+│ App │─────────────►│ Backend│
+└─────┘   NO AUTH!   └───────┘
+       ❌ Missing header
+
+If backend enforces LOCAL_LLM_API_KEY:
+  Response: 401 Unauthorized
+  Frontend shows: Backend error details ❌
+
+
+ENVIRONMENT SETUP (INCORRECT):
+═════════════════════════════
+
+.env.local:
+  NEXT_PUBLIC_API_BASE_URL=https://goblin-backend.fly.dev ✓ (production)
+  ❌ NEXT_PUBLIC_API_KEY not defined
+  ❌ Missing LOCAL_LLM_API_KEY reference
+
+Frontend fallback:
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
+  ❌ Hardcoded port 8000 (should be 8003)
+
+Backend:
+  Runs on port 8003 locally
+  Runs on fly.dev in production
+  Requires LOCAL_LLM_API_KEY header for auth
+
+
+CONVERSATION STORE (Backend):
+═════════════════════════════
+
+from .storage import conversation_store
+
+conversation_store.create_conversation(user_id, title)
+conversation_store.add_message_to_conversation(conversation_id, role, content, metadata)
+conversation_store.get_conversation(conversation_id)
+conversation_store.list_conversations(user_id, limit)
+
+Storage mechanism:
+  - In-memory dict (lost on restart) ❌
+  - OR Redis cache
+  - OR Supabase (if configured)
+
+
+PROVIDER DISPATCHER:
+════════════════════
+
+from .providers.dispatcher_fixed import invoke_provider
+
+invoke_provider(
+  pid=None,           # let dispatcher choose
+  model=None,         # use provider default
+  payload={...},      # messages
+  timeout_ms=30000,
+  stream=False
+)
+
+Returns:
+  {
+    "ok": True/False,
+    "provider": "openai" | "anthropic" | "ollama",
+    "model": "gpt-3.5-turbo",
+    "choices": [
+      {"message": {"content": "response text"}}
+    ]
+  }
+
+
+ERROR FLOW (INSECURE):
+═════════════════════
+
+Backend Exception:
+  "Failed to create conversation: Connection refused"
+
+Frontend catches:
+  error.message = "Failed to create conversation: Connection refused"
+
+Shown to user:
+  ❌ "I apologize, but I encountered an error while processing your message: 
+      Failed to create conversation: Connection refused. The backend is working 
+      correctly, but there might be a connection issue. Please try again."
+
+This reveals:
+  ❌ Backend is Django/FastAPI
+  ❌ Connection issues
+  ❌ Internal error structure
+
+
+MISSING SECURITY:
+═════════════════
+
+✗ No API key validation
+✗ No input sanitization
+✗ No XSS protection
+✗ Error messages leak system internals
+✗ No rate limiting on frontend
+✗ User ID spoofing (timestamp-based)
+✗ No authentication on backend calls
+✗ CORS allows all origins
+
+
+TO FIX - TOP PRIORITY:
+═════════════════════
+
+1. Add auth headers to all API calls
+2. Validate response structures
+3. Sanitize error messages
+4. Validate user input
+5. Store user ID in localStorage
+6. Fix HTTP error handling
+7. Remove fake features
+8. Update environment config
+
+See GOBLIN_CHAT_DIAGNOSIS_REPORT.md for detailed fixes.
+
+================================================================================

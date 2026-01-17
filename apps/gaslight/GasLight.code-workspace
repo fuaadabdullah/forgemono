@@ -1,11 +1,9 @@
 {
-    "folders": [
-        { "path": "." }
-    ],
-    "settings": {
-        "files.exclude": {
-            "**/Library": true,
-            "**/Temp": true
-        }
-    }
+  "folders": [{ "path": "." }],
+  "settings": {
+    "files.exclude": {
+      "**/Library": true,
+      "**/Temp": true,
+    },
+  },
 }

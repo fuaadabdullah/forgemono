@@ -12,16 +12,16 @@ This document outlines the accessibility (A11Y) features and testing procedures 
 
 All color combinations meet or exceed WCAG AA requirements:
 
-| Combination | Ratio | Requirement | Status | Usage |
-|-------------|-------|-------------|--------|-------|
-| `--text` (#e8ecef) on `--bg` (#0a0e0f) | **16.33:1** | 4.5:1 | ✅ **PASS** | Body text |
-| `--muted` (#8a9ba8) on `--bg` (#0a0e0f) | **6.77:1** | 4.5:1 | ✅ **PASS** | Secondary text |
-| `--text` (#e8ecef) on `--surface` (#151b1e) | **14.64:1** | 4.5:1 | ✅ **PASS** | Card/panel text |
-| `--muted` (#8a9ba8) on `--surface` (#151b1e) | **6.07:1** | 4.5:1 | ✅ **PASS** | Card secondary text |
-| `--primary` (#00ff88) on `--bg` (#0a0e0f) | **14.46:1** | 3.0:1 | ✅ **PASS** | Headings/buttons (large text) |
-| `--danger` (#ff4757) on `--bg` (#0a0e0f) | **5.81:1** | 4.5:1 | ✅ **PASS** | Error messages |
-| `--warning` (#ffa502) on `--bg` (#0a0e0f) | **9.82:1** | 4.5:1 | ✅ **PASS** | Warning messages |
-| `--info` (#3498db) on `--bg` (#0a0e0f) | **6.15:1** | 4.5:1 | ✅ **PASS** | Info messages |
+| Combination                                  | Ratio       | Requirement | Status      | Usage                         |
+| -------------------------------------------- | ----------- | ----------- | ----------- | ----------------------------- |
+| `--text` (#e8ecef) on `--bg` (#0a0e0f)       | **16.33:1** | 4.5:1       | ✅ **PASS** | Body text                     |
+| `--muted` (#8a9ba8) on `--bg` (#0a0e0f)      | **6.77:1**  | 4.5:1       | ✅ **PASS** | Secondary text                |
+| `--text` (#e8ecef) on `--surface` (#151b1e)  | **14.64:1** | 4.5:1       | ✅ **PASS** | Card/panel text               |
+| `--muted` (#8a9ba8) on `--surface` (#151b1e) | **6.07:1**  | 4.5:1       | ✅ **PASS** | Card secondary text           |
+| `--primary` (#00ff88) on `--bg` (#0a0e0f)    | **14.46:1** | 3.0:1       | ✅ **PASS** | Headings/buttons (large text) |
+| `--danger` (#ff4757) on `--bg` (#0a0e0f)     | **5.81:1**  | 4.5:1       | ✅ **PASS** | Error messages                |
+| `--warning` (#ffa502) on `--bg` (#0a0e0f)    | **9.82:1**  | 4.5:1       | ✅ **PASS** | Warning messages              |
+| `--info` (#3498db) on `--bg` (#0a0e0f)       | **6.15:1**  | 4.5:1       | ✅ **PASS** | Info messages                 |
 
 **Testing Script**: `node scripts/check-contrast.js`
 
@@ -67,7 +67,9 @@ The application respects the user's `prefers-reduced-motion` system preference:
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -81,17 +83,20 @@ The application respects the user's `prefers-reduced-motion` system preference:
 ### Testing Motion Sensitivity
 
 **macOS**:
+
 1. System Settings → Accessibility → Display
 2. Enable "Reduce motion"
 3. Reload the app
 4. Verify no smooth transitions or animations occur
 
 **Windows**:
+
 1. Settings → Ease of Access → Display
 2. Enable "Show animations in Windows"
 3. Reload the app
 
 **Browser DevTools** (Chrome/Edge):
+
 1. Open DevTools (F12)
 2. Press Cmd+Shift+P (Mac) or Ctrl+Shift+P (Windows/Linux)
 3. Type "Render" and select "Show Rendering"
@@ -141,6 +146,7 @@ A "Skip to main content" link is available for keyboard and screen reader users:
 6. Test form inputs with `Tab`, `Enter`, arrow keys
 
 **Tab Order Checklist**:
+
 - [ ] Skip link appears first on Tab
 - [ ] Navigation links follow logical order
 - [ ] Form inputs are reachable and focusable
@@ -154,6 +160,7 @@ A "Skip to main content" link is available for keyboard and screen reader users:
 ### 1. Lighthouse (Chrome DevTools)
 
 **How to Run**:
+
 1. Open Chrome DevTools (F12)
 2. Navigate to "Lighthouse" tab
 3. Select "Accessibility" category (can also run Performance + Best Practices)
@@ -162,6 +169,7 @@ A "Skip to main content" link is available for keyboard and screen reader users:
 **Target Score**: ≥ 90 (Accessibility)
 
 **Common Issues to Fix**:
+
 - Missing `alt` text on images
 - Insufficient color contrast (should be none with our current tokens!)
 - Missing ARIA labels on interactive elements
@@ -170,10 +178,12 @@ A "Skip to main content" link is available for keyboard and screen reader users:
 ### 2. axe DevTools (Browser Extension)
 
 **Installation**:
+
 - Chrome: [axe DevTools Extension](https://chrome.google.com/webstore/detail/axe-devtools-web-accessib/lhdoppojpmngadmnindnejefpokejbdd)
 - Firefox: [axe DevTools Add-on](https://addons.mozilla.org/en-US/firefox/addon/axe-devtools/)
 
 **How to Run**:
+
 1. Install the extension
 2. Open DevTools (F12)
 3. Navigate to "axe DevTools" tab
@@ -185,15 +195,17 @@ A "Skip to main content" link is available for keyboard and screen reader users:
    - **Minor**: Low priority
 
 **Best Practices**:
+
 - Fix all Critical and Serious issues before production
 - Document Moderate/Minor issues and prioritize in backlog
 - Re-scan after fixes to verify resolution
 
 ### 3. WebAIM Contrast Checker
 
-**Tool URL**: https://webaim.org/resources/contrastchecker/
+**Tool URL**: <https://webaim.org/resources/contrastchecker/>
 
 **How to Use**:
+
 1. Navigate to the contrast checker
 2. Enter foreground color (e.g., `#e8ecef` for `--text`)
 3. Enter background color (e.g., `#0a0e0f` for `--bg`)
@@ -207,21 +219,25 @@ Run `node scripts/check-contrast.js` to verify all semantic token combinations.
 ### 4. Screen Reader Testing
 
 **macOS VoiceOver**:
+
 1. Enable: Cmd+F5 or System Settings → Accessibility → VoiceOver
 2. Navigate: Control+Option+Arrow keys
 3. Activate: Control+Option+Space
 
 **Windows Narrator**:
+
 1. Enable: Windows+Ctrl+Enter
 2. Navigate: Caps Lock+Arrow keys
 3. Activate: Enter or Space
 
 **NVDA (Windows, free)**:
+
 1. Download from [nvaccess.org](https://www.nvaccess.org/download/)
 2. Navigate: Arrow keys, Tab, H (headings), L (links)
 3. Activate: Enter or Space
 
 **Testing Checklist**:
+
 - [ ] All interactive elements announced correctly
 - [ ] Form labels read aloud with inputs
 - [ ] Error messages announced when validation fails
@@ -267,17 +283,20 @@ Before deploying to production:
 ## 📚 Resources
 
 ### Official Guidance
+
 - [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
 - [MDN Accessibility](https://developer.mozilla.org/en-US/docs/Web/Accessibility)
 - [A11y Project Checklist](https://www.a11yproject.com/checklist/)
 
 ### Testing Tools
+
 - [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/)
 - [axe DevTools](https://www.deque.com/axe/devtools/)
 - [Lighthouse (Chrome DevTools)](https://developers.google.com/web/tools/lighthouse)
 - [WAVE Browser Extension](https://wave.webaim.org/extension/)
 
 ### Learning Resources
+
 - [WebAIM Articles](https://webaim.org/articles/)
 - [Inclusive Components](https://inclusive-components.design/)
 - [A11y Coffee](https://a11y.coffee/)
@@ -287,12 +306,15 @@ Before deploying to production:
 ## 🛠️ Scripts
 
 ### Contrast Audit
+
 ```bash
 node scripts/check-contrast.js
 ```
+
 Verifies all semantic token combinations meet WCAG AA contrast requirements.
 
 **Exit Codes**:
+
 - `0`: All tests passed
 - `1`: One or more tests failed
 
@@ -301,6 +323,7 @@ Verifies all semantic token combinations meet WCAG AA contrast requirements.
 ## 📝 Changelog
 
 ### v1.0.0 (December 2, 2025)
+
 - ✅ Initial WCAG AA compliance verified (all contrast ratios pass)
 - ✅ High-contrast mode implemented with toggle in navigation
 - ✅ `prefers-reduced-motion` support added

@@ -66,17 +66,17 @@ spec:
       containers:
         - name: otel-collector
           image: otel/opentelemetry-collector:0.79.0
-          args: ["--config=/etc/otel-collector-config/otel-collector-config.yaml"]
+          args: ['--config=/etc/otel-collector-config/otel-collector-config.yaml']
           ports:
             - containerPort: 4317 # OTLP gRPC
             - containerPort: 4318 # OTLP HTTP
           resources:
             requests:
-              cpu: "100m"
-              memory: "128Mi"
+              cpu: '100m'
+              memory: '128Mi'
             limits:
-              cpu: "500m"
-              memory: "512Mi"
+              cpu: '500m'
+              memory: '512Mi'
           volumeMounts:
             - name: config
               mountPath: /etc/otel-collector-config

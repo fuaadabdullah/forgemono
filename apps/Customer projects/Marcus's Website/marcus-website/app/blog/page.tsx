@@ -1,53 +1,58 @@
-import { Metadata } from "next";
-import Link from "next/link";
-import { Calendar, Clock } from "lucide-react";
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { Calendar, Clock } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: "Blog - Auto Repair Tips & Maintenance Advice",
-  description: "Expert auto repair advice, maintenance tips, and industry insights from Elbey Projects. Learn how to keep your vehicle running smoothly.",
+  title: 'Blog - Auto Repair Tips & Maintenance Advice',
+  description:
+    'Expert auto repair advice, maintenance tips, and industry insights from Elbey Projects. Learn how to keep your vehicle running smoothly.',
 };
 
 const blogPosts = [
   {
     id: 1,
-    title: "How to Tell If Your Suspension is Shot",
-    excerpt: "Learn the warning signs of suspension problems and why addressing them early saves you money and ensures safety.",
-    date: "2025-11-15",
-    readTime: "5 min read",
-    category: "Maintenance",
-    image: "/images/suspension-blog.jpg",
-    slug: "suspension-warning-signs"
+    title: 'How to Tell If Your Suspension is Shot',
+    excerpt:
+      'Learn the warning signs of suspension problems and why addressing them early saves you money and ensures safety.',
+    date: '2025-11-15',
+    readTime: '5 min read',
+    category: 'Maintenance',
+    image: '/images/suspension-blog.jpg',
+    slug: 'suspension-warning-signs',
   },
   {
     id: 2,
-    title: "What a Pre-Purchase Inspection Covers",
-    excerpt: "Complete guide to what our mechanics check during a vehicle pre-purchase inspection to protect your investment.",
-    date: "2025-11-10",
-    readTime: "7 min read",
-    category: "Buying",
-    image: "/images/inspection-blog.jpg",
-    slug: "pre-purchase-inspection-guide"
+    title: 'What a Pre-Purchase Inspection Covers',
+    excerpt:
+      'Complete guide to what our mechanics check during a vehicle pre-purchase inspection to protect your investment.',
+    date: '2025-11-10',
+    readTime: '7 min read',
+    category: 'Buying',
+    image: '/images/inspection-blog.jpg',
+    slug: 'pre-purchase-inspection-guide',
   },
   {
     id: 3,
-    title: "The Truth About Brake Pad Replacement",
-    excerpt: "When to replace brake pads, what to expect during service, and why quality matters for your safety.",
-    date: "2025-11-05",
-    readTime: "4 min read",
-    category: "Safety",
-    image: "/images/brakes-blog.jpg",
-    slug: "brake-pad-replacement-guide"
+    title: 'The Truth About Brake Pad Replacement',
+    excerpt:
+      'When to replace brake pads, what to expect during service, and why quality matters for your safety.',
+    date: '2025-11-05',
+    readTime: '4 min read',
+    category: 'Safety',
+    image: '/images/brakes-blog.jpg',
+    slug: 'brake-pad-replacement-guide',
   },
   {
     id: 4,
-    title: "Mobile Mechanic vs. Shop Service: Pros and Cons",
-    excerpt: "Understanding the benefits of mobile repair services and when traditional shop service might be better.",
-    date: "2025-10-30",
-    readTime: "6 min read",
-    category: "Service",
-    image: "/images/mobile-blog.jpg",
-    slug: "mobile-vs-shop-service"
-  }
+    title: 'Mobile Mechanic vs. Shop Service: Pros and Cons',
+    excerpt:
+      'Understanding the benefits of mobile repair services and when traditional shop service might be better.',
+    date: '2025-10-30',
+    readTime: '6 min read',
+    category: 'Service',
+    image: '/images/mobile-blog.jpg',
+    slug: 'mobile-vs-shop-service',
+  },
 ];
 
 export default function Blog() {
@@ -56,9 +61,7 @@ export default function Blog() {
       {/* Hero Section */}
       <section className="relative py-20 bg-gradient-to-b from-gray-900 to-black">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-            Auto Repair Blog
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">Auto Repair Blog</h1>
           <p className="text-xl text-gray-300 mb-8">
             Expert advice to keep your vehicle running smoothly
           </p>
@@ -70,13 +73,29 @@ export default function Blog() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-8">
             {blogPosts.map((post) => (
-              <article key={post.id} className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-red-600 transition-colors">
+              <article
+                key={post.id}
+                className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-red-600 transition-colors"
+              >
                 {/* Post Image */}
                 <div className="h-48 bg-gray-800 flex items-center justify-center overflow-hidden">
                   <picture>
-                    <source srcSet={`${post.image?.replace('.jpg','-256.webp')} 256w, ${post.image?.replace('.jpg','.webp')} 512w`} type="image/webp" />
-                    <source srcSet={`${post.image?.replace('.jpg','.avif')} 512w`} type="image/avif" />
-                    <img src={post.image} alt={post.title} className="w-full h-full object-cover" loading="lazy" width={720} height={320} />
+                    <source
+                      srcSet={`${post.image?.replace('.jpg', '-256.webp')} 256w, ${post.image?.replace('.jpg', '.webp')} 512w`}
+                      type="image/webp"
+                    />
+                    <source
+                      srcSet={`${post.image?.replace('.jpg', '.avif')} 512w`}
+                      type="image/avif"
+                    />
+                    <img
+                      src={post.image}
+                      alt={post.title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      width={720}
+                      height={320}
+                    />
                   </picture>
                 </div>
 

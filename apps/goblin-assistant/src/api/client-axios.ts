@@ -1,580 +1,150 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
-import { useAuthStore } from '../store/authStore';
+// Real implementation for apiClient using axios
 
-const API_BASE_URL = import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8001';
+import axios from 'axios';
 
-/**
- * Typed API client using axios with interceptors for auth and error handling
- */
-class ApiClient {
-  private client: AxiosInstance;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8003';
 
-  constructor(baseUrl: string = API_BASE_URL) {
-    this.client = axios.create({
-      baseURL: baseUrl,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      timeout: 30000, // 30 second timeout
+export const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor for logging
+apiClient.interceptors.request.use(
+  (config) => {
+    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    return config;
+  },
+  (error) => {
+    console.error('API Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for error handling
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log(`API Response: ${response.status} ${response.config.url}`);
+    return response;
+  },
+  (error) => {
+    console.error('API Response Error:', error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
+
+export const chatAPI = {
+  // Simple chat endpoint (recommended - uses /api/chat)
+  chat: async (messages: any[], model?: string) => {
+    const response = await apiClient.post('/api/chat', {
+      messages,
+      model,
+      stream: false,
     });
+    return response.data;
+  },
 
-    // Request interceptor: Add auth token
-    this.client.interceptors.request.use(
-      (config) => {
-        const token = useAuthStore.getState().token;
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
+  // Create a new conversation
+  createConversation: async (title?: string) => {
+    const response = await apiClient.post('/chat/conversations', {
+      title: title || 'New Conversation',
+    });
+    return response.data;
+  },
 
-    // Response interceptor: Handle auth errors
-    this.client.interceptors.response.use(
-      (response) => response,
-      (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          // Clear auth on 401 Unauthorized
-          useAuthStore.getState().clearAuth();
-        }
-        return Promise.reject(this.handleError(error));
+  // Get conversation list
+  getConversations: async (limit = 50) => {
+    const response = await apiClient.get('/chat/conversations', {
+      params: { limit },
+    });
+    return response.data;
+  },
+
+  // Get specific conversation
+  getConversation: async (conversationId: string) => {
+    const response = await apiClient.get(`/chat/conversations/${conversationId}`);
+    return response.data;
+  },
+
+  // Send message to conversation
+  sendMessage: async (
+    conversationId: string,
+    message: string,
+    provider?: string,
+    model?: string
+  ) => {
+    const response = await apiClient.post(
+      `/chat/conversations/${conversationId}/messages`,
+      {
+        message,
+        provider,
+        model,
+        stream: false,
       }
     );
-  }
-
-  private handleError(error: AxiosError): Error {
-    if (error.response) {
-      // Server responded with error status
-      const message = (error.response.data as any)?.detail || error.message;
-      return new Error(message);
-    } else if (error.request) {
-      // Request made but no response
-      return new Error('Network error: No response from server');
-    } else {
-      // Something else went wrong
-      return new Error(error.message);
-    }
-  }
-
-  // Generic request method
-  private async request<T>(config: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.request<T>(config);
     return response.data;
-  }
+  },
 
-  // ============ Health Endpoints ============
-  async getHealth() {
-    return this.request({ method: 'GET', url: '/health' });
-  }
-
-  async getStreamingHealth() {
-    return this.request({ method: 'GET', url: '/api/health/stream' });
-  }
-
-  async getAllHealth() {
-    return this.request({ method: 'GET', url: '/health/all' });
-  }
-
-  // ============ Dashboard Endpoints (Optimized) ============
-  async getDashboardStatus(): Promise<{
-    backend_api: { status: string; latency_ms?: number; error?: string; updated: string; details?: any };
-    vector_db: { status: string; latency_ms?: number; error?: string; updated: string; details?: any };
-    mcp_servers: { status: string; latency_ms?: number; error?: string; updated: string; details?: any };
-    rag_indexer: { status: string; latency_ms?: number; error?: string; updated: string; details?: any };
-    sandbox_runner: { status: string; latency_ms?: number; error?: string; updated: string; details?: any };
-    timestamp: string;
-  }> {
-    return this.request({ method: 'GET', url: '/api/dashboard/status' });
-  }
-
-  async getDashboardCosts(): Promise<{
-    total_cost: number;
-    cost_today: number;
-    cost_this_month: number;
-    by_provider: Record<string, number>;
-    timestamp: string;
-  }> {
-    return this.request({ method: 'GET', url: '/api/dashboard/costs' });
-  }
-
-  async getDashboardMetrics(service: string): Promise<{
-    service: string;
-    latency_history?: { timestamps: string[]; latencies: number[] };
-    avg_latency_ms?: number;
-    data_points?: number;
-    message?: string;
-    timestamp: string;
-  }> {
-    return this.request({ method: 'GET', url: `/api/dashboard/metrics/${service}` });
-  }
-
-  // Enhanced health endpoints for comprehensive monitoring (LEGACY - use dashboard endpoints instead)
-  async getChromaStatus(): Promise<{ status: string; collections: number; documents: number; last_check: string }> {
-    return this.request({ method: 'GET', url: '/health/chroma/status' });
-  }
-
-  async getMCPStatus(): Promise<{ status: string; servers: string[]; active_connections: number; last_check: string }> {
-    return this.request({ method: 'GET', url: '/health/mcp/status' });
-  }
-
-  async getRaptorStatus(): Promise<{ status: string; running: boolean; config_file: string; last_check: string }> {
-    return this.request({ method: 'GET', url: '/health/raptor/status' });
-  }
-
-  async getSandboxStatus(): Promise<{ status: string; active_jobs: number; queue_size: number; last_check: string }> {
-    return this.request({ method: 'GET', url: '/health/sandbox/status' });
-  }
-
-  async getCostTracking(): Promise<{ total_cost: number; cost_today: number; cost_this_month: number; by_provider: any }> {
-    return this.request({ method: 'GET', url: '/health/cost-tracking' });
-  }
-
-  async getLatencyHistory(service: string, hours: number = 24): Promise<{ timestamps: string[]; latencies: number[] }> {
-    return this.request({
-      method: 'GET',
-      url: `/health/latency-history/${service}`,
-      params: { hours },
+  // Contextual chat endpoint
+  contextualChat: async (
+    message: string,
+    userId?: string,
+    conversationId?: string,
+    provider?: string,
+    model?: string
+  ) => {
+    const response = await apiClient.post('/chat/contextual-chat', {
+      message,
+      user_id: userId,
+      conversation_id: conversationId,
+      provider,
+      model,
+      stream: false,
+      enable_context_assembly: true,
     });
-  }
+    return response.data;
+  },
 
-  async getServiceErrors(service: string, limit: number = 10): Promise<any[]> {
-    return this.request({
-      method: 'GET',
-      url: `/health/service-errors/${service}`,
-      params: { limit },
+  // OpenAI-compatible chat completions
+  chatCompletion: async (messages: any[], model?: string, stream = false) => {
+    const response = await apiClient.post('/chat/completions', {
+      messages,
+      model,
+      stream,
     });
-  }
+    return response.data;
+  },
 
-  async retestService(service: string): Promise<{ success: boolean; latency: number | null; message: string }> {
-    return this.request({
-      method: 'POST',
-      url: `/health/retest/${service}`,
+  // Update conversation title
+  updateConversationTitle: async (conversationId: string, title: string) => {
+    const response = await apiClient.put(`/chat/conversations/${conversationId}/title`, {
+      title,
     });
-  }
+    return response.data;
+  },
 
-  // ============ Authentication Endpoints ============
-  async register(email: string, password: string, turnstileToken?: string): Promise<{ access_token: string; token_type: string }> {
-    return this.request({
-      method: 'POST',
-      url: '/auth/register',
-      data: { email, password },
-      headers: turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {},
+  // Delete conversation
+  deleteConversation: async (conversationId: string) => {
+    const response = await apiClient.delete(`/chat/conversations/${conversationId}`);
+    return response.data;
+  },
+
+  // Health check
+  healthCheck: async () => {
+    const response = await apiClient.get('/health');
+    return response.data;
+  },
+
+  // Provider test
+  testProviderConnection: async (provider: string) => {
+    const response = await apiClient.post('/chat/test-provider', {
+      provider,
     });
-  }
+    return response.data;
+  },
+};
 
-  async login(email: string, password: string, turnstileToken?: string): Promise<{ access_token: string; token_type: string }> {
-    return this.request({
-      method: 'POST',
-      url: '/auth/login',
-      data: { email, password },
-      headers: turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {},
-    });
-  }
-
-  async loginWithGoogle(credential: string): Promise<{ access_token: string; token_type: string }> {
-    return this.request({
-      method: 'POST',
-      url: '/auth/google',
-      data: { credential },
-    });
-  }
-
-  async getGoogleAuthUrl(): Promise<{ url: string }> {
-    return this.request({ method: 'GET', url: '/auth/google/url' });
-  }
-
-  async googleCallback(code: string, state: string): Promise<{ access_token: string; token_type: string }> {
-    return this.request({
-      method: 'POST',
-      url: '/auth/google/callback',
-      data: { code, state },
-    });
-  }
-
-  async passkeyChallenge(email: string) {
-    return this.request({
-      method: 'POST',
-      url: '/auth/passkey/challenge',
-      data: { email },
-    });
-  }
-
-  async passkeyRegister(email: string, credential: any) {
-    return this.request({
-      method: 'POST',
-      url: '/auth/passkey/register',
-      data: { email, credential },
-    });
-  }
-
-  async passkeyAuth(email: string, assertion: any): Promise<{ access_token: string; token_type: string }> {
-    return this.request({
-      method: 'POST',
-      url: '/auth/passkey/auth',
-      data: { email, assertion },
-    });
-  }
-
-  async validateToken(token: string) {
-    return this.request({
-      method: 'POST',
-      url: '/auth/validate',
-      data: { token },
-    });
-  }
-
-  async logout() {
-    try {
-      await this.request({ method: 'POST', url: '/auth/logout' });
-    } finally {
-      useAuthStore.getState().clearAuth();
-    }
-  }
-
-  // ============ Chat Endpoints ============
-  async chatCompletion(messages: any[], model?: string, stream?: boolean, turnstileToken?: string) {
-    return this.request({
-      method: 'POST',
-      url: '/chat/completions',
-      data: { messages, model, stream },
-      headers: turnstileToken ? { 'X-Turnstile-Token': turnstileToken } : {},
-    });
-  }
-
-  async getAvailableModels(): Promise<any[]> {
-    return this.request({ method: 'GET', url: '/chat/models' });
-  }
-
-  async getRoutingInfo() {
-    return this.request({ method: 'GET', url: '/chat/routing-info' });
-  }
-
-  // ============ Routing Endpoints ============
-  async getProviders(capability?: string): Promise<any[]> {
-    const url = capability ? `/routing/providers/${capability}` : '/routing/providers';
-    return this.request({ method: 'GET', url });
-  }
-
-  async routeRequest(request: any) {
-    return this.request({
-      method: 'POST',
-      url: '/routing/route',
-      data: request,
-    });
-  }
-
-  async getRoutingHealth() {
-    return this.request({ method: 'GET', url: '/routing/health' });
-  }
-
-  // ============ Settings Endpoints ============
-  async getAllSettings(): Promise<{ providers: any; global_settings: any }> {
-    return this.request({ method: 'GET', url: '/settings/' });
-  }
-
-  async getProviderSettings(): Promise<any[]> {
-    // Legacy method - returns providers from getAllSettings
-    const settings = await this.getAllSettings();
-    return Object.values(settings.providers || {});
-  }
-
-  async updateProvider(providerNameOrId: string | number, data: any) {
-    // Accept both provider name (string) and ID (number) for backward compatibility
-    const providerName = typeof providerNameOrId === 'number' ? String(providerNameOrId) : providerNameOrId;
-    return this.request({
-      method: 'PUT',
-      url: `/settings/providers/${providerName}`,
-      data,
-    });
-  }
-
-  async updateModel(modelName: string, data: any) {
-    return this.request({
-      method: 'PUT',
-      url: `/settings/models/${modelName}`,
-      data,
-    });
-  }
-
-  async testConnection(providerName: string, apiKey?: string): Promise<{ success: boolean; message: string; latency?: number }> {
-    return this.request({
-      method: 'POST',
-      url: '/settings/test-connection',
-      params: { provider_name: providerName },
-      data: { api_key: apiKey },
-    });
-  }
-
-  async testProviderConnection(providerId: number): Promise<{ success: boolean; message: string; latency?: number }> {
-    // Legacy method - use testConnection with provider name lookup
-    // For now, return a placeholder that works with existing UI
-    return this.testConnection(String(providerId));
-  }
-
-  async testProviderWithPrompt(providerId: number, prompt: string): Promise<{
-    success: boolean;
-    message: string;
-    latency: number;
-    response?: string;
-    model_used?: string;
-  }> {
-    return this.request({
-      method: 'POST',
-      url: `/settings/providers/${providerId}/test-prompt`,
-      data: { prompt },
-    });
-  }
-
-  async reorderProviders(providerIds: number[]): Promise<{ success: boolean }> {
-    return this.request({
-      method: 'POST',
-      url: '/settings/providers/reorder',
-      data: { provider_ids: providerIds },
-    });
-  }
-
-  async setProviderPriority(providerId: number, priority: number, role?: 'primary' | 'fallback'): Promise<{ success: boolean }> {
-    return this.request({
-      method: 'POST',
-      url: `/settings/providers/${providerId}/priority`,
-      data: { priority, role },
-    });
-  }
-
-  async updateGlobalSetting(_key: string, _value: string) {
-    // Backend doesn't have this endpoint yet - return success for now
-    console.warn('updateGlobalSetting not implemented in backend');
-    return { success: true, message: 'Global settings update not implemented' };
-  }
-
-  async getModelConfigs(): Promise<any[]> {
-    // Legacy method - returns empty for now
-    console.warn('getModelConfigs not implemented in backend');
-    return [];
-  }
-
-  async getGlobalSettings(): Promise<any> {
-    // Legacy method - returns global_settings from getAllSettings
-    const settings = await this.getAllSettings();
-    return settings.global_settings || {};
-  }
-
-  async createCollection(_name: string, _description?: string) {
-    // Legacy method - not implemented in current backend
-    console.warn('createCollection not implemented in backend');
-    throw new Error('createCollection endpoint not available');
-  }
-
-  async searchDocuments(collectionIdOrName: number | string, query: string, _limit?: number): Promise<any[]> {
-    // Legacy method - maps to searchQuery, accepts both ID and name for backward compatibility
-    const collectionName = typeof collectionIdOrName === 'number' ? String(collectionIdOrName) : collectionIdOrName;
-    const result = await this.searchQuery(query, collectionName);
-    return result.results || [];
-  }
-
-  async indexDocument(collectionIdOrName: number | string, content: string, metadata?: any) {
-    // Legacy method - maps to addDocument, accepts both ID and name for backward compatibility
-    const collectionName = typeof collectionIdOrName === 'number' ? String(collectionIdOrName) : collectionIdOrName;
-    return this.addDocument(collectionName, { content, metadata });
-  }
-
-  // ============ Search Endpoints ============
-  async searchQuery(query: string, collectionName?: string): Promise<any> {
-    return this.request({
-      method: 'POST',
-      url: '/search/query',
-      data: { query, collection_name: collectionName },
-    });
-  }
-
-  async getCollections(): Promise<any[]> {
-    return this.request({ method: 'GET', url: '/search/collections' });
-  }
-
-  async getCollectionDocuments(collectionName: string): Promise<any[]> {
-    return this.request({
-      method: 'GET',
-      url: `/search/collections/${collectionName}/documents`,
-    });
-  }
-
-  async addDocument(collectionName: string, document: any) {
-    return this.request({
-      method: 'POST',
-      url: `/search/collections/${collectionName}/add`,
-      data: document,
-    });
-  }
-
-  // ============ API Keys Endpoints ============
-  async getApiKey(provider: string): Promise<any> {
-    return this.request({
-      method: 'GET',
-      url: `/api-keys/${provider}`,
-    });
-  }
-
-  async setApiKey(provider: string, apiKey: string, keyType: string = 'api_key') {
-    return this.request({
-      method: 'POST',
-      url: `/api-keys/${provider}`,
-      data: { api_key: apiKey, key_type: keyType },
-    });
-  }
-
-  async deleteApiKey(provider: string) {
-    return this.request({
-      method: 'DELETE',
-      url: `/api-keys/${provider}`,
-    });
-  }
-
-  // ============ RAPTOR Endpoints ============
-  async startRaptor() {
-    return this.request({ method: 'POST', url: '/raptor/start' });
-  }
-
-  async stopRaptor() {
-    return this.request({ method: 'POST', url: '/raptor/stop' });
-  }
-
-  async getRaptorLogs(limit?: number): Promise<any[]> {
-    return this.request({
-      method: 'POST',
-      url: '/raptor/logs',
-      data: { limit },
-    });
-  }
-
-  // ============ Sandbox Endpoints ============
-  async getSandboxJobs(): Promise<any[]> {
-    return this.request({ method: 'GET', url: '/sandbox/jobs' });
-  }
-
-  async getJobLogs(jobId: string) {
-    return this.request({ method: 'GET', url: `/sandbox/jobs/${jobId}/logs` });
-  }
-
-  async getJobArtifacts(jobId: string): Promise<any[]> {
-    return this.request({ method: 'GET', url: `/sandbox/jobs/${jobId}/artifacts` });
-  }
-
-  // ============ Debugger Endpoints ============
-  async getSuggestions(code: string, error: string) {
-    return this.request({
-      method: 'POST',
-      url: '/debugger/suggest',
-      data: { code, error },
-    });
-  }
-
-  // ============ Goblin Management ============
-  async getGoblins(): Promise<any[]> {
-    return this.request({ method: 'GET', url: '/api/goblins' });
-  }
-
-  async getGoblinHistory(goblinId: string, limit: number = 10): Promise<any[]> {
-    return this.request({
-      method: 'GET',
-      url: `/api/history/${goblinId}`,
-      params: { limit },
-    });
-  }
-
-  async getGoblinStats(goblinId: string) {
-    return this.request({ method: 'GET', url: `/api/stats/${goblinId}` });
-  }
-
-  // ============ Task Routing ============
-  async routeTask(taskData: {
-    task_type: string;
-    payload: any;
-    prefer_local?: boolean;
-    prefer_cost?: boolean;
-    max_retries?: number;
-    stream?: boolean;
-  }) {
-    return this.request({
-      method: 'POST',
-      url: '/api/route_task',
-      data: taskData,
-    });
-  }
-
-  // ============ Streaming Task Execution ============
-  async startStreamingTask(taskData: {
-    goblin: string;
-    task: string;
-    code?: string;
-    provider?: string;
-    model?: string;
-  }): Promise<{ stream_id: string; status: string }> {
-    return this.request({
-      method: 'POST',
-      url: '/api/route_task_stream_start',
-      data: taskData,
-    });
-  }
-
-  async pollStreamingTask(streamId: string) {
-    return this.request({
-      method: 'GET',
-      url: `/api/route_task_stream_poll/${streamId}`,
-    });
-  }
-
-  async cancelStreamingTask(streamId: string) {
-    return this.request({
-      method: 'POST',
-      url: `/api/route_task_stream_cancel/${streamId}`,
-    });
-  }
-
-  // ============ Orchestration ============
-  async createOrchestrationPlan(request: { text: string; default_goblin?: string }) {
-    return this.request({
-      method: 'POST',
-      url: '/execute/',
-      data: request,
-    });
-  }
-
-  async executeOrchestration(planId: string) {
-    return this.request({
-      method: 'POST',
-      url: '/execute/orchestrate/execute',
-      params: { plan_id: planId },
-    });
-  }
-
-  async parseOrchestration(request: { text: string }) {
-    return this.request({
-      method: 'POST',
-      url: '/execute/orchestrate/parse',
-      data: request,
-    });
-  }
-
-  async getOrchestrationPlan(planId: string) {
-    return this.request({
-      method: 'GET',
-      url: `/execute/orchestrate/plans/${planId}`,
-    });
-  }
-
-  async getExecutionStatus(taskId: string) {
-    return this.request({
-      method: 'GET',
-      url: `/execute/status/${taskId}`,
-    });
-  }
-
-  // ============ Streaming Endpoint (EventSource - not axios) ============
-  streamTaskExecution(taskId: string, goblin: string = 'default', task: string = 'default task'): EventSource {
-    const url = `${API_BASE_URL}/stream?task_id=${encodeURIComponent(taskId)}&goblin=${encodeURIComponent(goblin)}&task=${encodeURIComponent(task)}`;
-    return new EventSource(url);
-  }
-}
-
-export const apiClient = new ApiClient();
+export default apiClient;

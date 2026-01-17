@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+LOCKDIR="/tmp/goblinmini-docqa"
+PIDFILE="$LOCKDIR/goblin.pid"
+if [ -f "$PIDFILE" ]; then
+  pid=$(cat "$PIDFILE")
+  if ps -p "$pid" > /dev/null; then
+    echo "Running (pid $pid)"
+    exit 0
+  else
+    echo "PID file exists but process not running. Cleaning up."
+    rm -f "$PIDFILE"
+    exit 1
+  fi
+else
+  echo "Not running"
+  exit 1
+fi

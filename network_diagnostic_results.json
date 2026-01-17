@@ -1,0 +1,65 @@
+{
+  "ping_server1": {
+    "status": "reachable",
+    "ip": "192.175.23.150",
+    "ping_output": "round-trip min/avg/max/stddev = 9.327/10.177/10.942/0.662 ms",
+    "return_code": 0
+  },
+  "ping_server2": {
+    "status": "reachable",
+    "ip": "45.61.51.220",
+    "ping_output": "round-trip min/avg/max/stddev = 8.790/9.678/10.335/0.652 ms",
+    "return_code": 0
+  },
+  "port_8002_server1": {
+    "ip": "192.175.23.150",
+    "port": 8002,
+    "status": "open",
+    "error": null
+  },
+  "port_8000_server2": {
+    "ip": "45.61.51.220",
+    "port": 8000,
+    "status": "open",
+    "error": null
+  },
+  "http_server1_models": {
+    "url": "http://192.175.23.150:8002/api/tags",
+    "status": "success",
+    "http_status": 200,
+    "response_time": 0.022346973419189453,
+    "headers": {
+      "Content-Type": "application/json; charset=utf-8",
+      "Date": "Tue, 06 Jan 2026 20:41:32 GMT",
+      "Transfer-Encoding": "chunked"
+    }
+  },
+  "http_server2_health": {
+    "url": "http://45.61.51.220:8000/health",
+    "status": "success",
+    "http_status": 404,
+    "response_time": 0.03156304359436035,
+    "headers": {
+      "Date": "Tue, 06 Jan 2026 20:41:32 GMT",
+      "Server": "uvicorn",
+      "Content-Length": "22",
+      "Content-Type": "application/json"
+    }
+  },
+  "http_server2_chat": {
+    "url": "http://45.61.51.220:8000/v1/chat/completions",
+    "status": "failed",
+    "http_status": 503,
+    "response_time": 0.09948897361755371,
+    "response_data": "{\"detail\":\"All servers unavailable\"}"
+  },
+  "cross_server_analysis": {
+    "server1_direct_access": true,
+    "server2_direct_access": true,
+    "server2_chat_functional": false,
+    "routing_issue_confirmed": true,
+    "inference_available": true,
+    "router_authenticated": true,
+    "diagnosis": "Router can authenticate but cannot reach inference server"
+  }
+}

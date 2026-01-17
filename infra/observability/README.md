@@ -1,9 +1,11 @@
 ---
-description: "README"
+title: "README"
+description: "Observability manifests"
 ---
 
-Observability manifests
-======================
+
+
+# Observability manifests
 
 This folder contains kustomize-based manifests for a production-ready observability stack used by GoblinOS.
 
@@ -14,17 +16,15 @@ Components included (minimal, production-ready starting point):
 - Loki (log store)
 - Tempo (trace store)
 
-Security & assumptions
-----------------------
+## Security & assumptions
 
 - Assumes an Ingress controller is present (e.g., nginx-ingress).
 - TLS is handled via cert-manager; examples are provided but cert-manager installation is required.
 
-How to use
-----------
+## How to use
 
 1. Review and adapt image tags, storage classes, and resource sizes to your cluster.
-2. Use `kustomize build infra/observability | kubectl apply -f -` to deploy.
-3. Use `.github/workflows/observability-lint.yml` to lint manifests in CI.
+1. Use `kustomize build infra/observability | kubectl apply -f -` to deploy.
+1. Use `.github/workflows/observability-lint.yml` to lint manifests in CI.
 
 This folder is intentionally conservative. It provides a reproducible, linted baseline.

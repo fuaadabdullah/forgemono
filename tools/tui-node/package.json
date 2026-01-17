@@ -1,7 +1,7 @@
 {
   "name": "goblin-tui-node",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "scripts": {
     "start": "node index.js",
     "test": "bash test.sh"

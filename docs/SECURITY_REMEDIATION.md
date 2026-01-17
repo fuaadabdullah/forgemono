@@ -1,3 +1,8 @@
+---
+title: "SECURITY REMEDIATION"
+description: "Repo Secrets Remediation & Best Practices"
+---
+
 # Repo Secrets Remediation & Best Practices
 
 This document contains recommended steps to remediate exposed secrets, purge secrets from git history, rotate keys, and set automation to prevent future leaks.
@@ -5,7 +10,7 @@ This document contains recommended steps to remediate exposed secrets, purge sec
 ## Immediate Steps (High priority)
 
 1. Identify committed secrets
-   - We scanned for common patterns (sk-*, AIza*, AKIA*, `-----BEGIN PRIVATE KEY-----`, etc.). Replace any live keys in the repo with `REDACTED`.
+   - We scanned for common patterns (sk-_, AIza_, AKIA\*, `-----BEGIN PRIVATE KEY-----`, etc.). Replace any live keys in the repo with `REDACTED`.
 
 2. Rotate keys
    - For every real key found in commit history, rotate (regenerate) the key with the provider immediately.
@@ -22,7 +27,6 @@ This document contains recommended steps to remediate exposed secrets, purge sec
    - NOTE: This rewrites git history and requires a coordinated force-push and coordination with all collaborators.
 
 4. Remove root-level secrets and venvs
-
    - Delete committed `venv` directories and ensure they're listed in `.gitignore`.
    - Use `tools/clean_venv.sh` to find and untrack venvs.
 
@@ -60,15 +64,15 @@ This document contains recommended steps to remediate exposed secrets, purge sec
 
 ## Tools & Links
 
-- https://github.com/newren/git-filter-repo
-- https://rtyley.github.io/bfg-repo-cleaner/
-- https://github.com/zricethezav/gitleaks
-- https://pre-commit.com
+- <https://github.com/newren/git-filter-repo>
+- <https://rtyley.github.io/bfg-repo-cleaner/>
+- <https://github.com/zricethezav/gitleaks>
+- <https://pre-commit.com>
 
 ## Notes
 
 If you'd like, I can:
+
 - Draft a `git filter-repo` script to purge certain paths.
 - Create a GitHub Action to rotate keys as a follow-up automation (requires provider access).
 - Add pre-commit hooks for local dev.
-

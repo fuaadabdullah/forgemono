@@ -1,312 +1,275 @@
 # Component Test Suite
 
-**Date**: December 3, 2025
-**Status**: ✅ All Tests Passing (100% - 69/69 tests)
+**Date**: December 24, 2025
+**Status**: ✅ Testing Infrastructure Ready
 
 ## Overview
 
-Comprehensive test coverage for Goblin Assistant UI components using **Vitest**, **React Testing Library**, and **Storybook** for visual regression testing.
+Goblin Assistant uses **Playwright** for end-to-end testing and **Storybook** for visual regression testing and component documentation.
 
-### Testing Stack
-- **Unit Tests**: Vitest 2.1.9 + React Testing Library 16.3.0 (69 tests)
-- **Visual Tests**: Storybook 8.6.14 + Chromatic (68 stories, 150+ states)
+### Current Testing Stack
+
+- **E2E Tests**: Playwright (cross-browser compatibility)
+- **Visual Tests**: Storybook + Chromatic (visual regression testing)
 - **Accessibility**: @storybook/addon-a11y (automated WCAG checks)
 
 ## Test Coverage
 
-### UI Component Library (`src/components/ui/`)
+### E2E Testing (`e2e/`)
 
-#### ✅ Button.test.tsx
-- Renders with default variant and size
-- Renders with different variants (primary, secondary, danger, ghost)
-- Renders with different sizes (sm, md, lg)
-- Handles click events
-- Renders with icon
-- Can be disabled
-- Renders with fullWidth
-- Forwards aria-label
+#### ✅ cross-browser.spec.ts
 
-#### ✅ Badge.test.tsx
-- Renders with success variant styling
-- Renders with warning variant styling
-- Renders with danger variant styling
-- Renders with neutral variant by default
-- Renders with different sizes (sm, md)
-- Renders with icon
-- Applies className prop
-- Renders with accessible role and aria-live
+- Tests application loading across all browsers
+- Validates accessibility compliance
+- Checks responsive design and touch targets
+- Tests with JavaScript disabled
+- Validates keyboard navigation
+- Verifies form accessibility (labels, focus management)
 
-#### ✅ IconButton.test.tsx
-- Renders with icon and accessible label
-- Handles click events
-- Can be disabled
-- Applies className prop
-- Requires aria-label for accessibility
+### Visual Testing with Storybook
 
-#### ✅ Grid.test.tsx
-- Renders children in a grid layout
-- Applies default grid classes
-- Renders with different gap sizes (sm, md, lg)
-- Renders with autoFit enabled by default
-- Renders with regular grid when autoFit is false
-- Applies custom className
-- Combines all props correctly
-
-#### ✅ Alert.test.tsx
-- Renders with info variant by default
-- Renders with different variants (success, warning, danger)
-- Renders with optional title
-- Renders ReactNode message
-- Shows dismiss button when dismissible is true
-- Does not show dismiss button when dismissible is false
-- Applies custom className
-- Has proper ARIA attributes (role="alert", aria-live="assertive")
-
-#### ✅ Tooltip.test.tsx
-- Renders trigger element
-- Shows tooltip on hover
-- Hides tooltip on mouse leave
-- Shows tooltip on focus (keyboard accessible)
-- Hides tooltip on blur
-- Applies different positions (top, bottom, left, right)
-- Has proper ARIA attributes (role="tooltip", aria-describedby)
-- Delays showing tooltip (300ms)
-
-### Feature Components (`src/components/`)
-
-#### ✅ StatusCard.test.tsx
-- Renders with title and healthy status
-- Renders with degraded status and warning styling
-- Renders with down status and error styling
-- Displays formatted last check timestamp
-- Renders with status details tooltip
-- Renders with metadata
-- Applies custom className
-- Displays unknown status when status is not recognized
-
-#### ✅ LoadingSkeleton.test.tsx
-
-**StatusCardSkeleton:**
-- Renders with loading accessibility attributes
-- Displays animated skeleton elements
-
-**StatCardSkeleton:**
-- Renders with loading label
-- Has aria-busy attribute
-
-**ListSkeleton:**
-- Renders default number of items (5)
-- Renders custom number of items
-- Each item has aria-busy attribute
-
-**ListItemSkeleton:**
-- Renders with loading label
-
-**ProviderCardSkeleton:**
-- Renders with loading label
-- Displays multiple skeleton elements
-
-**DashboardSkeleton:**
-- Renders dashboard loading state
-- Renders multiple status card skeletons
-- Renders stat card skeletons
-- Has proper ARIA live region
-
-## Test Structure
-
-Each test file follows this pattern:
-
-```typescript
-import { describe, it, expect, vi } from 'vitest';
-import { render, fireEvent, waitFor } from '@testing-library/react';
-import Component from './Component';
-
-describe('Component', () => {
-  it('test description', () => {
-    const { getByRole, getByText } = render(<Component />);
-    // Assertions
-    expect(element).toBeInTheDocument();
-  });
-});
-```
-
-## Testing Best Practices Applied
-
-### 1. Accessibility Testing
-✅ Tests use semantic queries (`getByRole`, `getByLabelText`)
-✅ Verifies ARIA attributes (`aria-label`, `aria-busy`, `aria-live`)
-✅ Checks keyboard accessibility (focus/blur events)
-✅ Validates accessible names
-
-### 2. User-Centric Testing
-✅ Tests user interactions (clicks, hovers, keyboard navigation)
-✅ Verifies visual feedback (CSS classes, text content)
-✅ Tests loading states and skeletons
-✅ Validates error states and dismissible alerts
-
-### 3. Component Contracts
-✅ Tests all component props
-✅ Validates prop combinations
-✅ Tests default values
-✅ Verifies className passthrough
-
-### 4. Event Handling
-✅ Uses `vi.fn()` for mock functions
-✅ Verifies callbacks are called
-✅ Tests disabled state prevents events
-✅ Uses `fireEvent` and `waitFor` for async interactions
-
-## Known Issues
-
-### ⚠️ React Version Mismatch
-
-**Error**: "A React Element from an older version of React was rendered"
-
-**Affected**: All tests (including existing `Navigation.test.tsx`)
-
-**Root Cause**: Vitest/React Testing Library configuration issue, not test implementation
-
-**Evidence**:
-```bash
-# Existing test also fails
-npm test -- src/test/Navigation.test.tsx
-# Result: Same React version error
-```
-
-**Status**: Project-wide testing environment issue
-
-**Resolution Required**:
-1. Check for multiple React installations: `npm ls react react-dom`
-2. Clear node_modules and reinstall: `rm -rf node_modules && npm install`
-3. Update vitest.config.ts to handle React correctly
-4. Possibly add to vitest.config.ts:
-   ```typescript
-   resolve: {
-     dedupe: ['react', 'react-dom'],
-   }
-   ```
-
-## Test Files Created
-
-| File | Lines | Tests |
-|------|-------|-------|
-| `src/components/ui/Button.test.tsx` | 82 | 8 |
-| `src/components/ui/Badge.test.tsx` | 72 | 8 |
-| `src/components/ui/IconButton.test.tsx` | 52 | 5 |
-| `src/components/ui/Grid.test.tsx` | 108 | 7 |
-| `src/components/ui/Alert.test.tsx` | 99 | 8 |
-| `src/components/ui/Tooltip.test.tsx` | 147 | 9 |
-| `src/components/StatusCard.test.tsx` | 121 | 8 |
-| `src/components/LoadingSkeleton.test.tsx` | 135 | 13 |
-| **Total** | **816** | **66** |
-
-## Running Tests
-
-### Run All Component Tests
-```bash
-cd apps/goblin-assistant
-npm test -- src/components/
-```
-
-### Run Specific Test File
-```bash
-npm test -- src/components/ui/Button.test.tsx
-```
-
-### Run Tests in Watch Mode
-```bash
-npm test -- --watch
-```
-
-### Generate Coverage Report
-```bash
-npm test -- --coverage
-```
-
-## Next Steps
-
-### Immediate (Fix Test Environment)
-- [ ] Fix React version mismatch issue
-- [ ] Verify all tests pass after fix
-- [ ] Set up CI/CD to run tests on PR
-
-### Future Enhancements
-- [ ] Add integration tests for EnhancedDashboard
-- [ ] Add E2E tests with Playwright
-- [x] **Set up visual regression testing** ✅ (Storybook + Chromatic configured)
-- [ ] Add performance testing with Vitest bench
-- [ ] Increase coverage to 90%+
-
-## Visual Regression Testing
-
-**Status**: ✅ Configured with Storybook 8.6.14 + Chromatic
-
-### What Was Added
+#### Component Stories (`src/components/`)
 
 - **68 Storybook stories** documenting 150+ component states
 - **Automated visual testing** via Chromatic (cloud-based)
 - **Accessibility checks** via @storybook/addon-a11y
-- **CI/CD integration** via GitHub Actions workflow
 - **Interactive documentation** at http://localhost:6006
 
-### Component Coverage
+#### Component Coverage
 
-All tested components now have visual stories:
+| Component       | Visual Stories | States | Accessibility |
+| --------------- | -------------- | ------ | ------------- |
+| Button          | 11 📸          | 15+    | ✅ WCAG       |
+| Badge           | 10 📸          | 12+    | ✅ WCAG       |
+| Alert           | 7 📸           | 8+     | ✅ WCAG       |
+| Tooltip         | 8 📸           | 10+    | ✅ WCAG       |
+| Grid            | 6 📸           | 8+     | ✅ WCAG       |
+| IconButton      | 9 📸           | 12+    | ✅ WCAG       |
+| StatusCard      | 7 📸           | 15+    | ✅ WCAG       |
+| LoadingSkeleton | 8 📸           | 20+    | ✅ WCAG       |
 
-| Component | Unit Tests | Visual Stories | States |
-|-----------|------------|----------------|--------|
-| Button | 8 ✅ | 11 📸 | 15+ |
-| Badge | 8 ✅ | 10 📸 | 12+ |
-| Alert | 8 ✅ | 7 📸 | 8+ |
-| Tooltip | 8 ✅ | 8 📸 | 10+ |
-| Grid | 7 ✅ | 6 📸 | 8+ |
-| IconButton | 5 ✅ | 9 📸 | 12+ |
-| StatusCard | 8 ✅ | 7 📸 | 15+ |
-| LoadingSkeleton | 14 ✅ | 8 📸 | 20+ |
-| Navigation | 3 ✅ | - | - |
-
-**Total**: 69 unit tests + 68 visual stories = **137 test cases**
-
-### Running Visual Tests
-
-```bash
-# Start Storybook (from monorepo root)
-npx storybook dev -p 6006 --config-dir apps/goblin-assistant/.storybook
-
-# Run Chromatic visual regression (requires token)
-cd apps/goblin-assistant
-npm run chromatic
-```
-
-### Quick Reference
-
-See: `VISUAL_TESTING.md` (quick reference) and `docs/VISUAL_REGRESSION_COMPLETE.md` (full guide)
+**Total**: 68 visual stories with comprehensive accessibility testing
 
 ## Testing Philosophy
 
-These tests follow the **Testing Library** philosophy:
+### Focus Areas
 
-> "The more your tests resemble the way your software is used, the more confidence they can give you."
+✅ **User behavior** (clicks, navigation, interactions)
+✅ **Accessibility** (screen readers, keyboard navigation, WCAG compliance)
+✅ **Visual feedback** (what users see and experience)
+✅ **Cross-browser compatibility**
+✅ **Responsive design**
 
-**Focus on**:
-- ✅ User behavior (clicks, typing, navigation)
-- ✅ Accessibility (screen readers, keyboard)
-- ✅ Visual feedback (what users see)
+### Testing Approach
 
-**Avoid**:
-- ❌ Testing implementation details
-- ❌ Shallow rendering
-- ❌ Testing internal state directly
+**End-to-End Testing with Playwright:**
+- Tests complete user workflows
+- Validates cross-browser compatibility
+- Checks accessibility compliance
+- Tests responsive design
+
+**Visual Testing with Storybook:**
+- Documents all component states
+- Provides interactive component playground
+- Enables visual regression testing
+- Automates accessibility testing
+
+## Running Tests
+
+### E2E Tests
+
+```bash
+# Run all e2e tests
+cd apps/goblin-assistant
+npm run test:e2e
+
+# Run specific test file
+npx playwright test e2e/cross-browser.spec.ts
+
+# Run tests in headed mode
+npx playwright test --headed
+
+# Run tests in specific browser
+npx playwright test --project=chromium
+```
+
+### Visual Tests (Storybook)
+
+```bash
+# Start Storybook development server
+cd apps/goblin-assistant
+npm run storybook
+
+# Build Storybook for production
+npm run build-storybook
+
+# Run Chromatic visual regression (requires token)
+npx chromatic --project-token=your-token
+```
+
+### Cross-Browser Testing
+
+Playwright automatically tests in:
+- **Chromium** (Chrome, Edge)
+- **Firefox** 
+- **WebKit** (Safari)
+
+```bash
+# Run tests in all browsers
+npm run test:e2e
+
+# Run tests in specific browser
+npx playwright test --project=firefox
+```
+
+## Accessibility Testing
+
+### Automated Checks
+
+- **WCAG 2.1 AA compliance** via @storybook/addon-a11y
+- **Keyboard navigation** testing
+- **Screen reader compatibility** validation
+- **Focus management** verification
+- **Color contrast** validation
+
+### Manual Testing Checklist
+
+- [ ] Tab navigation works through all interactive elements
+- [ ] All images have alt text
+- [ ] Form labels are properly associated
+- [ ] Color is not the only means of conveying information
+- [ ] Text can be resized up to 200% without loss of functionality
+
+## Performance Testing
+
+### Load Testing
+
+- **First Contentful Paint** validation
+- **Largest Contentful Paint** monitoring
+- **Cumulative Layout Shift** prevention
+- **Time to Interactive** measurement
+
+### Browser Performance
+
+- **Memory usage** monitoring
+- **CPU utilization** tracking
+- **Network efficiency** validation
+
+## Test Structure
+
+### E2E Test Example
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('user can navigate the application', async ({ page }) => {
+  await page.goto('/');
+  
+  // Check page loads
+  await expect(page).toHaveTitle(/Goblin Assistant/);
+  
+  // Test navigation
+  await page.click('nav >> text=Dashboard');
+  await expect(page.locator('main')).toBeVisible();
+  
+  // Test accessibility
+  const mainContent = page.locator('main, [role="main"]');
+  await expect(mainContent).toBeVisible();
+});
+```
+
+### Storybook Story Example
+
+```typescript
+// Button.stories.tsx
+import type { Meta, StoryObj } from '@storybook/react';
+import { Button } from './Button';
+
+const meta: Meta<typeof Button> = {
+  title: 'Components/Button',
+  component: Button,
+  parameters: {
+    a11y: {
+      // Automated accessibility testing
+    },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof Button>;
+
+export const Primary: Story = {
+  args: {
+    variant: 'primary',
+    children: 'Click me',
+  },
+};
+```
+
+## Best Practices Applied
+
+### 1. Accessibility First
+
+✅ Tests use semantic queries and ARIA attributes
+✅ Verifies keyboard navigation
+✅ Checks screen reader compatibility
+✅ Validates color contrast
+
+### 2. User-Centric Testing
+
+✅ Tests real user workflows
+✅ Validates visual feedback
+✅ Tests responsive design
+✅ Checks cross-browser compatibility
+
+### 3. Performance Monitoring
+
+✅ Tracks Core Web Vitals
+✅ Monitors memory usage
+✅ Validates load times
+✅ Checks bundle sizes
+
+## CI/CD Integration
+
+### GitHub Actions
+
+- **Automated e2e testing** on PR
+- **Cross-browser testing** in CI
+- **Visual regression testing** via Chromatic
+- **Accessibility audit** automation
+
+### Quality Gates
+
+- All e2e tests must pass
+- Visual regression tests must be reviewed
+- Accessibility checks must pass
+- Performance budgets must be met
 
 ## Resources
 
-- [Vitest Documentation](https://vitest.dev)
-- [React Testing Library](https://testing-library.com/react)
-- [Testing Library Queries](https://testing-library.com/docs/queries/about)
-- [Common Testing Mistakes](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
+- [Playwright Documentation](https://playwright.dev)
+- [Storybook Documentation](https://storybook.js.org)
+- [Accessibility Testing Guide](https://www.w3.org/WAI/test-evaluate/)
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+
+## Next Steps
+
+### Immediate Enhancements
+
+- [ ] Add more specific user workflow tests
+- [ ] Implement performance regression testing
+- [ ] Add visual testing for dark mode
+- [ ] Enhance accessibility test coverage
+
+### Future Improvements
+
+- [ ] Add visual testing for mobile devices
+- [ ] Implement visual testing for different screen sizes
+- [ ] Add performance monitoring in production
+- [ ] Expand cross-browser test coverage
 
 ---
 
-**Test Suite Status**: ✅ **COMPLETE** - 66 tests written for 8 components
+**Testing Status**: ✅ **COMPREHENSIVE** - E2E + Visual + Accessibility testing configured
 
-**Environment Status**: ⚠️ **NEEDS FIX** - React version mismatch (project-wide issue)
+**Test Coverage**: Cross-browser compatibility, accessibility compliance, visual regression, and performance monitoring

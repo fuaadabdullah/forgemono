@@ -32,13 +32,41 @@ const __dirname = dirname(__filename);
 
 // Pages to audit
 const PAGES = [
-  { name: 'dashboard', url: 'http://localhost:3000/', description: 'Dashboard - Main landing page' },
-  { name: 'chat', url: 'http://localhost:3000/chat', description: 'Chat - AI conversation interface' },
-  { name: 'search', url: 'http://localhost:3000/search', description: 'Search - Find and filter content' },
-  { name: 'settings', url: 'http://localhost:3000/settings', description: 'Settings - Theme and provider config' },
-  { name: 'providers', url: 'http://localhost:3000/providers', description: 'Providers - API configuration' },
-  { name: 'logs', url: 'http://localhost:3000/logs', description: 'Logs - System activity terminal' },
-  { name: 'sandbox', url: 'http://localhost:3000/sandbox', description: 'Sandbox - Interactive demos' }
+  {
+    name: 'dashboard',
+    url: 'http://localhost:3000/',
+    description: 'Dashboard - Main landing page',
+  },
+  {
+    name: 'chat',
+    url: 'http://localhost:3000/chat',
+    description: 'Chat - AI conversation interface',
+  },
+  {
+    name: 'search',
+    url: 'http://localhost:3000/search',
+    description: 'Search - Find and filter content',
+  },
+  {
+    name: 'settings',
+    url: 'http://localhost:3000/settings',
+    description: 'Settings - Theme and provider config',
+  },
+  {
+    name: 'providers',
+    url: 'http://localhost:3000/providers',
+    description: 'Providers - API configuration',
+  },
+  {
+    name: 'logs',
+    url: 'http://localhost:3000/logs',
+    description: 'Logs - System activity terminal',
+  },
+  {
+    name: 'sandbox',
+    url: 'http://localhost:3000/sandbox',
+    description: 'Sandbox - Interactive demos',
+  },
 ];
 
 // Severity levels for reporting
@@ -47,7 +75,7 @@ const SEVERITY_EMOJI = {
   critical: '🔴',
   serious: '🟠',
   moderate: '🟡',
-  minor: '🔵'
+  minor: '🔵',
 };
 
 async function runAxeAudit(url, name, browser) {
@@ -66,10 +94,10 @@ async function runAxeAudit(url, name, browser) {
 
     // Categorize violations by severity
     const violationsBySeverity = {
-      critical: results.violations.filter(v => v.impact === 'critical'),
-      serious: results.violations.filter(v => v.impact === 'serious'),
-      moderate: results.violations.filter(v => v.impact === 'moderate'),
-      minor: results.violations.filter(v => v.impact === 'minor')
+      critical: results.violations.filter((v) => v.impact === 'critical'),
+      serious: results.violations.filter((v) => v.impact === 'serious'),
+      moderate: results.violations.filter((v) => v.impact === 'moderate'),
+      minor: results.violations.filter((v) => v.impact === 'minor'),
     };
 
     const totalViolations = results.violations.length;
@@ -77,17 +105,22 @@ async function runAxeAudit(url, name, browser) {
     const seriousCount = violationsBySeverity.serious.length;
 
     // Calculate score (100 - weighted violations)
-    const score = Math.max(0, 100 - (
-      criticalCount * 10 +
-      seriousCount * 5 +
-      violationsBySeverity.moderate.length * 2 +
-      violationsBySeverity.minor.length * 1
-    ));
+    const score = Math.max(
+      0,
+      100 -
+        (criticalCount * 10 +
+          seriousCount * 5 +
+          violationsBySeverity.moderate.length * 2 +
+          violationsBySeverity.minor.length * 1)
+    );
 
-    const status = totalViolations === 0 ? '✅' : criticalCount > 0 ? '🔴' : seriousCount > 0 ? '🟠' : '🟡';
+    const status =
+      totalViolations === 0 ? '✅' : criticalCount > 0 ? '🔴' : seriousCount > 0 ? '🟠' : '🟡';
 
     console.log(`${status} Score: ${score}/100`);
-    console.log(`   Total: ${totalViolations} | Critical: ${criticalCount} | Serious: ${seriousCount} | Moderate: ${violationsBySeverity.moderate.length} | Minor: ${violationsBySeverity.minor.length}`);
+    console.log(
+      `   Total: ${totalViolations} | Critical: ${criticalCount} | Serious: ${seriousCount} | Moderate: ${violationsBySeverity.moderate.length} | Minor: ${violationsBySeverity.minor.length}`
+    );
     console.log(`   Passed: ${results.passes.length} checks`);
 
     await page.close();
@@ -97,7 +130,7 @@ async function runAxeAudit(url, name, browser) {
       url,
       score,
       totalViolations,
-      violations: results.violations.map(v => ({
+      violations: results.violations.map((v) => ({
         id: v.id,
         impact: v.impact,
         description: v.description,
@@ -105,16 +138,16 @@ async function runAxeAudit(url, name, browser) {
         helpUrl: v.helpUrl,
         tags: v.tags,
         nodes: v.nodes.length,
-        nodeDetails: v.nodes.map(n => ({
+        nodeDetails: v.nodes.map((n) => ({
           html: n.html,
           target: n.target,
-          failureSummary: n.failureSummary
-        }))
+          failureSummary: n.failureSummary,
+        })),
       })),
       passes: results.passes.length,
       incomplete: results.incomplete.length,
       inapplicable: results.inapplicable.length,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   } catch (error) {
     console.error(`❌ Error auditing ${name}:`, error.message);
@@ -124,7 +157,7 @@ async function runAxeAudit(url, name, browser) {
       url,
       score: null,
       error: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 }
@@ -136,12 +169,12 @@ async function runAllAudits() {
 
   // Launch Chrome
   const chrome = await chromeLauncher.launch({
-    chromeFlags: ['--headless', '--disable-gpu', '--no-sandbox']
+    chromeFlags: ['--headless', '--disable-gpu', '--no-sandbox'],
   });
 
   const browser = await puppeteer.connect({
     browserURL: `http://localhost:${chrome.port}`,
-    defaultViewport: { width: 1350, height: 940 }
+    defaultViewport: { width: 1350, height: 940 },
   });
 
   const results = [];
@@ -151,7 +184,7 @@ async function runAllAudits() {
     results.push(result);
 
     // Small delay between audits
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   await browser.disconnect();
@@ -161,16 +194,21 @@ async function runAllAudits() {
 }
 
 function generateReport(results) {
-  const validResults = results.filter(r => r.score !== null);
-  const avgScore = validResults.length > 0
-    ? (validResults.reduce((sum, r) => sum + r.score, 0) / validResults.length).toFixed(1)
-    : 'N/A';
+  const validResults = results.filter((r) => r.score !== null);
+  const avgScore =
+    validResults.length > 0
+      ? (validResults.reduce((sum, r) => sum + r.score, 0) / validResults.length).toFixed(1)
+      : 'N/A';
 
   const totalViolations = validResults.reduce((sum, r) => sum + r.totalViolations, 0);
-  const criticalViolations = validResults.reduce((sum, r) =>
-    sum + r.violations.filter(v => v.impact === 'critical').length, 0);
-  const seriousViolations = validResults.reduce((sum, r) =>
-    sum + r.violations.filter(v => v.impact === 'serious').length, 0);
+  const criticalViolations = validResults.reduce(
+    (sum, r) => sum + r.violations.filter((v) => v.impact === 'critical').length,
+    0
+  );
+  const seriousViolations = validResults.reduce(
+    (sum, r) => sum + r.violations.filter((v) => v.impact === 'serious').length,
+    0
+  );
 
   const auditDate = new Date().toISOString().split('T')[0];
 
@@ -201,7 +239,7 @@ function generateReport(results) {
 
 `;
 
-  results.forEach(result => {
+  results.forEach((result) => {
     if (result.error) {
       markdown += `### ❌ ${result.name.charAt(0).toUpperCase() + result.name.slice(1)} Page
 
@@ -214,9 +252,14 @@ function generateReport(results) {
       return;
     }
 
-    const status = result.totalViolations === 0 ? '✅' :
-                   result.violations.some(v => v.impact === 'critical') ? '🔴' :
-                   result.violations.some(v => v.impact === 'serious') ? '🟠' : '🟡';
+    const status =
+      result.totalViolations === 0
+        ? '✅'
+        : result.violations.some((v) => v.impact === 'critical')
+          ? '🔴'
+          : result.violations.some((v) => v.impact === 'serious')
+            ? '🟠'
+            : '🟡';
 
     const pageTitle = result.name.charAt(0).toUpperCase() + result.name.slice(1);
 
@@ -243,13 +286,13 @@ function generateReport(results) {
 
     // Group violations by severity
     const bySeverity = {
-      critical: result.violations.filter(v => v.impact === 'critical'),
-      serious: result.violations.filter(v => v.impact === 'serious'),
-      moderate: result.violations.filter(v => v.impact === 'moderate'),
-      minor: result.violations.filter(v => v.impact === 'minor')
+      critical: result.violations.filter((v) => v.impact === 'critical'),
+      serious: result.violations.filter((v) => v.impact === 'serious'),
+      moderate: result.violations.filter((v) => v.impact === 'moderate'),
+      minor: result.violations.filter((v) => v.impact === 'minor'),
     };
 
-    SEVERITY_ORDER.forEach(severity => {
+    SEVERITY_ORDER.forEach((severity) => {
       const violations = bySeverity[severity];
       if (violations.length === 0) return;
 
@@ -259,7 +302,7 @@ function generateReport(results) {
         markdown += `**${index + 1}. ${v.help}** (${v.nodes} element${v.nodes > 1 ? 's' : ''})\n`;
         markdown += `- **Issue**: ${v.description}\n`;
         markdown += `- **Impact**: ${v.impact}\n`;
-        markdown += `- **WCAG**: ${v.tags.filter(t => t.startsWith('wcag')).join(', ')}\n`;
+        markdown += `- **WCAG**: ${v.tags.filter((t) => t.startsWith('wcag')).join(', ')}\n`;
         markdown += `- **Learn More**: [${v.id}](${v.helpUrl})\n`;
 
         // Show first affected element as example
@@ -403,16 +446,21 @@ async function main() {
     console.log(`✅ Report saved: ${reportPath}`);
 
     // Print summary
-    const validResults = results.filter(r => r.score !== null);
-    const avgScore = validResults.length > 0
-      ? (validResults.reduce((sum, r) => sum + r.score, 0) / validResults.length).toFixed(1)
-      : 0;
+    const validResults = results.filter((r) => r.score !== null);
+    const avgScore =
+      validResults.length > 0
+        ? (validResults.reduce((sum, r) => sum + r.score, 0) / validResults.length).toFixed(1)
+        : 0;
 
     const totalViolations = validResults.reduce((sum, r) => sum + r.totalViolations, 0);
-    const criticalCount = validResults.reduce((sum, r) =>
-      sum + r.violations.filter(v => v.impact === 'critical').length, 0);
-    const seriousCount = validResults.reduce((sum, r) =>
-      sum + r.violations.filter(v => v.impact === 'serious').length, 0);
+    const criticalCount = validResults.reduce(
+      (sum, r) => sum + r.violations.filter((v) => v.impact === 'critical').length,
+      0
+    );
+    const seriousCount = validResults.reduce(
+      (sum, r) => sum + r.violations.filter((v) => v.impact === 'serious').length,
+      0
+    );
 
     console.log(`\n📈 Average Score: ${avgScore}/100`);
     console.log(`📊 Total Violations: ${totalViolations}`);
@@ -430,7 +478,6 @@ async function main() {
     const jsonPath = join(__dirname, '../docs/axe-reports/audit-results.json');
     writeFileSync(jsonPath, JSON.stringify(results, null, 2), 'utf8');
     console.log(`📄 Raw data saved: ${jsonPath}`);
-
   } catch (error) {
     console.error('\n❌ Fatal error:', error);
     process.exit(1);

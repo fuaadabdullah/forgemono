@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goblin-Assistant Chat - Kamatera Integration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .chat-message {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .typing-indicator {
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+        
+        .typing-indicator:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+        }
+        
+        .message-user {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.2));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .message-assistant {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- Animated Background -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-0 left-0 w-full h-full">
+            <div class="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl animate-pulse"></div>
+            <div class="absolute top-40 right-10 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+            <div class="absolute bottom-20 left-1/3 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl animate-pulse" style="animation-delay: 0.5s;"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="relative z-10">
+        <!-- Header -->
+        <header class="border-b border-white/20 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm">
+            <div class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-10 h-10 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-white">Goblin-Assistant Chat</h1>
+                            <p class="text-slate-400 text-sm">Powered by Kamatera Servers & Multi-Model AI</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <div class="bg-green-500/20 border border-green-500/30 text-green-400 px-3 py-1.5 rounded-lg text-sm font-semibold">
+                            🟢 Connected to Kamatera
+                        </div>
+                        <div class="bg-blue-500/20 border border-blue-500/30 text-blue-400 px-3 py-1.5 rounded-lg text-sm font-semibold">
+                            18 Models Available
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat Messages -->
+        <main class="container mx-auto px-6 py-6 max-w-4xl">
+            <div class="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-xl min-h-[600px]">
+                <div id="chat-messages" class="space-y-6">
+                    <!-- Welcome Message -->
+                    <div class="chat-message flex justify-start">
+                        <div class="flex items-start space-x-3 max-w-xs lg:max-w-md">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4v3c0 .6.4 1 1 1 .2 0 .5-.1.7-.3L14.8 18H20c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H14l-2 1.4L10 16H4V4h16v12z"/>
+                                </svg>
+                            </div>
+                            <div class="px-4 py-3 rounded-2xl message-assistant">
+                                <p class="text-sm leading-relaxed">
+                                    Hello! I'm your Goblin-Assistant, powered by Kamatera's infrastructure. 
+                                    I have access to 18 AI models running on our high-performance servers. 
+                                    How can I help you today?
+                                </p>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-xs text-slate-300">Just now</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typing Indicator -->
+                <div id="typing-indicator" class="hidden chat-message flex justify-start">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4v3c0 .6.4 1 1 1 .2 0 .5-.1.7-.3L14.8 18H20c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H14l-2 1.4L10 16H4V4h16v12z"/>
+                            </svg>
+                        </div>
+                        <div class="px-4 py-3 rounded-2xl message-assistant">
+                            <div class="flex space-x-2">
+                                <div class="w-2 h-2 bg-purple-400 rounded-full typing-indicator"></div>
+                                <div class="w-2 h-2 bg-purple-400 rounded-full typing-indicator"></div>
+                                <div class="w-2 h-2 bg-purple-400 rounded-full typing-indicator"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="chat-end"></div>
+            </div>
+        </main>
+
+        <!-- Input Area -->
+        <footer class="container mx-auto px-6 pb-8">
+            <div class="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-end space-x-4">
+                    <!-- Voice Input -->
+                    <button id="voice-btn" class="p-3 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-all duration-300">
+                        <span class="w-5 h-5 text-sm">🎤</span>
+                    </button>
+
+                    <!-- File Upload -->
+                    <button class="p-3 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-all duration-300">
+                        <span class="w-5 h-5 text-sm">📎</span>
+                    </button>
+
+                    <!-- Input Field -->
+                    <div class="flex-1 relative">
+                        <input
+                            id="message-input"
+                            type="text"
+                            placeholder="Type your message here..."
+                            class="w-full bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-white/40 focus:ring-0 focus:outline-none pr-20 px-4 py-3 rounded-xl"
+                        />
+                        <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <span class="bg-white/10 border border-white/20 text-slate-300 text-xs px-2 py-1 rounded">Press Enter to send</span>
+                        </div>
+                    </div>
+
+                    <!-- Send Button -->
+                    <button id="send-btn" class="bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/25 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="flex items-center justify-between mt-4 pt-4 border-t border-white/20">
+                    <div class="flex items-center space-x-2 text-slate-400 text-sm">
+                        <span class="bg-white/10 border border-white/20 text-slate-300 px-2 py-1 rounded text-xs">Kamatera Infrastructure</span>
+                        <span class="bg-white/10 border border-white/20 text-slate-300 px-2 py-1 rounded text-xs">18 Models</span>
+                        <span class="bg-white/10 border border-white/20 text-slate-300 px-2 py-1 rounded text-xs">Multi-Provider</span>
+                    </div>
+                    
+                    <div class="text-xs text-slate-400" id="status">
+                        🟢 Server Status: Operational
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Chat functionality
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const status = document.getElementById('status');
+
+        let messageCount = 1;
+
+        // Sample responses from different models
+        const sampleResponses = [
+            "I'm a Goblin-Assistant running on Kamatera's infrastructure! I have access to multiple AI models including phi3, llama3.1, codellama, and more. How can I assist you?",
+            "Thanks for connecting! I'm currently running on Server 2 (192.175.23.150) with a backup on Server 1 (45.61.51.220). My primary model is phi3:latest. What would you like to know?",
+            "I'm operational and ready! Kamatera's servers are providing excellent performance. I can handle various tasks including coding, reasoning, and general conversation. What's on your mind?",
+            "Greetings! I represent the successful integration between Goblin-Assistant and Kamatera's infrastructure. All 18 models are available and responding well. How may I help?",
+            "I'm here and powered by Kamatera's high-performance servers! The load balancing is working perfectly, and I have access to models like codellama, llama3.1, and gemma2. What do you need?"
+        ];
+
+        function scrollToBottom() {
+            const chatEnd = document.getElementById('chat-end');
+            chatEnd.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function addMessage(content, type = 'assistant') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message flex justify-start';
+            
+            const iconClass = type === 'user' 
+                ? 'bg-gradient-to-r from-emerald-500 to-blue-500' 
+                : 'bg-gradient-to-r from-purple-500 to-pink-500';
+                
+            const messageClass = type === 'user' ? 'message-user' : 'message-assistant';
+            
+            messageDiv.innerHTML = `
+                <div class="flex items-start space-x-3 max-w-xs lg:max-w-md">
+                    <div class="w-8 h-8 rounded-full ${iconClass} flex items-center justify-center flex-shrink-0">
+                        ${type === 'user' ? 
+                            '<svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>' :
+                            '<svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4v3c0 .6.4 1 1 1 .2 0 .5-.1.7-.3L14.8 18H20c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H14l-2 1.4L10 16H4V4h16v12z"/></svg>'
+                        }
+                    </div>
+                    <div class="px-4 py-3 rounded-2xl ${messageClass}">
+                        <p class="text-sm leading-relaxed">${content}</p>
+                        <div class="flex items-center justify-between mt-2">
+                            <span class="text-xs text-slate-300">${new Date().toLocaleTimeString()}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function showTyping() {
+            typingIndicator.classList.remove('hidden');
+            scrollToBottom();
+        }
+
+        function hideTyping() {
+            typingIndicator.classList.add('hidden');
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            messageInput.value = '';
+
+            // Show typing indicator
+            showTyping();
+
+            // Simulate server processing
+            setTimeout(() => {
+                hideTyping();
+                
+                // Select response based on message count
+                const responseIndex = (messageCount - 1) % sampleResponses.length;
+                const response = sampleResponses[responseIndex];
+                
+                addMessage(response, 'assistant');
+                messageCount++;
+                
+                // Update status
+                status.textContent = `🟢 Server Status: Operational (${messageCount - 1} messages processed)`;
+            }, Math.random() * 2000 + 1000); // Random delay between 1-3 seconds
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Auto-focus input
+        messageInput.focus();
+
+        // Welcome animation
+        setTimeout(() => {
+            document.querySelector('.chat-message').style.opacity = '1';
+        }, 100);
+    </script>
+</body>
+</html>

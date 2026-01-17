@@ -1,12 +1,9 @@
----title: KEDA Autoscaling for Overmind
-type: reference
-project: GoblinOS/Overmind
-status: published
-owner: GoblinOS
-goblin_name: Overmind KEDA
-description: "README"
-
 ---
+title: "README"
+description: "KEDA Autoscaling"
+---
+
+
 
 # KEDA Autoscaling
 
@@ -55,11 +52,14 @@ kubectl get crd | grep keda
 ### Verify KEDA is Running
 
 ```bash
+
 # Check operator pods
 kubectl get pods -n keda
 
-# Should see:
+# Should see
+
 # keda-operator-<hash>
+
 # keda-metrics-apiserver-<hash>
 ```
 
@@ -87,19 +87,19 @@ spec:
 
   # Triggers
   triggers:
-  # Prometheus: LLM request rate
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus:9090
-      metricName: llm_requests_per_second
-      query: sum(rate(llm_request_total[1m]))
-      threshold: "10"  # Scale up if > 10 req/sec
+    # Prometheus: LLM request rate
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus:9090
+        metricName: llm_requests_per_second
+        query: sum(rate(llm_request_total[1m]))
+        threshold: '10' # Scale up if > 10 req/sec
 
-  # CPU fallback
-  - type: cpu
-    metricType: Utilization
-    metadata:
-      value: "70"
+    # CPU fallback
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: '70'
 ```
 
 ### Temporal Worker Autoscaling
@@ -122,19 +122,21 @@ spec:
   cooldownPeriod: 300
 
   triggers:
-  # Temporal queue depth (via Prometheus)
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus:9090
-      metricName: temporal_queue_depth
-      query: sum(temporal_task_queue_depth{task_queue="overmind-memory"})
-      threshold: "5"  # Scale if > 5 tasks pending
+    # Temporal queue depth (via Prometheus)
 
-  # Memory utilization
-  - type: memory
-    metricType: Utilization
-    metadata:
-      value: "80"
+    - type: prometheus
+      metadata:
+        serverAddress: <http://prometheus:9090>
+        metricName: temporal_queue_depth
+        query: sum(temporal_task_queue_depth{task_queue="overmind-memory"})
+        threshold: '5' # Scale if > 5 tasks pending
+
+    # Memory utilization
+
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: '80'
 ```
 
 ### API Server Autoscaling with NATS
@@ -157,19 +159,19 @@ spec:
   cooldownPeriod: 300
 
   triggers:
-  # NATS JetStream: routing decisions queue
-  - type: nats-jetstream
-    metadata:
-      natsServerMonitoringEndpoint: nats:8222
-      stream: routing-decisions
-      consumer: api-consumer
-      lagThreshold: "10"  # Scale if > 10 messages behind
+    # NATS JetStream: routing decisions queue
+    - type: nats-jetstream
+      metadata:
+        natsServerMonitoringEndpoint: nats:8222
+        stream: routing-decisions
+        consumer: api-consumer
+        lagThreshold: '10' # Scale if > 10 messages behind
 
-  # CPU utilization
-  - type: cpu
-    metricType: Utilization
-    metadata:
-      value: "70"
+    # CPU utilization
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: '70'
 ```
 
 ### Bridge Autoscaling (Dev with Scale-to-Zero)
@@ -188,16 +190,17 @@ spec:
   minReplicaCount: 0
   maxReplicaCount: 5
   pollingInterval: 30
-  cooldownPeriod: 600  # 10 min idle before scaling to 0
+  cooldownPeriod: 600 # 10 min idle before scaling to 0
 
   triggers:
-  # Prometheus: HTTP requests
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus:9090
-      metricName: http_requests_per_minute
-      query: sum(rate(http_requests_total{service="bridge"}[1m])) * 60
-      threshold: "1"  # Scale up if > 1 req/min
+    # Prometheus: HTTP requests
+
+    - type: prometheus
+      metadata:
+        serverAddress: <http://prometheus:9090>
+        metricName: http_requests_per_minute
+        query: sum(rate(http_requests_total{service="bridge"}[1m])) * 60
+        threshold: '1' # Scale up if > 1 req/min
 ```
 
 ## Advanced Patterns
@@ -225,26 +228,26 @@ spec:
         scaleDown:
           stabilizationWindowSeconds: 300
           policies:
-          - type: Percent
-            value: 50
-            periodSeconds: 60
+            - type: Percent
+              value: 50
+              periodSeconds: 60
 
   triggers:
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus:9090
-      query: sum(rate(llm_request_total[1m]))
-      threshold: "10"
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus:9090
+        query: sum(rate(llm_request_total[1m]))
+        threshold: '10'
 
-  - type: cpu
-    metricType: Utilization
-    metadata:
-      value: "70"
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: '70'
 
-  - type: memory
-    metricType: Utilization
-    metadata:
-      value: "80"
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: '80'
 ```
 
 ### Fallback Policy
@@ -264,15 +267,15 @@ spec:
   maxReplicaCount: 20
 
   fallback:
-    failureThreshold: 3  # Fail after 3 attempts
-    replicas: 5          # Scale to this if metrics unavailable
+    failureThreshold: 3 # Fail after 3 attempts
+    replicas: 5 # Scale to this if metrics unavailable
 
   triggers:
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus:9090
-      query: sum(rate(llm_request_total[1m]))
-      threshold: "10"
+    - type: prometheus
+      metadata:
+        serverAddress: <http://prometheus:9090>
+        query: sum(rate(llm_request_total[1m]))
+        threshold: '10'
 ```
 
 ### Custom Metrics from Prometheus
@@ -290,21 +293,21 @@ spec:
   maxReplicaCount: 20
 
   triggers:
-  # LLM cost per hour
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus:9090
-      metricName: llm_cost_per_hour
-      query: sum(rate(llm_cost_total[1h])) * 3600
-      threshold: "100"  # Scale if cost > $100/hr
+    # LLM cost per hour
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus:9090
+        metricName: llm_cost_per_hour
+        query: sum(rate(llm_cost_total[1h])) * 3600
+        threshold: '100' # Scale if cost > $100/hr
 
-  # Memory consolidation backlog
-  - type: prometheus
-    metadata:
-      serverAddress: http://prometheus:9090
-      metricName: memory_backlog
-      query: sum(memory_consolidation_queue_depth)
-      threshold: "50"
+    # Memory consolidation backlog
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus:9090
+        metricName: memory_backlog
+        query: sum(memory_consolidation_queue_depth)
+        threshold: '50'
 ```
 
 ## Monitoring
@@ -314,16 +317,21 @@ spec:
 KEDA exposes Prometheus metrics:
 
 ```bash
+
 # Port forward metrics endpoint
 kubectl port-forward -n keda svc/keda-operator-metrics-apiserver 8080:8080
 
 # Query metrics
-curl http://localhost:8080/metrics | grep keda
+curl <http://localhost:8080/metrics> | grep keda
 
-# Key metrics:
+# Key metrics
+
 # keda_scaler_errors_total
+
 # keda_scaled_object_paused
+
 # keda_scaler_metrics_value
+
 # keda_scaled_object_errors
 ```
 
@@ -341,6 +349,7 @@ Import KEDA dashboard (ID: 18172):
 ### ScaledObject not scaling
 
 ```bash
+
 # Check ScaledObject status
 kubectl describe scaledobject <name> -n <namespace>
 
@@ -366,6 +375,7 @@ kubectl run -it --rm curl --image=curlimages/curl --restart=Never -- \
 ### Scale-to-zero not working
 
 ```bash
+
 # Check cooldown period elapsed
 kubectl describe scaledobject <name> -n <namespace> | grep -A5 Conditions
 
@@ -376,12 +386,12 @@ kubectl get --raw /apis/external.metrics.k8s.io/v1beta1
 ## Best Practices
 
 1. **Start conservative** - Begin with higher thresholds, adjust based on load
-2. **Use fallback policies** - Handle metric unavailability gracefully
-3. **Set appropriate cooldown** - Prevent flapping (300-600s recommended)
-4. **Combine triggers** - Use both custom metrics and CPU/memory
-5. **Monitor KEDA metrics** - Watch for scaler errors
-6. **Test scale-to-zero** - Verify activation from zero replicas
-7. **Use stabilization windows** - Smooth out rapid changes
+1. **Use fallback policies** - Handle metric unavailability gracefully
+1. **Set appropriate cooldown** - Prevent flapping (300-600s recommended)
+1. **Combine triggers** - Use both custom metrics and CPU/memory
+1. **Monitor KEDA metrics** - Watch for scaler errors
+1. **Test scale-to-zero** - Verify activation from zero replicas
+1. **Use stabilization windows** - Smooth out rapid changes
 
 ## Migration from HPA
 
@@ -396,6 +406,7 @@ kubectl get hpa --all-namespaces
 For each HPA, create equivalent ScaledObject:
 
 ```yaml
+
 # Old HPA
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -405,6 +416,7 @@ spec:
   minReplicas: 2
   maxReplicas: 20
   metrics:
+
   - type: Resource
     resource:
       name: cpu
@@ -423,6 +435,7 @@ spec:
   minReplicaCount: 2
   maxReplicaCount: 20
   triggers:
+
   - type: cpu
     metricType: Utilization
     metadata:

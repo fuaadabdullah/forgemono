@@ -9,49 +9,49 @@ spec:
     type: RollingSync
     rollingSync:
       steps:
-      - matchExpressions:
-        - key: env
-          operator: In
-          values: [dev]
-      - matchExpressions:
-        - key: env
-          operator: In
-          values: [staging]
-      - matchExpressions:
-        - key: env
-          operator: In
-          values: [prod]
+        - matchExpressions:
+            - key: env
+              operator: In
+              values: [dev]
+        - matchExpressions:
+            - key: env
+              operator: In
+              values: [staging]
+        - matchExpressions:
+            - key: env
+              operator: In
+              values: [prod]
 
   # Generators define which applications to create
   generators:
-  - list:
-      elements:
-      # Development environment
-      - env: dev
-        revision: main
-        namespace: overmind-dev
-        autoSync: "true"
-        prune: "true"
-        selfHeal: "true"
-        replicas: "1"
+    - list:
+        elements:
+          # Development environment
+          - env: dev
+            revision: main
+            namespace: overmind-dev
+            autoSync: 'true'
+            prune: 'true'
+            selfHeal: 'true'
+            replicas: '1'
 
-      # Staging environment
-      - env: staging
-        revision: main
-        namespace: overmind-staging
-        autoSync: "true"
-        prune: "true"
-        selfHeal: "true"
-        replicas: "2"
+          # Staging environment
+          - env: staging
+            revision: main
+            namespace: overmind-staging
+            autoSync: 'true'
+            prune: 'true'
+            selfHeal: 'true'
+            replicas: '2'
 
-      # Production environment
-      - env: prod
-        revision: release/v1.0
-        namespace: overmind-prod
-        autoSync: "false"  # Manual sync for production
-        prune: "true"
-        selfHeal: "true"
-        replicas: "3"
+          # Production environment
+          - env: prod
+            revision: release/v1.0
+            namespace: overmind-prod
+            autoSync: 'false' # Manual sync for production
+            prune: 'true'
+            selfHeal: 'true'
+            replicas: '3'
 
   # Template for generating applications
   template:
@@ -73,13 +73,13 @@ spec:
         path: 'infra/overlays/{{env}}'
         kustomize:
           version: v5.0.0
-          buildOptions: "--enable-alpha-plugins --enable-exec"
+          buildOptions: '--enable-alpha-plugins --enable-exec'
           # Override replicas per environment
           replicas:
-          - name: overmind-api
-            count: '{{replicas}}'
-          - name: overmind-bridge
-            count: '{{replicas}}'
+            - name: overmind-api
+              count: '{{replicas}}'
+            - name: overmind-bridge
+              count: '{{replicas}}'
 
       destination:
         server: https://kubernetes.default.svc
@@ -91,9 +91,9 @@ spec:
           selfHeal: '{{selfHeal}}'
           allowEmpty: false
         syncOptions:
-        - CreateNamespace=true
-        - PrunePropagationPolicy=foreground
-        - PruneLast=true
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+          - PruneLast=true
         retry:
           limit: 5
           backoff:
@@ -102,9 +102,9 @@ spec:
             maxDuration: 3m
 
       ignoreDifferences:
-      - group: apps
-        kind: Deployment
-        jsonPointers:
-        - /spec/replicas
+        - group: apps
+          kind: Deployment
+          jsonPointers:
+            - /spec/replicas
 
       revisionHistoryLimit: 10

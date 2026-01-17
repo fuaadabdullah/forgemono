@@ -10,16 +10,16 @@ export default defineConfig({
   use: {
     baseURL: process.env.BASE_URL || 'http://127.0.0.1:3000',
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure'
+    screenshot: 'only-on-failure',
   },
   webServer: {
     command: 'npm run start',
     cwd: path.resolve(__dirname, '..'),
     reuseExistingServer: true,
-    port: 3000
+    port: 3000,
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] } }
-  ]
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+  ],
 });

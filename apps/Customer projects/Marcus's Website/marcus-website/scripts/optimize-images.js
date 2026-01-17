@@ -12,7 +12,9 @@ const path = require('path');
 
 async function main() {
   const publicImages = path.join(__dirname, '..', 'public', 'images');
-  const files = fs.readdirSync(publicImages).filter(f => f.endsWith('.jpg') || f.endsWith('.jpeg') || f.endsWith('.png'));
+  const files = fs
+    .readdirSync(publicImages)
+    .filter((f) => f.endsWith('.jpg') || f.endsWith('.jpeg') || f.endsWith('.png'));
   if (!files.length) {
     console.warn('No images found in public/images; skipping optimization.');
     return;
@@ -22,7 +24,9 @@ async function main() {
   try {
     sharp = require('sharp');
   } catch (err) {
-    console.warn('`sharp` is not installed. To enable image optimization, install it with `npm i -D sharp` and rerun this script.');
+    console.warn(
+      '`sharp` is not installed. To enable image optimization, install it with `npm i -D sharp` and rerun this script.'
+    );
     return;
   }
 

@@ -2,7 +2,7 @@ name: Sandbox Security Checks
 
 on:
   push:
-    branches: [ main, feat/raptor-debug-router ]
+    branches: [main, feat/raptor-debug-router]
     paths:
       - 'goblin-assistant/api/fastapi/sandbox_runner.py'
       - 'goblin-assistant/api/fastapi/test_sandbox_runner.py'

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link';
 
 export default function Footer() {
   return (
@@ -9,8 +9,14 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center space-x-2 mb-4">
               <picture>
-                <source srcSet="/images/elbeylogo.avif 1x, /images/elbeylogo.avif 2x" type="image/avif" />
-                <source srcSet="/images/elbeylogo-256.webp 1x, /images/elbeylogo.webp 2x" type="image/webp" />
+                <source
+                  srcSet="/images/elbeylogo.avif 1x, /images/elbeylogo.avif 2x"
+                  type="image/avif"
+                />
+                <source
+                  srcSet="/images/elbeylogo-256.webp 1x, /images/elbeylogo.webp 2x"
+                  type="image/webp"
+                />
                 <img
                   src="/images/elbeylogo.jpg"
                   srcSet="/images/elbeylogo-256.webp 256w, /images/elbeylogo.webp 512w"
@@ -37,16 +43,28 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4">Quick Links</h3>
             <div className="space-y-2">
-              <Link href="/about" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <Link
+                href="/about"
+                className="block text-gray-400 hover:text-red-400 transition-colors text-sm"
+              >
                 About Us
               </Link>
-              <Link href="/services" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <Link
+                href="/services"
+                className="block text-gray-400 hover:text-red-400 transition-colors text-sm"
+              >
                 Services
               </Link>
-              <Link href="/gallery" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <Link
+                href="/gallery"
+                className="block text-gray-400 hover:text-red-400 transition-colors text-sm"
+              >
                 Gallery
               </Link>
-              <Link href="/contact" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <Link
+                href="/contact"
+                className="block text-gray-400 hover:text-red-400 transition-colors text-sm"
+              >
                 Contact
               </Link>
             </div>
@@ -56,16 +74,28 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4">Services</h3>
             <div className="space-y-2">
-              <Link href="/services" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <Link
+                href="/services"
+                className="block text-gray-400 hover:text-red-400 transition-colors text-sm"
+              >
                 Oil Changes
               </Link>
-              <Link href="/services" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <Link
+                href="/services"
+                className="block text-gray-400 hover:text-red-400 transition-colors text-sm"
+              >
                 Brake Repair
               </Link>
-              <Link href="/services" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <Link
+                href="/services"
+                className="block text-gray-400 hover:text-red-400 transition-colors text-sm"
+              >
                 Engine Service
               </Link>
-              <Link href="/services" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <Link
+                href="/services"
+                className="block text-gray-400 hover:text-red-400 transition-colors text-sm"
+              >
                 Diagnostics
               </Link>
             </div>
@@ -75,16 +105,28 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4">Legal</h3>
             <div className="space-y-2">
-              <Link href="/privacy" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <Link
+                href="/privacy"
+                className="block text-gray-400 hover:text-red-400 transition-colors text-sm"
+              >
                 Privacy Policy
               </Link>
-              <Link href="/terms" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <Link
+                href="/terms"
+                className="block text-gray-400 hover:text-red-400 transition-colors text-sm"
+              >
                 Terms of Service
               </Link>
-              <Link href="/faq" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <Link
+                href="/faq"
+                className="block text-gray-400 hover:text-red-400 transition-colors text-sm"
+              >
                 FAQ
               </Link>
-              <Link href="/sitemap" className="block text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <Link
+                href="/sitemap"
+                className="block text-gray-400 hover:text-red-400 transition-colors text-sm"
+              >
                 Sitemap
               </Link>
             </div>

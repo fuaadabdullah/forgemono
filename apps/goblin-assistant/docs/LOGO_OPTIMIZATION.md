@@ -14,6 +14,7 @@ The Goblin Assistant logo system is fully optimized with theme-adaptive SVGs, mu
 ## Logo Component
 
 ### Location
+
 `src/components/Logo.tsx`
 
 ### Usage
@@ -35,12 +36,12 @@ import Logo from './components/Logo';
 
 ### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Logo size (16px to 64px) |
-| `variant` | `'full' \| 'simple' \| 'emoji'` | `'full'` | Logo complexity level |
-| `animated` | `boolean` | `true` | Enable hover glow animation |
-| `className` | `string` | `''` | Additional CSS classes |
+| Prop        | Type                                   | Default  | Description                 |
+| ----------- | -------------------------------------- | -------- | --------------------------- |
+| `size`      | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'`   | Logo size (16px to 64px)    |
+| `variant`   | `'full' \| 'simple' \| 'emoji'`        | `'full'` | Logo complexity level       |
+| `animated`  | `boolean`                              | `true`   | Enable hover glow animation |
+| `className` | `string`                               | `''`     | Additional CSS classes      |
 
 ### Size Reference
 
@@ -61,6 +62,7 @@ import Logo from './components/Logo';
 ## SVG Assets
 
 ### Main Logo (`src/assets/logo.svg`)
+
 - **Size**: ~2.5KB (optimized)
 - **Features**:
   - Goblin face with expressive eyes
@@ -71,6 +73,7 @@ import Logo from './components/Logo';
 - **Best For**: Medium to large sizes (≥ 32px)
 
 ### Simple Logo (`src/assets/logo-simple.svg`)
+
 - **Size**: ~1.2KB (optimized)
 - **Features**:
   - Simplified face
@@ -80,12 +83,14 @@ import Logo from './components/Logo';
 - **Best For**: Small sizes (< 32px), favicons
 
 ### Favicon (`public/favicon.svg`)
+
 - **Size**: 32×32px
 - **Features**: Optimized for browser tabs
 - **Colors**: Static (purple primary, amber accent)
 - **Format**: SVG with embedded styles
 
 ### Apple Touch Icon (`public/apple-touch-icon.svg`)
+
 - **Size**: 180×180px
 - **Features**: iOS/macOS bookmark icon
 - **Colors**: Static with rounded corners
@@ -100,6 +105,7 @@ import Logo from './components/Logo';
 All logos reference theme tokens from `src/theme/index.css`:
 
 ```css
+
 var(--color-bg)              /* Background */
 var(--color-surface)         /* Surface */
 var(--color-surface-active)  /* Active surface */
@@ -112,12 +118,12 @@ var(--color-brand-secondary) /* Brand secondary (amber) */
 
 ### Theme Behavior
 
-| Theme | Primary Color | Accent Color | Glow Effect |
-|-------|---------------|--------------|-------------|
-| Default | Purple (#7C3AED) | Amber (#F59E0B) | Soft purple glow |
-| Nocturne | Blue (#3B82F6) | Cyan (#06B6D4) | Cool blue glow |
-| Ember | Orange (#F97316) | Red (#EF4444) | Warm orange glow |
-| High-Contrast | Purple (brighter) | Amber (brighter) | Enhanced glow |
+| Theme         | Primary Color     | Accent Color     | Glow Effect      |
+| ------------- | ----------------- | ---------------- | ---------------- |
+| Default       | Purple (#7C3AED)  | Amber (#F59E0B)  | Soft purple glow |
+| Nocturne      | Blue (#3B82F6)    | Cyan (#06B6D4)   | Cool blue glow   |
+| Ember         | Orange (#F97316)  | Red (#EF4444)    | Warm orange glow |
+| High-Contrast | Purple (brighter) | Amber (brighter) | Enhanced glow    |
 
 ---
 
@@ -126,35 +132,47 @@ var(--color-brand-secondary) /* Brand secondary (amber) */
 ### CSS Classes
 
 #### `.logo-transition`
+
 Basic hover effect with scale and glow:
+
 ```css
 .logo-transition {
-  transition: filter 0.3s ease, transform 0.3s ease;
+  transition:
+    filter 0.3s ease,
+    transform 0.3s ease;
 }
 
 .logo-transition:hover {
   transform: scale(1.05);
   filter: drop-shadow(0 0 12px var(--color-brand-primary))
-         drop-shadow(0 0 20px var(--color-brand-primary));
+    drop-shadow(0 0 20px var(--color-brand-primary));
 }
 ```
 
 #### `.logo-animated`
+
 Enhanced animation with pulse effect:
+
 ```css
 .logo-animated:hover {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
 @keyframes pulse-glow {
-  0%, 100% { filter: drop-shadow(0 0 8px var(--color-brand-primary)); }
-  50% { filter: drop-shadow(0 0 16px var(--color-brand-primary)); }
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px var(--color-brand-primary));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px var(--color-brand-primary));
+  }
 }
 ```
 
 ### Accessibility
 
 All animations respect user preferences:
+
 ```css
 @media (prefers-reduced-motion: reduce) {
   .logo-transition,
@@ -182,7 +200,7 @@ import Logo from './Logo';
 <Link to="/" className="flex items-center space-x-2">
   <Logo size="sm" variant="simple" animated />
   <span className="text-lg font-semibold">Goblin Assistant</span>
-</Link>
+</Link>;
 ```
 
 ### Hero Section
@@ -208,7 +226,7 @@ import Logo from './Logo';
 ```tsx
 <Logo
   size="lg"
-  variant="emoji"  // Guaranteed to work even if SVGs fail
+  variant="emoji" // Guaranteed to work even if SVGs fail
   animated={false}
 />
 ```
@@ -241,45 +259,52 @@ apps/goblin-assistant/
 ### SVG Optimization
 
 ✅ **Minimal file size**:
+
 - Full logo: ~2.5KB
 - Simple logo: ~1.2KB
 - Favicon: ~0.8KB
 - Apple icon: ~1.5KB
 
 ✅ **No external dependencies**:
+
 - Self-contained SVG
 - No external fonts
 - No raster images
 
 ✅ **Clean markup**:
+
 - Semantic grouping
 - Descriptive titles
 - Accessible attributes
 
 ### Performance Impact
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| Initial load | ~167KB | ~170KB | +3KB (+1.8%) |
-| Navigation | Emoji | SVG | Visual upgrade |
+| Metric          | Before | After   | Change            |
+| --------------- | ------ | ------- | ----------------- |
+| Initial load    | ~167KB | ~170KB  | +3KB (+1.8%)      |
+| Navigation      | Emoji  | SVG     | Visual upgrade    |
 | Theme switching | Static | Dynamic | No rebuild needed |
 
 ### Accessibility Features
 
 ✅ **Screen Readers**:
+
 - All logos have descriptive `alt` text
 - SVG `<title>` elements for context
 - Emoji variant as ultimate fallback
 
 ✅ **Keyboard Navigation**:
+
 - Logo in navigation is fully keyboard accessible
 - Focus states visible with theme colors
 
 ✅ **Reduced Motion**:
+
 - Animations disabled when user prefers reduced motion
 - Static logo maintains functionality
 
 ✅ **High Contrast**:
+
 - Logo colors automatically enhance in high-contrast mode
 - 21:1 contrast ratios maintained
 
@@ -401,6 +426,7 @@ Colors are controlled by theme system. To change logo colors:
 Run verification script after any logo changes:
 
 ```bash
+
 node scripts/verify-logo-optimization.js
 ```
 
@@ -411,6 +437,7 @@ Expected output: 18/18 checks passing ✅
 **Status**: ✅ **PRODUCTION READY**
 
 All logo optimization tasks complete with:
+
 - ✅ Theme-adaptive SVG logos
 - ✅ Multiple variants and sizes
 - ✅ Smooth animations

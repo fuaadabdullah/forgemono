@@ -14,6 +14,7 @@
 Unified button component with variants and sizes. Replaces duplicate button styles across the app.
 
 **Props**:
+
 ```typescript
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'ghost';
@@ -27,7 +28,9 @@ interface ButtonProps {
 ```
 
 **Example**:
+
 ```tsx
+
 // Primary button with icon
 <Button variant="primary" icon="🔄" onClick={handleRefresh}>
   Refresh
@@ -45,6 +48,7 @@ interface ButtonProps {
 ```
 
 **Variants**:
+
 - `primary` - Primary action (green glow)
 - `secondary` - Secondary action (border, no glow)
 - `danger` - Destructive action (red glow)
@@ -60,6 +64,7 @@ interface ButtonProps {
 Status chip/badge component with color-coded variants. Replaces inline badge styles.
 
 **Props**:
+
 ```typescript
 interface BadgeProps {
   variant?: 'success' | 'warning' | 'danger' | 'neutral' | 'primary';
@@ -70,7 +75,9 @@ interface BadgeProps {
 ```
 
 **Example**:
+
 ```tsx
+
 // Success badge with icon
 <Badge variant="success" icon="✓">
   Healthy
@@ -88,6 +95,7 @@ interface BadgeProps {
 ```
 
 **Variants**:
+
 - `success` - Green (healthy, completed)
 - `warning` - Orange (degraded, pending)
 - `danger` - Red (down, error)
@@ -103,6 +111,7 @@ interface BadgeProps {
 Icon-only button with consistent sizing and variants. Ensures minimum 44x44px touch target.
 
 **Props**:
+
 ```typescript
 interface IconButtonProps {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
@@ -113,7 +122,9 @@ interface IconButtonProps {
 ```
 
 **Example**:
+
 ```tsx
+
 // Ghost icon button (most common)
 <IconButton
   variant="ghost"
@@ -132,6 +143,7 @@ interface IconButtonProps {
 ```
 
 **Sizes**:
+
 - `sm` - 32x32px (8x8)
 - `md` - 40x40px (10x10) - default
 - `lg` - 48x48px (12x12)
@@ -145,6 +157,7 @@ interface IconButtonProps {
 Wrapper for responsive grid layouts. Uses `.grid-auto-fit` utility by default.
 
 **Props**:
+
 ```typescript
 interface GridProps {
   children: ReactNode;
@@ -154,7 +167,9 @@ interface GridProps {
 ```
 
 **Example**:
+
 ```tsx
+
 // Auto-responsive card grid
 <Grid gap="md">
   <StatusCard {...} />
@@ -169,6 +184,7 @@ interface GridProps {
 ```
 
 **Gap Sizes**:
+
 - `sm` - 8px (gap-2)
 - `md` - 16px (gap-4) - default
 - `lg` - 24px (gap-6)
@@ -182,6 +198,7 @@ interface GridProps {
 Unified alert/banner component for errors, warnings, info messages. Replaces duplicate banners.
 
 **Props**:
+
 ```typescript
 interface AlertProps {
   variant?: 'info' | 'warning' | 'danger' | 'success';
@@ -194,7 +211,9 @@ interface AlertProps {
 ```
 
 **Example**:
+
 ```tsx
+
 // Danger alert with custom content
 <Alert
   variant="danger"
@@ -224,12 +243,14 @@ interface AlertProps {
 ```
 
 **Variants**:
+
 - `info` - Blue (informational)
 - `warning` - Orange (warnings)
 - `danger` - Red (errors, critical)
 - `success` - Green (success messages)
 
 **Accessibility**:
+
 - `role="alert"` for screen readers
 - `aria-live="assertive"` for danger (interrupts)
 - `aria-live="polite"` for others (non-interrupting)
@@ -243,6 +264,7 @@ interface AlertProps {
 Primitive container component (already exists, re-exported for convenience).
 
 **Props**:
+
 ```typescript
 interface CardProps {
   padded?: boolean;
@@ -254,7 +276,9 @@ interface CardProps {
 ```
 
 **Example**:
+
 ```tsx
+
 // Standard card
 <Card padded bordered radius="md">
   <h3>Card Title</h3>
@@ -291,6 +315,7 @@ interface CardProps {
 ### After (Component Library)
 
 ```tsx
+
 // ✅ Consistent, reusable components
 <Button variant="primary">
   Click Me
@@ -319,10 +344,12 @@ interface CardProps {
 ## 🚀 Migration Checklist
 
 Components already using UI library:
+
 - ✅ **StatusCard** - Uses Badge component
 - ✅ **EnhancedDashboard** - Uses Button, Alert, Grid
 
 Components pending migration:
+
 - ⏳ **TaskExecution** - Replace inline button styles
 - ⏳ **Orchestration** - Replace inline button/alert styles
 - ⏳ **HealthCard** - Replace inline button styles
@@ -336,6 +363,7 @@ Components pending migration:
 ### When to Create a New Component
 
 Create a new UI atom when:
+
 1. **Pattern repeats 3+ times** across different files
 2. **Styling is consistent** (same colors, spacing, behavior)
 3. **Behavior is reusable** (hover, focus, disabled states)
@@ -343,11 +371,13 @@ Create a new UI atom when:
 ### When to Use Props vs. className
 
 **Use Props For**:
+
 - Semantic variants (primary, danger, success)
 - Size variations (sm, md, lg)
 - Common modifiers (fullWidth, loading, disabled)
 
 **Use className For**:
+
 - One-off adjustments
 - Layout-specific styles (margin, positioning)
 - Component-specific overrides
@@ -373,13 +403,16 @@ Create a new UI atom when:
 ### Step 1: Identify Pattern
 
 Search for repeated className patterns:
+
 ```bash
+
 grep -r "bg-primary.*rounded-lg.*hover:brightness" src/
 ```
 
 ### Step 2: Extract to Component
 
 Create reusable component in `src/components/ui/`:
+
 ```tsx
 // Button.tsx
 export default function Button({ variant, children, ...props }) {
@@ -396,16 +429,17 @@ export default function Button({ variant, children, ...props }) {
 
 ```tsx
 // Before
-<button className="px-4 py-2 bg-primary...">Click</button>
+<button className="px-4 py-2 bg-primary...">Click</button>;
 
 // After
 import { Button } from './ui';
-<Button variant="primary">Click</Button>
+<Button variant="primary">Click</Button>;
 ```
 
 ### Step 4: Update Imports
 
 Add to `src/components/ui/index.ts`:
+
 ```typescript
 export { default as Button } from './Button';
 export type { ButtonProps } from './Button';
@@ -427,35 +461,28 @@ export type { ButtonProps } from './Button';
 Components use centralized design tokens from `src/theme/index.css`:
 
 ### Colors
+
 ```css
---primary: #00ff88
---accent: #00d9ff
---danger: #ff4466
---warning: #ffaa00
---success: #00ff88
+--primary: #00ff88 --accent: #00d9ff --danger: #ff4466 --warning: #ffaa00 --success: #00ff88;
 ```
 
 ### Spacing
+
 ```css
---space-1: 4px
---space-2: 8px
---space-3: 12px
---space-4: 16px
+--space-1: 4px --space-2: 8px --space-3: 12px --space-4: 16px;
 ```
 
 ### Radii
+
 ```css
---radius-sm: 4px
---radius-md: 8px
---radius-lg: 12px
+--radius-sm: 4px --radius-md: 8px --radius-lg: 12px;
 ```
 
 ### Elevation
+
 ```css
---shadow-card: 0 1px 2px rgba(0,0,0,0.3)
---glow-primary: 0 6px 24px var(--primary)
---glow-accent: 0 6px 24px var(--accent)
---glow-cta: 0 6px 24px var(--danger)
+--shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3) --glow-primary: 0 6px 24px var(--primary)
+  --glow-accent: 0 6px 24px var(--accent) --glow-cta: 0 6px 24px var(--danger);
 ```
 
 ---
@@ -463,6 +490,7 @@ Components use centralized design tokens from `src/theme/index.css`:
 ## 🧪 Testing
 
 ### Manual Testing
+
 1. Check all variants render correctly
 2. Verify hover/focus states
 3. Test disabled states
@@ -470,7 +498,9 @@ Components use centralized design tokens from `src/theme/index.css`:
 5. Screen reader announcements (ARIA)
 
 ### Automated Testing (Future)
+
 ```typescript
+
 // Example: Button.test.tsx
 describe('Button', () => {
   it('renders primary variant', () => {

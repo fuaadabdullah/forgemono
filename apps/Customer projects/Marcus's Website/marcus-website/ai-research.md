@@ -1,3 +1,8 @@
+---
+title: "ai-research"
+description: "Documentation for ai-research"
+---
+
 ### AI Model Catalog
 
 | Provider    | Model                                          | Category  | Context | Input Price (/M tokens) | Output Price (/M tokens) | Available On                      |

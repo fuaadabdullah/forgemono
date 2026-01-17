@@ -20,26 +20,26 @@ helmCharts:
       config:
         logLevel: INFO
         setVerbose: false
-        database: "postgresql://litellm:${DB_PASSWORD}@postgres:5432/litellm"
+        database: 'postgresql://litellm:${DB_PASSWORD}@postgres:5432/litellm'
         models:
           - model_name: gpt-4-turbo
             litellm_params:
               model: openai/gpt-4-turbo-preview
-              api_key: "os.environ/OPENAI_API_KEY"
+              api_key: 'os.environ/OPENAI_API_KEY'
           - model_name: gemini-pro
             litellm_params:
               model: gemini/gemini-1.5-pro-latest
-              api_key: "os.environ/GEMINI_API_KEY"
+              api_key: 'os.environ/GEMINI_API_KEY'
           - model_name: deepseek-chat
             litellm_params:
               model: deepseek/deepseek-chat
-              api_key: "os.environ/DEEPSEEK_API_KEY"
+              api_key: 'os.environ/DEEPSEEK_API_KEY'
         router:
           enabled: true
-          routingStrategy: "latency-based-routing"
+          routingStrategy: 'latency-based-routing'
           fallbacks:
-            - ["gpt-4-turbo", "gemini-pro"]
-            - ["gemini-pro", "deepseek-chat"]
+            - ['gpt-4-turbo', 'gemini-pro']
+            - ['gemini-pro', 'deepseek-chat']
 
       resources:
         limits:
@@ -52,7 +52,7 @@ helmCharts:
       persistence:
         enabled: true
         size: 50Gi
-        storageClass: "fast-ssd"
+        storageClass: 'fast-ssd'
 
       podDisruptionBudget:
         enabled: true

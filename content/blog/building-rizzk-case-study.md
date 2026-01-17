@@ -1,9 +1,9 @@
 ---
-title: "Building RIZZK: What Worked, What Didn’t, and Why I Still Use It"
-date: "2025-11-08"
-description: "A candid look at building RIZZK, the mistakes, the wins, and why simple tools matter."
-tags: ["case-study", "trading", "risk", "engineering", "indie-dev", "truth"]
-image: "/assets/og/building-rizzk-case-study.png"
+title: 'Building RIZZK: What Worked, What Didn’t, and Why I Still Use It'
+date: '2025-11-08'
+description: 'A candid look at building RIZZK, the mistakes, the wins, and why simple tools matter.'
+tags: ['case-study', 'trading', 'risk', 'engineering', 'indie-dev', 'truth']
+image: '/assets/og/building-rizzk-case-study.png'
 ---
 
 ## Why Build a Risk Calculator?
@@ -37,4 +37,4 @@ I built RIZZK because I needed it myself. Most trading calculators are either to
 
 ---
 
-*Want more? Check out the [RIZZK Calculator](https://rizzk-calculator-demo-eus2-f1.azurewebsites.net/). If you have feedback, or want to build something together, let me know. I'm always learning, and I'd rather build with real users than guess what matters.*
+_Want more? Check out the [RIZZK Calculator](https://rizzk-calculator-demo-eus2-f1.azurewebsites.net/). If you have feedback, or want to build something together, let me know. I'm always learning, and I'd rather build with real users than guess what matters._

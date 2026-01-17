@@ -21,14 +21,14 @@ spec:
             - containerPort: 3000
           env:
             - name: NODE_ENV
-              value: "production"
+              value: 'production'
           resources:
             requests:
-              cpu: "200m"
-              memory: "256Mi"
+              cpu: '200m'
+              memory: '256Mi'
             limits:
-              cpu: "500m"
-              memory: "512Mi"
+              cpu: '500m'
+              memory: '512Mi'
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler

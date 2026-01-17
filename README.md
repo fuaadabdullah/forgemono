@@ -1,50 +1,83 @@
 ---
-description: "README"
+description: 'ForgeMonorepo - Unified workspace for GoblinOS and related projects'
 ---
 
 # ForgeMonorepo
 
 Unified workspace for GoblinOS and related projects. This repo houses the GoblinOS platform, infrastructure assets, tools, and portfolio/demo projects.
 
-## Project Map
+## What is ForgeMonorepo?
 
-- `apps/` — Polyglot applications (Python apps moved to dedicated repositories).
-- `GoblinOS/` — Primary platform (pnpm workspace: packages, docs, CI). See `GoblinOS/README.md`.
-- `infra/` — Devcontainer, docker-compose, and deployment scaffolding.
-- `tools/` — Utility scripts, TUI helpers, release tools.
-- `portfolio/` — Personal assets (resume, future project write-ups).
-- `artifacts/` — Generated outputs (e.g., reports, SARIF).
+A comprehensive development workspace containing:
 
-### Key Docs
-
-- Overmind Agent overview: `docs/agents/overmind.md`
+- **GoblinOS Platform**: AI orchestration platform with extensible plugin system
+- **Multiple Applications**: Polyglot applications (Python, Node.js, etc.) in `apps/`
+- **Infrastructure as Code**: Deployment and infrastructure automation
+- **Development Tools**: Utilities, scripts, and automation tools
+- **Documentation System**: AI-powered documentation with quality analysis
 
 ## Quick Start
 
-Prereqs: Node 20/22 + pnpm, Python 3.11+, Docker Desktop, Git.
+Get started quickly with the essential setup:
 
 ```bash
-# Clone and open
 git clone <this-repo>
 cd ForgeMonorepo
-
-# GoblinOS
-cd GoblinOS
 pnpm install
-pnpm build
-pnpm test
 ```
 
-For AI features (Ollama) and deeper commands, see `GoblinOS/README.md`.
+For complete setup instructions, see **[Getting Started](docs/getting-started.md)**.
+
+## Project Structure
+
+```text
+ForgeMonorepo/
+├── apps/           # Active applications (goblin-assistant, gaslight, etc.)
+├── GoblinOS/       # Core platform (pnpm workspace)
+├── infra/          # Infrastructure as code
+├── tools/          # Utility scripts and automation
+├── docs/           # Documentation and guides
+├── portfolio/      # Personal assets and demos
+└── artifacts/      # Generated outputs
+```
+
+For detailed project structure and organization, see **[Project Structure](docs/project-structure.md)**.
+
+## Key Applications
+
+- **goblin-assistant**: AI assistant with web interface, API backend, and model routing
+- **gaslight**: Authentication and user management services
+- **forge-lite**: Financial/trading applications
+- **python**: Standalone Python utilities and tools
+
+## Development
+
+Complete development environment setup, testing, and contribution guidelines available in **[Getting Started](docs/getting-started.md)**.
+
+## Deployment
+
+Production deployment procedures, checklists, and infrastructure details in **[Deployment](docs/deployment.md)**.
+
+## Documentation
+
+AI-powered documentation system with quality analysis and automated validation. Learn more in **[Documentation System](docs/documentation-system.md)**.
 
 ## Onboarding
 
-- Start with `docs/WORKSPACE_OVERVIEW.md` for structure and conventions.
-- Follow `docs/ONBOARDING_TARIQ.md` for step-by-step setup to contribute to GoblinOS.
-- See `CONTRIBUTING.md` for branch/PR standards and local checks.
+New to the project? Start with **[Onboarding Guide](docs/onboarding.md)** for complete setup and getting started instructions.
 
-## Notes
+## Key Resources
 
-- Legacy demos may have shipped with their own `.git` history—these should be promoted into `apps/` or converted to submodules. See `docs/WORKSPACE_OVERVIEW.md` for guidance.
+- **[Getting Started](docs/getting-started.md)**: Development environment setup
+- **[Project Structure](docs/project-structure.md)**: Repository organization and architecture
+- **[Deployment](docs/deployment.md)**: Production deployment procedures
+- **[Documentation System](docs/documentation-system.md)**: AI analysis and quality tools
+- **[Onboarding](docs/onboarding.md)**: Guide for new developers
 
-**Active Projects**: GoblinOS Assistant
+## Contributing
+
+See **[Getting Started](docs/getting-started.md)** for development setup and contribution guidelines.
+
+## License
+
+See `LICENSE` file for details.

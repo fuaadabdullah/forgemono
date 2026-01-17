@@ -1,69 +1,75 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    service: "",
-    preferredDate: "",
-    preferredTime: "",
-    address: "",
-    vehicle: "",
-    description: "",
-    referral: "",
-    consent: false
+    name: '',
+    phone: '',
+    email: '',
+    service: '',
+    preferredDate: '',
+    preferredTime: '',
+    address: '',
+    vehicle: '',
+    description: '',
+    referral: '',
+    consent: false,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState("");
+  const [submitMessage, setSubmitMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setSubmitMessage("");
+    setSubmitMessage('');
 
     try {
       // Simulate form submission (replace with actual API call)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // In a real application, you would send this data to your backend
-      console.log("Form submitted:", formData);
+      console.log('Form submitted:', formData);
 
       // Show success message
-      setSubmitMessage("Thank you! Your service request has been submitted. We'll contact you within 2 hours.");
+      setSubmitMessage(
+        "Thank you! Your service request has been submitted. We'll contact you within 2 hours."
+      );
 
       // Clear form
       setFormData({
-        name: "",
-        phone: "",
-        email: "",
-        service: "",
-        preferredDate: "",
-        preferredTime: "",
-        address: "",
-        vehicle: "",
-        description: "",
-        referral: "",
-        consent: false
+        name: '',
+        phone: '',
+        email: '',
+        service: '',
+        preferredDate: '',
+        preferredTime: '',
+        address: '',
+        vehicle: '',
+        description: '',
+        referral: '',
+        consent: false,
       });
     } catch (error) {
-      setSubmitMessage("Sorry, there was an error submitting your request. Please call us at (555) 123-4567.");
+      setSubmitMessage(
+        'Sorry, there was an error submitting your request. Please call us at (555) 123-4567.'
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -71,9 +77,7 @@ export default function Contact() {
     <section id="booking" className="py-16 bg-gray-900">
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Book Your Service
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Book Your Service</h2>
           <p className="text-gray-300 text-lg">
             Get your vehicle diagnosed and repaired by experienced professionals
           </p>
@@ -274,17 +278,19 @@ export default function Contact() {
               disabled={isSubmitting}
               className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-12 py-4 text-lg font-semibold"
             >
-              {isSubmitting ? "Submitting..." : "Book Service Now"}
+              {isSubmitting ? 'Submitting...' : 'Book Service Now'}
             </Button>
           </div>
         </form>
 
         {submitMessage && (
-          <div className={`mt-6 p-4 rounded-lg text-center ${
-            submitMessage.includes("error") || submitMessage.includes("Sorry")
-              ? "bg-red-900/50 border border-red-700 text-red-200"
-              : "bg-green-900/50 border border-green-700 text-green-200"
-          }`}>
+          <div
+            className={`mt-6 p-4 rounded-lg text-center ${
+              submitMessage.includes('error') || submitMessage.includes('Sorry')
+                ? 'bg-red-900/50 border border-red-700 text-red-200'
+                : 'bg-green-900/50 border border-green-700 text-green-200'
+            }`}
+          >
             {submitMessage}
           </div>
         )}

@@ -3,6 +3,7 @@ This document has moved into the canonical backend documentation folder:
 - apps/goblin-assistant/backend/docs/ENDPOINT_SUMMARY.md
 
 Please update any references or links to point to the new location.
+
 # Endpoint Audit Summary - December 2, 2025
 
 ## ✅ Status: Production Ready
@@ -56,7 +57,7 @@ All endpoint mismatches have been fixed and the build passes. The frontend API c
 
 - [ ] Add rate limiting middleware
 - [ ] Configure structured JSON logging
-- [ ] Set up monitoring/alerting (Datadog/Sentry)
+- [ ] Set up monitoring/alerting (Sentry)
 - [ ] Load test chat and health endpoints
 
 ### Recommended
@@ -87,9 +88,11 @@ curl http://localhost:8001/health/all | jq
 ### Frontend Build
 
 ```bash
+
 cd apps/goblin-assistant
 npm run build
 ```
+
 Expected: ✓ built in ~6s
 
 ### Integration Test
@@ -111,20 +114,20 @@ open http://localhost:3000
 
 ## Backend Routes Summary
 
-| Router | Prefix | Key Endpoints |
-|--------|--------|---------------|
-| Auth | `/auth` | register, login, google, passkey |
-| Health | `/health` | all, chroma, mcp, raptor, sandbox, cost |
-| Chat | `/chat` | completions, models, routing-info |
-| Settings | `/settings` | providers, models, test-connection |
-| Routing | `/routing` | providers, capabilities, route |
-| Execute | `/execute` | orchestrate, parse, status |
-| Sandbox | `/sandbox` | jobs, logs, artifacts |
-| Search | `/search` | query, collections, documents |
-| API | `/api` | goblins, history, stats, route_task |
-| Raptor | `/raptor` | start, stop, status, logs |
-| Stream | `/stream` | SSE streaming |
-| API Keys | `/api-keys` | get, set, delete (by provider) |
+| Router   | Prefix      | Key Endpoints                           |
+| -------- | ----------- | --------------------------------------- |
+| Auth     | `/auth`     | register, login, google, passkey        |
+| Health   | `/health`   | all, chroma, mcp, raptor, sandbox, cost |
+| Chat     | `/chat`     | completions, models, routing-info       |
+| Settings | `/settings` | providers, models, test-connection      |
+| Routing  | `/routing`  | providers, capabilities, route          |
+| Execute  | `/execute`  | orchestrate, parse, status              |
+| Sandbox  | `/sandbox`  | jobs, logs, artifacts                   |
+| Search   | `/search`   | query, collections, documents           |
+| API      | `/api`      | goblins, history, stats, route_task     |
+| Raptor   | `/raptor`   | start, stop, status, logs               |
+| Stream   | `/stream`   | SSE streaming                           |
+| API Keys | `/api-keys` | get, set, delete (by provider)          |
 
 ---
 

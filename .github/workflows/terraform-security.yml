@@ -2,18 +2,18 @@ name: Terraform Security Scan
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'goblin-infra/**'
       - '.github/workflows/terraform-security.yml'
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'goblin-infra/**'
       - '.github/workflows/terraform-security.yml'
   workflow_dispatch:
   schedule:
-    - cron: '0 3 * * *'  # Daily at 3 AM UTC
+    - cron: '0 3 * * *' # Daily at 3 AM UTC
 
 jobs:
   tfsec:
@@ -59,3 +59,16 @@ jobs:
         with:
           sarif_file: ./checkov-results.sarif
           category: checkov
+
+  supabase-rls:
+    name: Supabase RLS Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Supabase RLS Check
+        run: |
+          chmod +x scripts/ops/supabase_rls_check.sh
+          ./scripts/ops/supabase_rls_check.sh --ci apps/goblin-assistant/backend

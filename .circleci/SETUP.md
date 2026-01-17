@@ -14,14 +14,16 @@
 Go to **Organization Settings → Contexts** and create:
 
 #### Context: `terraform-cloud`
-| Variable | Description | Where to get it |
-|----------|-------------|-----------------|
+
+| Variable   | Description               | Where to get it                                                                      |
+| ---------- | ------------------------- | ------------------------------------------------------------------------------------ |
 | `TF_TOKEN` | Terraform Cloud API token | [app.terraform.io/app/settings/tokens](https://app.terraform.io/app/settings/tokens) |
 
 #### Context: `docker-ghcr`
-| Variable | Description | Where to get it |
-|----------|-------------|-----------------|
-| `GHCR_USER` | Your GitHub username | `fuaadabdullah` |
+
+| Variable     | Description                            | Where to get it                                                  |
+| ------------ | -------------------------------------- | ---------------------------------------------------------------- |
+| `GHCR_USER`  | Your GitHub username                   | `fuaadabdullah`                                                  |
 | `GHCR_TOKEN` | GitHub PAT with `write:packages` scope | [github.com/settings/tokens](https://github.com/settings/tokens) |
 
 ### 3. Required GitHub PAT Scopes
@@ -35,6 +37,7 @@ Create a PAT at [github.com/settings/tokens/new](https://github.com/settings/tok
 ### 4. Terraform Cloud Setup
 
 Your HCP Terraform Cloud should already be configured:
+
 - **Organization**: `GoblinOS`
 - **Workspaces**:
   - `GoblinOSAssistant` (dev)
@@ -48,6 +51,7 @@ Ensure the TF_TOKEN has access to these workspaces.
 ## Pipeline Overview
 
 ### CI Pipeline (Every Push/PR)
+
 ```
 backend-lint-test
        ↓
@@ -59,6 +63,7 @@ plan-dev  plan-staging  plan-prod
 ```
 
 ### Deploy Pipeline (Merge to main)
+
 ```
 backend-lint-test → docker-build-push
                           ↓
@@ -76,6 +81,7 @@ backend-lint-test → docker-build-push
 ```
 
 ### Nightly Security (3 AM UTC)
+
 ```
 terraform-security-scan (tfsec + checkov)
 ```
@@ -94,11 +100,11 @@ terraform-security-scan (tfsec + checkov)
 
 ## Secrets Checklist
 
-| Secret | Context | Required | Notes |
-|--------|---------|----------|-------|
-| `TF_TOKEN` | `terraform-cloud` | ✅ Yes | Terraform Cloud API token |
-| `GHCR_USER` | `docker-ghcr` | ✅ Yes | GitHub username |
-| `GHCR_TOKEN` | `docker-ghcr` | ✅ Yes | GitHub PAT with packages scope |
+| Secret       | Context           | Required | Notes                          |
+| ------------ | ----------------- | -------- | ------------------------------ |
+| `TF_TOKEN`   | `terraform-cloud` | ✅ Yes   | Terraform Cloud API token      |
+| `GHCR_USER`  | `docker-ghcr`     | ✅ Yes   | GitHub username                |
+| `GHCR_TOKEN` | `docker-ghcr`     | ✅ Yes   | GitHub PAT with packages scope |
 
 ---
 
@@ -126,18 +132,22 @@ Set up in **GitHub → Settings → Branches → main**:
 ## Troubleshooting
 
 ### "Context not found"
+
 - Create the context in Organization Settings
 - Ensure the context name matches exactly (`terraform-cloud`, `docker-ghcr`)
 
 ### "Terraform init failed"
+
 - Check `TF_TOKEN` is set correctly
 - Ensure Terraform Cloud workspaces exist
 
 ### "Docker push failed"
+
 - Verify `GHCR_TOKEN` has `write:packages` scope
 - Check `GHCR_USER` is correct (case-sensitive)
 
 ### "Tests failing"
+
 - Check `apps/goblin-assistant/tests/` for broken tests
 - Tests run with `--tb=short` for concise output
 

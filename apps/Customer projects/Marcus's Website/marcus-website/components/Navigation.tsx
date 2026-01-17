@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { useState } from 'react';
+import Link from 'next/link';
+import { Menu, X } from 'lucide-react';
 
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,19 +13,22 @@ export default function Navigation() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-              <picture>
-                <source srcSet="/images/elbeylogo-256.webp 256w, /images/elbeylogo.webp 512w" type="image/webp" />
-                <source srcSet="/images/elbeylogo.avif 512w" type="image/avif" />
-                <img
-                  src="/images/elbeylogo.jpg"
-                  srcSet="/images/elbeylogo-256.webp 256w, /images/elbeylogo.webp 512w"
-                  alt="Elbey Projects Logo"
-                  className="w-10 h-10"
-                  loading="lazy"
-                  width={40}
-                  height={40}
-                />
-              </picture>
+            <picture>
+              <source
+                srcSet="/images/elbeylogo-256.webp 256w, /images/elbeylogo.webp 512w"
+                type="image/webp"
+              />
+              <source srcSet="/images/elbeylogo.avif 512w" type="image/avif" />
+              <img
+                src="/images/elbeylogo.jpg"
+                srcSet="/images/elbeylogo-256.webp 256w, /images/elbeylogo.webp 512w"
+                alt="Elbey Projects Logo"
+                className="w-10 h-10"
+                loading="lazy"
+                width={40}
+                height={40}
+              />
+            </picture>
             <span className="text-xl font-bold text-white">Elbey Projects</span>
           </Link>
 
@@ -56,10 +59,16 @@ export default function Navigation() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <a href="tel:+15551234567" className="text-gray-300 hover:text-red-400 transition-colors">
+            <a
+              href="tel:+15551234567"
+              className="text-gray-300 hover:text-red-400 transition-colors"
+            >
               (555) 123-4567
             </a>
-            <Link href="/contact" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+            <Link
+              href="/contact"
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
               Book Service
             </Link>
           </div>

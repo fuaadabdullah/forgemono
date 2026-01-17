@@ -1,12 +1,9 @@
----title: NATS JetStream for Overmind
-type: reference
-project: GoblinOS/Overmind
-status: published
-owner: GoblinOS
-goblin_name: Overmind NATS
-description: "README"
-
 ---
+title: "README"
+description: "NATS JetStream Messaging"
+---
+
+
 
 # NATS JetStream Messaging
 
@@ -70,6 +67,7 @@ kubectl get pods -n overmind-prod -l app.kubernetes.io/name=nats
 ### Create Streams and Consumers
 
 ```bash
+
 # Apply stream configurations
 kubectl apply -f streams/
 
@@ -97,11 +95,13 @@ nats sub --server=nats://localhost:4222 'routing.>'
 Routing decisions made by the bridge for LLM model selection.
 
 **Subjects:**
+
 - `routing.model.selected` - Model selected for request
 - `routing.fallback.triggered` - Fallback to alternative model
 - `routing.cost.calculated` - Cost calculation for request
 
 **Configuration:**
+
 - Retention: 7 days
 - Max size: 1GB
 - Storage: File (persistent)
@@ -130,12 +130,14 @@ interface RoutingDecision {
 Memory tier transitions and consolidation events.
 
 **Subjects:**
+
 - `memory.added` - New memory added to short-term
 - `memory.consolidated` - Memory moved to working/long-term
 - `memory.retrieved` - Memory accessed from any tier
 - `memory.expired` - Memory removed due to TTL
 
 **Configuration:**
+
 - Retention: 30 days
 - Max size: 5GB
 - Storage: File (persistent)
@@ -161,11 +163,13 @@ interface MemoryEvent {
 LLM request lifecycle events for metrics and cost tracking.
 
 **Subjects:**
+
 - `llm.request.started` - Request initiated
 - `llm.request.completed` - Request completed successfully
 - `llm.request.failed` - Request failed with error
 
 **Configuration:**
+
 - Retention: 24 hours
 - Max size: 500MB
 - Storage: File (persistent)
@@ -243,7 +247,7 @@ import { connect, StringCodec, JetStreamClient } from 'nats';
 
 // Connect to NATS
 const nc = await connect({
-  servers: process.env.NATS_URL || 'nats://localhost:4222',
+  servers: process.env.NATS_URL |  | 'nats://localhost:4222',
   token: process.env.NATS_TOKEN,
 });
 
@@ -276,6 +280,7 @@ async function subscribeRoutingDecisions() {
 ### Python (API)
 
 ```python
+
 import os
 import json
 import asyncio
@@ -332,7 +337,7 @@ kubectl port-forward -n overmind-prod svc/nats 7777:7777
 # Query metrics
 curl http://localhost:7777/metrics | grep nats
 
-# Key metrics:
+# Key metrics
 # nats_jetstream_stream_messages
 # nats_jetstream_consumer_num_pending
 # nats_jetstream_consumer_delivered
@@ -344,7 +349,9 @@ curl http://localhost:7777/metrics | grep nats
 Import NATS dashboard (ID: 2279):
 
 ```bash
+
 # In Grafana UI
+
 # Dashboards → Import → 2279
 ```
 
@@ -374,12 +381,12 @@ spec:
   scaleTargetRef:
     name: overmind-api
   triggers:
-  - type: nats-jetstream
-    metadata:
-      natsServerMonitoringEndpoint: nats:8222
-      stream: routing-decisions
-      consumer: api-consumer
-      lagThreshold: "10"
+    - type: nats-jetstream
+      metadata:
+        natsServerMonitoringEndpoint: nats:8222
+        stream: routing-decisions
+        consumer: api-consumer
+        lagThreshold: '10'
 ```
 
 See `infra/charts/keda/scaledobjects/overmind-api-scaler.yaml` for full configuration.
@@ -403,6 +410,7 @@ kubectl run -it --rm nats-test --image=natsio/nats-box:latest -- \
 ### Authentication failed
 
 ```bash
+
 # Verify secret exists
 kubectl get secret nats-auth -n overmind-prod
 
@@ -430,6 +438,7 @@ nats stream add routing-decisions \
 ### Consumer lag growing
 
 ```bash
+
 # Check consumer status
 nats consumer info routing-decisions api-consumer --server=nats://nats:4222
 
@@ -443,12 +452,12 @@ kubectl scale deployment overmind-api --replicas=5 -n overmind-prod
 ## Best Practices
 
 1. **Use durable consumers** - Survive pod restarts
-2. **Set ack timeouts** - Match processing time
-3. **Configure max deliver** - Prevent infinite retries
-4. **Monitor lag** - Use KEDA for autoscaling
-5. **Use file storage** - Memory storage for ephemeral data only
-6. **Enable clustering** - 3+ replicas for HA
-7. **Set retention policies** - Balance storage vs history
+1. **Set ack timeouts** - Match processing time
+1. **Configure max deliver** - Prevent infinite retries
+1. **Monitor lag** - Use KEDA for autoscaling
+1. **Use file storage** - Memory storage for ephemeral data only
+1. **Enable clustering** - 3+ replicas for HA
+1. **Set retention policies** - Balance storage vs history
 
 ## References
 

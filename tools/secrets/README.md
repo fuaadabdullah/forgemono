@@ -1,16 +1,17 @@
 ---
-description: "README"
+title: "README"
+description: "Documentation for README"
 ---
+
+
 
 Secrets scanning utilities for ForgeMonorepo
 
-Overview
---------
+## Overview
 
 This folder contains tooling to run secrets checks locally and in CI. It is owned by the Keepers & Huntress guilds; Magnolia Nightbloom is the triage owner.
 
-Quick commands
---------------
+## Quick commands
 
 - Fast staged check (used by `lefthook`):
 
@@ -24,21 +25,19 @@ Quick commands
 
   bash tools/secrets/secrets_scan.sh --ci
 
-Outputs
--------
+## Outputs
 
 Artifacts are written to `artifacts/secrets/` and SARIF files to `artifacts/sarif/`.
 
-Baselines
----------
+## Baselines
 
 Add or refresh baselines with:
 
-  detect-secrets scan > tools/secrets/detect-secrets-baseline.json
+detect-secrets scan > tools/secrets/detect-secrets-baseline.json
 
 Review baseline changes carefully and have Magnolia + Sentenial sign-off before committing.
 
-Tips
-----
+## Tips
+
 - Install developer prerequisites for best local experience: `pip install detect-secrets trufflehog` and `brew install gitleaks` (macOS).
 - CI installs tools as part of the workflow; local installs are recommended for fast feedback.

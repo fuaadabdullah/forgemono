@@ -1,12 +1,9 @@
----title: Overmind — Chief Goblin Agent
-type: reference
-project: GoblinOS
-owner: GoblinOS
-goblin_name: Overmind
-status: published
-description: "overmind"
-
 ---
+title: "overmind"
+description: "Overmind"
+---
+
+
 
 # Overmind
 
@@ -47,4 +44,3 @@ Production-grade AI agent orchestrator that routes tasks across multiple LLMs, c
 ## Status
 
 - Active development within GoblinOS; see package README for versioning and roadmap.
-

@@ -1,64 +1,11 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+// Stub implementation for authStore
 
-interface User {
-  email: string;
-  id?: string;
+export function useAuthStore() {
+  return {
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+    login: async () => {},
+    logout: async () => {},
+  };
 }
-
-interface AuthState {
-  // State
-  token: string | null;
-  user: User | null;
-  isAuthenticated: boolean;
-
-  // Actions
-  // eslint-disable-next-line no-unused-vars
-  setAuth: (token: string, user?: User) => void;
-  clearAuth: () => void;
-  // eslint-disable-next-line no-unused-vars
-  setUser: (user: User) => void;
-}
-
-/**
- * Zustand store for authentication state
- * Persists token to localStorage automatically
- */
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      // Initial state
-      token: null,
-      user: null,
-      isAuthenticated: false,
-
-      // Actions
-      setAuth: (token: string, user?: User) => {
-        set({
-          token,
-          user: user || null,
-          isAuthenticated: true,
-        });
-      },
-
-      clearAuth: () => {
-        set({
-          token: null,
-          user: null,
-          isAuthenticated: false,
-        });
-      },
-
-      setUser: (user: User) => {
-        set({ user });
-      },
-    }),
-    {
-      name: 'goblin-auth-storage', // localStorage key
-      partialize: (state) => ({
-        token: state.token,
-        user: state.user,
-      }),
-    }
-  )
-);
