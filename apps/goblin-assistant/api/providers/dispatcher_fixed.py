@@ -26,7 +26,7 @@ from .mock_provider import MockProvider
 
 # Import smart router (optional - graceful fallback if not available)
 try:
-    from api.services.smart_router import smart_router, RoutingStrategy
+    from api.services.smart_router import smart_router
     from api.services.provider_health import health_monitor
 
     SMART_ROUTING_AVAILABLE = True
