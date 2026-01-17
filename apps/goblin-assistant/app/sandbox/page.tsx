@@ -241,7 +241,7 @@ export default function SandboxPage() {
   };
 
   const deleteSnippet = (id: string) => {
-    const updated = savedSnippets.filter(s => s.id !== id);
+    const updated = savedSnippets.filter((s: SavedSnippet) => s.id !== id);
     setSavedSnippets(updated);
     localStorage.setItem('goblin_sandbox_snippets', JSON.stringify(updated));
   };
@@ -294,7 +294,7 @@ export default function SandboxPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Badge variant="success" className="text-sm">
+              <Badge variant="secondary" className="text-sm bg-green-500/20 text-green-400 border-green-500/30">
                 <CheckCircle className="w-3 h-3 mr-1" />
                 Live
               </Badge>

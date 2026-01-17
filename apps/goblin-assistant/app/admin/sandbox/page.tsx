@@ -127,7 +127,7 @@ export default function SandboxPage() {
               <p className="text-slate-300">Execute Python code safely in an isolated environment</p>
             </div>
           </div>
-          <Badge variant="success" className="text-sm px-4 py-2">
+          <Badge variant="secondary" className="text-sm px-4 py-2 bg-green-500/20 text-green-400 border-green-500/30">
             <CheckCircle className="w-4 h-4 mr-2" />
             Live
           </Badge>
