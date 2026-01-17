@@ -83,9 +83,11 @@ PROVIDER_COSTS: Dict[str, ProviderCost] = {
     "siliconeflow": ProviderCost(0.01, 0.03),
     # Budget cloud
     "deepseek": ProviderCost(0.14, 0.28),
+    "moonshot": ProviderCost(0.12, 0.24),  # Moonshot AI
     # Standard cloud
     "openai": ProviderCost(0.50, 1.50),  # GPT-4o-mini default
     "google": ProviderCost(0.35, 1.05),  # Gemini Pro
+    "grok": ProviderCost(0.50, 1.50),  # Grok (xAI)
     # Premium cloud
     "anthropic": ProviderCost(3.00, 15.00),  # Claude 3 Sonnet
 }
@@ -95,6 +97,8 @@ PROVIDER_CAPABILITIES: Dict[str, List[str]] = {
     "ollama_gcp": ["chat", "code", "reasoning"],
     "llamacpp_gcp": ["chat", "code"],
     "groq": ["chat", "code", "reasoning"],
+    "grok": ["chat", "code", "reasoning"],
+    "moonshot": ["chat", "code", "reasoning"],
     "openai": ["chat", "code", "reasoning", "vision", "embedding", "image"],
     "anthropic": ["chat", "code", "reasoning", "vision"],
     "deepseek": ["chat", "code", "reasoning"],
@@ -107,6 +111,8 @@ DEFAULT_MODELS: Dict[str, str] = {
     "ollama_gcp": "qwen2.5:3b",
     "llamacpp_gcp": "qwen2.5-3b-instruct-q4_k_m",
     "groq": "llama-3.1-8b-instant",
+    "grok": "grok-2-latest",
+    "moonshot": "moonshot-v1-8k",
     "openai": "gpt-4o-mini",
     "anthropic": "claude-3-5-sonnet-20241022",
     "deepseek": "deepseek-chat",
@@ -122,20 +128,25 @@ FALLBACK_CHAINS: Dict[str, List[str]] = {
         "groq",
         "siliconeflow",
         "deepseek",
+        "moonshot",
         "openai",
+        "grok",
         "anthropic",
     ],
     "quality_first": [
         "anthropic",
         "openai",
+        "grok",
         "groq",
         "deepseek",
+        "moonshot",
         "ollama_gcp",
     ],
     "latency_optimized": [
         "groq",  # Groq is fastest cloud
         "ollama_gcp",  # GCP local is fast
         "openai",
+        "grok",
         "anthropic",
     ],
     "local_first": [

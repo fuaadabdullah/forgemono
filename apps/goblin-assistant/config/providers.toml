@@ -84,6 +84,36 @@ bandwidth_score = 0.95
 supports_cot = true
 cot_suppression_prompt = "Be direct."
 
+[providers.grok]
+name = "Grok (xAI)"
+endpoint = "https://api.x.ai/v1"
+capabilities = ["chat", "reasoning", "code"]
+models = ["grok-2-latest", "grok-2-mini"]
+api_key_env = "GROK_API_KEY"
+priority_tier = 2
+cost_score = 0.7
+default_timeout_ms = 15000
+bandwidth_score = 0.85
+supports_cot = true
+cot_suppression_prompt = "Be direct and concise."
+invoke_path = "/chat/completions"
+default_model = "grok-2-latest"
+
+[providers.moonshot]
+name = "Moonshot AI"
+endpoint = "https://api.moonshot.cn/v1"
+capabilities = ["chat", "reasoning", "code"]
+models = ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"]
+api_key_env = "MOONSHOT_API_KEY"
+priority_tier = 2
+cost_score = 0.4
+default_timeout_ms = 12000
+bandwidth_score = 0.8
+supports_cot = true
+cot_suppression_prompt = "Answer directly."
+invoke_path = "/chat/completions"
+default_model = "moonshot-v1-8k"
+
 [providers.siliconeflow]
 name = "SiliconeFlow"
 endpoint = "https://api.siliconflow.com"

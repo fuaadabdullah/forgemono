@@ -181,6 +181,8 @@ class ProviderDispatcher:
             return MockProvider({"default_model": "mock-gpt"})
         elif provider_id in [
             "deepseek",
+            "grok",
+            "moonshot",
             "together",
             "replicate",
             "huggingface",

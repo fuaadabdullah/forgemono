@@ -291,30 +291,50 @@ async def _check_raptor() -> Dict[str, Any]:
 
 
 async def _check_sandbox() -> Dict[str, Any]:
-    """Check sandbox runner configuration and (optionally) docker image availability."""
-    # If sandbox feature disabled, mark degraded/unavailable
-    enabled = os.environ.get("VITE_FEATURE_SANDBOX", "false").lower() == "true"
-    image = os.environ.get("SANDBOX_IMAGE")
-    if not enabled and not image:
-        return {"status": "degraded", "reason": "sandbox not enabled or configured"}
+    """Check sandbox runner configuration and execution capability.
 
-    # If docker is available and SANDBOX_IMAGE is configured, check image exists
+    The sandbox supports two modes:
+    1. Docker-based: Full isolation with SANDBOX_IMAGE configured
+    2. Simulated: In-memory task execution (always available as fallback)
+    """
+    enabled = os.environ.get("SANDBOX_ENABLED", "true").lower() == "true"
+    image = os.environ.get("SANDBOX_IMAGE")
+
+    # Check if Docker-based sandbox is available
+    docker_available = False
+    docker_image_found = False
+
     if image and shutil.which("docker"):
         try:
             out = subprocess.check_output(
                 ["docker", "images", "--format", "{{.Repository}}:{{.Tag}}"], text=True
             )
-            found = any(line.strip() == image for line in out.splitlines())
-            return {
-                "status": "healthy" if found else "degraded",
-                "image": image,
-                "image_found": found,
-            }
-        except Exception as e:
-            return {"status": "degraded", "error": str(e), "image": image}
+            docker_available = True
+            docker_image_found = any(line.strip() == image for line in out.splitlines())
+        except Exception:
+            docker_available = False
 
-    # Otherwise report configured but not verified
-    return {"status": "healthy", "configured": bool(image or enabled), "image": image}
+    # Determine execution mode and status
+    if docker_available and docker_image_found:
+        return {
+            "status": "healthy",
+            "mode": "docker",
+            "image": image,
+            "isolation": "full",
+        }
+    elif enabled:
+        # Simulated mode is always available as fallback
+        return {
+            "status": "healthy",
+            "mode": "simulated",
+            "isolation": "none",
+            "note": "Using in-memory task simulation (no Docker isolation)",
+        }
+    else:
+        return {
+            "status": "degraded",
+            "reason": "sandbox disabled via SANDBOX_ENABLED=false",
+        }
 
 
 async def _check_cost_tracking() -> Dict[str, Any]:
