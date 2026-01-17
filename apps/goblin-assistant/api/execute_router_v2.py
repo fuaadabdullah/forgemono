@@ -24,7 +24,7 @@ from collections import defaultdict
 
 # Import sandbox module
 try:
-    from sandbox import get_sandbox_executor, SandboxConfig
+    from .sandbox import get_sandbox_executor, SandboxConfig
     SANDBOX_AVAILABLE = True
 except ImportError:
     SANDBOX_AVAILABLE = False
@@ -247,7 +247,7 @@ async def execute_code(request: CodeExecuteRequest, http_request: Request):
             METRICS["simulated_execution_count"] += 1
     else:
         # Fallback to v1 execution
-        from execute_router_v1 import execute_python_safe
+        from .execute_router_v1 import execute_python_safe
         import asyncio
         
         result_dict = await asyncio.get_event_loop().run_in_executor(
