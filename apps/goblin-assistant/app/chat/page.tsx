@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowUp, User, Loader, Star, MessageSquare, Copy, RotateCcw, Code } from 'lucide-react';
+import { ArrowUp, User, Loader, Star, MessageSquare, Copy, RotateCcw, Code2 } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Badge } from '@/components/ui/Badge';
 import { useTranslation } from '@/i18n';
@@ -827,7 +827,7 @@ export default function ChatPage() {
                   onClick={() => router.push('/sandbox')}
                   className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/30 text-white hover:from-purple-500/30 hover:to-pink-500/30 font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 backdrop-blur-sm"
                 >
-                  <Code className="w-4 h-4 mr-2" />
+                  <Code2 className="w-4 h-4 mr-2" />
                   Sandbox
                 </Button>
                 <LanguageSwitcher variant="minimal" />

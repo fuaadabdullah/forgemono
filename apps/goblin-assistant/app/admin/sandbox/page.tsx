@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { 
   Play, 
   Trash2, 
-  Code, 
+  Code2, 
   Terminal, 
   CheckCircle, 
   XCircle, 
@@ -120,7 +120,7 @@ export default function SandboxPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-              <Code className="w-6 h-6 text-white" />
+              <Code2 className="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white">Python Sandbox</h1>
@@ -262,7 +262,7 @@ export default function SandboxPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-white font-medium">{example.name}</span>
-                    <Code className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors" />
+                    <Code2 className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors" />
                   </div>
                   <p className="text-slate-400 text-xs mt-2 font-mono truncate">
                     {example.code.split('\n')[0]}
