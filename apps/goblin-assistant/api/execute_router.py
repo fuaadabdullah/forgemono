@@ -110,14 +110,25 @@ TASKS: Dict[str, Dict[str, Any]] = {}
 def execute_python_safe(code: str, timeout: int = EXECUTION_TIMEOUT) -> Dict[str, Any]:
     """Execute Python code in a sandboxed subprocess with timeout."""
     import time
+    import base64
 
     start_time = time.time()
 
+    # Encode the code as base64 to avoid escaping issues
+    code_b64 = base64.b64encode(code.encode()).decode()
+
     # Create a wrapper script that captures output
-    wrapper_code = f'''
+    wrapper_code = (
+        '''
 import sys
 import io
+import base64
 from contextlib import redirect_stdout, redirect_stderr
+
+# Decode the user code
+user_code = base64.b64decode("'''
+        + code_b64
+        + """").decode()
 
 # Capture output
 stdout_capture = io.StringIO()
@@ -125,7 +136,7 @@ stderr_capture = io.StringIO()
 
 try:
     with redirect_stdout(stdout_capture), redirect_stderr(stderr_capture):
-        exec("""{code.replace('"', '\\"').replace("\\n", "\\\\n")}""")
+        exec(user_code)
     print("__STDOUT__:" + stdout_capture.getvalue())
     print("__STDERR__:" + stderr_capture.getvalue())
     print("__SUCCESS__:true")
@@ -133,7 +144,8 @@ except Exception as e:
     print("__STDOUT__:" + stdout_capture.getvalue())
     print("__STDERR__:" + str(e))
     print("__SUCCESS__:false")
-'''
+"""
+    )
 
     try:
         # Run in subprocess with timeout
