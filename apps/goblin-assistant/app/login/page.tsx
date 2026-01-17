@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import ModularLoginForm from '@/components/auth/ModularLoginForm';
+import ModularLoginForm from '@/components/Auth/ModularLoginForm';
 
 /**
  * Login Page - Next.js App Router
