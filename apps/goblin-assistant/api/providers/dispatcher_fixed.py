@@ -83,6 +83,24 @@ class ProviderDispatcher:
                 "api_key_env": "ANTHROPIC_API_KEY",
                 "invoke_path": "/v1/messages",
             },
+            "deepseek": {
+                "endpoint": "https://api.deepseek.com",
+                "api_key_env": "DEEPSEEK_API_KEY",
+                "invoke_path": "/v1/chat/completions",
+                "default_model": "deepseek-chat",
+            },
+            "grok": {
+                "endpoint": "https://api.x.ai",
+                "api_key_env": "GROK_API_KEY",
+                "invoke_path": "/v1/chat/completions",
+                "default_model": "grok-2-latest",
+            },
+            "moonshot": {
+                "endpoint": "https://api.moonshot.cn",
+                "api_key_env": "MOONSHOT_API_KEY",
+                "invoke_path": "/v1/chat/completions",
+                "default_model": "moonshot-v1-8k",
+            },
             "ollama": {
                 "endpoint": "http://localhost:11434",
                 "invoke_path": "/api/generate",
@@ -120,7 +138,8 @@ class ProviderDispatcher:
             "groq": {
                 "endpoint": "https://api.groq.com",
                 "api_key_env": "GROQ_API_KEY",
-                "invoke_path": "/v1/chat/completions",
+                "invoke_path": "/openai/v1/chat/completions",
+                "default_model": "llama-3.1-8b-instant",
             },
             "gemini": {
                 "endpoint": "https://generativelanguage.googleapis.com",
