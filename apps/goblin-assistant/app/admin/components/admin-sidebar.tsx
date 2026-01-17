@@ -12,7 +12,8 @@ import {
   AlertTriangle,
   RefreshCw,
   Clock,
-  Server
+  Server,
+  Code
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";

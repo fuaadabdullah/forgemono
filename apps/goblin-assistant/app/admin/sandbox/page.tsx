@@ -306,7 +306,7 @@ export default function SandboxPage() {
               <div className="bg-slate-900 rounded-lg p-3">
                 <p className="text-xs text-slate-400 mb-1">POST</p>
                 <code className="text-sm text-purple-400 break-all">
-                  https://goblinassistant.duckdns.org:8001/execute/code
+                  https://goblin-backend.fly.dev/execute/code
                 </code>
               </div>
               <p className="text-xs text-slate-300 mt-2">
