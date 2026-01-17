@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowUp, User, Loader, Star, MessageSquare, Copy, RotateCcw } from 'lucide-react';
+import { ArrowUp, User, Loader, Star, MessageSquare, Copy, RotateCcw, Code } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Badge } from '@/components/ui/Badge';
 import { useTranslation } from '@/i18n';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useRouter } from 'next/navigation';
 
 interface Message {
   id: string;
@@ -40,6 +41,7 @@ const languageNames: Record<string, string> = {
 
 export default function ChatPage() {
   const { t, locale } = useTranslation();
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -550,8 +552,8 @@ export default function ChatPage() {
         setIsTyping(true);
 
         try {
-          // Use the correct API base URL from environment variables
-          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8004';
+          // Use the correct API base URL - proxied through Next.js rewrites
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
           // Get conversation history up to the last user message for context (sanitized)
           const conversationMessages = messages
@@ -819,6 +821,15 @@ export default function ChatPage() {
               </div>
               
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push('/sandbox')}
+                  className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/30 text-white hover:from-purple-500/30 hover:to-pink-500/30 font-semibold px-3 py-1.5 rounded-lg transition-all duration-300 backdrop-blur-sm"
+                >
+                  <Code className="w-4 h-4 mr-2" />
+                  Sandbox
+                </Button>
                 <LanguageSwitcher variant="minimal" />
                 <Button
                   variant="outline"

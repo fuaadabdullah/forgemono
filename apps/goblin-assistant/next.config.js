@@ -11,20 +11,32 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,    // Temporarily disable ESLint in builds
   },
-  // API proxy to Fly.io backend
+  // API proxy to backend - ONLY proxy /api routes, NOT page routes
   async rewrites() {
     return [
       {
-        source: '/chat/:path*',
-        destination: 'https://goblin-backend.fly.dev/chat/:path*',
+        // Proxy API chat endpoint (not the /chat page)
+        source: '/api/chat/:path*',
+        destination: 'https://goblinassistant.duckdns.org:8001/chat/:path*',
       },
       {
+        // Proxy all other API routes
         source: '/api/:path*',
-        destination: 'https://goblin-backend.fly.dev/api/:path*',
+        destination: 'https://goblinassistant.duckdns.org:8001/api/:path*',
       },
       {
         source: '/health',
-        destination: 'https://goblin-backend.fly.dev/health',
+        destination: 'https://goblinassistant.duckdns.org:8001/health',
+      },
+      {
+        // V1 sandbox API
+        source: '/v1/:path*',
+        destination: 'https://goblinassistant.duckdns.org:8001/v1/:path*',
+      },
+      {
+        // Legacy execute endpoint
+        source: '/execute/:path*',
+        destination: 'https://goblinassistant.duckdns.org:8001/execute/:path*',
       },
     ];
   },
