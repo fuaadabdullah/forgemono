@@ -7,6 +7,9 @@ PORT = "8001"
 ENV = "production"
 OLLAMA_GCP_URL = "http://34.60.255.199:11434"
 LLAMACPP_GCP_URL = "http://34.132.226.143:8000"
+SANDBOX_ENABLED = "true"
+# Allow the frontend and duckdns domain to call the API. Comma-separated list consumed by SecurityConfig.ALLOWED_ORIGINS
+ALLOWED_ORIGINS = "https://goblinosassistant.duckdns.org,https://goblin-assistant.vercel.app,https://*.vercel.app"
 
 [build]
   dockerfile = "Dockerfile"

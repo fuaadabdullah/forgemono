@@ -9,31 +9,31 @@
     }
   },
   "env": {
-    "BACKEND_URL": "https://goblin-backend.fly.dev",
-    "NEXT_PUBLIC_API_URL": "https://goblin-backend.fly.dev",
+    "BACKEND_URL": "https://goblinosassistant.duckdns.org",
+    "NEXT_PUBLIC_API_URL": "https://goblinosassistant.duckdns.org",
     "NEXT_PUBLIC_API_BASE_URL": "",
     "NEXT_PUBLIC_DOMAIN": "goblinosassistant.duckdns.org"
   },
   "rewrites": [
     {
       "source": "/api/chat/:path*",
-      "destination": "https://goblin-backend.fly.dev/chat/:path*"
+      "destination": "https://goblinosassistant.duckdns.org/chat/:path*"
     },
     {
       "source": "/api/:path*",
-      "destination": "https://goblin-backend.fly.dev/api/:path*"
+      "destination": "https://goblinosassistant.duckdns.org/api/:path*"
     },
     {
       "source": "/v1/:path*",
-      "destination": "https://goblin-backend.fly.dev/v1/:path*"
+      "destination": "https://goblinosassistant.duckdns.org/v1/:path*"
     },
     {
       "source": "/execute/:path*",
-      "destination": "https://goblin-backend.fly.dev/execute/:path*"
+      "destination": "https://goblinosassistant.duckdns.org/execute/:path*"
     },
     {
       "source": "/health",
-      "destination": "https://goblin-backend.fly.dev/health"
+      "destination": "https://goblinosassistant.duckdns.org/health"
     }
   ],
   "headers": [
