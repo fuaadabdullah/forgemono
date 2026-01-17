@@ -76,9 +76,12 @@ async def simple_chat(request: SimpleChatRequest):
         )
 
         if isinstance(response, dict) and response.get("ok"):
+            # Extract the text from the provider response
+            # Providers return "text" at the top level, not inside "result"
+            text = response.get("text", "")
             return SimpleChatResponse(
                 ok=True,
-                result=response.get("result"),
+                result={"text": text} if text else response.get("result"),
                 provider=response.get("provider", "unknown"),
                 model=response.get("model", "unknown"),
             )

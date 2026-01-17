@@ -66,3 +66,4 @@ lighthouse-report.*
 
 # Local archive for removed secrets (ignored so files can be moved here temporarily)
 .archive/
+._*
