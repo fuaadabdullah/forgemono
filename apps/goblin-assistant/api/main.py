@@ -75,6 +75,7 @@ from .auth.router import router as auth_router
 from .routing_router import router as routing_router
 from .execute_router import router as execute_router
 from .execute_router_v1 import router as execute_router_v1
+from .execute_router_v2 import router as execute_router_v2
 from .parse_router import router as parse_router
 from .raptor_router import router as raptor_router
 
@@ -350,6 +351,7 @@ app.include_router(auth_router)
 app.include_router(routing_router)
 app.include_router(execute_router)  # Legacy /execute endpoints
 app.include_router(execute_router_v1)  # New /v1/execute endpoints
+app.include_router(execute_router_v2)  # Docker-isolated /v2/execute endpoints
 app.include_router(parse_router)
 app.include_router(raptor_router)
 app.include_router(api_keys_router)

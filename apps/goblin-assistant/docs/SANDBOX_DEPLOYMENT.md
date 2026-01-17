@@ -208,7 +208,115 @@ flyctl certs create goblinosassistant.duckdns.org
 
 ---
 
-## 7. Architecture Summary
+## 7. Docker-Based Sandbox (Full Isolation)
+
+The sandbox supports two modes:
+
+1. **Simulated mode**: Subprocess-based execution (always available, minimal isolation)
+2. **Docker mode**: Full container isolation (requires Docker + sandbox image)
+
+### 7.1 Build the Sandbox Image
+
+```bash
+# From the api/sandbox directory
+cd apps/goblin-assistant/api/sandbox
+./build.sh
+
+# Or manually:
+docker build -t goblin/sandbox:latest .
+```
+
+### 7.2 Test the Sandbox Image Locally
+
+```bash
+# Basic test
+docker run --rm goblin/sandbox:latest python3 -c "print('Hello from sandbox!')"
+
+# Test with full security restrictions (as used in production)
+docker run --rm \
+  --network none \
+  --read-only \
+  --security-opt=no-new-privileges:true \
+  --cap-drop=ALL \
+  --memory=128m \
+  --cpu-period=100000 \
+  --cpu-quota=50000 \
+  goblin/sandbox:latest \
+  python3 -c "import sympy; x = sympy.Symbol('x'); print(sympy.simplify(sympy.sin(x)**2 + sympy.cos(x)**2))"
+```
+
+### 7.3 Push to Container Registry
+
+```bash
+# Tag for your registry
+docker tag goblin/sandbox:latest registry.fly.io/goblin-sandbox:latest
+
+# Push to Fly.io registry (if using Fly Machines)
+flyctl auth docker
+docker push registry.fly.io/goblin-sandbox:latest
+
+# Or push to Docker Hub / GHCR
+docker tag goblin/sandbox:latest your-registry/goblin-sandbox:latest
+docker push your-registry/goblin-sandbox:latest
+```
+
+### 7.4 Configure Fly.io for Docker Sandbox
+
+**Note**: Fly.io standard VMs don't support Docker-in-Docker. For full Docker isolation, you have two options:
+
+**Option A: Fly Machines (recommended)**
+Use Fly Machines API to spawn isolated containers per execution.
+
+**Option B: Separate Docker Host**
+Run a dedicated Docker host (e.g., on GCP, AWS, or self-hosted) and configure:
+```bash
+flyctl secrets set SANDBOX_IMAGE="your-registry/goblin-sandbox:latest"
+flyctl secrets set DOCKER_HOST="tcp://your-docker-host:2376"
+```
+
+**Option C: Simulated Mode (default)**
+Keep using simulated mode - it provides process-level isolation with:
+- Subprocess execution
+- Timeout enforcement
+- Output limits
+- Dangerous pattern blocking
+
+### 7.5 Verify Docker Mode
+
+If Docker is properly configured:
+```bash
+curl -s https://goblinosassistant.duckdns.org/v2/execute/status | jq
+```
+
+Expected response for Docker mode:
+```json
+{
+  "mode": "docker",
+  "available": true,
+  "docker_available": true,
+  "docker_image_found": true,
+  "isolation_level": "full",
+  "image": "goblin/sandbox:latest"
+}
+```
+
+---
+
+## 8. API Versions
+
+| Endpoint | Description | Isolation |
+|----------|-------------|-----------|
+| `/execute/code` | Legacy endpoint | Simulated |
+| `/v1/execute/code` | V1 with capabilities | Simulated |
+| `/v2/execute/code` | V2 with Docker support | Docker or Simulated |
+
+The v2 API automatically selects the best available mode:
+- Uses Docker isolation when `SANDBOX_IMAGE` is configured and Docker is available
+- Falls back to simulated mode otherwise
+
+---
+
+## 9. Architecture Summary
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -238,23 +346,30 @@ flyctl certs create goblinosassistant.duckdns.org
 │                                                                 │
 │  • FastAPI app (api/main.py)                                    │
 │  • CORS configured for frontend domains                         │
-│  • Sandbox execution (simulated or Docker)                      │
+│  • Sandbox execution:                                           │
+│    - V1: Simulated (subprocess)                                 │
+│    - V2: Docker-based or simulated (auto-select)                │
 │  • Health endpoints: /health, /health/sandbox/status            │
+│  • Execution endpoints: /v1/execute/code, /v2/execute/code      │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 8. Files Changed
+## 10. Files Changed
 
 | File | Change |
 |------|--------|
 | `apps/goblin-assistant/vercel.json` | Updated `BACKEND_URL`, `NEXT_PUBLIC_API_URL`, and rewrites to use `goblinosassistant.duckdns.org` |
 | `apps/goblin-assistant/fly.toml` | Added `SANDBOX_ENABLED=true` and `ALLOWED_ORIGINS` with frontend domains |
+| `apps/goblin-assistant/api/sandbox/` | New Docker sandbox module with Dockerfile, executor, and build script |
+| `apps/goblin-assistant/api/execute_router_v2.py` | New V2 execute router with Docker support |
+| `apps/goblin-assistant/api/main.py` | Added V2 execute router import and include |
+| `apps/goblin-assistant/api/requirements.txt` | Added `docker>=7.0.0` for Docker SDK |
 
 ---
 
-## 9. Quick Commands Reference
+## 11. Quick Commands Reference
 
 ```bash
 # Deploy backend
@@ -275,6 +390,17 @@ curl "https://www.duckdns.org/update?domains=goblinosassistant&token=YOUR_TOKEN&
 # Test backend health
 curl https://goblinosassistant.duckdns.org/health
 
-# Test sandbox status
+# Test sandbox status (v1)
 curl https://goblinosassistant.duckdns.org/health/sandbox/status
+
+# Test sandbox status (v2)
+curl https://goblinosassistant.duckdns.org/v2/execute/status
+
+# Test code execution (v2)
+curl -X POST https://goblinosassistant.duckdns.org/v2/execute/code \
+  -H "Content-Type: application/json" \
+  -d '{"code": "print(\"Hello from Goblin Sandbox!\")"}'
+
+# Build sandbox image locally
+cd apps/goblin-assistant/api/sandbox && ./build.sh
 ```
