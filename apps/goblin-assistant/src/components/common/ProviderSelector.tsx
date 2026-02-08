@@ -20,7 +20,10 @@ export default function ProviderSelector({ providers, selected, onChange }: Prop
       <label htmlFor="provider-select" data-testid="provider-label">
         Provider:
       </label>
-      <Select value={selected || providers[0]} onValueChange={value => onChange && onChange(value)}>
+      <Select
+        value={selected || providers[0]}
+        onValueChange={(value: string) => onChange && onChange(value)}
+      >
         <SelectTrigger
           id="provider-select"
           aria-label="Select provider"

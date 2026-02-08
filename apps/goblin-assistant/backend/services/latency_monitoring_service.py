@@ -327,78 +327,136 @@ class LatencyMonitoringService:
         if not self.redis:
             return
 
-        key = f"latency:metrics:{provider_name}:{model_name}"
-        health_key = f"latency:health:{provider_name}:{model_name}"
-
         try:
-            # Get recent metrics (last hour)
-            cutoff_time = (datetime.utcnow() - timedelta(hours=1)).timestamp()
-            metrics_data = await self.redis.zrangebyscore(
-                key, cutoff_time, float("inf"), withscores=False
+            # Retrieve recent metrics
+            metrics_data = await self._retrieve_recent_metrics(
+                provider_name, model_name
             )
+            if not metrics_data:
+                return
 
-            if len(metrics_data) < self.health_thresholds["min_samples"]:
-                return  # Not enough data for reliable health calculation
-
-            # Parse metrics
-            response_times = []
-            total_tokens = 0
-            success_count = 0
-            total_count = len(metrics_data)
-
-            for data in metrics_data:
-                try:
-                    metric_dict = json.loads(data)
-                    metric = LatencyMetric.from_dict(metric_dict)
-                    response_times.append(metric.response_time_ms)
-                    total_tokens += metric.tokens_used
-                    if metric.success:
-                        success_count += 1
-                except Exception as e:
-                    logger.warning(
-                        f"Failed to parse metric for health calculation: {e}"
-                    )
-                    continue
-
-            if not response_times:
+            # Parse metrics data
+            parsed_metrics = self._parse_metrics_data(metrics_data)
+            if not parsed_metrics:
                 return
 
             # Calculate health metrics
-            avg_response_time = sum(response_times) / len(response_times)
-            success_rate = success_count / total_count if total_count > 0 else 0
+            health_metrics = self._calculate_health_metrics(parsed_metrics)
 
-            # Calculate tokens per second (throughput)
-            total_time_seconds = sum(response_times) / 1000  # Convert to seconds
-            tokens_per_second = (
-                total_tokens / total_time_seconds if total_time_seconds > 0 else 0
-            )
+            # Determine health status
+            is_healthy = self._determine_health_status(health_metrics)
 
-            # Determine if healthy
-            is_healthy = (
-                success_rate >= self.health_thresholds["min_success_rate"]
-                and avg_response_time <= self.health_thresholds["max_avg_latency"]
-                and total_count >= self.health_thresholds["min_samples"]
-            )
-
-            # Create health object
-            health = ProviderHealth(
-                provider_name=provider_name,
-                model_name=model_name,
-                avg_response_time_ms=avg_response_time,
-                success_rate=success_rate,
-                tokens_per_second=tokens_per_second,
-                last_updated=datetime.utcnow(),
-                sample_count=total_count,
-                is_healthy=is_healthy,
-            )
-
-            # Store in Redis
-            await self.redis.set(
-                health_key, json.dumps(health.to_dict()), ex=self.health_ttl
+            # Store health data
+            await self._store_health_data(
+                provider_name, model_name, health_metrics, is_healthy
             )
 
         except Exception as e:
             logger.error(f"Failed to update provider health: {e}")
+
+    async def _retrieve_recent_metrics(
+        self, provider_name: str, model_name: str
+    ) -> Optional[List[str]]:
+        """Retrieve recent metrics data from Redis."""
+        key = f"latency:metrics:{provider_name}:{model_name}"
+        cutoff_time = (datetime.utcnow() - timedelta(hours=1)).timestamp()
+
+        metrics_data = await self.redis.zrangebyscore(
+            key, cutoff_time, float("inf"), withscores=False
+        )
+
+        if len(metrics_data) < self.health_thresholds["min_samples"]:
+            return None  # Not enough data for reliable health calculation
+
+        return metrics_data
+
+    def _parse_metrics_data(self, metrics_data: List[str]) -> Optional[Dict[str, Any]]:
+        """Parse metrics data and extract relevant statistics."""
+        response_times = []
+        total_tokens = 0
+        success_count = 0
+        total_count = len(metrics_data)
+
+        for data in metrics_data:
+            try:
+                metric_dict = json.loads(data)
+                metric = LatencyMetric.from_dict(metric_dict)
+                response_times.append(metric.response_time_ms)
+                total_tokens += metric.tokens_used
+                if metric.success:
+                    success_count += 1
+            except Exception as e:
+                logger.warning(f"Failed to parse metric for health calculation: {e}")
+                continue
+
+        if not response_times:
+            return None
+
+        return {
+            "response_times": response_times,
+            "total_tokens": total_tokens,
+            "success_count": success_count,
+            "total_count": total_count,
+        }
+
+    def _calculate_health_metrics(
+        self, parsed_metrics: Dict[str, Any]
+    ) -> Dict[str, float]:
+        """Calculate health metrics from parsed data."""
+        response_times = parsed_metrics["response_times"]
+        total_tokens = parsed_metrics["total_tokens"]
+        success_count = parsed_metrics["success_count"]
+        total_count = parsed_metrics["total_count"]
+
+        avg_response_time = sum(response_times) / len(response_times)
+        success_rate = success_count / total_count if total_count > 0 else 0
+
+        # Calculate tokens per second (throughput)
+        total_time_seconds = sum(response_times) / 1000  # Convert to seconds
+        tokens_per_second = (
+            total_tokens / total_time_seconds if total_time_seconds > 0 else 0
+        )
+
+        return {
+            "avg_response_time": avg_response_time,
+            "success_rate": success_rate,
+            "tokens_per_second": tokens_per_second,
+            "total_count": total_count,
+        }
+
+    def _determine_health_status(self, health_metrics: Dict[str, float]) -> bool:
+        """Determine if the provider is healthy based on metrics."""
+        return (
+            health_metrics["success_rate"] >= self.health_thresholds["min_success_rate"]
+            and health_metrics["avg_response_time"]
+            <= self.health_thresholds["max_avg_latency"]
+            and health_metrics["total_count"] >= self.health_thresholds["min_samples"]
+        )
+
+    async def _store_health_data(
+        self,
+        provider_name: str,
+        model_name: str,
+        health_metrics: Dict[str, float],
+        is_healthy: bool,
+    ) -> None:
+        """Store health data in Redis."""
+        health_key = f"latency:health:{provider_name}:{model_name}"
+
+        health = ProviderHealth(
+            provider_name=provider_name,
+            model_name=model_name,
+            avg_response_time_ms=health_metrics["avg_response_time"],
+            success_rate=health_metrics["success_rate"],
+            tokens_per_second=health_metrics["tokens_per_second"],
+            last_updated=datetime.utcnow(),
+            sample_count=int(health_metrics["total_count"]),
+            is_healthy=is_healthy,
+        )
+
+        await self.redis.set(
+            health_key, json.dumps(health.to_dict()), ex=self.health_ttl
+        )
 
     async def get_all_provider_health(self) -> List[ProviderHealth]:
         """Get health status for all providers/models."""

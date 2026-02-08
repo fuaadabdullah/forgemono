@@ -4,14 +4,17 @@ node_modules/
 dist/
 coverage/
 .turbo/
+.next/
 
 # Python
 __pycache__/
 .pytest_cache/
 .venv/
+*.pyc
 
 # OS/Editor
 .DS_Store
+._*
 .idea/
 .vscode/
 
@@ -19,6 +22,8 @@ __pycache__/
 .env
 .env.*
 !.env.example
+apps/goblin-assistant/infra/kong/.env
+!apps/goblin-assistant/infra/kong/.env.example
 .secrets/
 
 # Local env / decrypted files
@@ -48,6 +53,9 @@ credentials.json
 artifacts/
 *.log
 
+# Generated ONNX embedding models (export scripts output here)
+apps/goblin-assistant/backend/models/onnx/
+
 # Local Netlify folder
 .netlify
 .vercel
@@ -64,3 +72,9 @@ lighthouse-report.*
 
 # Local archive for removed secrets (ignored so files can be moved here temporarily)
 .archive/
+# Mirror secret staging area under deployments as a reminder to rotate
+deployments/.archive/
+
+# macOS resource forks / metadata files (common on external drives)
+._*
+.DS_Store

@@ -1,6 +1,6 @@
 ---
 description: ForgeMonorepo development guidelines and AI assistant instructions
-applyTo: "**"
+applyTo: '**'
 ---
 
 # ForgeMonorepo — AI Assistant Instructions
@@ -325,8 +325,8 @@ We use Supabase (Postgres) as our canonical persistent data store and Auth provi
 - Migrations: Use the Supabase CLI to create and apply migrations (`supabase migration new <name>`).
   Commit SQL migration files. Keep migrations idempotent where possible and include RLS enable
   statements:
-
   - `ALTER TABLE public.<table> ENABLE ROW LEVEL SECURITY;`
+
 - RLS Audit: Run the repository's simple RLS audit script before merging DB migrations:
   `scripts/ops/supabase_rls_check.sh` (or pass the Supabase folder when relevant). This checks that
   `CREATE TABLE` statements are accompanied by explicit RLS enablement and flags missing policies.
@@ -373,11 +373,11 @@ When creating automation for projects, add to `goblins.yaml`:
 guilds:
   - id: project-guild
     name: Project Guild
-    charter: "Manage project development lifecycle"
+    charter: 'Manage project development lifecycle'
     toolbelt:
       - id: project-dev
         name: Project Dev Server
-        summary: "Run dev server"
+        summary: 'Run dev server'
         owner: owner
         command: cd apps/project && pnpm dev
 ```
@@ -598,6 +598,153 @@ canonical patterns and retention/rotation schedules.
 
 Note: A lightweight `goblin-cli` scaffold will be added to `GoblinOS/` to validate and safely
 execute goblins. See `GoblinOS/goblins.yaml` for the canonical manifest.
+
+---
+
+## Test Migration Assistant (Enzyme → Testing Library)
+
+When converting Enzyme tests to Testing Library, follow these guidelines:
+
+### Always:
+
+- Use `screen.getByRole()` over other queries when possible
+- Use `userEvent` over `fireEvent` for user interactions
+- Test behavior, not implementation details
+- Remove all Enzyme imports (`import { shallow, mount } from 'enzyme'`)
+- Add `@testing-library/react` and `@testing-library/user-event` imports
+- Prefer async/await for user interactions
+
+### Migration Patterns:
+
+#### Component Rendering:
+
+```javascript
+// ❌ Enzyme:
+const wrapper = shallow(<Component />);
+const wrapper = mount(<Component />);
+
+// ✅ Testing Library:
+import { render, screen } from '@testing-library/react';
+render(<Component />);
+```
+
+#### Element Queries:
+
+```javascript
+// ❌ Enzyme:
+wrapper.find('button').simulate('click');
+wrapper.find('.my-class');
+expect(wrapper.find('span').text()).toBe('text');
+
+// ✅ Testing Library:
+const button = screen.getByRole('button');
+const element = screen.getByText('text');
+const styledElement = screen.getByTestId('my-element');
+```
+
+#### User Interactions:
+
+```javascript
+// ❌ Enzyme:
+wrapper.find('button').simulate('click');
+wrapper.find('input').simulate('change', { target: { value: 'new value' } });
+
+// ✅ Testing Library:
+import userEvent from '@testing-library/user-event';
+const user = userEvent.setup();
+await user.click(button);
+await user.type(input, 'new value');
+```
+
+#### State/Props Testing:
+
+```javascript
+// ❌ Enzyme (don't do this):
+expect(wrapper.state('count')).toBe(1);
+expect(wrapper.prop('disabled')).toBe(true);
+
+// ✅ Testing Library (test what user sees):
+expect(screen.getByText('Count: 1')).toBeInTheDocument();
+expect(button).toBeDisabled();
+```
+
+### Common Conversion Examples:
+
+#### Button Component Test:
+
+```javascript
+// Before (Enzyme):
+import { shallow } from 'enzyme';
+
+it('calls onClick when clicked', () => {
+  const mockOnClick = jest.fn();
+  const wrapper = shallow(<Button onClick={mockOnClick} />);
+  wrapper.find('button').simulate('click');
+  expect(mockOnClick).toHaveBeenCalled();
+});
+
+// After (Testing Library):
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+it('calls onClick when clicked', async () => {
+  const mockOnClick = jest.fn();
+  const user = userEvent.setup();
+  render(<Button onClick={mockOnClick} />);
+
+  const button = screen.getByRole('button');
+  await user.click(button);
+  expect(mockOnClick).toHaveBeenCalled();
+});
+```
+
+#### Form Input Test:
+
+```javascript
+// Before (Enzyme):
+it('updates value on change', () => {
+  const wrapper = shallow(<Input />);
+  const input = wrapper.find('input');
+  input.simulate('change', { target: { value: 'new value' } });
+  expect(input.prop('value')).toBe('new value');
+});
+
+// After (Testing Library):
+it('updates value on change', async () => {
+  const user = userEvent.setup();
+  render(<Input />);
+
+  const input = screen.getByRole('textbox');
+  await user.type(input, 'new value');
+  expect(input).toHaveValue('new value');
+});
+```
+
+### AI Assistant Prompt Template:
+
+When asked to convert Enzyme tests, use this prompt:
+
+```
+I'm migrating React tests from Enzyme to Testing Library. Convert this test:
+
+[PASTE ENZYME TEST HERE]
+
+Guidelines:
+1. Use Testing Library queries (getByRole preferred)
+2. Use userEvent for interactions
+3. Test behavior, not implementation
+4. Keep the same test descriptions
+5. Add proper async/await for user events
+
+Provide ONLY the converted test code, no explanations.
+```
+
+### Migration Priority:
+
+1. **High Priority**: Simple component tests with basic interactions
+2. **Medium Priority**: Form components, data display components
+3. **Low Priority**: Complex components with heavy state management
+4. **Skip**: Tests that are already well-covered by integration tests
 
 ---
 

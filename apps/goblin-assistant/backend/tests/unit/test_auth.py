@@ -58,8 +58,8 @@ class TestRedisChallengeStore:
     @pytest.mark.asyncio
     async def test_redis_basic_operations(self, mock_redis):
         """Test basic Redis store operations."""
-        with patch("auth.challenge_store.redis", create=True) as mock_redis_module:
-            mock_redis_module.Redis.return_value = mock_redis
+        with patch("auth.challenge_store.aioredis") as mock_aioredis:
+            mock_aioredis.from_url.return_value = mock_redis
             store = RedisChallengeStore()
 
             email = "test@example.com"
@@ -77,7 +77,8 @@ class TestRedisChallengeStore:
             assert deleted is True
             assert await store.get_challenge(email) is None
 
-    def test_redis_health_check(self, mock_redis):
+    @pytest.mark.asyncio
+    async def test_redis_health_check(self, mock_redis):
         """Test Redis health check functionality."""
         # Add info method to mock
         mock_redis.info = lambda section: {
@@ -86,15 +87,14 @@ class TestRedisChallengeStore:
             "server": {"uptime_in_seconds": 3600},
         }
 
-        with patch("auth.challenge_store.redis", create=True) as mock_redis_module:
-            mock_redis_module.Redis.return_value = mock_redis
+        with patch("auth.challenge_store.aioredis") as mock_aioredis:
+            mock_aioredis.from_url.return_value = mock_redis
             store = RedisChallengeStore()
 
-            health = store.health_check()
+            health = await store.health_check()
             print(f"Health check result: {health}")  # Debug print
 
             assert health["redis_available"] is True
             assert "memory_used" in health
             assert "memory_peak" in health
-            assert "memory_used" in health
             assert "uptime_seconds" in health

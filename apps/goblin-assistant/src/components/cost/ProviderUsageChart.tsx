@@ -1,5 +1,6 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import type { PieLabelRenderProps } from 'recharts';
 
 interface ChartData {
   name: string;
@@ -50,7 +51,16 @@ const ProviderUsageChart: React.FC<ProviderUsageChartProps> = ({ data }) => {
             cy="50%"
             outerRadius={80}
             labelLine={false}
-            label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+            label={(props: PieLabelRenderProps) => {
+              const safeName =
+                typeof props.name === 'string'
+                  ? props.name
+                  : props.name != null
+                    ? String(props.name)
+                    : 'Unknown';
+              const percent = props.percent ?? 0;
+              return `${safeName} ${(percent * 100).toFixed(0)}%`;
+            }}
           >
             {data.map((_entry, index) => (
               <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />

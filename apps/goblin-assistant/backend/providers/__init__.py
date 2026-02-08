@@ -36,22 +36,30 @@ try:
 except ImportError:
     OllamaAdapter = None
 
-__all__ = [
-    "AdapterBase",
-    "ProviderError",
-    "OpenAIAdapter",
-    "AnthropicAdapter",
-    "GeminiAdapter",
-    "GrokAdapter",
-    "DeepSeekAdapter",
-    "OllamaAdapter",
-]
+try:
+    from .vertex_adapter import VertexAdapter
+except ImportError:
+    VertexAdapter = None
+
+# Cloud provider adapters (optional)
+try:
+    from .runpod_adapter import RunPodAdapter
+except ImportError:
+    RunPodAdapter = None
+
+try:
+    from .vastai_adapter import VastAIAdapter
+except ImportError:
+    VastAIAdapter = None
+
 from .llamacpp_adapter import LlamaCppAdapter
 from .silliconflow_adapter import SilliconflowAdapter
 from .moonshot_adapter import MoonshotAdapter
 from .elevenlabs_adapter import ElevenLabsAdapter
 
 __all__ = [
+    "AdapterBase",
+    "ProviderError",
     "OpenAIAdapter",
     "AnthropicAdapter",
     "GeminiAdapter",
@@ -62,4 +70,8 @@ __all__ = [
     "SilliconflowAdapter",
     "MoonshotAdapter",
     "ElevenLabsAdapter",
+    "VertexAdapter",
+    # Cloud providers
+    "RunPodAdapter",
+    "VastAIAdapter",
 ]

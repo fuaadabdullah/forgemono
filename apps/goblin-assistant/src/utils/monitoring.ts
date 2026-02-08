@@ -2,19 +2,21 @@
 import * as Sentry from '@sentry/react';
 import { env } from '../config/env';
 
+const sentry: any = Sentry;
+
 interface ErrorContext {
   componentStack?: string;
   [key: string]: unknown;
 }
 
 // Initialize Sentry if DSN is provided
-if (env.isProduction && env.sentryDsn) {
-  Sentry.init({
+if (typeof window !== 'undefined' && env.isProduction && env.sentryDsn) {
+  sentry.init({
     dsn: env.sentryDsn,
     environment: env.mode,
     integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration({
+      sentry.browserTracingIntegration(),
+      sentry.replayIntegration({
         maskAllText: true,
         blockAllMedia: true,
       }),
@@ -28,10 +30,10 @@ if (env.isProduction && env.sentryDsn) {
 }
 
 export function logErrorToService(error: Error, context?: ErrorContext) {
-  if (env.isProduction) {
+  if (env.isProduction && typeof window !== 'undefined') {
     // Send to Sentry if configured
     if (env.sentryDsn) {
-      Sentry.captureException(error, {
+      sentry.captureException(error, {
         contexts: context ? { react: context } : undefined,
         tags: {
           component: 'frontend',
@@ -69,8 +71,8 @@ export function reactErrorInfoToContext(errorInfo: React.ErrorInfo): ErrorContex
 
 // Performance monitoring helper
 export function logPerformanceMetric(name: string, value: number) {
-  if (env.isProduction && env.sentryDsn) {
+  if (env.isProduction && env.sentryDsn && typeof window !== 'undefined') {
     // Log performance metrics to Sentry using setMeasurement
-    Sentry.setMeasurement(name, value, 'none');
+    sentry.setMeasurement(name, value, 'none');
   }
 }

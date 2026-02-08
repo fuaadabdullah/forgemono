@@ -10,3 +10,8 @@ python-multipart
 prometheus-client
 slowapi
 distutils-strtobool
+opentelemetry-distro
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-httpx
+opentelemetry-instrumentation-aiohttp
+opentelemetry-exporter-otlp-proto-grpc

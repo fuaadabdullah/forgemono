@@ -17,13 +17,21 @@ if not VAULT_AVAILABLE or not os.getenv("USE_VAULT", "").lower() in (
     "1",
     "yes",
 ):
-    from cryptography.fernet import Fernet
+    # Defer cipher creation until needed to avoid import-time failures
+    _encryption_key = None
+    _cipher = None
 
-    # Encryption key from env (never commit this)
-    ENCRYPTION_KEY = os.getenv("SETTINGS_ENCRYPTION_KEY")
-    if not ENCRYPTION_KEY:
-        raise ValueError("SETTINGS_ENCRYPTION_KEY environment variable must be set")
-    cipher = Fernet(ENCRYPTION_KEY.encode())
+    def _get_cipher():
+        global _cipher
+        if _cipher is None:
+            key = os.getenv("SETTINGS_ENCRYPTION_KEY")
+            if not key:
+                raise ValueError("SETTINGS_ENCRYPTION_KEY environment variable must be set")
+            from cryptography.fernet import Fernet
+            _cipher = Fernet(key.encode())
+        return _cipher
+
+    cipher = _get_cipher  # Make it callable for backward compatibility
 else:
     cipher = None  # Using Vault instead
 
@@ -210,13 +218,13 @@ class SettingsService:
         """Encrypt API key using Fernet (fallback method)"""
         if cipher is None:
             raise ValueError("Fernet encryption not available (using Vault)")
-        return cipher.encrypt(key.encode()).decode()
+        return cipher().encrypt(key.encode()).decode()
 
     def decrypt_key(self, encrypted_key: str) -> str:
         """Decrypt API key using Fernet (fallback method)"""
         if cipher is None:
             raise ValueError("Fernet encryption not available (using Vault)")
-        return cipher.decrypt(encrypted_key.encode()).decode()
+        return cipher().decrypt(encrypted_key.encode()).decode()
 
     def test_connection(
         self, provider_name: str, api_key: Optional[str] = None

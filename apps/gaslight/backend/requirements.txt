@@ -1,3 +1,6 @@
 fastapi
 uvicorn
 pydantic
+opentelemetry-distro
+opentelemetry-instrumentation-fastapi
+opentelemetry-exporter-otlp-proto-grpc

@@ -10,13 +10,14 @@ import urllib.parse
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 
-from database import get_db
-from models.routing import ProviderMetric, RoutingProvider
-from config import settings
+from .database import get_db
+from .models.provider import ProviderMetric
+from .models.provider import Provider as RoutingProvider
+from .config import settings
 
 # Import auth components for health checks
 try:
-    from auth.challenge_store import get_challenge_store_instance
+    from .auth.challenge_store import get_challenge_store_instance
 
     challenge_store_available = True
 except ImportError:
@@ -24,7 +25,7 @@ except ImportError:
 
 # Import session cache for health checks
 try:
-    from cache.session_cache import get_session_cache
+    from .cache.session_cache import get_session_cache
 
     session_cache_available = True
 except ImportError:
@@ -32,11 +33,11 @@ except ImportError:
 
 # Import LLM adapters for health checks
 try:
-    from providers.ollama_adapter import OllamaAdapter
-    from providers.openai_adapter import OpenAIAdapter
-    from providers.anthropic_adapter import AnthropicAdapter
-    from providers.grok_adapter import GrokAdapter
-    from providers.deepseek_adapter import DeepSeekAdapter
+    from .providers.ollama_adapter import OllamaAdapter
+    from .providers.openai_adapter import OpenAIAdapter
+    from .providers.anthropic_adapter import AnthropicAdapter
+    from .providers.grok_adapter import GrokAdapter
+    from .providers.deepseek_adapter import DeepSeekAdapter
 except ImportError:
     # Adapters may not be available in all environments
     OllamaAdapter = None

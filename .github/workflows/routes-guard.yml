@@ -1,0 +1,38 @@
+name: Routing Constitution Guard
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/goblin-assistant/**'
+      - '.github/workflows/routes-guard.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/goblin-assistant/**'
+      - '.github/workflows/routes-guard.yml'
+
+jobs:
+  check-routes:
+    name: check:routes
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/goblin-assistant
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Enforce routing constitution
+        run: npm exec --package=tsx@4.7.0 -- tsx scripts/check-routes.ts
+
+      - name: Block AppleDouble files
+        run: npm exec --package=tsx@4.7.0 -- tsx scripts/check-no-appledouble.ts
+
+      - name: Enforce feature boundaries
+        run: npm exec --package=tsx@4.7.0 -- tsx scripts/check-feature-boundaries.ts

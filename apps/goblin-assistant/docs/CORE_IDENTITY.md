@@ -1,126 +1,112 @@
 ---
-description: "Core Identity and positioning for GoblinOS Assistant — hybrid, multi-provider AI orchestration"
+description: "Core Identity and positioning for GoblinOS Assistant — a local LLM assistant"
 ---
 
 # GoblinOS Assistant — Core Identity
 
-GoblinOS Assistant is a multi-provider, hybrid local/cloud AI assistant platform built for privacy, cost-efficiency, and extensibility. It’s not a simple “ChatGPT wrapper”—it’s an orchestration layer that intelligently routes each request across cloud providers and local models based on cost, latency, and capability.
+GoblinOS Assistant is a local LLM assistant platform focused on simplicity, privacy, and cost-efficiency. It's designed to provide AI capabilities through locally hosted models without the complexity of multi-provider orchestration.
 
 ## 1. What GoblinOS Provides
 
-- Choice — Use multiple AI providers and local models through a unified API and adapter system.
+- **Local AI Processing** — Run AI models entirely on local hardware for maximum privacy and control.
 
-- Control — Decide which workloads run locally vs. in the cloud and define routing policies.
+- **Multiple Model Support** — Choose from different local models optimized for various tasks (chat, coding, long context).
 
-- Cost-efficiency — Route workloads to the cheapest viable option while preserving quality.
+- **Simple Architecture** — Straightforward setup without complex cloud integrations or external dependencies.
 
-- Extensibility — Plug in new providers, tools, and workflows with a standard adapter interface.
+- **Cost Control** — No API fees or usage charges since all processing happens locally.
 
 ## 2. Key Characteristics
 
-### 2.1 Hybrid Architecture
+### 2.1 Local-First Design
 
-GoblinOS spans both cloud and local environments:
+GoblinOS focuses exclusively on local model execution:
 
-- Cloud Providers: OpenAI, Anthropic, Google Gemini, DeepSeek, Grok, Moonshot, SiliconFlow, and more via plugin adapters.
-- Local Models: llama.cpp, Ollama, and custom local LLM proxies.
-- Intelligent Routing: Requests are dispatched based on cost (price per token/call), latency, and capability (model quality and context length). GoblinOS can route lightweight tasks to cheap/local models, heavy reasoning tasks to premium cloud models, and sensitive data to strictly local execution.
+- **Local Models**: mistral:7b, qwen2.5:3b, phi3:3.8b, gemma:2b via Ollama
+- **No Cloud Dependencies**: All processing happens locally, ensuring data privacy
+- **Simple Routing**: Automatic model selection based on request characteristics (context length, intent, latency requirements)
 
-### 2.2 Privacy-First Design
+### 2.2 Privacy-First Approach
 
-GoblinOS is designed for users who want data control and privacy:
+GoblinOS is designed for users who want complete data control:
 
-- Local Execution Option: Run prompts, RAG, and tools entirely on local models for sensitive workloads.
-- End-to-End Encryption: Conversation data is encrypted in transit and optionally at rest.
-- Self-Hostable: Deploy to Kamatera, Fly.io, bare metal, or a private cloud.
- 
-### 2.3 Enterprise-Grade Features
+- **Local Data Processing**: All prompts and responses stay on local hardware
+- **No External APIs**: No data leaves your system
+- **Self-Hosted**: Complete control over the deployment environment
 
-- Multi-Tenancy with isolated data and permissions.
+### 2.3 Developer-Friendly
 
-- API Key Management with secure rotation and scoping.
+- **Simple Setup**: Easy installation and configuration
+- **React/Vite Frontend**: Modern web interface
+- **FastAPI Backend**: Clean API design
+- **SQLite/PostgreSQL**: Flexible database options
 
-- Usage Analytics & Cost Tracking (per-user / team reports, provider cost breakdowns).
+## 3. Current Implementation
 
-- Audit Logging: Who called what, which provider/model was used, and when.
+At its core, GoblinOS Assistant is structured as:
 
-### 2.4 Advanced Capabilities
+- **Frontend**: React + Vite UI for user interaction
+- **Backend**: FastAPI server handling requests and routing
+- **Local LLM**: Ollama-powered models with intelligent routing
+- **Database**: SQLite or PostgreSQL for data persistence
 
-- RAG Engine (Raptor-backed) for retrieval and reasoning over long context.
+Key features:
+- Local LLM routing based on request characteristics
+- Basic database support for user data
+- Simple web interface for chat interactions
+- Raptor service for local model management
 
-- Vector DB-backed retrieval (pluggable backends like pgvector, Qdrant, Chroma).
+## 4. Current Capabilities
 
-- Secure Code Execution sandbox for safe code running.
-
-- Integrated Web Search and File Processing pipelines (PDF/docs parsing).
-
-- ElevenLabs (or equivalent) voice/TTS integrations.
-
-- RAG Engine (Raptor-backed) for retrieval and reasoning over long context.
-
-- Vector DB-backed retrieval (pluggable backends like pgvector, Qdrant, Chroma).
-
-- Secure Code Execution sandbox for safe code running.
-
-- Integrated Web Search and File Processing pipelines (PDF/docs parsing).
-
-- ElevenLabs (or equivalent) voice/TTS integrations.
-- RAG Engine (Raptor-backed) for retrieval and reasoning over long context.
-- Vector DB-backed retrieval (pluggable backends like pgvector, Qdrant, Chroma).
-- Secure Code Execution sandbox for safe code running.
-- Integrated Web Search and File Processing pipelines (PDF/docs parsing).
-- ElevenLabs (or equivalent) voice/TTS integrations.
-
-## 3. High-Level Architecture (Short)
-
-At a high-level GoblinOS is structured as:
-
-- User Interface (Web/Mobile) ↔ API Gateway (FastAPI) ↔ Provider Orchestrator
-
-- Authentication (JWT/Passkeys) and Local LLM Proxy (llama.cpp/Ollama)
-
-- RAG Engine (Vector DB) and Task Queue (Celery/Redis)
-
-Key pieces: provider orchestration, routing, RAG indexing and retrieval, and background task processing.
-
-## 4. Unique Differentiators
-
-- Cost Optimization: Dynamic model switching by price, latency, and task category.
-
-- Fault Tolerance: Circuit breakers and provider bulkheads for resiliency.
-
-- Plugin System: Easy to add providers, tools, and workflows.
-
-- Observability: Rich metrics and logs per provider/model, detailed cost and latency tracking.
+- **Chat Interface**: Basic conversational AI through local models
+- **Model Routing**: Automatic selection between different local models
+- **Database Integration**: User data storage and management
+- **Local Model Management**: Start/stop/status monitoring of local LLMs
 
 ## 5. Target Users
 
-- Developers who want programmable AI backends with tools like code execution and RAG.
-
-- Enterprises that require provider redundancy, auditability, and data segregation.
-
-- Privacy-Conscious customers who prefer local processing.
-
-- Cost-Conscious teams who want to control and optimize spend.
+- **Developers** who want to experiment with local LLMs
+- **Privacy-Conscious Users** who prefer local processing
+- **Small Teams** looking for simple AI assistant capabilities
+- **Hobbyists** exploring local AI without cloud dependencies
 
 ## 6. Deployment Modes
 
-- Cloud-Hosted, Self-Hosted, or Hybrid — use per-tenant policies to decide how workloads are routed.
+- **Local Development**: Run entirely on local machine
+- **Self-Hosted**: Deploy to personal servers or VPS
+- **Single-User**: Designed for individual or small team use
 
 ## 7. Slogan & Short Pitches
 
 Tagline:
-> GoblinOS is a multi-provider, privacy-first AI assistant platform that routes workloads across cloud and local models for maximum control and cost-efficiency.
+> GoblinOS Assistant: Simple, private AI powered by local models.
 
 Short pitch:
-> GoblinOS Assistant is a “Swiss Army knife” AI platform that connects to multiple LLM providers and local models, then intelligently routes each request based on cost, latency, and capability. It’s built for developers and teams who care about privacy, auditability, and flexibility, with RAG, code execution, web search, and voice support baked in.
+> GoblinOS Assistant is a straightforward local LLM platform that brings AI capabilities to your desktop without cloud dependencies. Choose from multiple local models optimized for different tasks, all while keeping your data completely private.
 
-## 8. Next Steps & Where to Learn More
+## 8. Current Status & Future Plans
 
-- See `ARCHITECTURE_OVERVIEW.md` for an end-to-end diagram and routing sequence.
+### What's Implemented ✅
+- Local LLM routing with multiple models
+- Basic web interface
+- Database support
+- Model management service
 
-- See `backend/docs/` for the canonical backend design, provider adapters, and CI/Deployment guidance.
+### What's Not Yet Implemented ❌
+- Multi-provider orchestration (OpenAI, Anthropic, etc.)
+- RAG/vector database functionality
+- Enterprise features (multi-tenancy, API key management)
+- Advanced monitoring and observability
+- Code execution sandbox
+- Web search integration
+- Voice/TTS support
 
-- If you plan to extend GoblinOS, review `backend/providers/` and `backend/services/routing.py` for implementing new adapters and routing logic.
+## 9. Next Steps & Where to Learn More
+
+- See `ARCHITECTURE_OVERVIEW.md` for the current simplified architecture.
+
+- See `LOCAL_LLM_ROUTING.md` for details on model selection and routing logic.
+
+- The system is currently in a basic implementation phase and can be extended with additional features as needed.
 
 ---

@@ -24,15 +24,17 @@ logger = logging.getLogger(__name__)
 
 class FallbackLevel(Enum):
     """Fallback levels for graceful degradation"""
-    NORMAL = "normal"           # Full service
-    CHEAP_MODEL = "cheap_model" # Use goblin-simple-llama-1b
-    DENY_REQUEST = "deny"       # Return 429 Too Many Requests
-    EMERGENCY = "emergency"     # Auth/health only
+
+    NORMAL = "normal"  # Full service
+    CHEAP_MODEL = "cheap_model"  # Use goblin-simple-llama-1b
+    DENY_REQUEST = "deny"  # Return 429 Too Many Requests
+    EMERGENCY = "emergency"  # Auth/health only
 
 
 @dataclass
 class RateLimitConfig:
     """Rate limiting configuration"""
+
     requests_per_minute: int = 100
     burst_limit: int = 20
     spike_threshold: int = 50  # Requests per 10 seconds considered a spike
@@ -42,6 +44,7 @@ class RateLimitConfig:
 @dataclass
 class AutoscalingMetrics:
     """Current autoscaling metrics"""
+
     current_rpm: float
     spike_detected: bool
     fallback_level: FallbackLevel
@@ -53,7 +56,11 @@ class AutoscalingMetrics:
 class AutoscalingService:
     """Service for handling autoscaling, rate limiting, and fallback routing"""
 
-    def __init__(self, redis_url: str = "redis://localhost:6379", config: Optional[RateLimitConfig] = None):
+    def __init__(
+        self,
+        redis_url: str = "redis://localhost:6379",
+        config: Optional[RateLimitConfig] = None,
+    ):
         self.redis_url = redis_url
         self.config = config or RateLimitConfig()
         self.redis: Optional[redis.Redis] = None
@@ -92,7 +99,9 @@ class AutoscalingService:
             logger.error(f"Redis operation failed: {e}")
             raise
 
-    async def check_rate_limit(self, client_ip: str, user_id: Optional[str] = None) -> Tuple[bool, FallbackLevel, Dict[str, Any]]:
+    async def check_rate_limit(
+        self, client_ip: str, user_id: Optional[str] = None
+    ) -> Tuple[bool, FallbackLevel, Dict[str, Any]]:
         """
         Check if request should be rate limited and determine fallback level.
 
@@ -120,7 +129,7 @@ class AutoscalingService:
                 metadata = {
                     "request_count": request_count,
                     "spike_count": spike_count,
-                    "cooldown_until": None
+                    "cooldown_until": None,
                 }
 
                 # Check if in cooldown from previous spike
@@ -131,19 +140,29 @@ class AutoscalingService:
                     # Still in cooldown
                     fallback_level = FallbackLevel.CHEAP_MODEL
                     metadata["cooldown_until"] = float(cooldown_until)
-                    logger.warning(f"Client {identifier} in cooldown until {cooldown_until}")
+                    logger.warning(
+                        f"Client {identifier} in cooldown until {cooldown_until}"
+                    )
                 elif spike_count >= self.config.spike_threshold:
                     # Spike detected - enter cooldown
                     cooldown_until = now + (self.config.cooldown_minutes * 60)
-                    await r.setex(cooldown_key, self.config.cooldown_minutes * 60, str(cooldown_until))
+                    await r.setex(
+                        cooldown_key,
+                        self.config.cooldown_minutes * 60,
+                        str(cooldown_until),
+                    )
                     fallback_level = FallbackLevel.CHEAP_MODEL
                     metadata["cooldown_until"] = cooldown_until
-                    logger.warning(f"Spike detected for {identifier}: {spike_count} requests in 10s, cooldown until {cooldown_until}")
+                    logger.warning(
+                        f"Spike detected for {identifier}: {spike_count} requests in 10s, cooldown until {cooldown_until}"
+                    )
                 elif request_count >= self.config.requests_per_minute:
                     # Rate limit exceeded
                     allowed = False
                     fallback_level = FallbackLevel.DENY_REQUEST
-                    logger.warning(f"Rate limit exceeded for {identifier}: {request_count} requests/minute")
+                    logger.warning(
+                        f"Rate limit exceeded for {identifier}: {request_count} requests/minute"
+                    )
 
                 # Record this request if allowed
                 if allowed:
@@ -153,7 +172,9 @@ class AutoscalingService:
 
                 return allowed, fallback_level, metadata
 
-    async def get_fallback_model(self, original_model: str, fallback_level: FallbackLevel) -> str:
+    async def get_fallback_model(
+        self, original_model: str, fallback_level: FallbackLevel
+    ) -> str:
         """Get the appropriate fallback model based on level"""
         if fallback_level == FallbackLevel.CHEAP_MODEL:
             return self.cheap_fallback_model
@@ -180,9 +201,14 @@ class AutoscalingService:
             if state == "open":
                 # Check if timeout has expired
                 opened_at = await r.get(f"circuit:{provider_name}:opened_at")
-                if opened_at and time.time() - float(opened_at) > self.circuit_breaker_timeout:
+                if (
+                    opened_at
+                    and time.time() - float(opened_at) > self.circuit_breaker_timeout
+                ):
                     # Reset circuit breaker
-                    await r.delete(failure_key, state_key, f"circuit:{provider_name}:opened_at")
+                    await r.delete(
+                        failure_key, state_key, f"circuit:{provider_name}:opened_at"
+                    )
                     logger.info(f"Circuit breaker reset for {provider_name}")
                     return True
                 else:
@@ -205,8 +231,14 @@ class AutoscalingService:
             if failures >= self.circuit_breaker_threshold:
                 # Open circuit breaker
                 await r.setex(state_key, self.circuit_breaker_timeout, "open")
-                await r.setex(f"circuit:{provider_name}:opened_at", self.circuit_breaker_timeout, str(time.time()))
-                logger.error(f"Circuit breaker opened for {provider_name} after {failures} failures")
+                await r.setex(
+                    f"circuit:{provider_name}:opened_at",
+                    self.circuit_breaker_timeout,
+                    str(time.time()),
+                )
+                logger.error(
+                    f"Circuit breaker opened for {provider_name} after {failures} failures"
+                )
 
     async def record_provider_success(self, provider_name: str):
         """Record a provider success (resets failure count)"""
@@ -222,7 +254,9 @@ class AutoscalingService:
             # Get global request rate (approximate)
             all_keys = await r.keys("requests:*")
             total_requests = 0
-            for key in all_keys[:10]:  # Sample first 10 keys to avoid too many operations
+            for key in all_keys[
+                :10
+            ]:  # Sample first 10 keys to avoid too many operations
                 count = await r.zcount(key, now - 60, now)
                 total_requests += count
 
@@ -240,7 +274,9 @@ class AutoscalingService:
                         spike_detected = True
                         # Get last spike time from zset
                         client_id = key.replace("cooldown:", "")
-                        spike_times = await r.zrange(f"requests:{client_id}", -1, -1, withscores=True)
+                        spike_times = await r.zrange(
+                            f"requests:{client_id}", -1, -1, withscores=True
+                        )
                         if spike_times:
                             last_spike_time = spike_times[0][1]
 
@@ -255,17 +291,18 @@ class AutoscalingService:
                 fallback_level=fallback_level,
                 active_connections=len(all_keys),
                 queue_depth=0,  # Would need queue system integration
-                last_spike_time=last_spike_time
+                last_spike_time=last_spike_time,
             )
 
     async def graceful_shutdown(self):
         """Graceful shutdown - allow emergency endpoints only"""
         async with self.redis_connection() as r:
             await r.setex("system:shutdown", 3600, "true")  # 1 hour emergency mode
-            logger.warning("System entering emergency mode - only auth/health endpoints available")
+            logger.warning(
+                "System entering emergency mode - only auth/health endpoints available"
+            )
 
     async def is_emergency_mode(self) -> bool:
         """Check if system is in emergency mode"""
         async with self.redis_connection() as r:
-            return bool(await r.exists("system:shutdown"))</content>
-<parameter name="filePath">/Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend/services/autoscaling_service.py
+            return bool(await r.exists("system:shutdown"))

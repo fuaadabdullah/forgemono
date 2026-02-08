@@ -328,4 +328,5 @@ def get_routing_cache() -> RoutingCache:
     global _cache
     if _cache is None:
         _cache = RoutingCache()
+    assert _cache is not None
     return _cache

@@ -1,32 +1,100 @@
-# flyctl launch added from .gitignore
-**/.vercel
+# macOS metadata files
+._*
+.DS_Store
+**/._*
+**/.DS_Store
 
-# flyctl launch added from .pytest_cache/.gitignore
-# Created by pytest automatically.
-.pytest_cache/**/*
+# Node modules and frontend (not needed for backend deployment)
+node_modules/
+src/
+dist/
+.next/
+.storybook/
+coverage/
+test-results/
+playwright-report/
+e2e/
+public/
+screenshots/
 
-# flyctl launch added from backend/.pytest_cache/.gitignore
-# Created by pytest automatically.
-backend/.pytest_cache/**/*
+# Git
+.git/
+.github/
 
-# flyctl launch added from infra/secrets/.gitignore
-# Ignore all decrypted files
-infra/secrets/**/*.dec.yaml
-infra/secrets/**/*.dec.yml
-infra/secrets/**/*.dec.json
+# Python cache and virtual environments
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+**/.pytest_cache/
+.coverage
+*.egg-info/
+backend/venv/
+venv/
+.venv/
+.mypy_cache/
+**/.mypy_cache/
 
-# Ignore backup files
-infra/secrets/**/*.bak
-infra/secrets/**/*~
+# Archives and old files
+ARCHIVE/
+backend-api-archive*/
+*.log
+logs/
+backend/logs/
 
-# Ignore editor temp files
-infra/secrets/**/.*.swp
-infra/secrets/**/.*.swo
+# Build artifacts and reports
+reports/
+docker/
+docs/
+tools/
+scripts/*.sh
+*.md
+*.txt
+!requirements.txt
+!requirements-cloud.txt
+!requirements-chat.txt
 
-# flyctl launch added from tools/goblin-email-purge/.gitignore
-tools/goblin-email-purge/**/venv
-tools/goblin-email-purge/**/__pycache__
-tools/goblin-email-purge/**/reports
-tools/goblin-email-purge/**/*.pyc
-tools/goblin-email-purge/**/.env
+# Database and model files (large files)
+*.db
+*.sqlite
+*.gguf
+models/
+
+# Test files (not needed in production)
+backend/test_*.py
+backend/tests/
+**/test_*.py
+**/tests/
+
+# Frontend assets not needed for backend
+*.css
+*.tsx
+*.jsx
+*.ts
+!*.d.ts
+*.html
+*.svg
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.mp3
+*.json
+!config/*.json
+!backend/**/*.json
+
+# IDE and editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# flyctl
 fly.toml
+
+# Temp files
+*.bak
+*~
+.env.local

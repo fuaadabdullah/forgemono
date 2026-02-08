@@ -33,7 +33,7 @@ const ModelSelector: React.FC<Props> = ({ provider, selected, onChange }) => {
 
   if (!provider) {
     return (
-      <div className="text-sm text-muted-foreground" data-testid="model-selector-placeholder">
+      <div className="text-sm text-muted" data-testid="model-selector-placeholder">
         Select a provider first
       </div>
     );
@@ -61,7 +61,7 @@ const ModelSelector: React.FC<Props> = ({ provider, selected, onChange }) => {
         </SelectContent>
       </Select>
       {loading && (
-        <p className="text-sm text-muted-foreground" data-testid="model-loading">
+        <p className="text-sm text-muted" data-testid="model-loading">
           Loading models...
         </p>
       )}

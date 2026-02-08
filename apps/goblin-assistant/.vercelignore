@@ -1,8 +1,11 @@
 # Exclude backend API code from Vercel deployment
 backend/
+backend-api/
+backend-api-archive-*/
 requirements.txt
 fly.toml
 fly-worker.toml
+ollama-fly.toml
 docker/
 scripts/
 tests/
@@ -15,3 +18,82 @@ dist/
 .vercel/
 .env*
 !.env.example
+
+# macOS resource fork files (critical - these break builds)
+._*
+**/._*
+.DS_Store
+**/.DS_Store
+
+# Exclude documentation and markdown files
+*.md
+*.MD
+!README.md
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+LICENSE
+docs/
+ARCHIVE/
+screenshots/
+reports/
+
+# Exclude test files and coverage
+test-results/
+playwright-report/
+coverage/
+e2e/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Exclude deployment scripts and configs for other platforms
+deploy*.sh
+*.toml
+netlify.toml
+Dockerfile*
+docker-compose*.yml
+Procfile
+Makefile
+cutover-checklist.sh
+setup-*.sh
+migrate-*.sh
+test-*.sh
+verify-*.sh
+
+# Exclude Python files
+*.py
+*.pyc
+__pycache__/
+
+# Exclude development files
+.storybook/
+.husky/
+.github/
+.circleci/
+.git/
+.prettierignore
+.prettierrc.json
+.eslintignore
+.eslintrc.json
+audit-ci.json
+eslint.config.js
+
+# Exclude logs and temporary files
+logs/
+nohup.out
+*.tsbuildinfo
+
+# Exclude misc
+redis.conf
+index.html
+runtime.txt
+seed_settings.py
+init_db.py
+launch_backend.py
+test_*.py
+models/
+goblinos/
+tools/
+infra/

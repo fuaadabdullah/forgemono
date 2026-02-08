@@ -60,7 +60,7 @@ class ProviderRegistry:
                     "cost_per_token_output": 0.024,
                 },
             },
-            "ollama": {
+            "goblin-ollama-server": {
                 "module": "providers.ollama",
                 "class": "OllamaProvider",
                 "enabled": True,  # Local provider, always enabled if available
@@ -71,11 +71,13 @@ class ProviderRegistry:
                     "cost_per_token_output": 0.0,
                 },
             },
-            "llamacpp": {
+            "goblin-llamacpp-server": {
                 "module": "providers.llamacpp",
                 "class": "LlamaCppProvider",
                 "enabled": True,  # Local provider, always enabled if available
                 "config": {
+                    "api_key": os.getenv("LOCAL_LLM_API_KEY", ""),
+                    "base_url": "http://localhost:8080",
                     "models": ["local-model"],
                     "cost_per_token_input": 0.0,
                     "cost_per_token_output": 0.0,

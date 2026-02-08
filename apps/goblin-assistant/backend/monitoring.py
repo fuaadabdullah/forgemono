@@ -6,8 +6,17 @@ Integrated with OpenTelemetry for unified observability.
 """
 
 import os
-import sentry_sdk
-from sentry_sdk.integrations.fastapi import FastApiIntegration
+
+# Try to import sentry_sdk - make it optional
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+
+    HAS_SENTRY = True
+except ImportError:
+    HAS_SENTRY = False
+    sentry_sdk = None
+    FastApiIntegration = None
 
 try:
     from sentry_sdk.integrations.sqlalchemy import SqlAlchemyIntegration
@@ -31,6 +40,10 @@ except ImportError:
 
 def init_sentry():
     """Initialize Sentry monitoring for the backend."""
+    if not HAS_SENTRY:
+        print("ℹ️  Sentry not initialized (sentry_sdk not installed)")
+        return
+
     sentry_dsn = os.getenv("SENTRY_DSN")
     environment = os.getenv("ENVIRONMENT", "development")
 

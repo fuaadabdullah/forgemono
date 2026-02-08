@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@jest/globals';
 import { render } from '@testing-library/react';
 import StatusCard from './StatusCard';
 
@@ -34,12 +34,7 @@ describe('StatusCard', () => {
 
   it('renders with down status and error styling', () => {
     const { getByRole } = render(
-      <StatusCard
-        title="Database"
-        status="down"
-        icon="❌"
-        lastCheck={new Date().toISOString()}
-      />
+      <StatusCard title="Database" status="down" icon="❌" lastCheck={new Date().toISOString()} />
     );
 
     const badge = getByRole('status');
@@ -50,12 +45,7 @@ describe('StatusCard', () => {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
     const { getByText } = render(
-      <StatusCard
-        title="Service"
-        status="healthy"
-        icon="✓"
-        lastCheck={fiveMinutesAgo}
-      />
+      <StatusCard title="Service" status="healthy" icon="✓" lastCheck={fiveMinutesAgo} />
     );
 
     // Should show relative time like "5m ago"
@@ -119,12 +109,7 @@ describe('StatusCard', () => {
 
   it('displays unknown status when status is not recognized', () => {
     const { getByRole } = render(
-      <StatusCard
-        title="Service"
-        status="unknown"
-        icon="?"
-        lastCheck={new Date().toISOString()}
-      />
+      <StatusCard title="Service" status="unknown" icon="?" lastCheck={new Date().toISOString()} />
     );
 
     const badge = getByRole('status');

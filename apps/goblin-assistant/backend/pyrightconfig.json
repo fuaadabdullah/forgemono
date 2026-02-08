@@ -1,0 +1,18 @@
+{
+  "include": ["."],
+  "exclude": ["**/__pycache__", "**/.*"],
+  "extraPaths": [
+    ".",
+    "..",
+    "../.."
+  ],
+  "pythonVersion": "3.11",
+  "typeCheckingMode": "basic",
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": false,
+  "reportOptionalMemberAccess": "warning",
+  "reportOptionalSubscript": "warning",
+  "reportGeneralTypeIssues": "warning",
+  "venvPath": ".",
+  "stubPath": "stubs"
+}

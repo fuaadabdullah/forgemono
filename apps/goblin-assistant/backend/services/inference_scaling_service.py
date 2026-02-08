@@ -14,8 +14,8 @@ import random
 from typing import List, Dict, Any, Optional
 import logging
 
-from services.prm_service import PRMService, ReasoningChain
-from providers import OllamaAdapter
+from .prm_service import PRMService, ReasoningChain
+from ..providers import OllamaAdapter
 
 logger = logging.getLogger(__name__)
 

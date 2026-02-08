@@ -13,179 +13,166 @@ load_dotenv()
 from .models import Provider, Model, SearchCollection, SearchDocument, Task
 
 
+def _provider_seed_data() -> list[dict]:
+    providers = [
+        {
+            "name": "openai",
+            "api_key": os.getenv("OPENAI_API_KEY", ""),
+            "base_url": "",
+            "models": ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"],
+            "enabled": True,
+        },
+        {
+            "name": "anthropic",
+            "api_key": os.getenv("ANTHROPIC_API_KEY", ""),
+            "base_url": "",
+            "models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
+            "enabled": True,
+        },
+        {
+            "name": "gemini",
+            "api_key": os.getenv("GEMINI_API_KEY", ""),
+            "base_url": "",
+            "models": ["gemini-pro", "gemini-pro-vision"],
+            "enabled": True,
+        },
+        {
+            "name": "groq",
+            "api_key": os.getenv("GROQ_API_KEY", ""),
+            "base_url": "",
+            "models": ["llama2-70b-4096", "mixtral-8x7b-32768"],
+            "enabled": True,
+        },
+        {
+            "name": "deepseek",
+            "api_key": os.getenv("DEEPSEEK_API_KEY", ""),
+            "base_url": "",
+            "models": ["deepseek-chat", "deepseek-coder"],
+            "enabled": True,
+        },
+        {
+            "name": "siliconflow",
+            "api_key": os.getenv("SILICONFLOW_API_KEY", ""),
+            "base_url": "",
+            "models": ["Qwen2-72B-Instruct"],
+            "enabled": True,
+        },
+        {
+            "name": "moonshot",
+            "api_key": os.getenv("MOONSHOT_API_KEY", ""),
+            "base_url": "",
+            "models": ["moonshot-v1-8k", "moonshot-v1-32k"],
+            "enabled": True,
+        },
+        {
+            "name": "fireworks",
+            "api_key": os.getenv("FIREWORKS_API_KEY", ""),
+            "base_url": "",
+            "models": ["accounts/fireworks/models/llama-v2-7b-chat"],
+            "enabled": True,
+        },
+        {
+            "name": "elevenlabs",
+            "api_key": os.getenv("ELEVENLABS_API_KEY", ""),
+            "base_url": "",
+            "models": ["eleven_monolingual_v1"],
+            "enabled": True,
+        },
+        {
+            "name": "datadog",
+            "api_key": os.getenv("DATADOG_API_KEY", ""),
+            "base_url": "",
+            "models": [],
+            "enabled": True,
+        },
+        {
+            "name": "netlify",
+            "api_key": os.getenv("NETLIFY_API_KEY", ""),
+            "base_url": "",
+            "models": [],
+            "enabled": True,
+        },
+    ]
+
+    ollama_gcp_url = os.getenv("OLLAMA_GCP_BASE_URL") or os.getenv("OLLAMA_GCP_URL")
+    llamacpp_gcp_url = os.getenv("LLAMACPP_GCP_BASE_URL") or os.getenv(
+        "LLAMACPP_GCP_URL"
+    )
+    gcp_api_key = os.getenv("GCP_LLM_API_KEY") or os.getenv("LOCAL_LLM_API_KEY", "")
+    if ollama_gcp_url:
+        providers.append(
+            {
+                "name": "ollama_gcp",
+                "api_key": gcp_api_key,
+                "base_url": ollama_gcp_url,
+                "models": [
+                    "phi3:3.8b",
+                    "gemma:2b",
+                    "qwen2.5:3b",
+                    "deepseek-coder:1.3b",
+                    "mistral:7b",
+                ],
+                "enabled": True,
+            }
+        )
+    if llamacpp_gcp_url:
+        providers.append(
+            {
+                "name": "llamacpp_gcp",
+                "api_key": gcp_api_key,
+                "base_url": llamacpp_gcp_url,
+                "models": [
+                    "phi-3-mini-4k-instruct-q4",
+                    "llama-2-7b-chat-q4_k_m",
+                    "mistral-7b-instruct-v0.2-q4_k_m",
+                ],
+                "enabled": True,
+            }
+        )
+
+    return providers
+
+
+def _upsert_provider(db: Session, provider_data: dict) -> Provider:
+    provider = db.query(Provider).filter_by(name=provider_data["name"]).first()
+    if provider:
+        provider.api_key = provider_data.get("api_key") or provider.api_key
+        provider.base_url = provider_data.get("base_url", provider.base_url)
+        provider.models = provider_data.get("models", provider.models)
+        provider.enabled = provider_data.get("enabled", provider.enabled)
+        provider.display_name = provider_data["name"].capitalize()
+        provider.is_active = provider.enabled
+        return provider
+
+    provider_data = {
+        **provider_data,
+        "display_name": provider_data["name"].capitalize(),
+        "is_active": provider_data.get("enabled", True),
+    }
+    provider = Provider(**provider_data)
+    db.add(provider)
+    return provider
+
+
 def seed_database(db: Session):
     """Seed the database with initial data."""
 
     # Seed initial data if tables are empty
+    providers_data = _provider_seed_data()
     if db.query(Provider).count() == 0:
         print("Seeding initial providers...")
-        # Seed providers with API keys from environment variables
-        providers_data = [
-            {
-                "name": "openai",
-                "api_key": os.getenv("OPENAI_API_KEY", ""),
-                "base_url": "",
-                "models": ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"],
-                "enabled": True,
-            },
-            {
-                "name": "anthropic",
-                "api_key": os.getenv("ANTHROPIC_API_KEY", ""),
-                "base_url": "",
-                "models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
-                "enabled": True,
-            },
-            {
-                "name": "gemini",
-                "api_key": os.getenv("GEMINI_API_KEY", ""),
-                "base_url": "",
-                "models": ["gemini-pro", "gemini-pro-vision"],
-                "enabled": True,
-            },
-            {
-                "name": "groq",
-                "api_key": os.getenv("GROQ_API_KEY", ""),
-                "base_url": "",
-                "models": ["llama2-70b-4096", "mixtral-8x7b-32768"],
-                "enabled": True,
-            },
-            {
-                "name": "deepseek",
-                "api_key": os.getenv("DEEPSEEK_API_KEY", ""),
-                "base_url": "",
-                "models": ["deepseek-chat", "deepseek-coder"],
-                "enabled": True,
-            },
-            {
-                "name": "siliconflow",
-                "api_key": os.getenv("SILICONFLOW_API_KEY", ""),
-                "base_url": "",
-                "models": ["Qwen2-72B-Instruct"],
-                "enabled": True,
-            },
-            {
-                "name": "moonshot",
-                "api_key": os.getenv("MOONSHOT_API_KEY", ""),
-                "base_url": "",
-                "models": ["moonshot-v1-8k", "moonshot-v1-32k"],
-                "enabled": True,
-            },
-            {
-                "name": "fireworks",
-                "api_key": os.getenv("FIREWORKS_API_KEY", ""),
-                "base_url": "",
-                "models": ["accounts/fireworks/models/llama-v2-7b-chat"],
-                "enabled": True,
-            },
-            {
-                "name": "elevenlabs",
-                "api_key": os.getenv("ELEVENLABS_API_KEY", ""),
-                "base_url": "",
-                "models": ["eleven_monolingual_v1"],
-                "enabled": True,
-            },
-            {
-                "name": "datadog",
-                "api_key": os.getenv("DATADOG_API_KEY", ""),
-                "base_url": "",
-                "models": [],
-                "enabled": True,
-            },
-            {
-                "name": "netlify",
-                "api_key": os.getenv("NETLIFY_API_KEY", ""),
-                "base_url": "",
-                "models": [],
-                "enabled": True,
-            },
-        ]
-
         for provider_data in providers_data:
-            provider = Provider(
-                name=provider_data["name"],
-                api_key=provider_data["api_key"],
-                base_url=provider_data["base_url"],
-                models=provider_data["models"],
-                enabled=provider_data["enabled"],
-                display_name=provider_data["name"].capitalize(), # Added display_name
-                is_active=provider_data["enabled"], # Map enabled to is_active
-            )
-            db.add(provider)
+            _upsert_provider(db, provider_data)
         db.commit()
         print("Providers seeded successfully.")
     else:
         print("Updating existing providers...")
-        # Update existing providers with API keys from environment variables
-        providers_to_update = {
-            "openai": os.getenv("OPENAI_API_KEY", ""),
-            "anthropic": os.getenv("ANTHROPIC_API_KEY", ""),
-            "gemini": os.getenv("GEMINI_API_KEY", ""),
-            "groq": os.getenv("GROQ_API_KEY", ""),
-            "deepseek": os.getenv("DEEPSEEK_API_KEY", ""),
-            "siliconflow": os.getenv("SILICONFLOW_API_KEY", ""),
-            "moonshot": os.getenv("MOONSHOT_API_KEY", ""),
-            "fireworks": os.getenv("FIREWORKS_API_KEY", ""),
-            "elevenlabs": os.getenv("ELEVENLABS_API_KEY", ""),
-            "datadog": os.getenv("DATADOG_API_KEY", ""),
-            "netlify": os.getenv("NETLIFY_API_KEY", ""),
-        }
-
-        for provider_name, api_key in providers_to_update.items():
-            provider = db.query(Provider).filter_by(name=provider_name).first()
-            if provider and api_key:
-                provider.api_key = api_key
-                print(f"Updated API key for {provider_name}")
-            elif not provider:
-                # Create missing providers
-                provider_data = {
-                    "name": provider_name,
-                    "api_key": api_key,
-                    "base_url": "",
-                    "models": [],
-                    "enabled": True,
-                }
-                if provider_name == "openai":
-                    provider_data["models"] = [
-                        "gpt-4",
-                        "gpt-4-turbo",
-                        "gpt-3.5-turbo",
-                    ]
-                elif provider_name == "anthropic":
-                    provider_data["models"] = [
-                        "claude-3-opus",
-                        "claude-3-sonnet",
-                        "claude-3-haiku",
-                    ]
-                elif provider_name == "gemini":
-                    provider_data["models"] = ["gemini-pro", "gemini-pro-vision"]
-                elif provider_name == "groq":
-                    provider_data["models"] = [
-                        "llama2-70b-4096",
-                        "mixtral-8x7b-32768",
-                    ]
-                elif provider_name == "deepseek":
-                    provider_data["models"] = ["deepseek-chat", "deepseek-coder"]
-                elif provider_name == "siliconflow":
-                    provider_data["models"] = ["Qwen2-72B-Instruct"]
-                elif provider_name == "moonshot":
-                    provider_data["models"] = ["moonshot-v1-8k", "moonshot-v1-32k"]
-                elif provider_name == "fireworks":
-                    provider_data["models"] = [
-                        "accounts/fireworks/models/llama-v2-7b-chat"
-                    ]
-                elif provider_name == "elevenlabs":
-                    provider_data["models"] = ["eleven_monolingual_v1"]
-
-                # Ensure display_name and is_active are set for new providers
-                provider_data["display_name"] = provider_data["name"].capitalize()
-                provider_data["is_active"] = provider_data["enabled"]
-
-                provider = Provider(**provider_data)
-                db.add(provider)
-                print(f"Created provider {provider_name}")
+        for provider_data in providers_data:
+            provider = _upsert_provider(db, provider_data)
+            if provider.api_key and provider_data.get("api_key"):
+                print(f"Updated API key for {provider.name}")
         db.commit()
         print("Providers updated successfully.")
-
 
     if db.query(Model).count() == 0:
         print("Seeding initial models...")
@@ -342,7 +329,6 @@ def seed_database(db: Session):
         db.commit()
         print("Models seeded successfully.")
 
-
     if db.query(SearchDocument).count() == 0:
         print("Seeding initial search documents...")
         # Seed search documents
@@ -421,11 +407,13 @@ def seed_database(db: Session):
 
         for doc_data in search_docs:
             collection_name = doc_data["collection"]
-            collection_obj = db.query(SearchCollection).filter_by(name=collection_name).first()
+            collection_obj = (
+                db.query(SearchCollection).filter_by(name=collection_name).first()
+            )
             if not collection_obj:
                 collection_obj = SearchCollection(name=collection_name)
                 db.add(collection_obj)
-                db.flush() # Flush to get the ID for the new collection
+                db.flush()  # Flush to get the ID for the new collection
 
             doc = SearchDocument(
                 document_id=doc_data["id"],
@@ -437,14 +425,12 @@ def seed_database(db: Session):
         db.commit()
         print("Search documents seeded successfully.")
 
-
     if db.query(Task).count() == 0:
         print("Seeding initial tasks...")
         # Seed some mock tasks
         mock_tasks = [
             {
                 "id": "task_001",
-                "user_id": "demo_user",
                 "goblin": "docs-writer",
                 "task": "Write documentation for the new API endpoints",
                 "status": "completed",
@@ -452,13 +438,9 @@ def seed_database(db: Session):
                 "updated_at": datetime.now(timezone.utc)
                 - timedelta(hours=1, minutes=45),
                 "result": "Successfully generated comprehensive API documentation with examples and usage patterns.",
-                "cost": 0.0345,
-                "tokens": 456,
-                "duration_ms": 2340,
             },
             {
                 "id": "task_002",
-                "user_id": "demo_user",
                 "goblin": "code-writer",
                 "task": "Implement user authentication middleware",
                 "status": "completed",
@@ -466,13 +448,9 @@ def seed_database(db: Session):
                 "updated_at": datetime.now(timezone.utc)
                 - timedelta(hours=3, minutes=30),
                 "result": "Created JWT-based authentication middleware with role-based access control and secure token handling.",
-                "cost": 0.0678,
-                "tokens": 789,
-                "duration_ms": 4120,
             },
             {
                 "id": "task_003",
-                "user_id": "demo_user",
                 "goblin": "docs-writer",
                 "task": "Create deployment guide for the application",
                 "status": "completed",
@@ -480,25 +458,19 @@ def seed_database(db: Session):
                 "updated_at": datetime.now(timezone.utc)
                 - timedelta(hours=5, minutes=15),
                 "result": "Compiled detailed deployment guide covering Docker, Kubernetes, and cloud platform configurations.",
-                "cost": 0.0234,
-                "tokens": 345,
-                "duration_ms": 1890,
             },
         ]
 
         for task_data in mock_tasks:
             task = Task(
                 id=task_data["id"],
-                user_id=task_data["user_id"],
+                user_id=None,
                 goblin=task_data["goblin"],
                 task=task_data["task"],
                 status=task_data["status"],
                 created_at=task_data["created_at"],
                 updated_at=task_data["updated_at"],
                 result=task_data["result"],
-                cost=task_data["cost"],
-                tokens=task_data["tokens"],
-                duration_ms=task_data["duration_ms"],
             )
             db.add(task)
         db.commit()

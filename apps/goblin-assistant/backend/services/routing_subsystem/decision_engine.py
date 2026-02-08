@@ -4,10 +4,12 @@ Decision engine for provider selection and routing logic.
 Composes scoring functions and applies policies to select optimal providers.
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import logging
-from typing import List, Optional, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple
 from dataclasses import dataclass
 
 from .scoring import ProviderScore, score_provider
@@ -15,8 +17,18 @@ from .policies import PolicyManager, RoutingPolicy
 from .cache import get_routing_cache
 from .provider_health import get_provider_health_monitor
 
-from providers.registry import get_provider_registry
-from providers.base import InferenceRequest, ProviderBase
+if TYPE_CHECKING:
+    # Static analysis sees the canonical path
+    from backend.providers.registry import get_provider_registry
+    from backend.providers.base import InferenceRequest, ProviderBase
+else:
+    # Runtime uses available import path
+    try:
+        from providers.registry import get_provider_registry
+        from providers.base import InferenceRequest, ProviderBase
+    except ImportError:
+        from backend.providers.registry import get_provider_registry
+        from backend.providers.base import InferenceRequest, ProviderBase
 
 logger = logging.getLogger(__name__)
 
@@ -189,7 +201,7 @@ class DecisionEngine:
 
         # Hash the data
         hash_str = json.dumps(hash_data, sort_keys=True)
-        return hashlib.md5(hash_str.encode()).hexdigest()
+        return hashlib.sha256(hash_str.encode()).hexdigest()
 
     def _generate_reason(self, score: ProviderScore, policy: RoutingPolicy) -> str:
         """Generate human-readable reason for decision.
@@ -297,4 +309,5 @@ def get_decision_engine() -> DecisionEngine:
     global _engine
     if _engine is None:
         _engine = DecisionEngine()
+    assert _engine is not None
     return _engine

@@ -3,8 +3,8 @@
  * Integrates with Datadog RUM, Browser Logs, and Sentry for comprehensive monitoring
  */
 
-import { logError, logWarning, logEvent, trackLLMCall, trackRoutingDecision } from './datadog-rum';
-import { sentryErrorTracking } from './sentry';
+import { logError, logEvent, trackLLMCall, trackRoutingDecision } from './datadog-rum';
+import { logErrorToService } from './monitoring';
 
 // Custom error types for better categorization
 export class APIError extends Error {
@@ -175,10 +175,7 @@ export const trackRoutingOperation = (
 };
 
 // User interaction tracking
-export const trackUserAction = (
-  action: string,
-  context?: Record<string, unknown>
-) => {
+export const trackUserAction = (action: string, context?: Record<string, unknown>) => {
   logEvent(`User action: ${action}`, {
     ...context,
     timestamp: new Date().toISOString(),
@@ -218,7 +215,7 @@ export const logComponentError = (
   });
 
   // Log to Sentry
-  sentryErrorTracking.captureException(error, {
+  logErrorToService(error, {
     component: componentName,
     componentStack: errorInfo.componentStack,
     ...additionalContext,
@@ -228,7 +225,7 @@ export const logComponentError = (
 // Global error handler for unhandled errors
 export const setupGlobalErrorTracking = () => {
   // Handle unhandled promise rejections
-  window.addEventListener('unhandledrejection', (event) => {
+  window.addEventListener('unhandledrejection', event => {
     const error = new Error(`Unhandled promise rejection: ${event.reason}`);
     logError(error, {
       type: 'unhandledrejection',
@@ -237,14 +234,14 @@ export const setupGlobalErrorTracking = () => {
       userAgent: navigator.userAgent,
       url: window.location.href,
     });
-    sentryErrorTracking.captureException(error, {
+    logErrorToService(error, {
       type: 'unhandledrejection',
       reason: event.reason,
     });
   });
 
   // Handle uncaught errors
-  window.addEventListener('error', (event) => {
+  window.addEventListener('error', event => {
     const error = event.error || new Error(event.message);
     logError(error, {
       type: 'uncaughterror',
@@ -255,7 +252,7 @@ export const setupGlobalErrorTracking = () => {
       userAgent: navigator.userAgent,
       url: window.location.href,
     });
-    sentryErrorTracking.captureException(error, {
+    logErrorToService(error, {
       type: 'uncaughterror',
       filename: event.filename,
       lineno: event.lineno,

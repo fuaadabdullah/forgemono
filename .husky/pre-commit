@@ -1,0 +1,28 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT" || exit 1
+
+# Only run when goblin-assistant is part of the staged diff.
+if ! git diff --cached --name-only | grep -q '^apps/goblin-assistant/'; then
+  echo "pre-commit: no goblin-assistant changes staged; skipping guardrails"
+  exit 0
+fi
+
+echo "pre-commit: enforcing goblin-assistant guardrails (routes/features/appledouble)"
+
+run_tsx() {
+  SCRIPT="$1"
+  if [ -x "apps/goblin-assistant/node_modules/.bin/tsx" ]; then
+    (cd apps/goblin-assistant && npm exec -- tsx "scripts/${SCRIPT}") || exit 1
+  else
+    (cd apps/goblin-assistant && npm exec --package=tsx@4.7.0 -- tsx "scripts/${SCRIPT}") || exit 1
+  fi
+}
+
+run_tsx "check-routes.ts"
+run_tsx "check-no-appledouble.ts"
+run_tsx "check-feature-boundaries.ts"
+
+echo "pre-commit: ok"

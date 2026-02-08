@@ -1,17 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import './StreamingView.css';
-import { Button } from '@/components/ui/button';
+// CSS is imported globally in _app.tsx
+import Button from '@/components/ui/Button';
+import { TokenChunk, getNewChunk, toTokenChunk } from './streamingUtils';
 
 interface Props {
   streamingText: string;
   isStreaming?: boolean;
 }
 
-interface TokenChunk {
-  text: string;
-  isCode: boolean;
-  timestamp: number;
-}
+// TokenChunk type is imported from streamingUtils
 
 export default function StreamingView({ streamingText, isStreaming = false }: Props) {
   const [tokens, setTokens] = useState<TokenChunk[]>([]);
@@ -29,14 +26,9 @@ export default function StreamingView({ streamingText, isStreaming = false }: Pr
       return;
     }
 
-    const newChunk = streamingText.slice(lastChunkRef.current.length);
+    const newChunk = getNewChunk(lastChunkRef.current, streamingText);
     if (newChunk) {
-      const newToken: TokenChunk = {
-        text: newChunk,
-        isCode: streamingText.includes('```') || streamingText.includes('`'),
-        timestamp: Date.now(),
-      };
-
+      const newToken = toTokenChunk(newChunk, streamingText);
       setTokens(prev => [...prev, newToken]);
       lastChunkRef.current = streamingText;
     }
@@ -67,9 +59,6 @@ export default function StreamingView({ streamingText, isStreaming = false }: Pr
           <span
             key={index}
             className={`token ${token.isCode ? 'code-token' : 'text-token'}`}
-            style={{
-              animationDelay: `${index * 20}ms`,
-            }}
           >
             {token.text}
           </span>

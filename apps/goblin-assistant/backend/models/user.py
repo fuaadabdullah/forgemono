@@ -1,6 +1,7 @@
 """
 Database model for users.
 """
+
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import (
@@ -8,7 +9,7 @@ from sqlalchemy import (
     String,
     DateTime,
 )
-from ..database import Base
+from database import Base
 
 
 class User(Base):

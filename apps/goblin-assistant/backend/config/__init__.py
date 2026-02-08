@@ -40,8 +40,23 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # RAG Configuration
-    enable_enhanced_rag: bool = False  # Enable advanced RAG features (hybrid search, reranking, query expansion)
+    enable_enhanced_rag: bool = True  # Enable advanced RAG features (hybrid search, reranking, query expansion)
     rag_chroma_path: str = "data/vector/chroma"  # Path for ChromaDB vector storage
+    rag_general_embedding_model: str = "all-MiniLM-L6-v2"  # SentenceTransformers model name
+    rag_embedding_backend: Literal["sentence_transformers", "onnx"] = "sentence_transformers"
+    rag_onnx_model_dir: str = ""  # Directory containing an exported ONNX model + tokenizer files
+    rag_onnx_model_file: str = ""  # Optional override (e.g. "model.int8.onnx"); default auto-detects
+    rag_onnx_provider: str = "CPUExecutionProvider"  # onnxruntime execution provider
+
+    # Optional domain-specific embedding models. Keep embeddings in separate collections per content type.
+    rag_code_embedding_model: str = "mchochlov/codebert-base-cd-ft"
+    rag_legal_embedding_model: str = "sentence-transformers/all-distilroberta-v1"
+    rag_scientific_embedding_model: str = "gsarti/scibert-nli"
+
+    rag_query_prefix: str = "query: "  # Used by prompt-aware embedding models
+    rag_passage_prefix: str = "passage: "  # Used by prompt-aware embedding models
+    rag_instruction_prefix: str = ""  # Optional instruction prefix (e.g. "Represent this for searching:")
+    rag_normalize_embeddings: bool = True  # Recommended for cosine similarity retrieval
 
     @property
     def is_multi_instance(self) -> bool:

@@ -1,20 +1,20 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, jest } from '@jest/globals';
 import { runtimeClient } from '../api/api-client';
 
 // Mock the runtime client
-vi.mock('../api/api-client', () => ({
+jest.mock('../api/api-client', () => ({
   runtimeClient: {
-    storeApiKey: vi.fn(),
-    getApiKey: vi.fn(),
-    clearApiKey: vi.fn(),
-    getProviders: vi.fn(),
-    getProviderModels: vi.fn(),
+    storeApiKey: jest.fn(),
+    getApiKey: jest.fn(),
+    clearApiKey: jest.fn(),
+    getProviders: jest.fn(),
+    getProviderModels: jest.fn(),
   },
 }));
 
 describe('API Key Management', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should store and retrieve API keys', async () => {

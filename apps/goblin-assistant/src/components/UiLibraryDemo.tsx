@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import Badge from '@/components/ui/Badge';
 
 export function UiLibraryDemo() {
   return (
@@ -17,8 +17,8 @@ export function UiLibraryDemo() {
           <div className="flex gap-2">
             <Button>Default Button</Button>
             <Button variant="secondary">Secondary</Button>
-            <Button variant="outline">Outline</Button>
-            <Button variant="destructive">Destructive</Button>
+            <Button variant="ghost">Ghost</Button>
+            <Button variant="danger">Danger</Button>
           </div>
 
           <div className="space-y-2">
@@ -27,9 +27,9 @@ export function UiLibraryDemo() {
 
           <div className="flex gap-2">
             <Badge>Default</Badge>
-            <Badge variant="secondary">Secondary</Badge>
-            <Badge variant="outline">Outline</Badge>
-            <Badge variant="destructive">Destructive</Badge>
+            <Badge variant="neutral">Neutral</Badge>
+            <Badge variant="neutral">Subtle</Badge>
+            <Badge variant="danger">Danger</Badge>
           </div>
         </CardContent>
       </Card>

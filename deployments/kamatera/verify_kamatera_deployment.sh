@@ -1,6 +1,10 @@
 #!/bin/bash
-# Kamatera LLM Infrastructure Verification Script
-# Run this locally after deployment to test the infrastructure
+# Project: Goblin AI System
+# Script: verify_kamatera_deployment.sh
+# Purpose: Kamatera LLM Infrastructure Verification Script
+# Date: 2025-12-12
+# Maintainer: fuaadabdullah
+# Usage: ./verify_kamatera_deployment.sh
 
 set -e
 

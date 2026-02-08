@@ -5,9 +5,10 @@ Provides unified interface for routing decisions, health monitoring, and metrics
 """
 
 import asyncio
+import inspect
 import logging
 import time
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, TYPE_CHECKING
 from contextlib import asynccontextmanager
 
 from .decision_engine import get_decision_engine, RoutingDecision
@@ -15,8 +16,16 @@ from .provider_health import get_provider_health_monitor
 from .cache import get_routing_cache
 from .policies import get_policy_manager
 
-from providers.base import InferenceRequest, InferenceResult
-from providers.registry import get_provider_registry
+if TYPE_CHECKING:
+    from backend.providers.base import InferenceRequest, InferenceResult
+    from backend.providers.registry import get_provider_registry
+else:
+    try:
+        from providers.base import InferenceRequest, InferenceResult
+        from providers.registry import get_provider_registry
+    except Exception:
+        from backend.providers.base import InferenceRequest, InferenceResult
+        from backend.providers.registry import get_provider_registry
 
 logger = logging.getLogger(__name__)
 
@@ -159,12 +168,20 @@ class RoutingManager:
                     continue
 
                 logger.info(f"Attempting request with provider: {provider_id}")
-                result = await provider.infer(request)
+
+                # Handle both sync and async infer methods
+                infer_result = provider.infer(request)
+                if inspect.iscoroutine(infer_result):
+                    result = await infer_result
+                else:
+                    result = infer_result
 
                 if result.success:
                     return result
                 else:
-                    logger.warning(f"Provider {provider_id} failed: {result.error}")
+                    logger.warning(
+                        f"Provider {provider_id} failed: {result.error_message}"
+                    )
 
             except Exception as e:
                 logger.warning(f"Provider {provider_id} error: {e}")
@@ -172,12 +189,12 @@ class RoutingManager:
 
         # All providers failed
         return InferenceResult(
+            content="",
+            usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0},
+            model=request.model if hasattr(request, "model") else "unknown",
             success=False,
-            error="All providers failed",
-            provider_id=decision.provider_id,
+            error_message="All providers failed",
             latency_ms=0,
-            tokens_used=0,
-            cost_usd=0.0,
         )
 
     def get_provider_rankings(
@@ -204,11 +221,11 @@ class RoutingManager:
         provider_statuses = {}
 
         for provider_id in available_providers:
-            health_status = self.health_monitor.get_provider_status(provider_id)
+            health_info = self.health_monitor.get_provider_health(provider_id)
             metrics = self.cache.get_provider_metrics(provider_id)
 
             provider_statuses[provider_id] = {
-                "health": health_status.value,
+                "health": health_info.get("health_status", "unknown"),
                 "metrics": metrics,
             }
 
@@ -220,7 +237,7 @@ class RoutingManager:
                 if status["health"] == "healthy"
             ),
             "providers": provider_statuses,
-            "policies": list(self.policy_manager.get_available_policies()),
+            "policies": list(self.policy_manager.get_active_policies()),
         }
 
     def _emit_routing_metrics(
@@ -266,6 +283,7 @@ def get_routing_manager() -> RoutingManager:
     global _manager
     if _manager is None:
         _manager = RoutingManager()
+    assert _manager is not None
     return _manager
 
 

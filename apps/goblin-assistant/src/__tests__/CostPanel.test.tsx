@@ -1,5 +1,5 @@
 import { renderToString } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from '@jest/globals';
 import CostPanel from '@/components/cost/CostPanel';
 
 const sample = {

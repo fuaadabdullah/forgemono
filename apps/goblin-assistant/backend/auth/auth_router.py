@@ -3,15 +3,32 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 import os
-from auth.challenge_store import get_challenge_store_instance
-from .passkeys import WebAuthnPasskey
 from typing import Optional
 import bcrypt
 
-from database import get_db
-from auth_service import JWTAuthService, get_auth_service as _get_auth_service_module
-from models_base import User
-from auth.policies import UserRole
+# Use try/except for flexible imports that work both locally and in container
+try:
+    from backend.auth.challenge_store import get_challenge_store_instance
+    from backend.auth.passkeys import WebAuthnPasskey
+    from backend.auth.google_oauth import get_google_oauth_service
+    from backend.database import get_db
+    from backend.auth_service import (
+        JWTAuthService,
+        get_auth_service as _get_auth_service_module,
+    )
+    from backend.models_base import User
+    from backend.auth.policies import UserRole
+except ImportError:
+    from .challenge_store import get_challenge_store_instance
+    from .passkeys import WebAuthnPasskey
+    from .google_oauth import get_google_oauth_service
+    from ..database import get_db
+    from ..auth_service import (
+        JWTAuthService,
+        get_auth_service as _get_auth_service_module,
+    )
+    from ..models_base import User
+    from .policies import UserRole
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 security = HTTPBearer()
@@ -330,3 +347,141 @@ async def authenticate_passkey(
         "token_type": "bearer",
         "user": {"id": user.id, "email": user.email, "name": user.name},
     }
+
+
+# ============================================================================
+# Google OAuth Endpoints
+# ============================================================================
+
+
+class GoogleCallbackRequest(BaseModel):
+    code: str
+    state: Optional[str] = None
+
+
+class GoogleAuthResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    user: dict
+
+
+@router.get("/google/url")
+async def get_google_auth_url():
+    """Get Google OAuth authorization URL for initiating login flow."""
+    oauth_service = get_google_oauth_service()
+
+    if not oauth_service.is_configured:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.",
+        )
+
+    try:
+        auth_url, state = oauth_service.get_authorization_url()
+        return {"authorization_url": auth_url, "state": state}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        )
+
+
+@router.post("/google/callback", response_model=GoogleAuthResponse)
+async def google_oauth_callback(
+    request: GoogleCallbackRequest,
+    db: Session = Depends(get_db),
+    auth_service: JWTAuthService = Depends(get_auth_service),
+):
+    """
+    Handle Google OAuth callback.
+
+    Exchange authorization code for tokens, get user info,
+    and create/update user in database.
+    """
+    oauth_service = get_google_oauth_service()
+
+    if not oauth_service.is_configured:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Google OAuth is not configured",
+        )
+
+    # Exchange code for tokens
+    token_data = await oauth_service.exchange_code_for_tokens(request.code)
+    if not token_data or "access_token" not in token_data:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Failed to exchange authorization code for tokens",
+        )
+
+    # Get user info from Google
+    google_access_token = token_data["access_token"]
+    google_user = await oauth_service.get_user_info(google_access_token)
+
+    if not google_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Failed to retrieve user info from Google",
+        )
+
+    google_id = google_user.get("id")
+    email = google_user.get("email")
+    name = google_user.get("name")
+    picture = google_user.get("picture")
+
+    if not email or not google_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user data from Google (missing email or id)",
+        )
+
+    # Check if user exists by google_id or email
+    user = (
+        db.query(User)
+        .filter((User.google_id == google_id) | (User.email == email))
+        .first()
+    )
+
+    if user:
+        # Update existing user with Google info if not already set
+        if not user.google_id:
+            user.google_id = google_id
+        if not user.name and name:
+            user.name = name
+        if not user.avatar_url and picture:
+            user.avatar_url = picture
+        db.commit()
+        db.refresh(user)
+    else:
+        # Create new user from Google account
+        user = User(
+            email=email,
+            name=name,
+            google_id=google_id,
+            avatar_url=picture,
+            role=UserRole.USER.value,
+            token_version=0,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    # Create JWT tokens for our system
+    access_token = auth_service.create_access_token(
+        user.id, user.email, UserRole(user.role)
+    )
+    refresh_token = auth_service.create_refresh_token(user.id)
+
+    return GoogleAuthResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        expires_in=900,  # 15 minutes
+        user={
+            "id": user.id,
+            "email": user.email,
+            "name": user.name,
+            "avatar_url": getattr(user, "avatar_url", None),
+        },
+    )

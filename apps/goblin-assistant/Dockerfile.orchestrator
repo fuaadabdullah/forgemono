@@ -1,0 +1,64 @@
+# Inference Orchestrator Dockerfile
+# Multi-stage build for a lean production image
+
+FROM python:3.11-slim as builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements
+COPY backend/requirements.txt requirements.txt
+COPY backend/requirements-cloud.txt requirements-cloud.txt
+
+# Install dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r requirements-cloud.txt
+
+# Production image
+FROM python:3.11-slim as production
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Create non-root user
+RUN groupadd -r goblin && useradd -r -g goblin goblin
+
+# Copy application code
+COPY --chown=goblin:goblin backend/ /app/
+
+# Set environment
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app
+
+# Switch to non-root user
+USER goblin
+
+# Expose port
+EXPOSE 8003
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8003/health || exit 1
+
+# Run orchestrator
+CMD ["python", "-m", "uvicorn", "api.orchestrator_api:app", "--host", "0.0.0.0", "--port", "8003"]

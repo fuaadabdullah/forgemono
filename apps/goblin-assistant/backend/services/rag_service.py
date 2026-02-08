@@ -19,7 +19,11 @@ from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta
 import logging
 
+from .token_accounting import TokenAccountingService
+
 logger = logging.getLogger(__name__)
+
+from config import settings as app_settings
 
 # Lazy imports for optional dependencies
 # Check ChromaDB availability independently
@@ -42,11 +46,36 @@ try:
     from sentence_transformers import SentenceTransformer
 
     SENTENCE_TRANSFORMERS_AVAILABLE = True
-except ImportError:
+except (
+    Exception
+) as e:  # catch any import-time failures (C-extensions, ABI mismatches, etc.)
     SENTENCE_TRANSFORMERS_AVAILABLE = False
     logger.warning(
-        "sentence-transformers not available. Enhanced embeddings will be limited."
+        "sentence-transformers not available or failed to initialize. Enhanced embeddings will be limited. %s",
+        e,
     )
+
+from services.rag.prompt_aware_embedder import PromptAwareConfig, PromptAwareEmbedder
+
+
+def _resolve_collection_name(base_collection: str, content_type: str) -> str:
+    """Keep embedding spaces separated by default.
+
+    If callers request a non-general content type but keep the default
+    `documents` collection, we automatically route to `documents__{content_type}`.
+    """
+
+    base = (base_collection or "documents").strip() or "documents"
+    ct = (content_type or "general").strip().lower() or "general"
+    if ct in ("general", "default"):
+        return base
+    if "__" in base:
+        return base
+    return f"{base}__{ct}"
+
+
+def _is_bge_model(model_name: str) -> bool:
+    return str(model_name or "").startswith("BAAI/bge-")
 
 
 class RAGService:
@@ -59,38 +88,8 @@ class RAGService:
         self.chroma_path = chroma_path
         self.enable_enhanced = enable_enhanced
 
-        # Check if dependencies are available
-        if not CHROMADB_AVAILABLE:
-            logger.error(
-                "ChromaDB dependencies not available. RAG service will not function."
-            )
-            self.chroma_client = None
-            self.embedding_model = None
-            self.documents_collection = None
-            self.sessions_collection = None
-            self._enhanced_service = (
-                None  # Initialize even when dependencies unavailable
-            )
-            return
-
-        self.chroma_client = chromadb.PersistentClient(path=chroma_path)
-
-        # Initialize embedding model (fast and efficient)
-        self.embedding_model = SentenceTransformer("all-MiniLM-L6-v2")  # Fast, 384-dim
-
         # Enhanced features (lazy-loaded)
         self._enhanced_service = None
-
-        # Create/get collections
-        self.documents_collection = self.chroma_client.get_or_create_collection(
-            name="documents",
-            metadata={"description": "Document chunks for RAG retrieval"},
-        )
-
-        self.sessions_collection = self.chroma_client.get_or_create_collection(
-            name="sessions",
-            metadata={"description": "Recent session cache for hot-paths"},
-        )
 
         # Configuration
         self.max_retriever_tokens = 10000  # 10k token window
@@ -101,9 +100,180 @@ class RAGService:
 
         # Token estimation (rough: ~4 chars per token)
         self.chars_per_token = 4
+        self.token_accountant = TokenAccountingService()
+
+        # ChromaDB is optional when enhanced RAG is enabled (EnhancedRAGService supports a TF-IDF fallback).
+        self.chroma_client = None
+        self.documents_collection = None
+        self.sessions_collection = None
+        if CHROMADB_AVAILABLE:
+            self.chroma_client = chromadb.PersistentClient(path=chroma_path)
+            self.documents_collection = self.chroma_client.get_or_create_collection(
+                name="documents",
+                metadata={"description": "Document chunks for RAG retrieval"},
+            )
+            self.sessions_collection = self.chroma_client.get_or_create_collection(
+                name="sessions",
+                metadata={"description": "Recent session cache for hot-paths"},
+            )
+        else:
+            if not self.enable_enhanced:
+                logger.error(
+                    "ChromaDB dependencies not available and enhanced RAG is disabled. "
+                    "RAG service will not function."
+                )
+
+        # Standard embedding model (used only when *not* relying on enhanced service).
+        self.embedding_model = None
+        self._embedders: dict[str, Any] = {}
+
+        general_model_name = getattr(
+            app_settings, "rag_general_embedding_model", "all-MiniLM-L6-v2"
+        )
+        embedding_backend = getattr(
+            app_settings, "rag_embedding_backend", "sentence_transformers"
+        )
+
+        # ONNX backend (optional) for low-memory deployments.
+        if str(embedding_backend).lower() == "onnx":
+            model_dir = str(getattr(app_settings, "rag_onnx_model_dir", "") or "").strip()
+            if model_dir:
+                try:
+                    from services.rag.onnx_embedder import OnnxEmbedder
+
+                    base = OnnxEmbedder(
+                        model_dir=model_dir,
+                        model_file=str(getattr(app_settings, "rag_onnx_model_file", "") or "").strip() or None,
+                        provider=str(getattr(app_settings, "rag_onnx_provider", "CPUExecutionProvider") or "CPUExecutionProvider"),
+                        normalize_embeddings=bool(getattr(app_settings, "rag_normalize_embeddings", True)),
+                    )
+                    if _is_bge_model(str(general_model_name)):
+                        self.embedding_model = PromptAwareEmbedder(
+                            base,
+                            config=PromptAwareConfig(
+                                query_prefix=getattr(app_settings, "rag_query_prefix", "query: "),
+                                passage_prefix=getattr(
+                                    app_settings, "rag_passage_prefix", "passage: "
+                                ),
+                                instruction_prefix=getattr(
+                                    app_settings, "rag_instruction_prefix", ""
+                                ),
+                                normalize_embeddings=getattr(
+                                    app_settings, "rag_normalize_embeddings", True
+                                ),
+                            ),
+                        )
+                    else:
+                        self.embedding_model = base
+                except Exception as exc:
+                    logger.warning(
+                        "Failed to initialize ONNX embedding backend; falling back to sentence-transformers. %s",
+                        exc,
+                    )
+            else:
+                logger.warning(
+                    "rag_embedding_backend=onnx but RAG_ONNX_MODEL_DIR is empty; falling back to sentence-transformers."
+                )
+
+        # sentence-transformers backend (default)
+        if self.embedding_model is None:
+            if SENTENCE_TRANSFORMERS_AVAILABLE:
+                try:
+                    base = SentenceTransformer(str(general_model_name))
+                    if _is_bge_model(str(general_model_name)):
+                        self.embedding_model = PromptAwareEmbedder(
+                            base,
+                            config=PromptAwareConfig(
+                                query_prefix=getattr(app_settings, "rag_query_prefix", "query: "),
+                                passage_prefix=getattr(
+                                    app_settings, "rag_passage_prefix", "passage: "
+                                ),
+                                instruction_prefix=getattr(
+                                    app_settings, "rag_instruction_prefix", ""
+                                ),
+                                normalize_embeddings=getattr(
+                                    app_settings, "rag_normalize_embeddings", True
+                                ),
+                            ),
+                        )
+                    else:
+                        self.embedding_model = base
+                except Exception as exc:
+                    logger.warning("Failed to initialize embedding model: %s", exc)
+                    self.embedding_model = None
+            else:
+                if not self.enable_enhanced:
+                    logger.warning(
+                        "sentence-transformers not available. Standard RAG mode is disabled "
+                        "(enable enhanced RAG or install sentence-transformers)."
+                    )
+
+        if self.embedding_model is not None:
+            self._embedders["general"] = self.embedding_model
+
+    def _build_prompt_aware(self, base: Any) -> Any:
+        return PromptAwareEmbedder(
+            base,
+            config=PromptAwareConfig(
+                query_prefix=getattr(app_settings, "rag_query_prefix", "query: "),
+                passage_prefix=getattr(app_settings, "rag_passage_prefix", "passage: "),
+                instruction_prefix=getattr(app_settings, "rag_instruction_prefix", ""),
+                normalize_embeddings=getattr(app_settings, "rag_normalize_embeddings", True),
+            ),
+        )
+
+    def _model_for_content_type(self, content_type: str) -> str | None:
+        ct = (content_type or "general").strip().lower()
+        if ct in ("general", "default"):
+            return str(getattr(app_settings, "rag_general_embedding_model", "all-MiniLM-L6-v2"))
+        if ct == "code":
+            return str(getattr(app_settings, "rag_code_embedding_model", "") or "")
+        if ct == "legal":
+            return str(getattr(app_settings, "rag_legal_embedding_model", "") or "")
+        if ct in ("scientific", "science", "sci"):
+            return str(getattr(app_settings, "rag_scientific_embedding_model", "") or "")
+        return ""
+
+    def get_embedder(self, content_type: str = "general") -> Any:
+        return self._select_embedder(content_type)
+
+    def _select_embedder(self, content_type: str = "general") -> Any:
+        ct = (content_type or "general").strip().lower() or "general"
+        if ct in ("default",):
+            ct = "general"
+        if ct in self._embedders:
+            return self._embedders[ct]
+
+        # Only sentence-transformers is supported for non-general domain embedders (for now).
+        if not SENTENCE_TRANSFORMERS_AVAILABLE:
+            self._embedders[ct] = self._embedders.get("general")
+            return self._embedders[ct]
+
+        model_name = (self._model_for_content_type(ct) or "").strip()
+        if not model_name:
+            self._embedders[ct] = self._embedders.get("general")
+            return self._embedders[ct]
+
+        try:
+            base = SentenceTransformer(model_name)
+            embedder = self._build_prompt_aware(base) if _is_bge_model(model_name) else base
+            self._embedders[ct] = embedder
+            return embedder
+        except Exception as exc:
+            logger.warning(
+                "Failed to initialize embedder for content_type=%s model=%s; falling back to general. %s",
+                ct,
+                model_name,
+                exc,
+            )
+            self._embedders[ct] = self._embedders.get("general")
+            return self._embedders[ct]
 
     async def add_documents(
-        self, documents: List[Dict[str, Any]], collection_name: str = "documents"
+        self,
+        documents: List[Dict[str, Any]],
+        collection_name: str = "documents",
+        content_type: str = "general",
     ) -> bool:
         """Add documents to the vector database with chunking."""
         # Check if we should use enhanced RAG service (including fallback mode)
@@ -111,8 +281,9 @@ class RAGService:
             try:
                 enhanced_service = self._get_enhanced_service()
                 if enhanced_service:
+                    resolved_collection = _resolve_collection_name(collection_name, content_type)
                     return await enhanced_service.add_documents(
-                        documents, collection_name, "general"
+                        documents, resolved_collection, content_type
                     )
             except Exception as e:
                 logger.warning(f"Enhanced RAG add_documents failed, falling back: {e}")
@@ -123,12 +294,15 @@ class RAGService:
             return False
 
         try:
+            resolved_collection = _resolve_collection_name(collection_name, content_type)
             collection = self.chroma_client.get_or_create_collection(
-                name=collection_name
+                name=resolved_collection
             )
 
             for doc in documents:
-                doc_id = doc.get("id", hashlib.md5(doc["content"].encode()).hexdigest())
+                doc_id = doc.get(
+                    "id", hashlib.sha256(doc["content"].encode()).hexdigest()
+                )
                 content = doc["content"]
                 metadata = doc.get("metadata", {})
 
@@ -140,18 +314,28 @@ class RAGService:
                 chunk_texts = []
                 chunk_metadatas = []
 
+                embedder = self._select_embedder(content_type)
+                if not embedder:
+                    raise RuntimeError(
+                        "Embedding model is not available. Install sentence-transformers, configure ONNX, or enable enhanced RAG."
+                    )
+
                 for i, chunk in enumerate(chunks):
                     chunk_metadata = {
                         **metadata,
                         "doc_id": doc_id,
                         "chunk_index": i,
                         "total_chunks": len(chunks),
+                        "content_type": content_type,
                         "chunk_text": chunk[:200],  # Preview for debugging
                     }
 
-                    embeddings.append(self.embedding_model.encode(chunk).tolist())
+                    if hasattr(embedder, "encode_passage"):
+                        vec = embedder.encode_passage(chunk)
+                    else:
+                        vec = embedder.encode(chunk)
+                    embeddings.append(vec.tolist() if hasattr(vec, "tolist") else list(vec))
                     chunk_texts.append(chunk)
-                    chunk_metadatas.append(chunk_metadata)
                     chunk_metadatas.append(chunk_metadata)
 
                 # Add to collection
@@ -162,7 +346,7 @@ class RAGService:
                     metadatas=chunk_metadatas,
                 )
 
-            logger.info(f"Added {len(documents)} documents to {collection_name}")
+            logger.info(f"Added {len(documents)} documents to {resolved_collection}")
             return True
 
         except Exception as e:
@@ -171,38 +355,57 @@ class RAGService:
 
     def _chunk_text(self, text: str, chunk_size: int, overlap: int) -> List[str]:
         """Chunk text into smaller pieces with overlap."""
-        words = text.split()
-        chunks = []
-        i = 0
-
-        while i < len(words):
-            # Calculate chunk end
-            chunk_end = min(i + chunk_size, len(words))
-
-            # Extract chunk
-            chunk_words = words[i:chunk_end]
-            chunk = " ".join(chunk_words)
-            chunks.append(chunk)
-
-            # Move start position with overlap
-            i += chunk_size - overlap
-
-            # Prevent infinite loop
-            if chunk_end == len(words):
-                break
-
-        return chunks
+        return self.token_accountant.chunk_text(text, chunk_size, overlap)
 
     async def retrieve_context(
-        self, query: str, top_k: int = 10, filters: Optional[Dict] = None
+        self,
+        query: str,
+        top_k: int = 10,
+        filters: Optional[Dict] = None,
+        collection_name: str = "documents",
+        content_type: str = "general",
     ) -> Dict[str, Any]:
         """Retrieve relevant context using dense retrieval and filtering."""
         try:
+            # Prefer enhanced retrieval when enabled (supports TF-IDF fallback without ChromaDB/torch).
+            if self.enable_enhanced:
+                try:
+                    enhanced_service = self._get_enhanced_service()
+                    if enhanced_service:
+                        resolved_collection = _resolve_collection_name(collection_name, content_type)
+                        return await enhanced_service.retrieve_context(
+                            query=query,
+                            top_k=top_k,
+                            filters=filters,
+                            collection_name=resolved_collection,
+                            content_type=content_type,
+                        )
+                except Exception as e:
+                    logger.warning(
+                        f"Enhanced RAG retrieve_context failed, falling back: {e}"
+                    )
+
+            if not CHROMADB_AVAILABLE or self.chroma_client is None:
+                raise RuntimeError("ChromaDB client not available for standard retrieval")
+
+            resolved_collection = _resolve_collection_name(collection_name, content_type)
+            collection = self.chroma_client.get_or_create_collection(name=resolved_collection)
+
+            embedder = self._select_embedder(content_type)
+            if not embedder:
+                raise RuntimeError(
+                    "Embedding model is not available. Install sentence-transformers, configure ONNX, or enable enhanced RAG."
+                )
+
             # Generate query embedding
-            query_embedding = self.embedding_model.encode(query).tolist()
+            if hasattr(embedder, "encode_query"):
+                vec = embedder.encode_query(query)
+            else:
+                vec = embedder.encode(query)
+            query_embedding = vec.tolist() if hasattr(vec, "tolist") else list(vec)
 
             # Search documents collection
-            results = self.documents_collection.query(
+            results = collection.query(
                 query_embeddings=[query_embedding],
                 n_results=min(top_k * 2, self.max_chunks),  # Get more for filtering
                 where=filters,
@@ -306,10 +509,7 @@ class RAGService:
 
     def _estimate_tokens(self, text: str) -> int:
         """Estimate token count for text."""
-        if not text:
-            return 0
-        # Rough estimation: ~4 characters per token
-        return max(1, len(text) // self.chars_per_token)
+        return self.token_accountant.count_tokens(text)
 
     async def cache_session_context(
         self,
@@ -332,7 +532,16 @@ class RAGService:
 
             # Generate embedding for session context (for potential similarity search)
             context_text = f"{context.get('query', '')} {' '.join([c.get('text', '')[:100] for c in context.get('chunks', [])])}"
-            embedding = self.embedding_model.encode(context_text).tolist()
+            embedder = self._select_embedder("general")
+            if not embedder:
+                raise RuntimeError(
+                    "Embedding model is not available. Install sentence-transformers or enable enhanced RAG."
+                )
+            if hasattr(embedder, "encode_passage"):
+                vec = embedder.encode_passage(context_text)
+            else:
+                vec = embedder.encode(context_text)
+            embedding = vec.tolist() if hasattr(vec, "tolist") else list(vec)
 
             # Store in sessions collection
             self.sessions_collection.add(
@@ -422,6 +631,9 @@ Response:"""
         query: str,
         session_id: Optional[str] = None,
         filters: Optional[Dict] = None,
+        collection_name: str = "documents",
+        content_type: str = "general",
+        top_k: int = 10,
     ) -> Dict[str, Any]:
         """Complete RAG pipeline: retrieve → filter → generate prompt."""
         # Check session cache first (hot-path optimization)
@@ -438,7 +650,13 @@ Response:"""
                 }
 
         # Perform retrieval
-        context = await self.retrieve_context(query, filters=filters)
+        context = await self.retrieve_context(
+            query,
+            top_k=top_k,
+            filters=filters,
+            collection_name=collection_name,
+            content_type=content_type,
+        )
 
         # Cache for future use if session_id provided
         if session_id and context.get("chunks"):
@@ -484,13 +702,23 @@ Response:"""
         use_hybrid: bool = True,
         use_reranking: bool = True,
         expand_query: bool = True,
+        collection_name: str = "documents",
+        content_type: str = "general",
+        top_k: int = 10,
     ) -> Dict[str, Any]:
         """Enhanced RAG pipeline with advanced features (hybrid search, reranking, query expansion)."""
         if not self.enable_enhanced:
             logger.info(
                 "Enhanced features disabled, falling back to standard RAG pipeline"
             )
-            return await self.rag_pipeline(query, session_id, filters)
+            return await self.rag_pipeline(
+                query,
+                session_id,
+                filters,
+                collection_name=collection_name,
+                content_type=content_type,
+                top_k=top_k,
+            )
 
         enhanced_service = self._get_enhanced_service()
         if enhanced_service:
@@ -501,9 +729,19 @@ Response:"""
                 use_hybrid=use_hybrid,
                 use_reranking=use_reranking,
                 expand_query=expand_query,
+                collection_name=_resolve_collection_name(collection_name, content_type),
+                content_type=content_type,
+                top_k=top_k,
             )
         else:
             logger.warning(
                 "Enhanced service not available, falling back to standard RAG pipeline"
             )
-            return await self.rag_pipeline(query, session_id, filters)
+            return await self.rag_pipeline(
+                query,
+                session_id,
+                filters,
+                collection_name=collection_name,
+                content_type=content_type,
+                top_k=top_k,
+            )

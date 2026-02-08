@@ -14,6 +14,8 @@ force_for = ["reasoning"]
 [default.cost_optimization]
 max_budget_per_hour = 10.0
 preferred_providers_under_budget = [
+  "ollama_gcp",
+  "llamacpp_gcp",
   "ollama_kamatera",
   "llamacpp_kamatera",
   "ollama",
@@ -56,6 +58,21 @@ priority_tier = 2
 cost_score = 0.6
 default_timeout_ms = 12000
 bandwidth_score = 0.7
+supports_cot = true
+cot_suppression_prompt = "Provide direct answers without explanation."
+
+[providers.vertex]
+name = "Google Vertex AI"
+endpoint = "https://us-central1-aiplatform.googleapis.com"
+capabilities = ["chat", "reasoning", "code", "image", "vision"]
+models = ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-pro", "gemini-pro-vision"]
+api_key_env = "GOOGLE_CLOUD_API_KEY"
+project_id_env = "GOOGLE_CLOUD_PROJECT"
+location = "us-central1"
+priority_tier = 2
+cost_score = 0.7
+default_timeout_ms = 12000
+bandwidth_score = 0.8
 supports_cot = true
 cot_suppression_prompt = "Provide direct answers without explanation."
 
@@ -181,4 +198,40 @@ default_timeout_ms = 30000
 bandwidth_score = 0.9
 supports_cot = false
 api_key_env = "LOCAL_LLM_API_KEY"
+invoke_path = "/chat/completions"
+
+[providers.ollama_gcp]
+name = "Ollama (GCP)"
+endpoint = "http://34.132.96.22:8002"
+capabilities = ["chat", "reasoning", "code", "embedding"]
+models = [
+  "phi3:3.8b",
+  "gemma:2b",
+  "qwen2.5:3b",
+  "deepseek-coder:1.3b",
+  "mistral:7b",
+]
+priority_tier = 0
+cost_score = 0.0
+default_timeout_ms = 30000
+bandwidth_score = 0.8
+supports_cot = false
+api_key_env = "GCP_LLM_API_KEY"
+invoke_path = "/chat/completions"
+
+[providers.llamacpp_gcp]
+name = "llama.cpp (GCP)"
+endpoint = "http://136.112.149.103:8002"
+capabilities = ["chat", "reasoning", "code"]
+models = [
+  "phi-3-mini-4k-instruct-q4",
+  "llama-2-7b-chat-q4_k_m",
+  "mistral-7b-instruct-v0.2-q4_k_m",
+]
+priority_tier = 0
+cost_score = 0.0
+default_timeout_ms = 30000
+bandwidth_score = 0.9
+supports_cot = false
+api_key_env = "GCP_LLM_API_KEY"
 invoke_path = "/chat/completions"

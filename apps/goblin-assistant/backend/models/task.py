@@ -1,6 +1,7 @@
 """
 Database model for tasks.
 """
+
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import (
@@ -11,7 +12,7 @@ from sqlalchemy import (
     Integer,
     DateTime,
 )
-from ..database import Base
+from database import Base
 
 
 class Task(Base):

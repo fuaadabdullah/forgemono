@@ -38,8 +38,10 @@ export const ProviderProvider: React.FC<ProviderProviderProps> = ({ children }) 
   const [loadingProviders, setLoadingProviders] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount (SSR safe)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const storedProvider = localStorage.getItem('selectedProvider');
     const storedModel = localStorage.getItem('selectedModel');
 
@@ -51,14 +53,16 @@ export const ProviderProvider: React.FC<ProviderProviderProps> = ({ children }) 
     }
   }, []);
 
-  // Save to localStorage when values change
+  // Save to localStorage when values change (SSR safe)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (selectedProvider) {
       localStorage.setItem('selectedProvider', selectedProvider);
     }
   }, [selectedProvider]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (selectedModel) {
       localStorage.setItem('selectedModel', selectedModel);
     }

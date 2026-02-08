@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
 from ..database import get_db
-from ..models import User # Assuming User model is now in backend/models/user.py
+from models import User  # Assuming User model is now in backend/models/user.py
 
 
 router = APIRouter()

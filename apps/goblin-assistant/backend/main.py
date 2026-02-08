@@ -2,8 +2,11 @@ import os
 import sys
 import asyncio
 from pathlib import Path
-from fastapi import FastAPI, Body, APIRouter
+from fastapi import FastAPI, Body, APIRouter, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+
+# Add current directory to path for relative imports
+sys.path.insert(0, str(Path(__file__).parent))
 
 # Initialize monitoring first (before other imports)
 from .monitoring import init_sentry
@@ -58,10 +61,21 @@ from .chat_router import router as chat_router
 from .api_router import router as api_router
 from .stream_router import router as stream_router
 from .health_router import router as health_router
+from .health.llm_health import router as llm_health_router
 from .dashboard_router import router as dashboard_router
+from .rag_router import router as rag_router
 from .routers.goblins_router import router as goblins_router
 from .routers.cost_router import router as cost_router
 from .routers.user_auth_router import router as user_auth_router
+from .support_router import router as support_router
+
+# Multi-cloud orchestrator
+try:
+    from .orchestrator import orchestrator_router
+except ImportError:
+    from fastapi import APIRouter
+
+    orchestrator_router = APIRouter()
 
 try:
     from .raptor_router import router as raptor_router
@@ -114,6 +128,11 @@ async def validate_startup_configuration():
             and settings.is_multi_instance
         ):
             issues.append("Memory fallback not allowed in multi-instance production")
+
+        if settings.is_production and not os.getenv("ROUTING_ENCRYPTION_KEY"):
+            issues.append(
+                "ROUTING_ENCRYPTION_KEY required in production for chat routing"
+            )
 
     except ImportError:
         issues.append("Configuration system not available")
@@ -204,12 +223,18 @@ async def startup_event():
 
     create_tables()
 
-    # Seed the database
-    db = SessionLocal()
-    try:
-        seed_database(db)
-    finally:
-        db.close()
+    # Seed the database only if database is properly initialized
+    from .database import _db_initialized
+
+    if _db_initialized and SessionLocal is not None:
+        db = SessionLocal()
+        try:
+            seed_database(db)
+        finally:
+            db.close()
+    else:
+        print("[WARNING] Skipping database seeding - database not properly initialized")
+        print("[WARNING] Set DATABASE_URL to a valid PostgreSQL connection string")
 
     # Always start challenge cleanup early (cheap)
     global challenge_cleanup_task
@@ -299,11 +324,15 @@ async def shutdown_event():
     except Exception as e:
         print(f"Warning: Failed to stop Raptor monitoring: {e}")
 
-    # Stop routing probe worker
-    global routing_probe_worker
-    if routing_probe_worker:
-        await routing_probe_worker.stop()
-        print("Stopped routing probe worker")
+    # Stop routing probe worker (if it exists)
+    try:
+        global routing_probe_worker
+        if routing_probe_worker:
+            await routing_probe_worker.stop()
+            print("Stopped routing probe worker")
+    except (NameError, AttributeError):
+        # routing_probe_worker not initialized or doesn't exist
+        pass
 
     # Stop challenge cleanup task
     global challenge_cleanup_task
@@ -367,14 +396,20 @@ v1_router.include_router(routing_router, tags=["routing"])
 v1_router.include_router(chat_router, tags=["chat"])
 v1_router.include_router(api_router, tags=["api"])
 v1_router.include_router(stream_router, tags=["stream"])
+v1_router.include_router(rag_router, tags=["rag"])
 v1_router.include_router(raptor_router, tags=["raptor"])  # Raptor monitoring endpoints
 v1_router.include_router(health_router, tags=["health"])  # Health monitoring endpoints
+v1_router.include_router(llm_health_router, tags=["health"])  # LLM gateway health
 v1_router.include_router(
     dashboard_router, tags=["dashboard"]
 )  # Optimized dashboard endpoints
 v1_router.include_router(goblins_router, tags=["goblins"])
 v1_router.include_router(cost_router, tags=["cost"])
 v1_router.include_router(user_auth_router, tags=["auth"])
+v1_router.include_router(support_router, tags=["support"])
+v1_router.include_router(
+    orchestrator_router, tags=["orchestrator"]
+)  # Multi-cloud AI orchestration
 
 # Include routers (keeping legacy routes for backward compatibility)
 app.include_router(debugger_router)
@@ -390,8 +425,10 @@ app.include_router(routing_router)
 app.include_router(chat_router)
 app.include_router(api_router)
 app.include_router(stream_router)
+app.include_router(rag_router)
 app.include_router(raptor_router)  # Raptor monitoring endpoints
 app.include_router(health_router)  # Health monitoring endpoints
+app.include_router(llm_health_router)  # LLM gateway health
 app.include_router(dashboard_router)  # Optimized dashboard endpoints
 
 
@@ -413,9 +450,213 @@ ollama_router = APIRouter()
 
 @ollama_router.post("/api/generate")
 async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
-    adapter = OllamaAdapter()
-    result = adapter.generate(prompt, model)
-    return result
+    """Generate completion with automatic fallback - prioritizes GCP self-hosted and free-tier providers."""
+    import httpx
+
+    messages = [{"role": "user", "content": prompt}]
+    errors = []
+
+    # 1. Try GCP Ollama self-hosted first (short timeout)
+    ollama_url = os.getenv("OLLAMA_GCP_URL") or os.getenv("OLLAMA_BASE_URL")
+    api_key = os.getenv("LOCAL_LLM_API_KEY")
+
+    if ollama_url:
+        try:
+            adapter = OllamaAdapter(api_key=api_key, base_url=ollama_url)
+            result = await adapter.generate(messages, model=model)
+            return result
+        except Exception as e:
+            errors.append(f"Ollama/GCP: {e}")
+            logger.warning(f"Ollama/GCP failed: {e}")
+
+    # 1b. Try GCP llama.cpp server as secondary self-hosted option
+    llamacpp_url = os.getenv("LLAMACPP_GCP_URL")
+    if llamacpp_url:
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    f"{llamacpp_url.rstrip('/')}/v1/chat/completions",
+                    headers={"Content-Type": "application/json"},
+                    json={
+                        "messages": messages,
+                        "max_tokens": 1024,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                content = data["choices"][0]["message"]["content"]
+                return {
+                    "content": content,
+                    "usage": data.get("usage", {}),
+                    "model": data.get("model", "llamacpp"),
+                    "provider": "llamacpp-gcp",
+                    "finish_reason": data["choices"][0].get("finish_reason", "stop"),
+                }
+        except Exception as e:
+            errors.append(f"LlamaCpp/GCP: {e}")
+            logger.warning(f"LlamaCpp/GCP failed: {e}")
+
+    # 2. Try Google Gemini (reliable, generous free tier)
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if gemini_key:
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}",
+                    headers={"Content-Type": "application/json"},
+                    json={
+                        "contents": [{"parts": [{"text": prompt}]}],
+                        "generationConfig": {"maxOutputTokens": 1024},
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                text = data["candidates"][0]["content"]["parts"][0]["text"]
+                usage_meta = data.get("usageMetadata", {})
+                return {
+                    "content": text,
+                    "usage": {
+                        "prompt_tokens": usage_meta.get("promptTokenCount", 0),
+                        "completion_tokens": usage_meta.get("candidatesTokenCount", 0),
+                        "total_tokens": usage_meta.get("totalTokenCount", 0),
+                    },
+                    "model": "gemini-2.0-flash",
+                    "provider": "gemini",
+                    "finish_reason": data["candidates"][0].get("finishReason", "STOP"),
+                }
+        except Exception as e:
+            errors.append(f"Gemini: {e}")
+            logger.warning(f"Gemini failed: {e}")
+
+    # 3. Try Groq (free tier - very reliable, fast)
+    groq_key = os.getenv("GROK_API_KEY") or os.getenv("GROQ_API_KEY")
+    if groq_key and groq_key != "placeholder":
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {groq_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": "llama-3.1-8b-instant",
+                        "messages": messages,
+                        "max_tokens": 1024,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                content = data["choices"][0]["message"]["content"]
+                return {
+                    "content": content,
+                    "usage": data.get("usage", {}),
+                    "model": data.get("model", "llama-3.1-8b-instant"),
+                    "provider": "groq",
+                    "finish_reason": data["choices"][0].get("finish_reason", "stop"),
+                }
+        except Exception as e:
+            errors.append(f"Groq: {e}")
+            logger.warning(f"Groq failed: {e}")
+
+    # 4. Try DeepSeek (very cheap and reliable)
+    deepseek_key = os.getenv("DEEPSEEK_API_KEY")
+    if deepseek_key and deepseek_key != "placeholder":
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    "https://api.deepseek.com/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {deepseek_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": "deepseek-chat",
+                        "messages": messages,
+                        "max_tokens": 1024,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                content = data["choices"][0]["message"]["content"]
+                return {
+                    "content": content,
+                    "usage": data.get("usage", {}),
+                    "model": data.get("model", "deepseek-chat"),
+                    "provider": "deepseek",
+                    "finish_reason": data["choices"][0].get("finish_reason", "stop"),
+                }
+        except Exception as e:
+            errors.append(f"DeepSeek: {e}")
+            logger.warning(f"DeepSeek failed: {e}")
+
+    # 5. Fallback to OpenAI
+    openai_key = os.getenv("OPENAI_API_KEY")
+    if openai_key and openai_key != "placeholder":
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {openai_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": "gpt-4o-mini",
+                        "messages": messages,
+                        "max_tokens": 1024,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                content = data["choices"][0]["message"]["content"]
+                return {
+                    "content": content,
+                    "usage": data.get("usage", {}),
+                    "model": data.get("model", "gpt-4o-mini"),
+                    "provider": "openai",
+                    "finish_reason": data["choices"][0].get("finish_reason", "stop"),
+                }
+        except Exception as e:
+            errors.append(f"OpenAI: {e}")
+            logger.warning(f"OpenAI failed: {e}")
+
+    # 6. Final fallback to Anthropic
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    if anthropic_key and anthropic_key != "placeholder":
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    "https://api.anthropic.com/v1/messages",
+                    headers={
+                        "x-api-key": anthropic_key,
+                        "anthropic-version": "2023-06-01",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": "claude-3-haiku-20240307",
+                        "max_tokens": 1024,
+                        "messages": messages,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                content = data["content"][0]["text"]
+                return {
+                    "content": content,
+                    "usage": data.get("usage", {}),
+                    "model": data.get("model", "claude-3-haiku-20240307"),
+                    "provider": "anthropic",
+                    "finish_reason": data.get("stop_reason", "stop"),
+                }
+        except Exception as e:
+            errors.append(f"Anthropic: {e}")
+            logger.error(f"All providers failed: {errors}")
+
+    raise HTTPException(
+        status_code=503,
+        detail=f"All inference providers unavailable. Errors: {'; '.join(errors)}",
+    )
 
 
 app.include_router(ollama_router)

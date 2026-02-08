@@ -9,6 +9,49 @@ from pydantic import BaseModel
 from .core import DocQualityChecker
 from .adapters.copilot_proxy import CopilotProxyAdapter
 
+# Initialize OpenTelemetry tracing
+try:
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+    from opentelemetry.instrumentation.aiohttp import AIOHTTPClientInstrumentor
+    from opentelemetry.distro import distro
+
+    # Initialize distro
+    distro.configure()
+
+    # Create resource
+    resource = Resource.create(
+        {
+            "service.name": "goblinmini-docqa",
+            "service.version": "0.1.0",
+        }
+    )
+
+    # Configure tracing
+    trace.set_tracer_provider(TracerProvider(resource=resource))
+
+    # Add OTLP trace exporter
+    otlp_exporter = OTLPSpanExporter(
+        endpoint="http://localhost:4318",
+        insecure=True,
+    )
+    span_processor = BatchSpanProcessor(otlp_exporter)
+    trace.get_tracer_provider().add_span_processor(span_processor)
+
+    # Auto-instrument libraries
+    HTTPXClientInstrumentor().instrument()
+    AIOHTTPClientInstrumentor().instrument()
+
+    print("✅ OpenTelemetry initialized for goblinmini-docqa")
+
+except Exception as e:
+    print(f"⚠️  OpenTelemetry not available: {e}")
+
 # Conditionally import model adapters to avoid torch compatibility issues
 import logging
 
@@ -352,6 +395,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Goblin DocQA", version="0.1.0", lifespan=lifespan)
+
+# Instrument FastAPI app
+try:
+    FastAPIInstrumentor().instrument_app(app)
+    print("✅ FastAPI instrumentation enabled")
+except Exception as e:
+    print(f"⚠️  FastAPI instrumentation failed: {e}")
 
 # Add middleware for protection and rate limiting
 app.add_middleware(SlowAPIMiddleware)

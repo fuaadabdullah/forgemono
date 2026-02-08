@@ -16,7 +16,13 @@ from dataclasses import dataclass
 from enum import Enum
 import re
 
-from anomaly_detector import get_anomaly_detector
+# Use try/except for flexible imports
+try:
+    from backend.anomaly_detector import get_anomaly_detector
+    from backend.services.token_accounting import TokenAccountingService
+except ImportError:
+    from .anomaly_detector import get_anomaly_detector
+    from .services.token_accounting import TokenAccountingService
 
 logger = logging.getLogger(__name__)
 
@@ -184,6 +190,7 @@ class RequestClassifier:
                 r"\bcompare|contrast|difference|similarity\b",
             ],
         }
+        self.token_accountant = TokenAccountingService()
 
     def classify_request(
         self, messages: List[Dict[str, str]], context: Optional[str] = None
@@ -217,20 +224,22 @@ class RequestClassifier:
         self, messages: List[Dict[str, str]], max_tokens: Optional[int] = None
     ) -> int:
         """Estimate total tokens for request + response."""
-        # Rough estimation: 4 chars per token
-        input_chars = sum(len(msg.get("content", "")) for msg in messages)
+        input_tokens = sum(
+            self.token_accountant.count_tokens(msg.get("content", ""))
+            for msg in messages
+        )
 
         # Estimate response size based on input
         # Typically responses are 2-3x input for conversational, less for classification
         response_multiplier = 2.5
-        estimated_response_chars = input_chars * response_multiplier
+        estimated_response_tokens = int(input_tokens * response_multiplier)
 
         # Add max_tokens if specified (capped)
         if max_tokens:
-            estimated_response_chars = min(estimated_response_chars, max_tokens * 4)
+            estimated_response_tokens = min(estimated_response_tokens, max_tokens)
 
-        total_chars = input_chars + estimated_response_chars
-        return max(1, total_chars // 4)
+        total_tokens = input_tokens + estimated_response_tokens
+        return max(1, total_tokens)
 
 
 class GatewayService:

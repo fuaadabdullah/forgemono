@@ -1,6 +1,7 @@
 """
 Database model for models.
 """
+
 from sqlalchemy import (
     Column,
     Integer,
@@ -8,11 +9,12 @@ from sqlalchemy import (
     Float,
     Boolean,
 )
-from ..database import Base
+from database import Base
 
 
 class Model(Base):
     __tablename__ = "models"
+    __table_args__ = {"extend_existing": True}
     id = Column(Integer, primary_key=True)
     name = Column(String(100), unique=True, nullable=False)
     provider = Column(String(50), nullable=False)

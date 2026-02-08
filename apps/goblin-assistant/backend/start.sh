@@ -5,8 +5,13 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR" || exit 1
 
-# Resolve venv Python (one level up from backend/)
-VENV_PY="$(cd .. && pwd)/venv/bin/python3"
+# Source environment variables
+if [ -f "../../.env.local" ]; then
+    source ../../.env.local
+fi
+
+# Resolve venv Python (three levels up from backend/)
+VENV_PY="$(cd ../../../ && pwd)/.venv/bin/python3"
 if [ ! -x "$VENV_PY" ]; then
 	echo "❌ Could not find virtualenv python at $VENV_PY"
 	echo "Please create/activate the venv first: python3 -m venv ../venv && ../venv/bin/pip install -r ../requirements.txt"

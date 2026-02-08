@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -40,19 +39,20 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
 
   const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
     const id = Date.now().toString();
+    const duration = toast.duration ?? 5000;
     const newToast: Toast = {
       ...toast,
       id,
-      duration: toast.duration ?? 5000,
+      duration,
     };
 
     setToasts(prev => [...prev, newToast]);
 
     // Auto remove after duration
-    if (newToast.duration > 0) {
+    if (duration > 0) {
       setTimeout(() => {
         removeToast(id);
-      }, newToast.duration);
+      }, duration);
     }
   }, []);
 

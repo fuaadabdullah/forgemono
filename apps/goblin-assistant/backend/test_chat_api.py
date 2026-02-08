@@ -15,7 +15,7 @@ from sqlalchemy.orm import sessionmaker
 from database import Base, get_db
 from services.routing import RoutingService
 from services.encryption import EncryptionService
-from models.routing import RoutingProvider
+from models.provider import Provider as RoutingProvider
 import os
 
 # Database setup
@@ -36,7 +36,9 @@ def setup_test_provider():
     try:
         # Check if provider already exists
         provider = (
-            db.query(RoutingProvider).filter(RoutingProvider.name == "ollama").first()
+            db.query(RoutingProvider)
+            .filter(RoutingProvider.name == "goblin-ollama-server")
+            .first()
         )
 
         if not provider:
@@ -71,8 +73,8 @@ def setup_test_provider():
 
             # Create provider
             provider = RoutingProvider(
-                name="ollama",
-                display_name="Ollama (Local LLMs)",
+                name="goblin-ollama-server",
+                display_name="Goblin Ollama Server (Local LLMs)",
                 base_url=ollama_base_url,
                 api_key_encrypted=encrypted_key,
                 capabilities=["chat", "completion"],

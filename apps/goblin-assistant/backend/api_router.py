@@ -6,8 +6,9 @@ import asyncio
 import time
 import os
 from sqlalchemy.orm import Session
-from database import get_db
-from models import Stream, StreamChunk, SearchCollection, SearchDocument
+from .database import get_db
+from .models import Stream, StreamChunk, SearchCollection, SearchDocument
+from .services.token_accounting import TokenAccountingService
 
 # Background task imports
 from fastapi import BackgroundTasks
@@ -15,6 +16,7 @@ import redis
 import logging
 
 logger = logging.getLogger(__name__)
+token_accountant = TokenAccountingService()
 
 # Redis client for background tasks
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -257,7 +259,7 @@ async def simulate_stream_task(stream_id: str, db: Session):
         chunk = StreamChunk(
             stream_id=stream_id,
             content=word + (" " if i < len(words) - 1 else ""),
-            token_count=len(word) // 4 + 1,
+            token_count=token_accountant.count_tokens(word),
             cost_delta=0.001,
             done=False,
         )

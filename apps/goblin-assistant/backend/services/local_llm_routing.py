@@ -1,7 +1,7 @@
 """
 Local LLM Routing Strategy Configuration
 
-This module defines intelligent routing rules for local Ollama models
+This module defines intelligent routing rules for local Goblin Ollama Server models
 based on intent, context length, latency requirements, and cost priorities.
 """
 
@@ -41,7 +41,7 @@ class ModelConfig:
     """Configuration for a specific model."""
 
     model_id: str
-    provider: str  # "ollama" or "llamacpp"
+    provider: str  # "goblin-ollama-server" or "goblin-llamacpp-server"
     context_window: int
     best_for: List[str]
     temperature: float
@@ -54,7 +54,7 @@ class ModelConfig:
 MODEL_CONFIGS = {
     "mistral:7b": ModelConfig(
         model_id="mistral:7b",
-        provider="ollama",
+        provider="goblin-ollama-server",
         context_window=8192,
         best_for=[
             "high_quality",
@@ -71,7 +71,7 @@ MODEL_CONFIGS = {
     ),
     "qwen2.5:3b": ModelConfig(
         model_id="qwen2.5:3b",
-        provider="ollama",
+        provider="goblin-ollama-server",
         context_window=32768,
         best_for=["long_context", "multilingual", "rag", "retrieval"],
         temperature=0.0,
@@ -81,7 +81,7 @@ MODEL_CONFIGS = {
     ),
     "phi3:3.8b": ModelConfig(
         model_id="phi3:3.8b",
-        provider="ollama",
+        provider="goblin-ollama-server",
         context_window=4096,
         best_for=["low_latency", "chat", "conversational", "confidence_scoring"],
         temperature=0.15,
@@ -91,7 +91,7 @@ MODEL_CONFIGS = {
     ),
     "gemma:2b": ModelConfig(
         model_id="gemma:2b",
-        provider="ollama",
+        provider="goblin-ollama-server",
         context_window=8192,
         best_for=[
             "ultra_fast",
@@ -107,7 +107,7 @@ MODEL_CONFIGS = {
     ),
     "goblin-simple-llama-1b": ModelConfig(
         model_id="goblin-simple-llama-1b",
-        provider="ollama",
+        provider="goblin-ollama-server",
         context_window=2048,
         best_for=[
             "emergency_fallback",
@@ -172,28 +172,60 @@ def detect_intent(messages: List[Dict[str, str]]) -> Intent:
     """
     last_message = messages[-1].get("content", "").lower() if messages else ""
 
-    # Keyword-based intent detection
-    if any(kw in last_message for kw in ["summarize", "summary", "tldr", "sum up"]):
+    # Check each intent type
+    if check_summarize_keywords(last_message):
         return Intent.SUMMARIZE
-    elif any(
-        kw in last_message for kw in ["explain", "what is", "what does", "how does"]
-    ):
+    elif check_explain_keywords(last_message):
         return Intent.EXPLAIN
-    elif any(
-        kw in last_message
-        for kw in ["code", "function", "class", "implement", "script"]
-    ):
+    elif check_code_gen_keywords(last_message):
         return Intent.CODE_GEN
-    elif any(kw in last_message for kw in ["story", "poem", "creative", "imagine"]):
+    elif check_creative_keywords(last_message):
         return Intent.CREATIVE
-    elif any(kw in last_message for kw in ["translate", "translation", "say in"]):
+    elif check_translation_keywords(last_message):
         return Intent.TRANSLATION
-    elif any(kw in last_message for kw in ["classify", "category", "label"]):
+    elif check_classification_keywords(last_message):
         return Intent.CLASSIFICATION
-    elif any(kw in last_message for kw in ["status", "health", "check"]):
+    elif check_status_keywords(last_message):
         return Intent.STATUS
     else:
         return Intent.CHAT
+
+
+def check_summarize_keywords(text: str) -> bool:
+    """Check if text contains summarize-related keywords."""
+    return any(kw in text for kw in ["summarize", "summary", "tldr", "sum up"])
+
+
+def check_explain_keywords(text: str) -> bool:
+    """Check if text contains explain-related keywords."""
+    return any(kw in text for kw in ["explain", "what is", "what does", "how does"])
+
+
+def check_code_gen_keywords(text: str) -> bool:
+    """Check if text contains code generation keywords."""
+    return any(
+        kw in text for kw in ["code", "function", "class", "implement", "script"]
+    )
+
+
+def check_creative_keywords(text: str) -> bool:
+    """Check if text contains creative writing keywords."""
+    return any(kw in text for kw in ["story", "poem", "creative", "imagine"])
+
+
+def check_translation_keywords(text: str) -> bool:
+    """Check if text contains translation keywords."""
+    return any(kw in text for kw in ["translate", "translation", "say in"])
+
+
+def check_classification_keywords(text: str) -> bool:
+    """Check if text contains classification keywords."""
+    return any(kw in text for kw in ["classify", "category", "label"])
+
+
+def check_status_keywords(text: str) -> bool:
+    """Check if text contains status/health check keywords."""
+    return any(kw in text for kw in ["status", "health", "check"])
 
 
 def detect_language(text: str) -> str:
@@ -232,13 +264,7 @@ def select_model(
     """
     # Emergency fallback - use cheap model regardless of other rules
     if force_cheap_fallback:
-        config = MODEL_CONFIGS["goblin-simple-llama-1b"]
-        return config.model_id, {
-            "temperature": config.temperature,
-            "top_p": config.top_p,
-            "max_tokens": config.max_tokens,
-            "stop": config.stop_sequences,
-        }
+        return get_cheap_fallback_model_config()
 
     # Auto-detect intent if not provided
     if intent is None:
@@ -253,77 +279,128 @@ def select_model(
     last_message = messages[-1].get("content", "") if messages else ""
     language = detect_language(last_message)
 
-    # Routing logic
+    # Apply routing rules in priority order
+    if should_use_gemma_model(intent, latency_target, cost_priority, context_length):
+        return get_gemma_model_config()
+    elif should_use_qwen_model(context_length, language, intent):
+        return get_qwen_model_config(intent)
+    elif should_use_phi3_model(latency_target, intent, context_length):
+        return get_phi3_model_config()
+    elif should_use_mistral_model(intent):
+        return get_mistral_model_config(intent)
+    else:
+        return get_default_model_config()
 
-    # Rule 1: Ultra-low latency or microops → gemma:2b
-    if (
+
+def get_cheap_fallback_model_config() -> tuple[str, Dict[str, Any]]:
+    """Get configuration for cheap fallback model."""
+    config = MODEL_CONFIGS["goblin-simple-llama-1b"]
+    return config.model_id, {
+        "temperature": config.temperature,
+        "top_p": config.top_p,
+        "max_tokens": config.max_tokens,
+        "stop": config.stop_sequences,
+    }
+
+
+def should_use_gemma_model(
+    intent: Intent,
+    latency_target: LatencyTarget,
+    cost_priority: bool,
+    context_length: int,
+) -> bool:
+    """Check if Gemma 2B model should be used."""
+    return (
         latency_target == LatencyTarget.ULTRA_LOW
         or intent in [Intent.CLASSIFICATION, Intent.STATUS, Intent.MICROOP]
-        or cost_priority
-        and context_length < 100
-    ):
-        config = MODEL_CONFIGS["gemma:2b"]
-        return config.model_id, {
-            "temperature": config.temperature,
-            "top_p": config.top_p,
-            "max_tokens": config.max_tokens,
-            "stop": config.stop_sequences,
-        }
+        or (cost_priority and context_length < 100)
+    )
 
-    # Rule 2: Long context or multilingual or RAG → qwen2.5:3b
-    if (
+
+def get_gemma_model_config() -> tuple[str, Dict[str, Any]]:
+    """Get configuration for Gemma 2B model."""
+    config = MODEL_CONFIGS["gemma:2b"]
+    return config.model_id, {
+        "temperature": config.temperature,
+        "top_p": config.top_p,
+        "max_tokens": config.max_tokens,
+        "stop": config.stop_sequences,
+    }
+
+
+def should_use_qwen_model(context_length: int, language: str, intent: Intent) -> bool:
+    """Check if Qwen 2.5 3B model should be used."""
+    return (
         context_length > 8000
         or language != "en"
         or intent in [Intent.RAG, Intent.RETRIEVAL, Intent.TRANSLATION]
-    ):
-        config = MODEL_CONFIGS["qwen2.5:3b"]
-        # Adjust temperature based on task
-        temp = 0.0 if intent in [Intent.RAG, Intent.RETRIEVAL] else 0.3
-        return config.model_id, {
-            "temperature": temp,
-            "top_p": config.top_p,
-            "max_tokens": config.max_tokens,
-            "stop": config.stop_sequences,
-        }
+    )
 
-    # Rule 3: Low latency chat → phi3:3.8b
-    if (
-        latency_target in [LatencyTarget.LOW, LatencyTarget.ULTRA_LOW]
-        or intent == Intent.CHAT
-        and context_length < 2000
-    ):
-        config = MODEL_CONFIGS["phi3:3.8b"]
-        return config.model_id, {
-            "temperature": config.temperature,
-            "top_p": config.top_p,
-            "max_tokens": config.max_tokens,
-            "stop": config.stop_sequences,
-        }
 
-    # Rule 4: High quality / creative / coding / legal → mistral:7b
-    if intent in [
+def get_qwen_model_config(intent: Intent) -> tuple[str, Dict[str, Any]]:
+    """Get configuration for Qwen 2.5 3B model."""
+    config = MODEL_CONFIGS["qwen2.5:3b"]
+    # Adjust temperature based on task
+    temp = 0.0 if intent in [Intent.RAG, Intent.RETRIEVAL] else 0.3
+    return config.model_id, {
+        "temperature": temp,
+        "top_p": config.top_p,
+        "max_tokens": config.max_tokens,
+        "stop": config.stop_sequences,
+    }
+
+
+def should_use_phi3_model(
+    latency_target: LatencyTarget, intent: Intent, context_length: int
+) -> bool:
+    """Check if Phi-3 3.8B model should be used."""
+    return latency_target in [LatencyTarget.LOW, LatencyTarget.ULTRA_LOW] or (
+        intent == Intent.CHAT and context_length < 2000
+    )
+
+
+def get_phi3_model_config() -> tuple[str, Dict[str, Any]]:
+    """Get configuration for Phi-3 3.8B model."""
+    config = MODEL_CONFIGS["phi3:3.8b"]
+    return config.model_id, {
+        "temperature": config.temperature,
+        "top_p": config.top_p,
+        "max_tokens": config.max_tokens,
+        "stop": config.stop_sequences,
+    }
+
+
+def should_use_mistral_model(intent: Intent) -> bool:
+    """Check if Mistral 7B model should be used."""
+    return intent in [
         Intent.SUMMARIZE,
         Intent.EXPLAIN,
         Intent.CODE_GEN,
         Intent.CREATIVE,
         Intent.LEGAL,
-    ]:
-        config = MODEL_CONFIGS["mistral:7b"]
-        # Adjust temperature based on intent
-        if intent == Intent.CODE_GEN:
-            temp = 0.0
-        elif intent == Intent.CREATIVE:
-            temp = 0.6
-        else:
-            temp = 0.2
-        return config.model_id, {
-            "temperature": temp,
-            "top_p": config.top_p,
-            "max_tokens": config.max_tokens,
-            "stop": config.stop_sequences,
-        }
+    ]
 
-    # Default fallback → phi3:3.8b (balanced)
+
+def get_mistral_model_config(intent: Intent) -> tuple[str, Dict[str, Any]]:
+    """Get configuration for Mistral 7B model."""
+    config = MODEL_CONFIGS["mistral:7b"]
+    # Adjust temperature based on intent
+    if intent == Intent.CODE_GEN:
+        temp = 0.0
+    elif intent == Intent.CREATIVE:
+        temp = 0.6
+    else:
+        temp = 0.2
+    return config.model_id, {
+        "temperature": temp,
+        "top_p": config.top_p,
+        "max_tokens": config.max_tokens,
+        "stop": config.stop_sequences,
+    }
+
+
+def get_default_model_config() -> tuple[str, Dict[str, Any]]:
+    """Get configuration for default fallback model."""
     config = MODEL_CONFIGS["phi3:3.8b"]
     return config.model_id, {
         "temperature": config.temperature,
@@ -351,42 +428,71 @@ def get_routing_explanation(
     model_id: str, intent: Intent, context_length: int, latency_target: LatencyTarget
 ) -> str:
     """Generate human-readable explanation of routing decision."""
+    if model_id == "gemma:2b":
+        return get_gemma_routing_explanation(intent, latency_target)
+    elif model_id == "phi3:3.8b":
+        return get_phi3_routing_explanation(intent, latency_target)
+    elif model_id == "qwen2.5:3b":
+        return get_qwen_routing_explanation(intent, context_length)
+    elif model_id == "mistral:7b":
+        return get_mistral_routing_explanation(intent)
+    else:
+        return "Default routing"
+
+
+def get_gemma_routing_explanation(intent: Intent, latency_target: LatencyTarget) -> str:
+    """Get routing explanation for Gemma 2B model."""
     reasons = []
 
-    if model_id == "gemma:2b":
-        if intent in [Intent.CLASSIFICATION, Intent.STATUS, Intent.MICROOP]:
-            reasons.append(f"Intent: {intent.value} (micro task)")
-        if latency_target == LatencyTarget.ULTRA_LOW:
-            reasons.append("Ultra-low latency required")
-        reasons.append(
-            "Optimized for: ultra-fast responses, classification, status checks"
-        )
+    if intent in [Intent.CLASSIFICATION, Intent.STATUS, Intent.MICROOP]:
+        reasons.append(f"Intent: {intent.value} (micro task)")
+    if latency_target == LatencyTarget.ULTRA_LOW:
+        reasons.append("Ultra-low latency required")
+    reasons.append("Optimized for: ultra-fast responses, classification, status checks")
 
-    elif model_id == "phi3:3.8b":
-        if latency_target in [LatencyTarget.LOW, LatencyTarget.ULTRA_LOW]:
-            reasons.append(f"Low latency target: {latency_target.value}")
-        if intent == Intent.CHAT:
-            reasons.append("Conversational chat")
-        reasons.append("Optimized for: low-latency chat, UI responses")
+    return " | ".join(reasons)
 
-    elif model_id == "qwen2.5:3b":
-        if context_length > 8000:
-            reasons.append(f"Long context: {context_length} tokens")
-        if intent in [Intent.RAG, Intent.RETRIEVAL, Intent.TRANSLATION]:
-            reasons.append(f"Intent: {intent.value}")
-        reasons.append("Optimized for: long documents, RAG, multilingual")
 
-    elif model_id == "mistral:7b":
-        if intent in [
-            Intent.SUMMARIZE,
-            Intent.EXPLAIN,
-            Intent.CODE_GEN,
-            Intent.CREATIVE,
-        ]:
-            reasons.append(f"Intent: {intent.value}")
-        reasons.append("Optimized for: high quality, creative, coding, explanations")
+def get_phi3_routing_explanation(intent: Intent, latency_target: LatencyTarget) -> str:
+    """Get routing explanation for Phi-3 3.8B model."""
+    reasons = []
 
-    return " | ".join(reasons) if reasons else "Default routing"
+    if latency_target in [LatencyTarget.LOW, LatencyTarget.ULTRA_LOW]:
+        reasons.append(f"Low latency target: {latency_target.value}")
+    if intent == Intent.CHAT:
+        reasons.append("Conversational chat")
+    reasons.append("Optimized for: low-latency chat, UI responses")
+
+    return " | ".join(reasons)
+
+
+def get_qwen_routing_explanation(intent: Intent, context_length: int) -> str:
+    """Get routing explanation for Qwen 2.5 3B model."""
+    reasons = []
+
+    if context_length > 8000:
+        reasons.append(f"Long context: {context_length} tokens")
+    if intent in [Intent.RAG, Intent.RETRIEVAL, Intent.TRANSLATION]:
+        reasons.append(f"Intent: {intent.value}")
+    reasons.append("Optimized for: long documents, RAG, multilingual")
+
+    return " | ".join(reasons)
+
+
+def get_mistral_routing_explanation(intent: Intent) -> str:
+    """Get routing explanation for Mistral 7B model."""
+    reasons = []
+
+    if intent in [
+        Intent.SUMMARIZE,
+        Intent.EXPLAIN,
+        Intent.CODE_GEN,
+        Intent.CREATIVE,
+    ]:
+        reasons.append(f"Intent: {intent.value}")
+    reasons.append("Optimized for: high quality, creative, coding, explanations")
+
+    return " | ".join(reasons)
 
 
 # Example usage and testing

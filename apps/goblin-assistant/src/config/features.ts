@@ -13,17 +13,33 @@ export interface FeatureFlags {
   googleAuth: boolean;
   orchestration: boolean;
   sandbox: boolean;
+  search: boolean;
+  admin: boolean;
   analytics: boolean;
   debugMode: boolean;
+}
+
+export interface ModuleFlags {
+  sandbox: boolean;
+  search: boolean;
+  admin: boolean;
 }
 
 // Load from centralized environment configuration
 export const featureFlags: FeatureFlags = env.features;
 
+export const moduleFlags: ModuleFlags = {
+  sandbox: featureFlags.sandbox,
+  search: featureFlags.search,
+  admin: featureFlags.admin,
+};
+
 // Helper function to check if a feature is enabled
 export const isFeatureEnabled = (feature: keyof FeatureFlags): boolean => {
   return featureFlags[feature];
 };
+
+export const getEnabledModules = (): ModuleFlags => moduleFlags;
 
 // Log enabled features in development
 if (env.isDevelopment && featureFlags.debugMode) {

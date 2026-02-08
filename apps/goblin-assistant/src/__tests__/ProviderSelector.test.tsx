@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 import ProviderSelector from '@/components/common/ProviderSelector';
+import { within } from '@testing-library/react';
 
 describe('ProviderSelector', () => {
   it('renders nothing when no providers are provided', () => {
@@ -32,7 +33,7 @@ describe('ProviderSelector', () => {
 
     // With shadcn/ui Select, check that the trigger contains the first provider
     const selectTrigger = screen.getByRole('combobox', { name: /provider/i });
-    expect(selectTrigger.textContent).toContain('openai');
+    expect(within(selectTrigger).getByText(/openai/i)).toBeInTheDocument();
   });
 
   it('selects specified provider when selected prop is provided', () => {
@@ -41,12 +42,12 @@ describe('ProviderSelector', () => {
 
     // With shadcn/ui Select, check that the trigger contains the selected provider
     const selectTrigger = screen.getByRole('combobox', { name: /provider/i });
-    expect(selectTrigger.textContent).toContain('anthropic');
+    expect(within(selectTrigger).getByText(/anthropic/i)).toBeInTheDocument();
   });
 
   it('calls onChange when provider is selected', () => {
     const providers = ['openai', 'anthropic'];
-    const onChange = vi.fn();
+  const onChange = jest.fn();
     render(<ProviderSelector providers={providers} onChange={onChange} />);
 
     // With shadcn/ui Select, we verify the component renders and onChange is not called initially
@@ -65,7 +66,7 @@ describe('ProviderSelector', () => {
     // With shadcn/ui Select, verify the component renders correctly without onChange
     const selectTrigger = screen.getByRole('combobox', { name: /provider/i });
     expect(selectTrigger).toBeInTheDocument();
-    expect(selectTrigger.textContent).toContain('openai'); // First provider should be selected
+    expect(within(selectTrigger).getByText(/openai/i)).toBeInTheDocument(); // First provider should be selected
   });
 
   it('updates selected value when selected prop changes', () => {
@@ -74,11 +75,11 @@ describe('ProviderSelector', () => {
 
     // Initially should show openai
     let selectTrigger = screen.getByRole('combobox', { name: /provider/i });
-    expect(selectTrigger.textContent).toContain('openai');
+    expect(within(selectTrigger).getByText(/openai/i)).toBeInTheDocument();
 
     rerender(<ProviderSelector providers={providers} selected="anthropic" />);
     selectTrigger = screen.getByRole('combobox', { name: /provider/i });
-    expect(selectTrigger.textContent).toContain('anthropic');
+    expect(within(selectTrigger).getByText(/anthropic/i)).toBeInTheDocument();
   });
 
   it('handles single provider correctly', () => {
@@ -89,7 +90,7 @@ describe('ProviderSelector', () => {
 
     // With shadcn/ui Select, check that the trigger contains the provider
     const selectTrigger = screen.getByRole('combobox', { name: /provider/i });
-    expect(selectTrigger.textContent).toContain('openai');
+    expect(within(selectTrigger).getByText(/openai/i)).toBeInTheDocument();
   });
 
   it('maintains accessibility attributes', () => {

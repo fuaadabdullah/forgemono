@@ -52,6 +52,11 @@ OLLAMA_URL = os.getenv(
 )
 LLAMACPP_URL = os.getenv("LLAMACPP_URL", "http://localhost:8080")
 
+# Routing keywords
+CHEAP_FALLBACK_MODEL = "goblin-simple-llama-1b"
+OLLAMA_KEYWORDS = ("phi3", "gemma", "qwen", "deepseek", CHEAP_FALLBACK_MODEL)
+LLAMACPP_KEYWORDS = ("llama", "gguf", "active")
+
 # HTTP client with timeout
 client = httpx.AsyncClient(timeout=300.0)  # 5 minute timeout for LLM requests
 
@@ -91,6 +96,99 @@ def require_auth(request: Request) -> None:
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 
+def _auth_headers() -> Dict[str, str]:
+    headers = {"Content-Type": "application/json"}
+    if API_KEY:
+        headers["x-api-key"] = API_KEY
+    return headers
+
+
+async def _get_ollama_models() -> list[str]:
+    try:
+        response = await client.get(f"{OLLAMA_URL}/api/tags")
+        if response.status_code == 200:
+            data = response.json()
+            return [model["name"] for model in data.get("models", [])]
+    except Exception as e:
+        logger.error(f"Ollama models error: {e}")
+    return []
+
+
+def _get_llamacpp_models() -> list[str]:
+    # llama.cpp doesn't have a standard models endpoint, so return configured models
+    return ["active-model"]
+
+
+def _apply_fallback_mode(body: Dict[str, Any], model: str) -> tuple[Dict[str, Any], str]:
+    is_fallback = body.get("fallback_mode", False)
+    if is_fallback or model == CHEAP_FALLBACK_MODEL:
+        logger.info(
+            f"Using cheap fallback model for request (fallback_mode: {is_fallback})"
+        )
+        body["model"] = CHEAP_FALLBACK_MODEL
+        model = CHEAP_FALLBACK_MODEL
+        body["max_tokens"] = min(body.get("max_tokens", 512), 256)
+        body["temperature"] = max(body.get("temperature", 0.7), 0.8)
+
+        messages = body.get("messages", [])
+        if messages and messages[0].get("role") == "system":
+            messages[0]["content"] = (
+                "You are a basic AI assistant in fallback mode. Keep responses brief. "
+                + messages[0]["content"]
+            )
+        else:
+            messages.insert(
+                0,
+                {
+                    "role": "system",
+                    "content": "You are a basic AI assistant in fallback mode due to high load. Keep responses brief and to the point.",
+                },
+            )
+        body["messages"] = messages
+
+    return body, model
+
+
+def _resolve_chat_target(model: str, body: Dict[str, Any]) -> tuple[str, Dict[str, Any]]:
+    if any(keyword in model for keyword in OLLAMA_KEYWORDS):
+        return f"{OLLAMA_URL}/v1/chat/completions", body
+    if any(keyword in model for keyword in LLAMACPP_KEYWORDS):
+        return f"{LLAMACPP_URL}/completion", convert_openai_to_llamacpp(body)
+    raise HTTPException(status_code=400, detail=f"Unknown model: {model}")
+
+
+async def _forward_json_request(url: str, body: Dict[str, Any]) -> Response:
+    response = await client.post(url, json=body, headers=_auth_headers())
+
+    if response.status_code != 200:
+        logger.error(f"LLM request failed: {response.status_code} {response.text}")
+        raise HTTPException(status_code=response.status_code, detail="LLM request failed")
+
+    return Response(
+        content=response.content, media_type=response.headers.get("content-type")
+    )
+
+
+def _build_openai_model_list(models: Dict[str, list[str]]) -> dict:
+    data = []
+    for m in models.get("ollama", []):
+        data.append({"id": m, "object": "model", "created": None, "owned_by": "ollama"})
+    for m in models.get("llamacpp", []):
+        data.append(
+            {"id": m, "object": "model", "created": None, "owned_by": "llamacpp"}
+        )
+    return {"object": "list", "data": data}
+
+
+def _get_rag_service():
+    if not RAG_AVAILABLE:
+        raise HTTPException(status_code=503, detail="RAG service not available")
+    return RAGService(
+        enable_enhanced=settings.enable_enhanced_rag,
+        chroma_path=settings.rag_chroma_path,
+    )
+
+
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     """Log all requests"""
@@ -110,24 +208,10 @@ async def list_models(request: Request):
     """List available models from both Ollama and llama.cpp (legacy endpoint)."""
     require_auth(request)
 
-    models = {"ollama": [], "llamacpp": []}
-
-    try:
-        # Get Ollama models
-        ollama_response = await client.get(f"{OLLAMA_URL}/api/tags")
-        if ollama_response.status_code == 200:
-            ollama_data = ollama_response.json()
-            models["ollama"] = [
-                model["name"] for model in ollama_data.get("models", [])
-            ]
-    except Exception as e:
-        logger.error(f"Ollama models error: {e}")
-
-    try:
-        # llama.cpp doesn't have a standard models endpoint, so we'll return configured models
-        models["llamacpp"] = ["active-model"]  # Update based on your active model
-    except Exception as e:
-        logger.error(f"llama.cpp models error: {e}")
+    models = {
+        "ollama": await _get_ollama_models(),
+        "llamacpp": _get_llamacpp_models(),
+    }
 
     return {"models": models}
 
@@ -143,15 +227,13 @@ async def api_status(request: Request):
 async def api_tags(request: Request):
     """Ollama tags endpoint to list models in native format"""
     require_auth(request)
-    models = []
     try:
-        ollama_response = await client.get(f"{OLLAMA_URL}/api/tags")
-        if ollama_response.status_code == 200:
-            ollama_data = ollama_response.json()
-            models = ollama_data.get("models", [])
+        response = await client.get(f"{OLLAMA_URL}/api/tags")
+        if response.status_code == 200:
+            return {"models": response.json().get("models", [])}
     except Exception as e:
         logger.error(f"api_tags failed: {e}")
-    return {"models": models}
+    return {"models": []}
 
 
 @app.get("/v1/models")
@@ -161,26 +243,11 @@ async def openai_list_models(request: Request):
     Produces a JSON response with `object: list` and `data: [ {id, object, ...} ]`.
     """
     require_auth(request)
-    # Reuse existing discovery and map to OpenAI-like response
-    models = {"ollama": [], "llamacpp": []}
-    try:
-        ollama_response = await client.get(f"{OLLAMA_URL}/api/tags")
-        if ollama_response.status_code == 200:
-            ollama_data = ollama_response.json()
-            models["ollama"] = [m["name"] for m in ollama_data.get("models", [])]
-    except Exception:
-        pass
-
-    # Build OpenAI-like list
-    data = []
-    for m in models.get("ollama", []):
-        data.append({"id": m, "object": "model", "created": None, "owned_by": "ollama"})
-    for m in models.get("llamacpp", []):
-        data.append(
-            {"id": m, "object": "model", "created": None, "owned_by": "llamacpp"}
-        )
-
-    return {"object": "list", "data": data}
+    models = {
+        "ollama": await _get_ollama_models(),
+        "llamacpp": _get_llamacpp_models(),
+    }
+    return _build_openai_model_list(models)
 
 
 @app.post("/api/chat")
@@ -190,22 +257,7 @@ async def ollama_chat(request: Request):
 
     try:
         body = await request.json()
-
-        # Forward to Ollama
-        headers = {"Content-Type": "application/json"}
-        response = await client.post(
-            f"{OLLAMA_URL}/api/chat", json=body, headers=headers
-        )
-
-        if response.status_code != 200:
-            logger.error(f"Ollama chat failed: {response.status_code} {response.text}")
-            raise HTTPException(
-                status_code=response.status_code, detail="Ollama chat failed"
-            )
-
-        return Response(
-            content=response.content, media_type=response.headers.get("content-type")
-        )
+        return await _forward_json_request(f"{OLLAMA_URL}/api/chat", body)
 
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="Ollama request timeout")
@@ -222,75 +274,9 @@ async def chat_completions(request: Request):
     try:
         body = await request.json()
         model = body.get("model", "").lower()
-
-        # Check for fallback mode
-        is_fallback = body.get("fallback_mode", False)
-        cheap_fallback_model = "goblin-simple-llama-1b"
-
-        # If fallback mode requested, use cheap model
-        if is_fallback or model == cheap_fallback_model:
-            logger.info(
-                f"Using cheap fallback model for request (fallback_mode: {is_fallback})"
-            )
-            # Override model to cheap fallback
-            body["model"] = cheap_fallback_model
-            model = cheap_fallback_model
-
-            # Reduce parameters for faster response
-            body["max_tokens"] = min(body.get("max_tokens", 512), 256)
-            body["temperature"] = max(
-                body.get("temperature", 0.7), 0.8
-            )  # Slightly more random for variety
-
-            # Add fallback notice to system message
-            messages = body.get("messages", [])
-            if messages and messages[0].get("role") == "system":
-                messages[0]["content"] = (
-                    "You are a basic AI assistant in fallback mode. Keep responses brief. "
-                    + messages[0]["content"]
-                )
-            else:
-                messages.insert(
-                    0,
-                    {
-                        "role": "system",
-                        "content": "You are a basic AI assistant in fallback mode due to high load. Keep responses brief and to the point.",
-                    },
-                )
-            body["messages"] = messages
-
-        # Route based on model name
-        if any(
-            keyword in model
-            for keyword in ["phi3", "gemma", "qwen", "deepseek", cheap_fallback_model]
-        ):
-            # Ollama models (prefer OpenAI-compatible endpoint if available)
-            # Try the OpenAI-compatible v1/chat/completions first, fall back to /api/chat
-            target_url = f"{OLLAMA_URL}/v1/chat/completions"
-        elif any(keyword in model for keyword in ["llama", "gguf", "active"]):
-            # llama.cpp models - convert to llama.cpp format
-            target_url = f"{LLAMACPP_URL}/completion"
-            # Convert OpenAI format to llama.cpp format
-            body = convert_openai_to_llamacpp(body)
-        else:
-            raise HTTPException(status_code=400, detail=f"Unknown model: {model}")
-
-        # Forward the request
-        headers = {"Content-Type": "application/json"}
-        # Include Auth if present
-        if API_KEY:
-            headers["x-api-key"] = API_KEY
-        response = await client.post(target_url, json=body, headers=headers)
-
-        if response.status_code != 200:
-            logger.error(f"LLM request failed: {response.status_code} {response.text}")
-            raise HTTPException(
-                status_code=response.status_code, detail="LLM request failed"
-            )
-
-        return Response(
-            content=response.content, media_type=response.headers.get("content-type")
-        )
+        body, model = _apply_fallback_mode(body, model)
+        target_url, payload = _resolve_chat_target(model, body)
+        return await _forward_json_request(target_url, payload)
 
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="LLM request timeout")
@@ -337,14 +323,7 @@ async def api_generate(request: Request):
     body = await request.json()
 
     try:
-        response = await client.post(
-            f"{OLLAMA_URL}/api/generate",
-            json=body,
-            headers={"Content-Type": "application/json"},
-        )
-        return Response(
-            content=response.content, media_type=response.headers.get("content-type")
-        )
+        return await _forward_json_request(f"{OLLAMA_URL}/api/generate", body)
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="Ollama generate timed out")
     except Exception as e:
@@ -361,14 +340,7 @@ async def v1_generate(request: Request):
     body = await request.json()
     # Try to call raptor endpoint directly (assumed to expose /v1/generate)
     try:
-        response = await client.post(
-            f"{LLAMACPP_URL}/v1/generate",
-            json=body,
-            headers={"Content-Type": "application/json"},
-        )
-        return Response(
-            content=response.content, media_type=response.headers.get("content-type")
-        )
+        return await _forward_json_request(f"{LLAMACPP_URL}/v1/generate", body)
     except Exception:
         # Fallback: return an emulated response if the raptor service is not available
         prompt = body.get("prompt", "")
@@ -383,39 +355,10 @@ async def openai_chat_completions(request: Request):
     """
     require_auth(request)
     body = await request.json()
-    # Reuse chat_completions logic by forwarding the request internally to /chat/completions
-    # We simply re-POST the OpenAI-style body to our existing endpoint which does routing
     model = body.get("model", "").lower()
-    # Determine where to forward
-    if any(keyword in model for keyword in ["phi3", "gemma", "qwen", "deepseek"]):
-        target = f"{OLLAMA_URL}/v1/chat/completions"
-        headers = {"Content-Type": "application/json"}
-        if API_KEY:
-            headers["x-api-key"] = API_KEY
-        response = await client.post(target, json=body, headers=headers)
-        return Response(
-            content=response.content, media_type=response.headers.get("content-type")
-        )
-    elif any(keyword in model for keyword in ["llama", "gguf", "active"]):
-        # Convert to llama.cpp format and call the local llama.cpp endpoint
-        llamabody = convert_openai_to_llamacpp(body)
-        target = f"{LLAMACPP_URL}/completion"
-        response = await client.post(
-            target, json=llamabody, headers={"Content-Type": "application/json"}
-        )
-        return Response(
-            content=response.content, media_type=response.headers.get("content-type")
-        )
-    else:
-        # default to Ollama for unknown models
-        target = f"{OLLAMA_URL}/v1/chat/completions"
-        headers = {"Content-Type": "application/json"}
-        if API_KEY:
-            headers["x-api-key"] = API_KEY
-        response = await client.post(target, json=body, headers=headers)
-        return Response(
-            content=response.content, media_type=response.headers.get("content-type")
-        )
+    body, model = _apply_fallback_mode(body, model)
+    target_url, payload = _resolve_chat_target(model, body)
+    return await _forward_json_request(target_url, payload)
 
 
 # RAG Endpoints
@@ -439,14 +382,8 @@ async def add_documents(request: Request, doc_request: DocumentRequest):
     """Add documents to the RAG vector database."""
     require_auth(request)
 
-    if not RAG_AVAILABLE:
-        raise HTTPException(status_code=503, detail="RAG service not available")
-
     try:
-        rag_service = RAGService(
-            enable_enhanced=settings.enable_enhanced_rag,
-            chroma_path=settings.rag_chroma_path,
-        )
+        rag_service = _get_rag_service()
         documents = [
             {
                 "content": doc_request.content,
@@ -475,14 +412,8 @@ async def rag_query(request: Request, query_request: RAGQueryRequest):
     """Perform RAG query with dense retrieval and context generation."""
     require_auth(request)
 
-    if not RAG_AVAILABLE:
-        raise HTTPException(status_code=503, detail="RAG service not available")
-
     try:
-        rag_service = RAGService(
-            enable_enhanced=settings.enable_enhanced_rag,
-            chroma_path=settings.rag_chroma_path,
-        )
+        rag_service = _get_rag_service()
 
         # Run complete RAG pipeline (enhanced if enabled)
         if settings.enable_enhanced_rag:
@@ -514,10 +445,7 @@ async def rag_health(request: Request):
         return {"status": "unavailable", "message": "RAG dependencies not installed"}
 
     try:
-        rag_service = RAGService(
-            enable_enhanced=settings.enable_enhanced_rag,
-            chroma_path=settings.rag_chroma_path,
-        )
+        rag_service = _get_rag_service()
         # Simple health check - try to get collection count
         collections = rag_service.chroma_client.list_collections()
         return {

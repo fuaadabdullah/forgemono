@@ -84,6 +84,113 @@ This document provides comprehensive documentation for all environment variables
 - **Description**: API key for local LLM proxy service
 - **Example**: `LOCAL_LLM_API_KEY=your-local-api-key`
 
+### RAG_API_KEY
+
+- **Type**: String
+- **Default**: Empty string
+- **Required**: No
+- **Description**: If set, requires clients to send `x-api-key` for `/rag/*` endpoints (topics, duplicates, query, documents, health).
+- **Example**: `RAG_API_KEY=dev-key`
+
+### RAG_EMBEDDING_BACKEND
+
+- **Type**: String
+- **Default**: `sentence_transformers`
+- **Required**: No
+- **Description**: Embedding runtime backend for RAG. Use `onnx` to run an exported ONNX embedding model via onnxruntime.
+- **Valid Values**: `sentence_transformers`, `onnx`
+- **Example**: `RAG_EMBEDDING_BACKEND=onnx`
+
+### RAG_ONNX_MODEL_DIR
+
+- **Type**: String (path)
+- **Default**: Empty string
+- **Required**: Only if `RAG_EMBEDDING_BACKEND=onnx`
+- **Description**: Directory containing `model.onnx` (and optionally `model.int8.onnx`) plus tokenizer files. Use `apps/goblin-assistant/backend/scripts/export_embeddings_onnx.py` to generate this directory.
+- **Example**: `RAG_ONNX_MODEL_DIR=apps/goblin-assistant/backend/models/onnx/all-MiniLM-L6-v2`
+
+### RAG_ONNX_MODEL_FILE
+
+- **Type**: String
+- **Default**: Empty string (auto-detects `model.int8.onnx`, `model.quant.onnx`, then `model.onnx`)
+- **Required**: No
+- **Description**: Optional explicit ONNX filename inside `RAG_ONNX_MODEL_DIR`.
+- **Example**: `RAG_ONNX_MODEL_FILE=model.int8.onnx`
+
+### RAG_ONNX_PROVIDER
+
+- **Type**: String
+- **Default**: `CPUExecutionProvider`
+- **Required**: No
+- **Description**: onnxruntime execution provider to use.
+- **Example**: `RAG_ONNX_PROVIDER=CPUExecutionProvider`
+
+### RAG_GENERAL_EMBEDDING_MODEL
+
+- **Type**: String
+- **Default**: `all-MiniLM-L6-v2`
+- **Required**: No
+- **Description**: SentenceTransformers model id/path used for `content_type=general`. If the model id starts with `BAAI/bge-`, the backend automatically uses prompt-aware embedding (`query:` vs `passage:` prefixes, optional instruction prefix).
+- **Example**: `RAG_GENERAL_EMBEDDING_MODEL=BAAI/bge-base-en-v1.5`
+
+### RAG_QUERY_PREFIX
+
+- **Type**: String
+- **Default**: `query: `
+- **Required**: No
+- **Description**: Prefix applied to queries for prompt-aware embedding models (e.g., BGE).
+- **Example**: `RAG_QUERY_PREFIX=query: `
+
+### RAG_PASSAGE_PREFIX
+
+- **Type**: String
+- **Default**: `passage: `
+- **Required**: No
+- **Description**: Prefix applied to passages/doc chunks for prompt-aware embedding models (e.g., BGE).
+- **Example**: `RAG_PASSAGE_PREFIX=passage: `
+
+### RAG_INSTRUCTION_PREFIX
+
+- **Type**: String
+- **Default**: Empty string
+- **Required**: No
+- **Description**: Optional instruction prefix for prompt-aware embedding models (e.g., `Represent this for searching:`).
+- **Example**: `RAG_INSTRUCTION_PREFIX=Represent this for searching:`
+
+### RAG_NORMALIZE_EMBEDDINGS
+
+- **Type**: Boolean (true/false)
+- **Default**: `true`
+- **Required**: No
+- **Description**: Whether to L2-normalize embeddings when supported/relevant (recommended for cosine similarity).
+- **Example**: `RAG_NORMALIZE_EMBEDDINGS=true`
+
+### RAG_CODE_EMBEDDING_MODEL
+
+- **Type**: String
+- **Default**: `mchochlov/codebert-base-cd-ft`
+- **Required**: No
+- **Description**: SentenceTransformers model id/path used when `content_type=code`. Recommended to keep code embeddings in a separate collection.
+- **Example**: `RAG_CODE_EMBEDDING_MODEL=microsoft/codebert-base`
+
+### RAG_LEGAL_EMBEDDING_MODEL
+
+- **Type**: String
+- **Default**: `sentence-transformers/all-distilroberta-v1`
+- **Required**: No
+- **Description**: SentenceTransformers model id/path used when `content_type=legal`. Recommended to keep legal embeddings in a separate collection.
+- **Example**: `RAG_LEGAL_EMBEDDING_MODEL=sentence-transformers/all-distilroberta-v1`
+
+### RAG_SCIENTIFIC_EMBEDDING_MODEL
+
+- **Type**: String
+- **Default**: `gsarti/scibert-nli`
+- **Required**: No
+- **Description**: SentenceTransformers model id/path used when `content_type=scientific`. Recommended to keep scientific embeddings in a separate collection.
+- **Example**: `RAG_SCIENTIFIC_EMBEDDING_MODEL=gsarti/scibert-nli`
+
+**Note on collections:** when using `content_type != general` with the `/rag/*` API, the backend will automatically route the collection to `"{collection}__{content_type}"` (unless you already pass a collection name containing `__`). This avoids mixing incompatible embedding spaces in the same Chroma collection.
+
 ### LOCAL_LLM_PROXY_URL
 
 - **Type**: String
@@ -203,6 +310,96 @@ This document provides comprehensive documentation for all environment variables
 - **Required**: No
 - **Description**: API key for Grok (xAI) services
 - **Example**: `GROK_API_KEY=xai-your-grok-key`
+
+## Cloud GPU Instances
+
+### OLLAMA_GCP_URL
+
+- **Type**: String
+- **Default**: None
+- **Required**: No
+- **Description**: Base URL for Ollama instance running on Google Cloud Platform
+- **Example**: `OLLAMA_GCP_URL=http://your-gcp-vm-ip:11434`
+
+### OLLAMA_GCP_API_KEY
+
+- **Type**: String
+- **Default**: None
+- **Required**: No
+- **Description**: API key for GCP-hosted Ollama instance
+- **Example**: `OLLAMA_GCP_API_KEY=your-gcp-ollama-key`
+
+### LLAMACPP_GCP_URL
+
+- **Type**: String
+- **Default**: None
+- **Required**: No
+- **Description**: Base URL for llama.cpp instance running on Google Cloud Platform
+- **Example**: `LLAMACPP_GCP_URL=http://your-gcp-vm-ip:8080`
+
+### LLAMACPP_GCP_API_KEY
+
+- **Type**: String
+- **Default**: None
+- **Required**: No
+- **Description**: API key for GCP-hosted llama.cpp instance
+- **Example**: `LLAMACPP_GCP_API_KEY=your-gcp-llamacpp-key`
+
+### RUNPOD_API_KEY
+
+- **Type**: String
+- **Default**: None
+- **Required**: No
+- **Description**: API key for RunPod serverless GPU inference
+- **Example**: `RUNPOD_API_KEY=rpa_XXXXXXXXX`
+
+### RUNPOD_BASE_URL
+
+- **Type**: String
+- **Default**: `https://api.runpod.io/v2`
+- **Required**: No
+- **Description**: Base URL for RunPod API
+- **Example**: `RUNPOD_BASE_URL=https://api.runpod.io/v2`
+
+### RUNPOD_ENDPOINT_ID
+
+- **Type**: String
+- **Default**: None
+- **Required**: No (but required for serverless inference)
+- **Description**: RunPod serverless endpoint ID for inference
+- **Example**: `RUNPOD_ENDPOINT_ID=abc123xyz`
+
+### VASTAI_API_KEY
+
+- **Type**: String
+- **Default**: None
+- **Required**: No
+- **Description**: API key for Vast.ai GPU rentals
+- **Example**: `VASTAI_API_KEY=your-vastai-key`
+
+### VASTAI_BASE_URL
+
+- **Type**: String
+- **Default**: `https://cloud.vast.ai/api/v0`
+- **Required**: No
+- **Description**: Base URL for Vast.ai API
+- **Example**: `VASTAI_BASE_URL=https://cloud.vast.ai/api/v0`
+
+### VASTAI_MONTHLY_BUDGET
+
+- **Type**: Float
+- **Default**: None
+- **Required**: No
+- **Description**: Monthly spending limit for Vast.ai in USD
+- **Example**: `VASTAI_MONTHLY_BUDGET=100`
+
+### VASTAI_MAX_COST_PER_HOUR
+
+- **Type**: Float
+- **Default**: None
+- **Required**: No
+- **Description**: Maximum hourly cost allowed for Vast.ai instances
+- **Example**: `VASTAI_MAX_COST_PER_HOUR=0.80`
 
 ## Authentication & Security
 
@@ -389,8 +586,8 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 ```
 
 ### Production (.env)
-```bash
 
+```bash
 # Core
 LOG_LEVEL=INFO
 SKIP_RAPTOR_INIT=0
@@ -402,6 +599,19 @@ SUPABASE_URL=<https://your-project.supabase.co>
 # Production LLM (Kamatera)
 KAMATERA_LLM_API_KEY=your-production-kamatera-key
 KAMATERA_LLM_URL=<http://66.55.77.147:8000>
+
+# GCP Instances
+OLLAMA_GCP_URL=http://your-gcp-ollama-ip:11434
+OLLAMA_GCP_API_KEY=your-gcp-ollama-key
+LLAMACPP_GCP_URL=http://your-gcp-llamacpp-ip:8080
+LLAMACPP_GCP_API_KEY=your-gcp-llamacpp-key
+
+# Cloud GPU Providers
+RUNPOD_API_KEY=rpa_your-runpod-key
+RUNPOD_ENDPOINT_ID=your-endpoint-id
+VASTAI_API_KEY=your-vastai-key
+VASTAI_MONTHLY_BUDGET=100
+VASTAI_MAX_COST_PER_HOUR=0.80
 
 # Cloud Providers
 OPENAI_API_KEY=sk-your-openai-key

@@ -2,6 +2,8 @@
 Database models for providers, metrics, and policies.
 """
 
+import sys
+
 from sqlalchemy import (
     Column,
     Integer,
@@ -15,24 +17,31 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from ..database import Base  # Import Base from the correct location
+from database import Base  # Import Base from the correct location
+
+# Ensure a single module instance across import paths.
+if __name__ == "models.provider":
+    sys.modules.setdefault("backend.models.provider", sys.modules[__name__])
+elif __name__ == "backend.models.provider":
+    sys.modules.setdefault("models.provider", sys.modules[__name__])
 
 
 class Provider(Base):
     """Represents a provider (OpenAI, Anthropic, etc.) with capabilities and configuration."""
 
     __tablename__ = "providers"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(
         String(100), nullable=False, unique=True
     )  # e.g., "openai", "anthropic"
     display_name = Column(String(200), nullable=True)  # e.g., "OpenAI", "Anthropic"
-    api_key = Column(String(500), nullable=True) # From api/app.py
-    base_url = Column(String(500), nullable=True) # From api/app.py
+    api_key = Column(String(500), nullable=True)  # From api/app.py
+    base_url = Column(String(500), nullable=True)  # From api/app.py
     api_key_encrypted = Column(Text, nullable=True)  # Encrypted API key
     is_active = Column(Boolean, default=True)
-    enabled = Column(Boolean, default=True) # From api/app.py
+    enabled = Column(Boolean, default=True)  # From api/app.py
     capabilities = Column(JSON, nullable=True)  # List of supported capabilities
     models = Column(JSON, nullable=True)  # List of available models, from api/app.py
     rate_limits = Column(JSON, nullable=True)  # Rate limiting configuration
@@ -48,9 +57,12 @@ class Provider(Base):
     policies = relationship(
         "ProviderPolicy", back_populates="provider", cascade="all, delete-orphan"
     )
-    credentials = relationship("ProviderCredential", back_populates="provider", cascade="all, delete-orphan")
-    model_configs = relationship("ModelConfig", back_populates="provider", cascade="all, delete-orphan")
-
+    credentials = relationship(
+        "ProviderCredential", back_populates="provider", cascade="all, delete-orphan"
+    )
+    model_configs = relationship(
+        "ModelConfig", back_populates="provider", cascade="all, delete-orphan"
+    )
 
     def to_dict(self):
         return {
@@ -69,6 +81,7 @@ class ProviderMetric(Base):
     """Metrics collected for provider health monitoring."""
 
     __tablename__ = "provider_metrics"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     provider_id = Column(Integer, ForeignKey("providers.id"), nullable=False)
@@ -95,6 +108,7 @@ class ProviderPolicy(Base):
     """Policies for routing decisions (fallback, load balancing, etc.)."""
 
     __tablename__ = "provider_policies"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     provider_id = Column(Integer, ForeignKey("providers.id"), nullable=False)
@@ -115,8 +129,10 @@ class ProviderPolicy(Base):
     def __repr__(self):
         return f"<ProviderPolicy(provider_id={self.provider_id}, name='{self.name}', type='{self.policy_type}')>"
 
+
 class ProviderCredential(Base):
     __tablename__ = "provider_credentials"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     provider_id = Column(Integer, ForeignKey("providers.id"))
@@ -128,8 +144,10 @@ class ProviderCredential(Base):
 
     provider = relationship("Provider", back_populates="credentials")
 
+
 class ModelConfig(Base):
     __tablename__ = "model_configs"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     provider_id = Column(Integer, ForeignKey("providers.id"))
@@ -141,18 +159,18 @@ class ModelConfig(Base):
 
     provider = relationship("Provider", back_populates="model_configs")
 
+
 class RoutingRequest(Base):
     """Log of routing requests for analytics and debugging."""
 
     __tablename__ = "routing_requests"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     request_id = Column(String(100), nullable=False, unique=True)
     capability = Column(String(100), nullable=False)
     requirements = Column(JSON, nullable=True)  # Specific requirements for the request
-    selected_provider_id = Column(
-        Integer, ForeignKey("providers.id"), nullable=True
-    )
+    selected_provider_id = Column(Integer, ForeignKey("providers.id"), nullable=True)
     response_time_ms = Column(Float, nullable=True)
     success = Column(Boolean, nullable=True)
     error_message = Column(Text, nullable=True)

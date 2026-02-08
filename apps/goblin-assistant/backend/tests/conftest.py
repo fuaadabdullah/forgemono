@@ -16,9 +16,44 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 from pathlib import Path
 from faker import Faker
+from cryptography.fernet import Fernet
 
-# Add the backend directory to Python path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Set test encryption keys before any imports that might use them
+# This prevents import-time ValueError from services/settings.py
+test_encryption_key = Fernet.generate_key().decode()
+os.environ.setdefault("SETTINGS_ENCRYPTION_KEY", test_encryption_key)
+os.environ.setdefault("ROUTING_ENCRYPTION_KEY", test_encryption_key)
+
+# Ensure the project root (parent of this `backend/` folder) is on PYTHONPATH
+# so tests can import using absolute package names like `backend.services...`.
+_project_root = Path(__file__).parent.parent.parent
+_backend_dir = Path(__file__).parent.parent
+# Insert project root first so `import backend` resolves, then keep backend/
+# on sys.path so legacy flat imports (e.g. `import database`) continue to work.
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+if str(_backend_dir) not in sys.path:
+    sys.path.insert(0, str(_backend_dir))
+
+# Provide compatibility aliases in sys.modules so tests that do
+# `from backend.services.request_validation import ...` work regardless
+# of the working directory or import machinery ordering.
+try:
+    import importlib
+
+    services_mod = importlib.import_module("services")
+    # Map `backend.services` -> local `services` module
+    sys.modules.setdefault("backend.services", services_mod)
+
+    # Preload commonly imported submodules under the `backend.*` name
+    try:
+        req_mod = importlib.import_module("services.request_validation")
+        sys.modules.setdefault("backend.services.request_validation", req_mod)
+    except Exception:
+        # Best-effort; tests will surface missing pieces if necessary.
+        pass
+except Exception:
+    pass
 
 from database import Base, get_db
 
@@ -129,20 +164,20 @@ def mock_redis():
         def __init__(self):
             self.data = {}
 
-        def get(self, key):
+        async def get(self, key):
             return self.data.get(key)
 
-        def set(self, key, value, ex=None):
+        async def set(self, key, value, ex=None):
             self.data[key] = value
             return True
 
-        def delete(self, key):
+        async def delete(self, key):
             return self.data.pop(key, None) is not None
 
-        def exists(self, key):
+        async def exists(self, key):
             return key in self.data
 
-        def ping(self):
+        async def ping(self):
             return True
 
     return MockRedis()

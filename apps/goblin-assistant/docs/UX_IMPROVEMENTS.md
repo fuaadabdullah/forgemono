@@ -171,9 +171,9 @@ const formatLastCheck = (timestamp?: string) => {
 ```tsx
 
 <StatusCard
-  title="Vector DB (Chroma)"
+  title="Raptor Service"
   status="down"
-  statusDetails="Vector database is not responding. RAG features unavailable."
+  statusDetails="Local LLM service is not running. Start the service to enable AI features."
   // Shows custom message instead of generic description
 />
 ```
@@ -219,22 +219,10 @@ const formatLastCheck = (timestamp?: string) => {
    - `lastCheck={dashboard.backend.lastCheck}`
    - Custom tooltip for degraded: "Backend API is responding but may have elevated latency or errors"
 
-2. **Vector DB (Chroma)**:
-   - `lastCheck={dashboard.chroma.lastCheck}`
-   - Custom tooltip for down: "Vector database is not responding. RAG features unavailable."
-   - Custom tooltip for degraded: "Vector database responding slowly. Search performance may be reduced."
-
-3. **MCP Servers**:
-   - `lastCheck={dashboard.mcp.lastCheck}`
-   - Custom tooltip for degraded: "Some MCP servers are not responding or have connection issues"
-
-4. **RAG Indexer**:
-   - `lastCheck={dashboard.rag.lastCheck}`
-   - Custom tooltip for down: "RAG indexer process is not running. Document indexing unavailable."
-
-5. **Sandbox Runner**:
-   - `lastCheck={dashboard.sandbox.lastCheck}`
-   - Custom tooltip for degraded: "Sandbox has jobs queued or experiencing slower execution times"
+2. **Raptor Service**:
+   - `lastCheck={dashboard.raptor.lastCheck}`
+   - Custom tooltip for down: "Local LLM service is not running. Start the service to enable AI features."
+   - Custom tooltip for degraded: "Local LLM service responding slowly. AI responses may be delayed."
 
 ---
 
@@ -400,26 +388,26 @@ Bundle sizes:
 
 ### Accessibility Testing
 
-- [ ] Screen readers announce full status with context
-- [ ] Tooltips linked via `aria-describedby`
-- [ ] Keyboard users can access all tooltips
-- [ ] Focus indicators visible on badge
-- [ ] Status communicated without color alone
+- [x] Screen readers announce full status with context
+- [x] Tooltips linked via `aria-describedby`
+- [x] Keyboard users can access all tooltips
+- [x] Focus indicators visible on badge
+- [x] Status communicated without color alone
 
 ### Functional Testing
 
-- [ ] Tooltips dismiss on blur/mouse leave
-- [ ] Multiple tooltips can exist without ID conflicts
-- [ ] Long tooltip text wraps correctly (max-w-xs)
-- [ ] Timestamp updates on dashboard refresh
-- [ ] Custom statusDetails override default descriptions
+- [x] Tooltips dismiss on blur/mouse leave
+- [x] Multiple tooltips can exist without ID conflicts
+- [x] Long tooltip text wraps correctly (max-w-xs)
+- [x] Timestamp updates on dashboard refresh
+- [x] Custom statusDetails override default descriptions
 
 ### Responsive Testing
 
-- [ ] Tooltips don't overflow viewport edges
-- [ ] Timestamps visible on mobile (375px)
-- [ ] Badge + timestamp layout works on narrow cards
-- [ ] Touch devices can access tooltip information
+- [x] Tooltips don't overflow viewport edges
+- [x] Timestamps visible on mobile (375px)
+- [x] Badge + timestamp layout works on narrow cards
+- [x] Touch devices can access tooltip information
 
 ---
 
@@ -461,6 +449,26 @@ Bundle sizes:
 
 ---
 
+## Current Implementation Status
+
+### What's Implemented ✅
+
+- Tooltip component with full accessibility support
+- Status cards enhanced with timestamps and contextual tooltips
+- ARIA labels improved for better screen reader experience
+- Color-coded badges with semantic meaning
+- Context-specific details for degraded/down states
+
+### What's Not Yet Implemented ❌
+
+- Vector database monitoring
+- MCP server status tracking
+- RAG indexer status
+- Sandbox runner monitoring
+- Multi-service dashboard integration
+
+---
+
 ## Summary
 
 **✅ Tooltip component created** with full accessibility support
@@ -476,3 +484,5 @@ All status cards now provide:
 - **Accessibility**: Full ARIA support with semantic labels
 - **User confidence**: Clear indication of service health
 - **Actionable information**: Specific details for issues
+
+**Current Focus**: Basic service status monitoring for backend API and Raptor service only. The system is designed for simplicity and can be extended with additional service monitoring as needed.

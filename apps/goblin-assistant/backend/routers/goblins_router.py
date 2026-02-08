@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import random
 
 from ..database import get_db
-from ..models import Task
+from models import Task
 
 router = APIRouter()
 

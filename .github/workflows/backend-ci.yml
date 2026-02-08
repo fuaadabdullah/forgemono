@@ -76,6 +76,9 @@ jobs:
       - name: Run unit tests
         run: |
           python -m pytest backend/tests/ -v --tb=short -q || echo "Some tests may have failed"
+        env:
+          SETTINGS_ENCRYPTION_KEY: ${{ secrets.SETTINGS_ENCRYPTION_KEY || 'dGVzdC1rZXktZm9yLWNpLW9ubHktdGVzdGluZy1wdXJwb3Nlcy1vbmx5' }}
+          ROUTING_ENCRYPTION_KEY: ${{ secrets.ROUTING_ENCRYPTION_KEY || 'dGVzdC1rZXktZm9yLWNpLW9ubHktdGVzdGluZy1wdXJwb3Nlcy1vbmx5' }}
 
       - name: Upload test results
         uses: actions/upload-artifact@v3

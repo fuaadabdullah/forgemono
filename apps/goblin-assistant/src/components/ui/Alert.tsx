@@ -13,7 +13,10 @@ export interface AlertProps {
   className?: string;
 }
 
-const variantStyles: Record<AlertVariant, { bg: string; border: string; text: string; icon: string }> = {
+const variantStyles: Record<
+  AlertVariant,
+  { bg: string; border: string; text: string; icon: string }
+> = {
   info: {
     bg: 'bg-primary/10',
     border: 'border-primary',
@@ -59,15 +62,13 @@ export default function Alert({
 
   return (
     <div
-      className={`${styles.bg} border ${styles.border} rounded-lg p-4 flex items-start gap-3 ${className}`}
+      className={`${styles.bg} border ${styles.border} rounded-xl p-4 flex items-start gap-3 ${className}`}
       role="alert"
       aria-live={ariaLive}
     >
       <span className="text-xl flex-shrink-0">{displayIcon}</span>
       <div className="flex-1">
-        {title && (
-          <h3 className={`${styles.text} font-medium text-sm mb-1`}>{title}</h3>
-        )}
+        {title && <h3 className={`${styles.text} font-medium text-sm mb-1`}>{title}</h3>}
         <div className="text-text text-sm">{message}</div>
       </div>
       {dismissible && onDismiss && (

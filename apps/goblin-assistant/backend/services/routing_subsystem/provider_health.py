@@ -8,10 +8,16 @@ for routing decisions.
 import time
 import asyncio
 import threading
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, TYPE_CHECKING
 import logging
 
-from providers.registry import get_provider_registry
+if TYPE_CHECKING:
+    from backend.providers.registry import get_provider_registry
+else:
+    try:
+        from providers.registry import get_provider_registry
+    except Exception:
+        from backend.providers.registry import get_provider_registry
 
 logger = logging.getLogger(__name__)
 
@@ -211,15 +217,18 @@ class ProviderHealthMonitor:
             **extra: Additional metrics
         """
         if provider_id not in self.provider_metrics:
-            self.provider_metrics[provider_id] = {
-                "inferences_total": 0,
-                "inferences_success": 0,
-                "avg_latency_ms": 0,
-                "last_inference": None,
-                "error_rate": 0,
-            }
+            self.provider_metrics[provider_id] = {}
 
         metrics = self.provider_metrics[provider_id]
+
+        # Ensure inference metrics exist (may be missing if only health checks ran before)
+        if "inferences_total" not in metrics:
+            metrics["inferences_total"] = 0
+            metrics["inferences_success"] = 0
+            metrics["avg_latency_ms"] = 0
+            metrics["last_inference"] = None
+            metrics["error_rate"] = 0
+
         metrics["inferences_total"] += 1
         metrics["last_inference"] = time.time()
 
@@ -258,4 +267,5 @@ def get_provider_health_monitor() -> ProviderHealthMonitor:
     if _health_monitor is None:
         _health_monitor = ProviderHealthMonitor()
         _health_monitor.start_monitoring()
+    assert _health_monitor is not None
     return _health_monitor

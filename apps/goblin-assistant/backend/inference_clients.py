@@ -66,7 +66,7 @@ async def call_raptor(prompt: str, max_tokens: int = 128, timeout: float = 6.0):
                 local_headers["Authorization"] = f"Bearer {LOCAL_LLM_API_KEY}"
             # allow the same headers to be reused as a convenience
             if not local_headers and headers:
-                # re-use kamatera key for local if not separately provided
+                # reuse kamatera key for local if not separately provided
                 local_headers = headers
             r = await client.post(
                 LOCAL_URL, json=payload, headers=local_headers, timeout=timeout

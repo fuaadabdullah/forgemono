@@ -19,10 +19,27 @@ from jwt import PyJWTError
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
-from auth.policies import AuthScope, UserRole, get_scopes_for_role, validate_scopes
-from auth.secrets_manager import get_secrets_manager
-from database import get_db
-from models_base import User
+# Use try/except for flexible imports
+try:
+    from backend.auth.policies import (
+        AuthScope,
+        UserRole,
+        get_scopes_for_role,
+        validate_scopes,
+    )
+    from backend.auth.secrets_manager import get_secrets_manager
+    from backend.database import get_db
+    from backend.models import User
+except ImportError:
+    from .auth.policies import (
+        AuthScope,
+        UserRole,
+        get_scopes_for_role,
+        validate_scopes,
+    )
+    from .auth.secrets_manager import get_secrets_manager
+    from .database import get_db
+    from .models import User
 
 load_dotenv()
 

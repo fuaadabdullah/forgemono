@@ -24,18 +24,26 @@ except Exception:  # pragma: no cover - redis optional
 
 class BaseChallengeStore:
     async def set_challenge(
-        self, email: str, challenge: str, expires_seconds: int
+        self,
+        email: str,
+        challenge: str,
+        expires_seconds: Optional[int] = None,
+        ttl_minutes: Optional[int] = None,
     ) -> None:
         raise NotImplementedError()
 
     async def get_challenge(self, email: str) -> Optional[str]:
         raise NotImplementedError()
 
-    async def delete_challenge(self, email: str) -> None:
+    async def delete_challenge(self, email: str) -> bool:
         raise NotImplementedError()
 
     async def cleanup_expired(self) -> int:
         """Return number of cleaned entries."""
+        raise NotImplementedError()
+
+    async def health_check(self) -> Dict[str, Any]:
+        """Check store health."""
         raise NotImplementedError()
 
 
@@ -46,8 +54,14 @@ class InMemoryChallengeStore(BaseChallengeStore):
         self._lock = asyncio.Lock()
 
     async def set_challenge(
-        self, email: str, challenge: str, expires_seconds: int
+        self,
+        email: str,
+        challenge: str,
+        expires_seconds: Optional[int] = None,
+        ttl_minutes: Optional[int] = None,
     ) -> None:
+        if expires_seconds is None:
+            expires_seconds = (ttl_minutes or 0) * 60
         expires_at = time.time() + int(expires_seconds)
         async with self._lock:
             self._store[email] = {"challenge": challenge, "expires_at": expires_at}
@@ -63,9 +77,12 @@ class InMemoryChallengeStore(BaseChallengeStore):
                 return None
             return entry["challenge"]
 
-    async def delete_challenge(self, email: str) -> None:
+    async def delete_challenge(self, email: str) -> bool:
         async with self._lock:
-            self._store.pop(email, None)
+            if email in self._store:
+                del self._store[email]
+                return True
+            return False
 
     async def cleanup_expired(self) -> int:
         now = time.time()
@@ -79,6 +96,13 @@ class InMemoryChallengeStore(BaseChallengeStore):
                     removed += 1
         return removed
 
+    async def health_check(self) -> Dict[str, Any]:
+        return {
+            "store_type": "in_memory",
+            "active_challenges": len(self._store),
+            "healthy": True,
+        }
+
 
 class RedisChallengeStore(BaseChallengeStore):
     def __init__(self, url: str = "redis://localhost:6379/0"):
@@ -87,10 +111,16 @@ class RedisChallengeStore(BaseChallengeStore):
         self._client = aioredis.from_url(url, decode_responses=True)
 
     async def set_challenge(
-        self, email: str, challenge: str, expires_seconds: int
+        self,
+        email: str,
+        challenge: str,
+        expires_seconds: Optional[int] = None,
+        ttl_minutes: Optional[int] = None,
     ) -> None:
         if not self._client:
             raise RuntimeError("redis client not available")
+        if expires_seconds is None:
+            expires_seconds = (ttl_minutes or 0) * 60
         await self._client.set(email, challenge, ex=int(expires_seconds))
 
     async def get_challenge(self, email: str) -> Optional[str]:
@@ -98,14 +128,40 @@ class RedisChallengeStore(BaseChallengeStore):
             return None
         return await self._client.get(email)
 
-    async def delete_challenge(self, email: str) -> None:
+    async def delete_challenge(self, email: str) -> bool:
         if not self._client:
-            return
-        await self._client.delete(email)
+            return False
+        deleted_count = await self._client.delete(email)
+        return deleted_count > 0
 
     async def cleanup_expired(self) -> int:
         # Redis expiry is automatic; return 0 to indicate no local cleanup
         return 0
+
+    async def health_check(self) -> Dict[str, Any]:
+        """Check Redis health."""
+        try:
+            if not self._client:
+                return {"redis_available": False, "error": "No client"}
+
+            # Call info asynchronously
+            info = {}
+            if hasattr(self._client, "info"):
+                res = self._client.info(section="all")
+                if asyncio.iscoroutine(res):
+                    info = await res
+                else:
+                    info = res
+
+            return {
+                "redis_available": True,
+                "memory_used": info.get("used_memory_human", "unknown"),
+                "memory_peak": info.get("used_memory_peak_human", "unknown"),
+                "uptime_seconds": info.get("uptime_in_seconds", 0),
+                "connected_clients": info.get("connected_clients", 0),
+            }
+        except Exception as e:
+            return {"redis_available": False, "error": str(e)}
 
 
 _singleton_store: Optional[BaseChallengeStore] = None

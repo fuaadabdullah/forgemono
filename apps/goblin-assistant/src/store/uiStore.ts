@@ -55,7 +55,7 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   // Sidebar actions
   toggleSidebar: () => {
-    set((state) => ({ sidebarOpen: !state.sidebarOpen }));
+    set(state => ({ sidebarOpen: !state.sidebarOpen }));
   },
 
   setSidebarOpen: (open: boolean) => {
@@ -72,7 +72,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   },
 
   // Notification actions
-  addNotification: (notification) => {
+  addNotification: notification => {
     const id = Date.now().toString();
     const newNotification: NotificationItem = {
       id,
@@ -80,7 +80,7 @@ export const useUIStore = create<UIState>((set, get) => ({
       ...notification,
     };
 
-    set((state) => ({
+    set(state => ({
       notifications: [...state.notifications, newNotification],
     }));
 
@@ -93,8 +93,8 @@ export const useUIStore = create<UIState>((set, get) => ({
   },
 
   removeNotification: (id: string) => {
-    set((state) => ({
-      notifications: state.notifications.filter((n) => n.id !== id),
+    set(state => ({
+      notifications: state.notifications.filter(n => n.id !== id),
     }));
   },
 }));

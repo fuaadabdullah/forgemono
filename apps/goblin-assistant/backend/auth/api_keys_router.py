@@ -12,7 +12,7 @@ import os
 
 from auth.api_key_store import APIKeyStore
 from auth.policies import AuthScope
-from auth_service import get_auth_service
+from backend.auth_service import get_auth_service
 
 router = APIRouter(prefix="/api-keys", tags=["api-keys"])
 

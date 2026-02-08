@@ -15,7 +15,7 @@ from datetime import datetime
 import uuid
 
 # Import Base from database.py to use the same declarative base
-from database import Base
+from .database import Base
 
 
 class User(Base):
@@ -25,6 +25,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String)  # Kept for backward compatibility during migration
     name = Column(String)
+    avatar_url = Column(String)  # Profile picture URL (e.g. from Google OAuth)
     google_id = Column(String, unique=True)  # Kept for backward compatibility
     passkey_credential_id = Column(String)  # Kept for backward compatibility
     passkey_public_key = Column(Text)  # Kept for backward compatibility
@@ -208,3 +209,19 @@ class SearchDocument(Base):
     __table_args__ = (
         {"schema": None},  # Default schema
     )
+
+
+class SupportMessage(Base):
+    __tablename__ = "support_messages"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("app_users.id"), nullable=True)
+    message = Column(Text, nullable=False)
+    status = Column(String, default="open")  # open | in_progress | resolved | closed
+    user_agent = Column(Text, nullable=True)
+    ip_address = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    user = relationship("User")

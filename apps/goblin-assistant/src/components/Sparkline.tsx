@@ -40,9 +40,9 @@ export default function Sparkline({
 
     // Calculate points
     const points = data.map((value, index) => {
-      const x = (index / (data.length - 1 || 1)) * width;
-      const y = height - ((value - min) / range) * height;
-      return { x, y };
+      const normalizedX = (index / (data.length - 1 || 1)) * width;
+      const normalizedY = height - ((value - min) / range) * height;
+      return { x: normalizedX, y: normalizedY };
     });
 
     // Create line path
@@ -53,19 +53,14 @@ export default function Sparkline({
       .join(' ');
 
     // Create fill path (area under line)
-    const fillPath = showFill
-      ? `${pathData} L ${width},${height} L 0,${height} Z`
-      : '';
+    const fillPath = showFill ? `${pathData} L ${width},${height} L 0,${height} Z` : '';
 
     return { pathData, fillPath };
   }, [data, width, height, showFill]);
 
   if (!data || data.length === 0) {
     return (
-      <div
-        className={`flex items-center justify-center ${className}`}
-        style={{ width, height }}
-      >
+      <div className={`flex items-center justify-center ${className}`} style={{ width, height }}>
         <span className="text-xs text-muted">No data</span>
       </div>
     );
@@ -79,13 +74,7 @@ export default function Sparkline({
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
     >
-      {showFill && fillPath && (
-        <path
-          d={fillPath}
-          fill={fillColorValue}
-          fillOpacity="0.2"
-        />
-      )}
+      {showFill && fillPath && <path d={fillPath} fill={fillColorValue} fillOpacity="0.2" />}
       <path
         d={pathData}
         fill="none"

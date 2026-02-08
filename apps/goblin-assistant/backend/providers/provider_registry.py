@@ -151,6 +151,22 @@ class ProviderRegistry:
                 models=["deepseek-chat", "deepseek-coder"],
                 capabilities=["chat"],
             ),
+            "vertex": ProviderConfig(
+                name="vertex",
+                host="us-central1-aiplatform.googleapis.com",
+                api_key_env="GOOGLE_CLOUD_API_KEY",
+                base_url="https://us-central1-aiplatform.googleapis.com",
+                cost_per_token_input=0.00125,
+                cost_per_token_output=0.005,
+                latency_threshold_ms=3000,
+                models=[
+                    "gemini-1.5-pro",
+                    "gemini-1.5-flash",
+                    "gemini-pro",
+                    "gemini-pro-vision",
+                ],
+                capabilities=["chat", "vision"],
+            ),
         }
 
         self.providers.update(defaults)
@@ -215,11 +231,32 @@ class ProviderRegistry:
         api_key = os.getenv(provider.api_key_env)
         if not api_key:
             logger.warning(f"No API key found for {name} ({provider.api_key_env})")
-            return None
+            # Don't return None - some providers (local) don't need API keys
+            api_key = ""
+
+        # Check for environment variable overrides for base_url
+        # This allows dynamic configuration of GCP, Kamatera, and other cloud instances
+        base_url = provider.base_url
+        env_url_mappings = {
+            "ollama_gcp": "OLLAMA_GCP_URL",
+            "kamatera": "KAMATERA_SERVER1_URL",
+            "llamacpp_gcp": "LLAMACPP_GCP_URL",
+            "runpod": "RUNPOD_BASE_URL",
+            "vastai": "VASTAI_BASE_URL",
+            "ollama": "OLLAMA_BASE_URL",
+        }
+
+        if name in env_url_mappings:
+            env_url = os.getenv(env_url_mappings[name])
+            if env_url:
+                base_url = env_url
+                logger.info(
+                    f"Using environment override for {name} base_url: {base_url}"
+                )
 
         return {
             "api_key": api_key,
-            "base_url": provider.base_url,
+            "base_url": base_url,
             "timeout": provider.timeout_seconds,
             "retries": provider.max_retries,
             "cost_per_token_input": provider.cost_per_token_input,

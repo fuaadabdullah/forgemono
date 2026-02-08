@@ -21,8 +21,85 @@ class LlamaCppAdapter:
             base_url: Optional custom base URL (defaults to local proxy)
         """
         self.api_key = api_key
-        self.base_url = base_url or "http://localhost:8002"
+        self.base_url = self._normalize_base_url(base_url or "http://localhost:8002")
         self.client = httpx.AsyncClient(timeout=30.0)
+
+    @staticmethod
+    def _normalize_base_url(base_url: Optional[str]) -> str:
+        if not base_url:
+            return ""
+        normalized = base_url.rstrip("/")
+        if normalized.endswith("/v1"):
+            normalized = normalized[:-3]
+        return normalized
+
+    @staticmethod
+    def _extract_prompt(messages: List[Dict[str, str]]) -> str:
+        for msg in reversed(messages):
+            if msg.get("role") == "user":
+                return msg.get("content", "")
+        return messages[-1].get("content", "") if messages else ""
+
+    async def chat(
+        self,
+        model: str,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.0,
+        max_tokens: int = 1024,
+        top_p: float = 1.0,
+        stream: bool = False,
+        **kwargs: Any,
+    ) -> str:
+        """Send chat completion request to llama.cpp or compatible proxy."""
+        headers = {}
+        if self.api_key:
+            headers["x-api-key"] = self.api_key
+
+        payload = {
+            "model": model,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": top_p,
+            "stream": stream,
+            **kwargs,
+        }
+
+        for path in ("/chat/completions", "/v1/chat/completions"):
+            try:
+                response = await self.client.post(
+                    f"{self.base_url}{path}", json=payload, headers=headers
+                )
+                if response.status_code == 200:
+                    result = response.json()
+                    if "choices" in result and result["choices"]:
+                        return result["choices"][0]["message"]["content"]
+                    if "content" in result:
+                        return result["content"]
+                elif response.status_code not in (404, 405):
+                    response.raise_for_status()
+            except httpx.HTTPError as e:
+                logger.error(f"llama.cpp chat request failed at {path}: {e}")
+
+        prompt = self._extract_prompt(messages)
+        completion_payload = {
+            "prompt": prompt,
+            "n_predict": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "stream": stream,
+        }
+
+        response = await self.client.post(
+            f"{self.base_url}/completion", json=completion_payload, headers=headers
+        )
+        response.raise_for_status()
+        result = response.json()
+        if "content" in result:
+            return result["content"]
+        if "response" in result:
+            return result["response"]
+        raise RuntimeError(f"Unexpected llama.cpp response format: {result}")
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check on llama.cpp via local proxy.

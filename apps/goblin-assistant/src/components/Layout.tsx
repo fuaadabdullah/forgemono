@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { MessageSquare, Search, Settings, LogOut, Home, Menu, X } from 'lucide-react';
 
 interface LayoutProps {
@@ -7,18 +8,17 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const handleLogout = () => {
     // Clear any stored tokens
     localStorage.removeItem('token');
     // Navigate to login page
-    navigate('/login');
+    router.push('/login');
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => router.pathname === path;
 
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
@@ -36,10 +36,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Logo and Title */}
             <div className="flex items-center space-x-4">
               <Link
-                to="/"
+                href="/"
                 className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
               >
-                <img src="/GoblinOSIcon.png" alt="GoblinOS" className="h-8 w-8 rounded-lg" />
+                <img src="/goblin-logo.png" alt="Goblin Assistant" className="h-8 w-8 rounded-lg" />
                 <h1 className="text-xl font-bold text-gray-900 hidden sm:block">
                   Goblin Assistant
                 </h1>
@@ -53,12 +53,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 return (
                   <Link
                     key={item.path}
-                    to={item.path}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive(item.path)
+                    href={item.path}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive(item.path)
                         ? 'text-blue-600 bg-blue-50 border border-blue-200'
                         : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
+                      }`}
                   >
                     <Icon className="h-4 w-4" />
                     <span>{item.label}</span>
@@ -97,13 +96,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 return (
                   <Link
                     key={item.path}
-                    to={item.path}
+                    href={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                      isActive(item.path)
+                    className={`flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${isActive(item.path)
                         ? 'text-blue-600 bg-blue-50 border border-blue-200'
                         : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
+                      }`}
                   >
                     <Icon className="h-5 w-5" />
                     <span>{item.label}</span>

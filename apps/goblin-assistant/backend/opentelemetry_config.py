@@ -67,16 +67,16 @@ def init_opentelemetry():
     """Initialize OpenTelemetry SDK with OTLP exporters."""
 
     environment = os.getenv("ENVIRONMENT", "development")
-    otlp_endpoint = os.getenv("OTLP_ENDPOINT", "http://localhost:4317")
+    otlp_endpoint = os.getenv("OTLP_ENDPOINT", "http://localhost:4318")
 
-    # Only initialize in production/staging environments or when explicitly enabled
-    if (
-        environment not in ["staging", "production"]
-        and not os.getenv("ENABLE_OPENTELEMETRY", "").lower() == "true"
-    ):
-        print(
-            "ℹ️  OpenTelemetry not initialized (not production or ENABLE_OPENTELEMETRY not set)"
-        )
+    # Only initialize in production/staging environments or when explicitly disabled
+    if os.getenv("DISABLE_OPENTELEMETRY", "").lower() == "true":
+        print("ℹ️  OpenTelemetry disabled (DISABLE_OPENTELEMETRY=true)")
+        return
+
+    # Check if OpenTelemetry is available
+    if not HAS_OPENTELEMETRY:
+        print("ℹ️  OpenTelemetry not available - skipping initialization")
         return
 
     try:

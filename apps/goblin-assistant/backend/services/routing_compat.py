@@ -6,14 +6,37 @@ while delegating to the new unified routing subsystem.
 """
 
 import logging
-from typing import Dict, List, Optional, Any
+import os
+from fastapi import Depends
+from typing import Dict, List, Optional, Any, TYPE_CHECKING, Generator
 from sqlalchemy.orm import Session
 
-from services.routing_subsystem import get_routing_manager, RoutingManager
-from services.encryption import EncryptionService
-from providers.base import InferenceRequest, InferenceResult
+from .routing_subsystem import get_routing_manager, RoutingManager
+from .encryption import EncryptionService
+
+# Import database dependency
+try:
+    from ..database import get_db
+except ImportError:
+    try:
+        from database import get_db
+    except ImportError:
+        from backend.database import get_db
+
+if TYPE_CHECKING:
+    from backend.providers.base import InferenceRequest, InferenceResult
+else:
+    try:
+        from providers.base import InferenceRequest, InferenceResult
+    except Exception:
+        from backend.providers.base import InferenceRequest, InferenceResult
 
 logger = logging.getLogger(__name__)
+
+# Get encryption key from environment
+ROUTING_ENCRYPTION_KEY = os.getenv(
+    "ROUTING_ENCRYPTION_KEY", "default-dev-key-change-me"
+)
 
 
 class RoutingServiceCompat:
@@ -128,7 +151,7 @@ class RoutingServiceCompat:
             )
 
             # Convert result back to old format
-            return self._convert_from_inference_result(result, request_id)
+            return self._convert_from_inference_result(result, request_id, capability)
 
         except Exception as e:
             logger.error(f"Routing request failed: {e}")
@@ -217,13 +240,14 @@ class RoutingServiceCompat:
         )
 
     def _convert_from_inference_result(
-        self, result: InferenceResult, request_id: str
+        self, result: InferenceResult, request_id: str, capability: str = "chat"
     ) -> Dict[str, Any]:
         """Convert InferenceResult back to old response format.
 
         Args:
             result: InferenceResult from new subsystem
             request_id: Request ID
+            capability: The requested capability
 
         Returns:
             Dict in old response format
@@ -233,6 +257,7 @@ class RoutingServiceCompat:
                 "success": False,
                 "error": getattr(result, "error", "Unknown error"),
                 "request_id": request_id,
+                "capability": capability,
             }
 
         # Extract provider info
@@ -251,6 +276,7 @@ class RoutingServiceCompat:
             "content": getattr(result, "content", ""),
             "usage": getattr(result, "usage", {}),
             "request_id": request_id,
+            "capability": capability,
         }
 
 
@@ -259,13 +285,25 @@ _routing_service_compat: Optional[RoutingServiceCompat] = None
 
 
 def get_routing_service_compat(
-    db: Session, encryption_key: str
+    db: Session = Depends(get_db),
 ) -> RoutingServiceCompat:
-    """Get the compatibility routing service instance."""
+    """Get the compatibility routing service instance.
+
+    This is a FastAPI dependency that provides the routing service.
+    """
     global _routing_service_compat
     if _routing_service_compat is None:
-        _routing_service_compat = RoutingServiceCompat(db, encryption_key)
+        _routing_service_compat = RoutingServiceCompat(db, ROUTING_ENCRYPTION_KEY)
     return _routing_service_compat
+
+
+def get_routing_encryption_key() -> str:
+    """Get the routing encryption key from environment.
+
+    Returns:
+        The encryption key string
+    """
+    return ROUTING_ENCRYPTION_KEY
 
 
 # Alias for backward compatibility

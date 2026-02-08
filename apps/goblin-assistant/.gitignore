@@ -1,3 +1,7 @@
 .vercel
+.next
 .env*.local
 .env.production
+# macOS resource forks
+._*
+.DS_Store

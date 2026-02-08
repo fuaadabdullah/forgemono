@@ -15,7 +15,7 @@ import logging
 import asyncio
 
 from database import SessionLocal
-from models.routing import RoutingProvider
+from models.provider import Provider as RoutingProvider
 from jobs.provider_health import _probe_provider
 from scheduler import redis_lock
 

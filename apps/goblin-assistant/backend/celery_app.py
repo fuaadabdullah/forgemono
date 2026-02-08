@@ -27,9 +27,6 @@ app = Celery(
     include=[
         "tasks.provider_probe_worker",
         "tasks.model_training_worker",
-        "tasks.data_processing_worker",
-        "tasks.notification_worker",
-        "tasks.cleanup_worker",
     ],
 )
 
@@ -57,6 +54,9 @@ app.conf.task_queues = (
     Queue("low_priority", Exchange("low_priority"), routing_key="low_priority"),
     Queue("scheduled", Exchange("scheduled"), routing_key="scheduled"),
     Queue("batch", Exchange("batch"), routing_key="batch"),
+    # Cloud infrastructure queues
+    Queue("training", Exchange("training"), routing_key="training"),
+    Queue("inference", Exchange("inference"), routing_key="inference"),
 )
 
 app.conf.task_default_queue = "default"
@@ -66,10 +66,12 @@ app.conf.task_default_routing_key = "default"
 # Route tasks to appropriate queues
 app.conf.task_routes = {
     "tasks.provider_probe_worker.*": {"queue": "high_priority"},
-    "tasks.model_training_worker.*": {"queue": "batch"},
-    "tasks.data_processing_worker.*": {"queue": "default"},
-    "tasks.notification_worker.*": {"queue": "high_priority"},
-    "tasks.cleanup_worker.*": {"queue": "low_priority"},
+    "tasks.model_training_worker.train_model_task": {"queue": "training"},
+    "tasks.model_training_worker.fine_tune_model_task": {"queue": "training"},
+    "tasks.model_training_worker.distributed_training_task": {"queue": "training"},
+    "tasks.model_training_worker.monitor_training_job_task": {"queue": "training"},
+    "tasks.model_training_worker.sync_models_task": {"queue": "default"},
+    "tasks.model_training_worker.cleanup_old_models_task": {"queue": "low_priority"},
 }
 
 # Task execution settings

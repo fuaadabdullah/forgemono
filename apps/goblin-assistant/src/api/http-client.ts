@@ -6,12 +6,17 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 
-// Prefer VITE_FASTAPI_URL -> VITE_API_URL -> production backend as default
+// Base API configuration (Next.js env + safe fallback)
 const API_BASE_URL =
-  import.meta.env.VITE_FASTAPI_URL || import.meta.env.VITE_API_URL || 'https://goblin-assistant.fly.dev';
+  process.env.NEXT_PUBLIC_FASTAPI_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  'https://goblin-backend.fly.dev';
 
-// Log the resolved API base during runtime to help debug production builds
-console.debug('http-client: API_BASE_URL =', API_BASE_URL);
+// Resolved API base URL — logged once on init for debugging
+if (typeof window !== 'undefined') {
+  console.debug('[http-client] API_BASE_URL =', API_BASE_URL);
+}
 
 // Create axios instance with default configuration
 const apiClient: AxiosInstance = axios.create({
@@ -25,11 +30,22 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    // Get token from localStorage (fallback for when AuthContext isn't available)
-    const token = localStorage.getItem('auth_token');
+    // Optional API key for local/dev RAG endpoints.
+    const ragApiKey = process.env.NEXT_PUBLIC_RAG_API_KEY;
+    if (ragApiKey && config.headers) {
+      const url = config.url || '';
+      if (url.startsWith('/rag') || url.startsWith('/v1/rag')) {
+        (config.headers as any)['x-api-key'] = ragApiKey;
+      }
+    }
 
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Get token from localStorage (fallback when the auth store isn't hydrated yet)
+    // SSR safety: only access localStorage on client
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth_token');
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     return config;
@@ -48,12 +64,15 @@ apiClient.interceptors.response.use(
     // Handle common error cases
     if (error.response?.status === 401) {
       // Token expired or invalid - clear stored auth data
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_data');
+      // SSR safety: only access localStorage/window on client
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_data');
 
-      // Redirect to login if not already there
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+        // Redirect to login if not already there
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
       }
     } else if (error.response?.status === 403) {
       console.error('Access forbidden:', error.response.data);
@@ -106,22 +125,3 @@ export const api = {
 
 // Export the axios instance for advanced usage
 export default apiClient;
-
-// Utility function to check if user is authenticated
-export const isAuthenticated = (): boolean => {
-  return !!localStorage.getItem('auth_token');
-};
-
-// Utility function to get auth token
-export const getAuthToken = (): string | null => {
-  return localStorage.getItem('auth_token');
-};
-
-// Utility function to set auth token (used by AuthContext)
-export const setAuthToken = (token: string | null): void => {
-  if (token) {
-    localStorage.setItem('auth_token', token);
-  } else {
-    localStorage.removeItem('auth_token');
-  }
-};

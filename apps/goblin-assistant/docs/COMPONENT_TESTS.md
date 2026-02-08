@@ -5,11 +5,11 @@
 
 ## Overview
 
-Comprehensive test coverage for Goblin Assistant UI components using **Vitest**, **React Testing Library**, and **Storybook** for visual regression testing.
+Comprehensive test coverage for Goblin Assistant UI components using **Jest**, **React Testing Library**, and **Storybook** for visual regression testing.
 
 ### Testing Stack
 
-- **Unit Tests**: Vitest 2.1.9 + React Testing Library 16.3.0 (69 tests)
+- **Unit Tests**: Jest + React Testing Library 16.3.0 (69 tests)
 - **Visual Tests**: Storybook 8.6.14 + Chromatic (68 stories, 150+ states)
 - **Accessibility**: @storybook/addon-a11y (automated WCAG checks)
 

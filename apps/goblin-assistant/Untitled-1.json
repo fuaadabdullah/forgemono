@@ -1,0 +1,571 @@
+{
+  "knownSymbols": {
+    "Sentry": [
+      {
+        "name": "Sentry",
+        "module": "@sentry/browser",
+        "isDefault": true,
+        "asDefinition": "* as Sentry"
+      },
+      {
+        "name": "Sentry",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/utils/sentry.ts",
+        "isDefault": true
+      }
+    ],
+    "React": [
+      {
+        "name": "React",
+        "module": "react",
+        "isDefault": true
+      }
+    ],
+    "{ useEffect": [
+      {
+        "name": "{ useEffect",
+        "module": "react",
+        "isDefault": true
+      }
+    ],
+    "useNavigate": [
+      {
+        "name": "useNavigate",
+        "module": "react-router-dom",
+        "isDefault": false
+      }
+    ],
+    "useSearchParams": [
+      {
+        "name": "useSearchParams",
+        "module": "react-router-dom",
+        "isDefault": false
+      }
+    ],
+    "async": [
+      {
+        "name": "async",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/utils/datadog-rum.ts",
+        "isDefault": false
+      }
+    ],
+    "getDatadogRum": [
+      {
+        "name": "getDatadogRum",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/utils/datadog-rum.ts",
+        "type": "function",
+        "isDefault": false
+      }
+    ],
+    "getDatadogLogs": [
+      {
+        "name": "getDatadogLogs",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/utils/datadog-rum.ts",
+        "type": "function",
+        "isDefault": false
+      }
+    ],
+    "logEvent": [
+      {
+        "name": "logEvent",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/utils/datadog-rum.ts",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "logError": [
+      {
+        "name": "logError",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/utils/datadog-rum.ts",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "logWarning": [
+      {
+        "name": "logWarning",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/utils/datadog-rum.ts",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "trackLLMCall": [
+      {
+        "name": "trackLLMCall",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/utils/datadog-rum.ts",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "trackRoutingDecision": [
+      {
+        "name": "trackRoutingDecision",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/utils/datadog-rum.ts",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "sentryErrorTracking": [
+      {
+        "name": "sentryErrorTracking",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/utils/sentry.ts",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "env": [
+      {
+        "name": "env",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/config/env.ts",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "FastApiRuntimeClient": [
+      {
+        "name": "FastApiRuntimeClient",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/clients/FastApiRuntimeClient.ts",
+        "type": "class",
+        "isDefault": false
+      }
+    ],
+    "api": [
+      {
+        "name": "api",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/api/http-client.ts",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "apiClient": [
+      {
+        "name": "apiClient",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/api/http-client.ts",
+        "isDefault": true
+      }
+    ],
+    "isAuthenticated": [
+      {
+        "name": "isAuthenticated",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/api/http-client.ts",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "getAuthToken": [
+      {
+        "name": "getAuthToken",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/api/http-client.ts",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "setAuthToken": [
+      {
+        "name": "setAuthToken",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/api/http-client.ts",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "QueryClient": [
+      {
+        "name": "QueryClient",
+        "module": "@tanstack/react-query",
+        "isDefault": false
+      }
+    ],
+    "QueryClientProvider": [
+      {
+        "name": "QueryClientProvider",
+        "module": "@tanstack/react-query",
+        "isDefault": false
+      }
+    ],
+    "dynamic": [
+      {
+        "name": "dynamic",
+        "module": "next/dynamic",
+        "isDefault": true
+      }
+    ],
+    "type { AppProps": [
+      {
+        "name": "type { AppProps",
+        "module": "next/app",
+        "isDefault": true
+      }
+    ],
+    "{ useState": [
+      {
+        "name": "{ useState",
+        "module": "react",
+        "isDefault": true
+      }
+    ],
+    "Link": [
+      {
+        "name": "Link",
+        "module": "next/link",
+        "isDefault": true
+      },
+      {
+        "name": "Link",
+        "module": "react-router-dom",
+        "isDefault": false
+      }
+    ],
+    "Loader2": [
+      {
+        "name": "Loader2",
+        "module": "lucide-react",
+        "isDefault": false
+      }
+    ],
+    "useEffect": [
+      {
+        "name": "useEffect",
+        "module": "react",
+        "isDefault": true
+      }
+    ],
+    "useMemo": [
+      {
+        "name": "useMemo",
+        "module": "react",
+        "isDefault": false
+      }
+    ],
+    "useState": [
+      {
+        "name": "useState",
+        "module": "react",
+        "isDefault": true
+      }
+    ],
+    "useLocation": [
+      {
+        "name": "useLocation",
+        "module": "react-router-dom",
+        "isDefault": false
+      }
+    ],
+    "useRef": [
+      {
+        "name": "useRef",
+        "module": "react",
+        "isDefault": true
+      }
+    ],
+    "Home": [
+      {
+        "name": "Home",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/pages/index.tsx",
+        "type": "function",
+        "isDefault": true
+      },
+      {
+        "name": "Home",
+        "module": "lucide-react",
+        "isDefault": false
+      }
+    ],
+    "Analytics": [
+      {
+        "name": "Analytics",
+        "module": "@vercel/analytics/react",
+        "isDefault": false
+      }
+    ],
+    "useRouter": [
+      {
+        "name": "useRouter",
+        "module": "next/router",
+        "isDefault": false
+      }
+    ],
+    "NotFoundPage": [
+      {
+        "name": "NotFoundPage",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/pages/NotFoundPage.tsx",
+        "type": "function",
+        "isDefault": true
+      }
+    ],
+    "GoogleCallback": [
+      {
+        "name": "GoogleCallback",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/pages/GoogleCallback.tsx",
+        "isDefault": true
+      }
+    ],
+    "LoginPage": [
+      {
+        "name": "LoginPage",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/pages/LoginPage.tsx",
+        "type": "function",
+        "isDefault": true
+      }
+    ],
+    "EnhancedProvidersPage": [
+      {
+        "name": "EnhancedProvidersPage",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/pages/EnhancedProvidersPage.tsx",
+        "type": "function",
+        "isDefault": true
+      }
+    ],
+    "ReactNode": [
+      {
+        "name": "ReactNode",
+        "module": "react",
+        "isDefault": true
+      }
+    ],
+    "Dashboard": [
+      {
+        "name": "Dashboard",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/pages/Dashboard.tsx",
+        "isDefault": true
+      }
+    ],
+    "useQuery": [
+      {
+        "name": "useQuery",
+        "module": "@tanstack/react-query",
+        "isDefault": false
+      }
+    ],
+    "CostBreakdownChart": [
+      {
+        "name": "CostBreakdownChart",
+        "module": "@/components/cost/CostBreakdownChart",
+        "isDefault": true
+      }
+    ],
+    "ProviderUsageChart": [
+      {
+        "name": "ProviderUsageChart",
+        "module": "@/components/cost/ProviderUsageChart",
+        "isDefault": true
+      }
+    ],
+    "runtimeClient": [
+      {
+        "name": "runtimeClient",
+        "module": "@/api/api-client",
+        "isDefault": false
+      }
+    ],
+    "Layout": [
+      {
+        "name": "Layout",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/components/Layout.tsx",
+        "isDefault": true
+      }
+    ],
+    "MessageSquare": [
+      {
+        "name": "MessageSquare",
+        "module": "lucide-react",
+        "isDefault": false
+      }
+    ],
+    "Search": [
+      {
+        "name": "Search",
+        "module": "lucide-react",
+        "isDefault": false
+      }
+    ],
+    "Settings": [
+      {
+        "name": "Settings",
+        "module": "lucide-react",
+        "isDefault": false
+      }
+    ],
+    "LogOut": [
+      {
+        "name": "LogOut",
+        "module": "lucide-react",
+        "isDefault": false
+      }
+    ],
+    "Menu": [
+      {
+        "name": "Menu",
+        "module": "lucide-react",
+        "isDefault": false
+      }
+    ],
+    "X": [
+      {
+        "name": "X",
+        "module": "lucide-react",
+        "isDefault": false
+      }
+    ],
+    "ProtectedRoute": [
+      {
+        "name": "ProtectedRoute",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/components/ProtectedRoute.tsx",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "ContrastModeProvider": [
+      {
+        "name": "ContrastModeProvider",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/hooks/useContrastMode.tsx",
+        "type": "function",
+        "isDefault": false
+      }
+    ],
+    "useContrastMode": [
+      {
+        "name": "useContrastMode",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/hooks/useContrastMode.tsx",
+        "type": "function",
+        "isDefault": false
+      }
+    ],
+    "createContext": [
+      {
+        "name": "createContext",
+        "module": "react",
+        "isDefault": false
+      }
+    ],
+    "useContext": [
+      {
+        "name": "useContext",
+        "module": "react",
+        "isDefault": true
+      }
+    ],
+    "AuthProvider": [
+      {
+        "name": "AuthProvider",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/auth/AuthContext.tsx",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "useAuth": [
+      {
+        "name": "useAuth",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/auth/AuthContext.tsx",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "ProviderProvider": [
+      {
+        "name": "ProviderProvider",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/contexts/ProviderContext.tsx",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "useProvider": [
+      {
+        "name": "useProvider",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/contexts/ProviderContext.tsx",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "{ createContext": [
+      {
+        "name": "{ createContext",
+        "module": "react",
+        "isDefault": true
+      }
+    ],
+    "App": [
+      {
+        "name": "App",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/pages/_app.tsx",
+        "type": "function",
+        "isDefault": true
+      }
+    ],
+    "SearchPage": [
+      {
+        "name": "SearchPage",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/pages/SearchPage.tsx",
+        "isDefault": true
+      }
+    ],
+    "Navigation": [
+      {
+        "name": "Navigation",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/components/Navigation.tsx",
+        "isDefault": true
+      }
+    ],
+    "EnhancedDashboard": [
+      {
+        "name": "EnhancedDashboard",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/components/EnhancedDashboard.tsx",
+        "type": "function",
+        "isDefault": true
+      }
+    ],
+    "CostOverviewBanner": [
+      {
+        "name": "CostOverviewBanner",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/components/dashboard/CostOverviewBanner.tsx",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "DashboardHeader": [
+      {
+        "name": "DashboardHeader",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/components/dashboard/DashboardHeader.tsx",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "getServerSideProps": [
+      {
+        "name": "getServerSideProps",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/pages/ChatPage.tsx",
+        "type": "const",
+        "isDefault": false
+      }
+    ],
+    "ChatPage": [
+      {
+        "name": "ChatPage",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/pages/ChatPage.tsx",
+        "isDefault": true
+      }
+    ],
+    "ModularLoginForm": [
+      {
+        "name": "ModularLoginForm",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/components/Auth/ModularLoginForm.tsx",
+        "type": "function",
+        "isDefault": true
+      }
+    ],
+    "LoginHeader": [
+      {
+        "name": "LoginHeader",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/components/Auth/LoginHeader.tsx",
+        "type": "function",
+        "isDefault": true
+      }
+    ],
+    "RegisterPage": [
+      {
+        "name": "RegisterPage",
+        "path": "/Volumes/GOBLINOS 1/ForgeMonorepo/apps/goblin-assistant/src/pages/register.tsx",
+        "type": "function",
+        "isDefault": true
+      }
+    ]
+  }
+}

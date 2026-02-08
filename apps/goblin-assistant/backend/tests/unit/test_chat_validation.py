@@ -90,7 +90,7 @@ class TestChatValidation:
 
     def test_validate_chat_request_invalid_temperature(self):
         """Test validation fails with invalid temperature."""
-        request = ChatCompletionRequest(
+        request = ChatCompletionRequest.model_construct(
             messages=[ChatMessage(role="user", content="Hello")],
             temperature=3.0,  # Invalid: > 2
         )
@@ -104,7 +104,7 @@ class TestChatValidation:
 
     def test_validate_chat_request_invalid_max_tokens(self):
         """Test validation fails with invalid max_tokens."""
-        request = ChatCompletionRequest(
+        request = ChatCompletionRequest.model_construct(
             messages=[ChatMessage(role="user", content="Hello")],
             max_tokens=5000,  # Invalid: > 4096
         )
@@ -118,7 +118,7 @@ class TestChatValidation:
 
     def test_validate_chat_request_invalid_top_p(self):
         """Test validation fails with invalid top_p."""
-        request = ChatCompletionRequest(
+        request = ChatCompletionRequest.model_construct(
             messages=[ChatMessage(role="user", content="Hello")],
             top_p=1.5,  # Invalid: > 1
         )

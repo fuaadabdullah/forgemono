@@ -13,8 +13,9 @@ import pathlib
 import urllib.parse
 import asyncio
 
-from database import get_db
-from models.routing import ProviderMetric, RoutingProvider
+from .database import get_db
+from .models.provider import ProviderMetric
+from .models.provider import Provider as RoutingProvider
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -80,7 +81,7 @@ def cached(ttl_seconds: int):
 
 # Response Models
 class ServiceStatus(BaseModel):
-    """Individual service status"""
+    """Individual service status."""
 
     status: str  # "healthy" | "degraded" | "down" | "unknown"
     latency_ms: Optional[float] = None
@@ -160,8 +161,77 @@ async def check_backend_status() -> ServiceStatus:
 
 
 async def check_vector_db_status() -> ServiceStatus:
-    """Check Chroma vector database status"""
+    """Check vector database status - Supabase pgvector (primary) or Chroma (fallback)"""
     try:
+        import time
+
+        # Primary: Check Supabase pgvector
+        supabase_url = os.getenv("SUPABASE_URL")
+        supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv(
+            "SUPABASE_ANON_KEY"
+        )
+
+        if supabase_url and supabase_key:
+            try:
+                import httpx
+
+                start = time.time()
+                # Check if rag_embeddings table exists via RPC health check
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    # Query the rag_embeddings table count
+                    response = await client.get(
+                        f"{supabase_url}/rest/v1/rag_embeddings?select=count",
+                        headers={
+                            "apikey": supabase_key,
+                            "Authorization": f"Bearer {supabase_key}",
+                            "Prefer": "count=exact",
+                        },
+                    )
+                    latency = (time.time() - start) * 1000
+
+                    if response.status_code == 200:
+                        # Get count from header
+                        count_header = response.headers.get("content-range", "0")
+                        try:
+                            total_docs = (
+                                int(count_header.split("/")[-1])
+                                if "/" in count_header
+                                else 0
+                            )
+                        except (ValueError, IndexError):
+                            total_docs = 0
+
+                        return ServiceStatus(
+                            status="healthy",
+                            latency_ms=round(latency, 2),
+                            updated=datetime.now().isoformat(),
+                            details={
+                                "backend": "supabase_pgvector",
+                                "documents": total_docs,
+                            },
+                        )
+                    elif response.status_code == 404:
+                        # Table doesn't exist yet - need to run migration
+                        return ServiceStatus(
+                            status="degraded",
+                            latency_ms=round(latency, 2),
+                            updated=datetime.now().isoformat(),
+                            details={
+                                "backend": "supabase_pgvector",
+                                "error": "embeddings table not found - run pgvector migration",
+                            },
+                        )
+                    else:
+                        return ServiceStatus(
+                            status="down",
+                            error=f"Supabase API error: {response.status_code}",
+                            updated=datetime.now().isoformat(),
+                        )
+            except Exception as e:
+                # Supabase check failed, fall through to Chroma check
+                pass
+
+        # Fallback: Check local Chroma
         chroma_path = os.getenv("CHROMA_DB_PATH")
         if not chroma_path:
             chroma_path = os.path.join(
@@ -181,7 +251,6 @@ async def check_vector_db_status() -> ServiceStatus:
         if chroma_file.exists():
             try:
                 import chromadb
-                import time
 
                 start = time.time()
                 client = chromadb.PersistentClient(path=str(chroma_file.parent))
@@ -197,6 +266,7 @@ async def check_vector_db_status() -> ServiceStatus:
                     latency_ms=round(latency, 2),
                     updated=datetime.now().isoformat(),
                     details={
+                        "backend": "chroma",
                         "collections": len(collections),
                         "documents": total_docs,
                     },
@@ -205,35 +275,37 @@ async def check_vector_db_status() -> ServiceStatus:
                 return ServiceStatus(
                     status="healthy",
                     updated=datetime.now().isoformat(),
-                    details={"collections": 0, "documents": 0},
+                    details={"backend": "chroma", "collections": 0, "documents": 0},
                 )
-        else:
-            # Check for hosted vector DB
-            qdrant_url = os.getenv("QDRANT_URL") or os.getenv("CHROMA_API_URL")
-            if qdrant_url:
-                parsed = urllib.parse.urlparse(qdrant_url)
-                host = parsed.hostname
-                port = parsed.port or (443 if parsed.scheme == "https" else 80)
 
-                connected, latency = check_tcp_connection(host, port)
-                if connected:
-                    return ServiceStatus(
-                        status="healthy",
-                        latency_ms=latency,
-                        updated=datetime.now().isoformat(),
-                    )
-                else:
-                    return ServiceStatus(
-                        status="down",
-                        error="Connection refused",
-                        updated=datetime.now().isoformat(),
-                    )
+        # Check for hosted vector DB (Qdrant)
+        qdrant_url = os.getenv("QDRANT_URL") or os.getenv("CHROMA_API_URL")
+        if qdrant_url:
+            parsed = urllib.parse.urlparse(qdrant_url)
+            host = parsed.hostname
+            port = parsed.port or (443 if parsed.scheme == "https" else 80)
+
+            connected, latency = check_tcp_connection(host, port)
+            if connected:
+                return ServiceStatus(
+                    status="healthy",
+                    latency_ms=latency,
+                    updated=datetime.now().isoformat(),
+                    details={"backend": "qdrant"},
+                )
             else:
                 return ServiceStatus(
                     status="down",
-                    error="Chroma database file not found",
+                    error="Connection refused",
                     updated=datetime.now().isoformat(),
                 )
+
+        # No vector DB configured
+        return ServiceStatus(
+            status="down",
+            error="No vector DB configured (set SUPABASE_URL or CHROMA_DB_PATH)",
+            updated=datetime.now().isoformat(),
+        )
     except Exception as e:
         return ServiceStatus(
             status="down", error=str(e), updated=datetime.now().isoformat()
@@ -245,7 +317,23 @@ async def check_mcp_status() -> ServiceStatus:
     try:
         active_servers = []
 
-        # Check common MCP ports
+        # Check for configured MCP server URL (cloud deployment)
+        mcp_url = os.getenv("MCP_SERVER_URL")
+        if mcp_url:
+            parsed = urllib.parse.urlparse(mcp_url)
+            host = parsed.hostname
+            port = parsed.port or (443 if parsed.scheme == "https" else 80)
+
+            connected, latency = check_tcp_connection(host, port)
+            if connected:
+                return ServiceStatus(
+                    status="healthy",
+                    latency_ms=latency,
+                    updated=datetime.now().isoformat(),
+                    details={"servers": [mcp_url], "count": 1, "mode": "cloud"},
+                )
+
+        # Check common MCP ports (local development)
         mcp_ports = [8765, 8766]
         for port in mcp_ports:
             connected, latency = check_tcp_connection("localhost", port, timeout=1.0)
@@ -256,14 +344,33 @@ async def check_mcp_status() -> ServiceStatus:
             return ServiceStatus(
                 status="healthy",
                 updated=datetime.now().isoformat(),
-                details={"servers": active_servers, "count": len(active_servers)},
+                details={
+                    "servers": active_servers,
+                    "count": len(active_servers),
+                    "mode": "local",
+                },
             )
-        else:
+
+        # In cloud deployment without MCP_SERVER_URL, MCP is optional
+        if (
+            os.getenv("FLY_APP_NAME")
+            or os.getenv("RAILWAY_ENVIRONMENT")
+            or os.getenv("RENDER")
+        ):
             return ServiceStatus(
-                status="down",
-                error="No MCP servers responding",
+                status="degraded",
                 updated=datetime.now().isoformat(),
+                details={
+                    "mode": "cloud",
+                    "note": "MCP servers are optional in cloud deployment. Set MCP_SERVER_URL to enable.",
+                },
             )
+
+        return ServiceStatus(
+            status="down",
+            error="No MCP servers responding",
+            updated=datetime.now().isoformat(),
+        )
     except Exception as e:
         return ServiceStatus(
             status="down", error=str(e), updated=datetime.now().isoformat()
@@ -271,33 +378,91 @@ async def check_mcp_status() -> ServiceStatus:
 
 
 async def check_rag_status() -> ServiceStatus:
-    """Check RAG indexer (Raptor) status"""
+    """Check RAG indexer status (EnhancedRAGService or TF-IDF fallback)"""
     try:
-        import sys
-        from pathlib import Path
+        import time
 
-        sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "GoblinOS"))
-        from raptor_mini import raptor
+        start = time.time()
 
-        running = bool(raptor.running) if hasattr(raptor, "running") else False
+        # Check if core RAG dependencies are available
+        rag_mode = None
+        rag_available = False
 
-        if running:
+        # Check for sentence-transformers (full RAG mode)
+        try:
+            from sentence_transformers import SentenceTransformer
+
+            rag_mode = "sentence_transformers"
+            rag_available = True
+        except ImportError:
+            pass
+
+        # Check for TF-IDF fallback (sklearn)
+        if not rag_available:
+            try:
+                from sklearn.feature_extraction.text import TfidfVectorizer
+
+                rag_mode = "tfidf_fallback"
+                rag_available = True
+            except ImportError:
+                pass
+
+        latency = (time.time() - start) * 1000
+
+        if rag_available:
             return ServiceStatus(
                 status="healthy",
+                latency_ms=round(latency, 2),
                 updated=datetime.now().isoformat(),
-                details={"running": True},
+                details={
+                    "backend": "enhanced_rag",
+                    "mode": rag_mode,
+                },
             )
-        else:
+
+        # Fallback: Check for Raptor module (local development only)
+        try:
+            import sys
+            from pathlib import Path
+
+            sys.path.insert(
+                0, str(Path(__file__).parent.parent.parent.parent / "GoblinOS")
+            )
+            from raptor_mini import raptor
+
+            running = bool(raptor.running) if hasattr(raptor, "running") else False
+
+            if running:
+                return ServiceStatus(
+                    status="healthy",
+                    updated=datetime.now().isoformat(),
+                    details={"backend": "raptor", "running": True},
+                )
+        except ImportError:
+            pass
+
+        # In cloud deployment, RAG is optional
+        if (
+            os.getenv("FLY_APP_NAME")
+            or os.getenv("RAILWAY_ENVIRONMENT")
+            or os.getenv("RENDER")
+        ):
             return ServiceStatus(
-                status="down",
-                error="Raptor process not running",
+                status="degraded",
                 updated=datetime.now().isoformat(),
+                details={
+                    "note": "RAG indexer is optional in cloud deployment. Use /api/rag endpoints for basic retrieval.",
+                },
             )
-    except Exception:
+
         return ServiceStatus(
             status="down",
-            error="Raptor module not available",
+            error="RAG service not available",
             updated=datetime.now().isoformat(),
+        )
+    except Exception as e:
+        return ServiceStatus(
+            status="down", error=str(e), updated=datetime.now().isoformat()
         )
 
 

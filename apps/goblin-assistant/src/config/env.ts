@@ -26,6 +26,8 @@ interface EnvConfig {
     googleAuth: boolean;
     orchestration: boolean;
     sandbox: boolean;
+    search: boolean;
+    admin: boolean;
     analytics: boolean;
     debugMode: boolean;
   };
@@ -48,16 +50,8 @@ interface EnvConfig {
   isProduction: boolean;
 }
 
-function getRequiredEnv(key: string): string {
-  const value = import.meta.env[key];
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${key}`);
-  }
-  return value;
-}
-
 function getOptionalEnv(key: string, defaultValue: string = ''): string {
-  return import.meta.env[key] || defaultValue;
+  return process.env[key] || defaultValue;
 }
 
 function validateEnvConfig(config: EnvConfig): void {
@@ -67,7 +61,7 @@ function validateEnvConfig(config: EnvConfig): void {
   try {
     new URL(config.apiBaseUrl);
   } catch {
-    errors.push(`Invalid VITE_API_BASE_URL: ${config.apiBaseUrl}`);
+    errors.push(`Invalid NEXT_PUBLIC_API_BASE_URL: ${config.apiBaseUrl}`);
   }
 
   // Warn about production mode with debug enabled
@@ -90,37 +84,39 @@ function validateEnvConfig(config: EnvConfig): void {
 
 // Export typed configuration
 export const env: EnvConfig = {
-  apiBaseUrl: getRequiredEnv('VITE_API_BASE_URL'),
-  backendUrl: getOptionalEnv('VITE_BACKEND_URL', 'http://localhost:8000'),
-  fastApiUrl: getOptionalEnv('VITE_FASTAPI_URL', 'http://localhost:8001'),
+  apiBaseUrl: getOptionalEnv('NEXT_PUBLIC_API_BASE_URL', 'https://goblin-backend.fly.dev'),
+  backendUrl: getOptionalEnv('NEXT_PUBLIC_BACKEND_URL', 'https://goblin-backend.fly.dev'),
+  fastApiUrl: getOptionalEnv('NEXT_PUBLIC_FASTAPI_URL', 'https://goblin-backend.fly.dev'),
 
-  enableDebug: getOptionalEnv('VITE_ENABLE_DEBUG') === 'true',
-  mockApi: getOptionalEnv('VITE_MOCK_API') === 'true',
+  enableDebug: getOptionalEnv('NEXT_PUBLIC_ENABLE_DEBUG') === 'true',
+  mockApi: getOptionalEnv('NEXT_PUBLIC_MOCK_API') === 'true',
 
   features: {
-    ragEnabled: getOptionalEnv('VITE_FEATURE_RAG_ENABLED') === 'true',
-    multiProvider: getOptionalEnv('VITE_FEATURE_MULTI_PROVIDER') === 'true',
-    passkeyAuth: getOptionalEnv('VITE_FEATURE_PASSKEY_AUTH') === 'true',
-    googleAuth: getOptionalEnv('VITE_FEATURE_GOOGLE_AUTH') === 'true',
-    orchestration: getOptionalEnv('VITE_FEATURE_ORCHESTRATION') === 'true',
-    sandbox: getOptionalEnv('VITE_FEATURE_SANDBOX') === 'true',
-    analytics: getOptionalEnv('VITE_ENABLE_ANALYTICS') === 'true',
-    debugMode: getOptionalEnv('VITE_DEBUG_MODE') === 'true',
+    ragEnabled: getOptionalEnv('NEXT_PUBLIC_FEATURE_RAG_ENABLED') === 'true',
+    multiProvider: getOptionalEnv('NEXT_PUBLIC_FEATURE_MULTI_PROVIDER') === 'true',
+    passkeyAuth: getOptionalEnv('NEXT_PUBLIC_FEATURE_PASSKEY_AUTH') === 'true',
+    googleAuth: getOptionalEnv('NEXT_PUBLIC_FEATURE_GOOGLE_AUTH') === 'true',
+    orchestration: getOptionalEnv('NEXT_PUBLIC_FEATURE_ORCHESTRATION') === 'true',
+    sandbox: getOptionalEnv('NEXT_PUBLIC_FEATURE_SANDBOX') === 'true',
+    search: getOptionalEnv('NEXT_PUBLIC_FEATURE_SEARCH', 'true') === 'true',
+    admin: getOptionalEnv('NEXT_PUBLIC_FEATURE_ADMIN', 'false') === 'true',
+    analytics: getOptionalEnv('NEXT_PUBLIC_ENABLE_ANALYTICS') === 'true',
+    debugMode: getOptionalEnv('NEXT_PUBLIC_DEBUG_MODE') === 'true',
   },
 
   turnstile: {
-    chat: getOptionalEnv('VITE_TURNSTILE_SITE_KEY_CHAT'),
-    login: getOptionalEnv('VITE_TURNSTILE_SITE_KEY_LOGIN'),
-    search: getOptionalEnv('VITE_TURNSTILE_SITE_KEY_SEARCH'),
+    chat: getOptionalEnv('NEXT_PUBLIC_TURNSTILE_SITE_KEY_CHAT'),
+    login: getOptionalEnv('NEXT_PUBLIC_TURNSTILE_SITE_KEY_LOGIN'),
+    search: getOptionalEnv('NEXT_PUBLIC_TURNSTILE_SITE_KEY_SEARCH'),
   },
 
-  sentryDsn: getOptionalEnv('VITE_SENTRY_DSN'),
-  posthogApiKey: getOptionalEnv('VITE_POSTHOG_API_KEY'),
-  posthogHost: getOptionalEnv('VITE_POSTHOG_HOST'),
+  sentryDsn: getOptionalEnv('NEXT_PUBLIC_SENTRY_DSN'),
+  posthogApiKey: getOptionalEnv('NEXT_PUBLIC_POSTHOG_API_KEY'),
+  posthogHost: getOptionalEnv('NEXT_PUBLIC_POSTHOG_HOST'),
 
-  mode: (import.meta.env.MODE as EnvConfig['mode']) || 'development',
-  isDevelopment: import.meta.env.MODE === 'development',
-  isProduction: import.meta.env.MODE === 'production',
+  mode: (process.env.NODE_ENV as EnvConfig['mode']) || 'development',
+  isDevelopment: process.env.NODE_ENV === 'development',
+  isProduction: process.env.NODE_ENV === 'production',
 };
 
 // Validate on import

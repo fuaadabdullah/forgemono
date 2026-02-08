@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 import logging
 
 from sqlalchemy.orm import Session
-from services.routing import RoutingService
+from .routing import RoutingService
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,8 @@ class EnhancedRoutingService(RoutingService):
         # Time-based weights
         self.time_weights = {
             "business_hours": 1.0,  # 9 AM - 5 PM UTC
-            "peak": 0.8,            # 6 PM - 10 PM UTC
-            "off_peak": 1.2,        # 11 PM - 8 AM UTC
+            "peak": 0.8,  # 6 PM - 10 PM UTC
+            "off_peak": 1.2,  # 11 PM - 8 AM UTC
         }
 
         # User tier weights
@@ -62,15 +62,16 @@ class EnhancedRoutingService(RoutingService):
 
         # Simple heuristics
         word_count = len(content.split())
-        sentence_count = len(content.split('.'))
+        sentence_count = len(content.split("."))
 
         # Complexity based on length and structure
         complexity = min(1.0, (word_count / 100) + (sentence_count / 10))
 
         return complexity
 
-    def calculate_routing_score(self, provider: str, model: str, user_id: str,
-                              content: str) -> float:
+    def calculate_routing_score(
+        self, provider: str, model: str, user_id: str, content: str
+    ) -> float:
         """Calculate comprehensive routing score."""
         base_score = 1.0
 
@@ -87,13 +88,19 @@ class EnhancedRoutingService(RoutingService):
         # Combine factors
         final_score = base_score * time_weight * tier_weight * complexity_weight
 
-        logger.info(f"Routing score for {provider}/{model}: {final_score:.3f} "
-                   f"(time: {time_weight}, tier: {tier_weight}, complexity: {complexity_weight})")
+        logger.info(
+            f"Routing score for {provider}/{model}: {final_score:.3f} "
+            f"(time: {time_weight}, tier: {tier_weight}, complexity: {complexity_weight})"
+        )
 
         return final_score
 
-    async def route_enhanced(self, user_id: str, content: str,
-                           conversation_context: Optional[List[Dict]] = None) -> Dict[str, Any]:
+    async def route_enhanced(
+        self,
+        user_id: str,
+        content: str,
+        conversation_context: Optional[List[Dict]] = None,
+    ) -> Dict[str, Any]:
         """Enhanced routing with multi-factor decision algorithm."""
         try:
             # Get available providers from base service
@@ -109,13 +116,17 @@ class EnhancedRoutingService(RoutingService):
                 models = provider_data.get("models", [])
 
                 for model in models:
-                    score = self.calculate_routing_score(provider, model, user_id, content)
-                    scored_options.append({
-                        "provider": provider,
-                        "model": model,
-                        "score": score,
-                        "data": provider_data
-                    })
+                    score = self.calculate_routing_score(
+                        provider, model, user_id, content
+                    )
+                    scored_options.append(
+                        {
+                            "provider": provider,
+                            "model": model,
+                            "score": score,
+                            "data": provider_data,
+                        }
+                    )
 
             # Sort by score (highest first)
             scored_options.sort(key=lambda x: x["score"], reverse=True)
@@ -127,8 +138,8 @@ class EnhancedRoutingService(RoutingService):
                 "model": best_option["model"],
                 "score": best_option["score"],
                 "reasoning": f"Selected based on time ({self.get_time_weight():.1f}), "
-                           f"tier ({self.get_user_tier_weight(user_id):.1f}), "
-                           f"complexity ({self.analyze_content_complexity(content):.2f})"
+                f"tier ({self.get_user_tier_weight(user_id):.1f}), "
+                f"complexity ({self.analyze_content_complexity(content):.2f})",
             }
 
         except Exception as e:

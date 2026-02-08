@@ -13,16 +13,31 @@ logger = logging.getLogger(__name__)
 
 class OllamaAdapter(AdapterBase):
     def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
+        def _normalize_base_url(url: Optional[str]) -> Optional[str]:
+            if not url:
+                return url
+            normalized = url.rstrip("/")
+            if normalized.endswith("/v1"):
+                normalized = normalized[:-3]
+            return normalized
+
         registry = get_provider_registry()
         config = registry.get_provider_config_dict("ollama")
 
-        if not config:
+        if config:
+            if api_key is not None:
+                config["api_key"] = api_key
+            if base_url is not None:
+                config["base_url"] = _normalize_base_url(base_url)
+            else:
+                config["base_url"] = _normalize_base_url(config.get("base_url"))
+        else:
             # Fallback to manual config if registry fails
             if base_url is None:
                 base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
             config = {
                 "api_key": api_key,
-                "base_url": base_url,
+                "base_url": _normalize_base_url(base_url),
                 "timeout": 30,
                 "retries": 2,
                 "cost_per_token_input": 0.0,
@@ -232,7 +247,7 @@ class OllamaAdapter(AdapterBase):
         Returns:
             Dict containing response data
         """
-        model = kwargs.get("model", "llama2")
+        model = kwargs.pop("model", "llama2")
 
         # Use the existing chat method but wrap it to match the interface
         content = await self.chat(model, messages, **kwargs)

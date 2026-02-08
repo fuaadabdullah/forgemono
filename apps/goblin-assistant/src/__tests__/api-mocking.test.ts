@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@jest/globals';
 
 // Example of how to test API calls with MSW
 describe('API Integration Tests', () => {

@@ -1,12 +1,25 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { render, screen, act, waitFor } from '@testing-library/react';
+import React, { useState, useEffect } from 'react';
+
+// Mock @tanstack/react-query
+jest.mock('@tanstack/react-query', () => ({
+  QueryClient: jest.fn().mockImplementation(() => ({
+    invalidateQueries: jest.fn(),
+    refetchQueries: jest.fn(),
+  })),
+  QueryClientProvider: ({ children }: { children: React.ReactNode }) => children,
+  useQuery: jest.fn(),
+  useMutation: jest.fn(),
+}));
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import StreamingView from '@/components/streaming/StreamingView';
+import StreamingView from '../components/streaming/StreamingView';
 
 // Mock the runtime client
-vi.mock('@/api/api-client', () => ({
+jest.mock('@/api/api-client', () => ({
   runtimeClient: {
-    executeGoblinCommand: vi.fn(),
+    executeGoblinCommand: jest.fn(),
   },
 }));
 
@@ -25,13 +38,13 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => (
 
 // Mock performance API
 const mockPerformance = {
-  now: vi.fn(() => Date.now()),
-  mark: vi.fn(),
-  measure: vi.fn(),
-  getEntriesByName: vi.fn(() => []),
-  getEntriesByType: vi.fn(() => []),
-  clearMarks: vi.fn(),
-  clearMeasures: vi.fn(),
+  now: jest.fn(() => Date.now()),
+  mark: jest.fn(),
+  measure: jest.fn(),
+  getEntriesByName: jest.fn(() => []),
+  getEntriesByType: jest.fn(() => []),
+  clearMarks: jest.fn(),
+  clearMeasures: jest.fn(),
 };
 
 Object.defineProperty(window, 'performance', {
@@ -41,77 +54,107 @@ Object.defineProperty(window, 'performance', {
 
 describe('Performance Tests - Streaming Components', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    vi.useFakeTimers();
+    jest.clearAllMocks();
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    jest.useRealTimers();
   });
 
   it('should handle high-frequency streaming updates without performance degradation', async () => {
+    // Create a wrapper component that manages streaming state
+    const StreamingTestWrapper = () => {
+      const [streamingText, setStreamingText] = useState('');
+
+      useEffect(() => {
+        let accumulatedText = '';
+        const chunks = Array.from(
+          { length: 100 },
+          (_, i) => `Chunk ${i}: ${'x'.repeat(1000)}\n`
+        );
+
+        const updateChunk = (index: number) => {
+          if (index < chunks.length) {
+            accumulatedText += chunks[index];
+            setStreamingText(accumulatedText);
+            setTimeout(() => updateChunk(index + 1), 10);
+          }
+        };
+
+        updateChunk(0);
+      }, []);
+
+      return <StreamingView streamingText={streamingText} isStreaming={true} />;
+    };
+
     const startTime = performance.now();
 
     render(
       <TestWrapper>
-        <StreamingView streamingText="" />
+        <StreamingTestWrapper />
       </TestWrapper>
     );
 
-    // Simulate high-frequency streaming data
-    const streamingContainer = screen.getByTestId('streaming-container');
-    const streamingOutput = streamingContainer.querySelector('.streaming-output') as HTMLElement;
+    // Wait for all chunks to be processed; wrap timer advancement in act to flush React updates
+    await act(async () => {
+      jest.advanceTimersByTime(100 * 10 + 100); // 100 chunks * 10ms + buffer
+    });
 
-    // Generate large amounts of streaming data
-    const largeDataChunks = Array.from(
-      { length: 100 },
-      (_, i) => `Chunk ${i}: ${'x'.repeat(1000)}\n`
-    );
-
-    // Simulate streaming by updating the content rapidly
-    for (const chunk of largeDataChunks) {
-      streamingOutput.textContent += chunk;
-      await vi.advanceTimersByTime(10); // 10ms between chunks
-    }
+    // Wait for the DOM to show the expected content (non-flaky assertion)
+    await waitFor(() => {
+      const streamingContainer = screen.getByTestId('streaming-view');
+      const content = streamingContainer.textContent || '';
+      expect(content.length).toBeGreaterThan(100000);
+    });
 
     const endTime = performance.now();
     const duration = endTime - startTime;
 
     // Performance assertions
     expect(duration).toBeLessThan(2000); // Should complete within 2 seconds
-    expect(streamingContainer).toBeInTheDocument();
-    expect(streamingOutput.textContent?.length).toBeGreaterThan(100000); // Large content
+    expect(screen.getByTestId('streaming-view')).toBeInTheDocument();
+
+    // Check that large content was generated
+    const streamingContainer = screen.getByTestId('streaming-view');
+    const content = streamingContainer.textContent || '';
+    expect(content.length).toBeGreaterThan(100000); // Large content
   });
 
   it('should maintain UI responsiveness during heavy streaming load', async () => {
-    render(
+    const { rerender } = render(
       <TestWrapper>
         <StreamingView streamingText="" />
       </TestWrapper>
     );
 
-    const streamingOutput = screen
-      .getByTestId('streaming-container')
-      .querySelector('.streaming-output') as HTMLElement;
-
     // Start performance measurement
     const startTime = performance.now();
 
-    // Simulate heavy streaming load with fewer, larger chunks
+    // Simulate heavy streaming load by updating component props via rerender
     const totalChunks = 20;
     const largeChunk = 'data'.repeat(1000); // 4000 chars per chunk
+    let accumulated = '';
 
     for (let i = 0; i < totalChunks; i++) {
-      streamingOutput.textContent += `Heavy chunk ${i}: ${largeChunk}\n`;
-      await vi.advanceTimersByTime(10); // 10ms between chunks
+      accumulated += `Heavy chunk ${i}: ${largeChunk}\n`;
+      rerender(
+        <TestWrapper>
+          <StreamingView streamingText={accumulated} />
+        </TestWrapper>
+      );
+      await act(async () => {
+        jest.advanceTimersByTime(10);
+      });
     }
 
     const endTime = performance.now();
     const processingTime = endTime - startTime;
 
-    // UI should remain responsive (processing should be fast)
-    expect(processingTime).toBeLessThan(500); // Less than 500ms for 20 chunks
-    expect(streamingOutput.textContent?.split('\n').length).toBeGreaterThan(18); // Most chunks processed
+  // UI should remain responsive (processing should be fast)
+  expect(processingTime).toBeLessThan(500); // Less than 500ms for 20 chunks
+  const streamingContainerCheck = screen.getByTestId('streaming-container');
+  expect(((streamingContainerCheck.textContent || '').split('\n').length)).toBeGreaterThan(18); // Most chunks processed
   }, 10000); // 10 second timeout
 
   it('should handle memory efficiently with large streaming datasets', async () => {
@@ -119,34 +162,35 @@ describe('Performance Tests - Streaming Components', () => {
     const originalConsole = global.console;
     const memoryLogs: string[] = [];
 
-    global.console.log = vi.fn((...args) => {
+  global.console.log = jest.fn((...args) => {
       memoryLogs.push(args.join(' '));
     });
 
-    render(
+    const { rerender: rerender2 } = render(
       <TestWrapper>
         <StreamingView streamingText="" />
       </TestWrapper>
     );
 
-    const streamingOutput = screen
-      .getByTestId('streaming-container')
-      .querySelector('.streaming-output') as HTMLElement;
-
-    // Simulate memory-intensive streaming
     const memoryTestData = 'x'.repeat(10000); // 10KB per chunk
     const chunkCount = 20; // 200KB total
-
+    let memAccum = '';
     for (let i = 0; i < chunkCount; i++) {
-      streamingOutput.textContent += `${memoryTestData}\n`;
-      await vi.advanceTimersByTime(20);
+      memAccum += `${memoryTestData}\n`;
+      rerender2(
+        <TestWrapper>
+          <StreamingView streamingText={memAccum} />
+        </TestWrapper>
+      );
+      await act(async () => jest.advanceTimersByTime(20));
     }
 
     // Restore console
     global.console = originalConsole;
 
-    // Verify content was processed
-    expect(streamingOutput.textContent?.length).toBeGreaterThan(200000); // ~200KB of content
+  // Verify content was processed
+  const streamingContainerMemCheck = screen.getByTestId('streaming-container');
+  expect(((streamingContainerMemCheck.textContent || '').length)).toBeGreaterThan(200000); // ~200KB of content
 
     // In a real scenario, we'd check for memory leaks here
     // For now, just ensure the component doesn't crash
@@ -154,33 +198,34 @@ describe('Performance Tests - Streaming Components', () => {
   });
 
   it('should throttle rapid updates to prevent UI blocking', async () => {
-    render(
+    const { rerender: rerender3 } = render(
       <TestWrapper>
         <StreamingView streamingText="" />
       </TestWrapper>
     );
 
-    const streamingOutput = screen
-      .getByTestId('streaming-container')
-      .querySelector('.streaming-output') as HTMLElement;
-
     // Start timing
-    const startTime = performance.now();
+    const startTimeRapid = performance.now();
 
-    // Simulate extremely rapid updates (potential for UI blocking)
+    let rapidAccum = '';
     const rapidUpdates = Array.from({ length: 200 }, (_, i) => `Update ${i}\n`);
-
-    // Process all updates as fast as possible
     for (const update of rapidUpdates) {
-      streamingOutput.textContent += update;
+      rapidAccum += update;
     }
+    rerender3(
+      <TestWrapper>
+        <StreamingView streamingText={rapidAccum} />
+      </TestWrapper>
+    );
 
-    const endTime = performance.now();
-    const batchTime = endTime - startTime;
+  const endTime = performance.now();
+  const batchTime = endTime - startTimeRapid;
 
     // Even with 200 rapid updates, processing should be fast
-    expect(batchTime).toBeLessThan(100); // Less than 100ms for batch processing
-    expect(streamingOutput.textContent?.split('\n').length).toBeGreaterThan(190); // Most updates processed
+  expect(batchTime).toBeLessThan(100); // Less than 100ms for batch processing
+  const streamingContainerRapidCheck = screen.getByTestId('streaming-container');
+  const streamingOutputRapidCheck = streamingContainerRapidCheck.querySelector('.streaming-output') as HTMLElement;
+  expect((streamingOutputRapidCheck.textContent || '').split('\n').length).toBeGreaterThan(190); // Most updates processed
   });
 
   it('should handle streaming interruptions gracefully', async () => {
@@ -198,11 +243,11 @@ describe('Performance Tests - Streaming Components', () => {
     streamingOutput.textContent = 'Starting stream...\n';
 
     // Simulate interruption (network error, etc.)
-    await vi.advanceTimersByTime(100);
+        await jest.advanceTimersByTime(100);
     streamingOutput.textContent += 'Stream interrupted\n';
 
     // Wait a bit
-    await vi.advanceTimersByTime(50);
+        await jest.advanceTimersByTime(50);
 
     // Resume streaming
     streamingOutput.textContent += 'Resuming stream...\n';
@@ -248,7 +293,7 @@ describe('Performance Tests - Streaming Components', () => {
     // Add streaming content
     for (let i = 0; i < 10; i++) {
       streamingOutput.textContent += `Streaming line ${i}\n`;
-      await vi.advanceTimersByTime(50);
+          await jest.advanceTimersByTime(50);
     }
 
     // In a real implementation, scroll position should be maintained
