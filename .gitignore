@@ -78,3 +78,11 @@ deployments/.archive/
 # macOS resource forks / metadata files (common on external drives)
 ._*
 .DS_Store
+
+# gcloud SDK installation (accidentally created in repo root)
+gcloud components install*/
+google-cloud-sdk/
+
+# IDE/Editor state
+.obsidian/
+.continue/
