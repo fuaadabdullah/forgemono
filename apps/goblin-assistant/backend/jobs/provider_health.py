@@ -10,7 +10,7 @@ import asyncio
 from typing import Dict, Any
 
 from database import SessionLocal
-from models.routing import RoutingProvider, ProviderMetric
+from models.provider import Provider as RoutingProvider, ProviderMetric
 from providers import (
     OpenAIAdapter,
     AnthropicAdapter,
