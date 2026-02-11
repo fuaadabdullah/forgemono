@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import random
 
 from ..database import get_db
-from models import Task
+from ..models import Task
 
 router = APIRouter()
 
@@ -47,6 +47,10 @@ async def get_goblin_history(
 
     history = []
     for task in tasks:
+        # Older schemas/models may not store these KPIs yet.
+        duration_ms = int(getattr(task, "duration_ms", 0) or 0)
+        cost = float(getattr(task, "cost", 0.0) or 0.0)
+        tokens = int(getattr(task, "tokens", 0) or 0)
         history.append(
             {
                 "id": task.id,
@@ -54,7 +58,7 @@ async def get_goblin_history(
                 "task": task.task,
                 "response": task.result or "Task in progress",
                 "timestamp": int(task.created_at.timestamp() * 1000),
-                "kpis": f"duration_ms: {task.duration_ms}, cost: {task.cost}, tokens: {task.tokens}",
+                "kpis": f"duration_ms: {duration_ms}, cost: {cost}, tokens: {tokens}",
             }
         )
     return history
@@ -83,8 +87,10 @@ async def get_goblin_stats(
         }
 
     total_tasks = len(tasks)
-    total_cost = sum(task.cost for task in tasks)
-    avg_duration = sum(task.duration_ms for task in tasks) / total_tasks
+    total_cost = sum(float(getattr(task, "cost", 0.0) or 0.0) for task in tasks)
+    avg_duration = (
+        sum(int(getattr(task, "duration_ms", 0) or 0) for task in tasks) / total_tasks
+    )
     success_rate = 1.0  # All completed tasks are successful in our mock
     last_used = max(task.updated_at for task in tasks)
     last_used_timestamp = int(last_used.timestamp() * 1000)

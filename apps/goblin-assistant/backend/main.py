@@ -1,9 +1,12 @@
 import os
 import sys
 import asyncio
+import time
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, Body, APIRouter, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 # Add current directory to path for relative imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -57,9 +60,10 @@ from .auth.api_keys_router import router as api_keys_router
 from .auth.auth_router import router as jwt_auth_router
 from .parse_router import router as parse_router
 from .routing_router import router as routing_router
-from .chat_router import router as chat_router
+from .chat_router import router as chat_router, essay_router
 from .api_router import router as api_router
 from .stream_router import router as stream_router
+from .sandbox_router import router as sandbox_router
 from .health_router import router as health_router
 from .health.llm_health import router as llm_health_router
 from .dashboard_router import router as dashboard_router
@@ -68,6 +72,8 @@ from .routers.goblins_router import router as goblins_router
 from .routers.cost_router import router as cost_router
 from .routers.user_auth_router import router as user_auth_router
 from .support_router import router as support_router
+from .providers_management_router import router as providers_management_router
+from .account_router import router as account_router
 
 # Multi-cloud orchestrator
 try:
@@ -369,7 +375,8 @@ app.add_middleware(RateLimitMiddleware)
 
 # CORS middleware for frontend integration
 cors_origins_str = os.getenv(
-    "CORS_ORIGINS", "http://localhost:3000,http://localhost:5173"
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:5173,https://goblin-assistant.vercel.app",
 )
 cors_origins = [
     origin.strip() for origin in cors_origins_str.split(",") if origin.strip()
@@ -394,8 +401,10 @@ v1_router.include_router(api_keys_router, tags=["api-keys"])
 v1_router.include_router(parse_router, tags=["parse"])
 v1_router.include_router(routing_router, tags=["routing"])
 v1_router.include_router(chat_router, tags=["chat"])
+v1_router.include_router(essay_router, tags=["essay"])
 v1_router.include_router(api_router, tags=["api"])
 v1_router.include_router(stream_router, tags=["stream"])
+v1_router.include_router(sandbox_router, tags=["sandbox"])
 v1_router.include_router(rag_router, tags=["rag"])
 v1_router.include_router(raptor_router, tags=["raptor"])  # Raptor monitoring endpoints
 v1_router.include_router(health_router, tags=["health"])  # Health monitoring endpoints
@@ -407,9 +416,11 @@ v1_router.include_router(goblins_router, tags=["goblins"])
 v1_router.include_router(cost_router, tags=["cost"])
 v1_router.include_router(user_auth_router, tags=["auth"])
 v1_router.include_router(support_router, tags=["support"])
+v1_router.include_router(account_router, tags=["account"])
 v1_router.include_router(
     orchestrator_router, tags=["orchestrator"]
 )  # Multi-cloud AI orchestration
+v1_router.include_router(providers_management_router, tags=["providers"])
 
 # Include routers (keeping legacy routes for backward compatibility)
 app.include_router(debugger_router)
@@ -425,11 +436,17 @@ app.include_router(routing_router)
 app.include_router(chat_router)
 app.include_router(api_router)
 app.include_router(stream_router)
+app.include_router(sandbox_router)
 app.include_router(rag_router)
 app.include_router(raptor_router)  # Raptor monitoring endpoints
 app.include_router(health_router)  # Health monitoring endpoints
 app.include_router(llm_health_router)  # LLM gateway health
 app.include_router(dashboard_router)  # Optimized dashboard endpoints
+app.include_router(goblins_router)
+app.include_router(cost_router)
+app.include_router(providers_management_router)
+app.include_router(account_router)
+app.include_router(support_router)
 
 
 @app.get("/")
@@ -448,13 +465,192 @@ async def health():
 ollama_router = APIRouter()
 
 
-@ollama_router.post("/api/generate")
-async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
-    """Generate completion with automatic fallback - prioritizes GCP self-hosted and free-tier providers."""
+class GenerateMessage(BaseModel):
+    role: str = Field(..., description="Message role: system, user, or assistant")
+    content: str = Field(..., description="Message content")
+
+
+class GenerateRequest(BaseModel):
+    # Backwards compatible with earlier clients: either `prompt` or `messages` may be provided.
+    prompt: Optional[str] = Field(None, description="Prompt text (legacy clients)")
+    messages: Optional[List[GenerateMessage]] = Field(
+        None, description="Structured chat messages"
+    )
+    model: str = Field("llama2", description="Model hint for upstream providers")
+    max_tokens: Optional[int] = Field(None, ge=1, le=2048)
+    temperature: Optional[float] = Field(None, ge=0.0, le=2.0)
+
+
+# Opportunistically "wake" self-hosted GCP providers in the background so they don't
+# cold-start when they are needed. This must never block a user request.
+_GCP_WARM_MIN_INTERVAL_S = float(os.getenv("GCP_WARM_MIN_INTERVAL_S", "60"))
+_gcp_warm_last_at: float = 0.0
+_gcp_warm_lock = asyncio.Lock()
+
+
+async def _warm_gcp_providers_once() -> None:
     import httpx
 
-    messages = [{"role": "user", "content": prompt}]
+    ollama_url = (os.getenv("OLLAMA_GCP_URL") or os.getenv("OLLAMA_BASE_URL") or "").strip()
+    llamacpp_url = (os.getenv("LLAMACPP_GCP_URL") or "").strip()
+    if not ollama_url and not llamacpp_url:
+        return
+
+    timeout = httpx.Timeout(20.0, connect=2.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        coros = []
+        if ollama_url:
+            coros.append(client.get(f"{ollama_url.rstrip('/')}/api/tags"))
+        if llamacpp_url:
+            coros.append(client.get(f"{llamacpp_url.rstrip('/')}/v1/models"))
+        await asyncio.gather(*coros, return_exceptions=True)
+
+
+async def _maybe_warm_gcp_providers() -> None:
+    global _gcp_warm_last_at
+
+    now = time.time()
+    if (now - _gcp_warm_last_at) < _GCP_WARM_MIN_INTERVAL_S:
+        return
+
+    async with _gcp_warm_lock:
+        now = time.time()
+        if (now - _gcp_warm_last_at) < _GCP_WARM_MIN_INTERVAL_S:
+            return
+        _gcp_warm_last_at = now
+
+    try:
+        await _warm_gcp_providers_once()
+    except Exception as e:
+        logger.debug("GCP warm-up failed", extra={"error": type(e).__name__})
+
+
+@ollama_router.post("/api/generate")
+async def ollama_generate(request: GenerateRequest):
+    """Generate completion with automatic fallback.
+
+    Notes:
+    - This endpoint is intentionally unauthenticated for simple chat use-cases.
+    - Do not leak provider errors (they may include secrets like API keys in URLs).
+    """
+    import httpx
+
+    # Trigger a best-effort background warm-up so self-hosted providers don't go cold.
+    asyncio.create_task(_maybe_warm_gcp_providers())
+
+    system_prompt = (
+        os.getenv("GOBLIN_SYSTEM_PROMPT")
+        or "You are Goblin Assistant. Respond as the assistant only. Do not include role labels like 'User:' or 'Assistant:'. "
+        "Do not claim you performed real-world actions (sending emails/messages, payments, etc.). "
+        "If asked to send a message/email, say you cannot send it directly and offer to draft it, asking for the needed details. "
+        "Be concise unless the user asks for more detail."
+    )
+
+    # Normalize messages (structured preferred; prompt-only as legacy fallback).
+    if request.messages and len(request.messages) > 0:
+        messages: List[Dict[str, str]] = [
+            {"role": m.role, "content": m.content} for m in request.messages
+        ]
+    else:
+        prompt_text = (request.prompt or "").strip()
+        if not prompt_text:
+            raise HTTPException(
+                status_code=400, detail='Missing "prompt" or "messages"'
+            )
+        messages = [{"role": "user", "content": prompt_text}]
+
+    if not any(m.get("role") == "system" for m in messages):
+        messages.insert(0, {"role": "system", "content": system_prompt})
+
+    # Derive a small default response budget for short messages to keep latency low.
+    last_user = next(
+        (m.get("content", "") for m in reversed(messages) if m.get("role") == "user"),
+        "",
+    )
+
+    def _default_max_tokens(text: str) -> int:
+        n = len((text or "").strip())
+        if n <= 32:
+            return 64
+        if n <= 200:
+            return 128
+        return 256
+
+    req_max_tokens = int(request.max_tokens) if request.max_tokens else _default_max_tokens(last_user)
+    req_max_tokens = max(1, min(req_max_tokens, 1024))
+
+    req_temperature = float(request.temperature) if request.temperature is not None else 0.2
+    req_temperature = max(0.0, min(req_temperature, 2.0))
+
+    # Best-effort prompt for non-chat providers.
+    prompt = last_user or (request.prompt or "")
+    model = request.model or "llama2"
+
     errors = []
+
+    def _safe_err(provider: str, exc: Exception) -> str:
+        """Return a user-safe error string without secrets/URLs."""
+        try:
+            if isinstance(exc, httpx.HTTPStatusError):
+                return f"{provider}: HTTP {exc.response.status_code}"
+            if isinstance(exc, (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.WriteTimeout)):
+                return f"{provider}: timeout"
+            if isinstance(exc, httpx.ConnectError):
+                return f"{provider}: connect_error"
+            return f"{provider}: {type(exc).__name__}"
+        except Exception:
+            return f"{provider}: {type(exc).__name__}"
+
+    # 0. Try lightweight Fly chat backend first (always-on local fallback)
+    # Prefer internal 6PN if reachable; fall back to the public hostname.
+    goblin_chat_url_env = (os.getenv("GOBLIN_CHAT_URL") or "").strip()
+    goblin_chat_urls = (
+        [goblin_chat_url_env]
+        if goblin_chat_url_env
+        else ["http://goblin-chat.internal:8080", "https://goblin-chat.fly.dev"]
+    )
+    goblin_chat_key = os.getenv("GOBLIN_CHAT_API_KEY") or os.getenv("GOBLIN_API_KEY") or ""
+    for goblin_chat_url in goblin_chat_urls:
+        goblin_chat_url = (goblin_chat_url or "").rstrip("/")
+        if not goblin_chat_url:
+            continue
+
+        try:
+            timeout = httpx.Timeout(20.0, connect=2.0)
+            headers = {"Content-Type": "application/json"}
+            if goblin_chat_key:
+                headers["Authorization"] = f"Bearer {goblin_chat_key}"
+
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await client.post(
+                    f"{goblin_chat_url}/v1/chat/completions",
+                    headers=headers,
+                    json={
+                        "messages": messages,
+                        "max_tokens": req_max_tokens,
+                        "temperature": req_temperature,
+                        "stream": False,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                choice = (data.get("choices") or [{}])[0]
+                content = (choice.get("message") or {}).get("content") or ""
+                if content:
+                    return {
+                        "content": content,
+                        "response": content,  # Ollama-compatible alias for legacy proxies
+                        "usage": data.get("usage", {}),
+                        "model": data.get("model", "goblin-chat"),
+                        "provider": "goblin-chat",
+                        "finish_reason": choice.get("finish_reason", "stop"),
+                    }
+        except Exception as e:
+            errors.append(_safe_err("goblin-chat", e))
+            logger.warning(
+                "goblin-chat failed",
+                extra={"error": type(e).__name__, "url": goblin_chat_url},
+            )
 
     # 1. Try GCP Ollama self-hosted first (short timeout)
     ollama_url = os.getenv("OLLAMA_GCP_URL") or os.getenv("OLLAMA_BASE_URL")
@@ -463,23 +659,37 @@ async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
     if ollama_url:
         try:
             adapter = OllamaAdapter(api_key=api_key, base_url=ollama_url)
-            result = await adapter.generate(messages, model=model)
+            # Fail fast for unreachable self-hosted endpoints to avoid hanging requests.
+            adapter.timeout = 10
+            result = await adapter.generate(
+                messages,
+                model=model,
+                max_tokens=req_max_tokens,
+                temperature=req_temperature,
+            )
+            if isinstance(result, dict) and "content" in result and "response" not in result:
+                # Keep compatibility with callers expecting Ollama's `response` field.
+                result["response"] = result.get("content") or ""
+            if isinstance(result, dict):
+                result.setdefault("provider", "ollama-gcp")
             return result
         except Exception as e:
-            errors.append(f"Ollama/GCP: {e}")
-            logger.warning(f"Ollama/GCP failed: {e}")
+            errors.append(_safe_err("Ollama/GCP", e))
+            logger.warning("Ollama/GCP failed", extra={"error": type(e).__name__})
 
     # 1b. Try GCP llama.cpp server as secondary self-hosted option
     llamacpp_url = os.getenv("LLAMACPP_GCP_URL")
     if llamacpp_url:
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            timeout = httpx.Timeout(20.0, connect=2.0)
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.post(
                     f"{llamacpp_url.rstrip('/')}/v1/chat/completions",
                     headers={"Content-Type": "application/json"},
                     json={
                         "messages": messages,
-                        "max_tokens": 1024,
+                        "max_tokens": req_max_tokens,
+                        "temperature": req_temperature,
                     },
                 )
                 response.raise_for_status()
@@ -487,26 +697,27 @@ async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
                 content = data["choices"][0]["message"]["content"]
                 return {
                     "content": content,
+                    "response": content,  # Ollama-compatible alias for legacy proxies
                     "usage": data.get("usage", {}),
                     "model": data.get("model", "llamacpp"),
                     "provider": "llamacpp-gcp",
                     "finish_reason": data["choices"][0].get("finish_reason", "stop"),
                 }
         except Exception as e:
-            errors.append(f"LlamaCpp/GCP: {e}")
-            logger.warning(f"LlamaCpp/GCP failed: {e}")
+            errors.append(_safe_err("LlamaCpp/GCP", e))
+            logger.warning("LlamaCpp/GCP failed", extra={"error": type(e).__name__})
 
     # 2. Try Google Gemini (reliable, generous free tier)
     gemini_key = os.getenv("GEMINI_API_KEY")
     if gemini_key:
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=20.0) as client:
                 response = await client.post(
                     f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}",
                     headers={"Content-Type": "application/json"},
                     json={
                         "contents": [{"parts": [{"text": prompt}]}],
-                        "generationConfig": {"maxOutputTokens": 1024},
+                        "generationConfig": {"maxOutputTokens": req_max_tokens},
                     },
                 )
                 response.raise_for_status()
@@ -515,6 +726,7 @@ async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
                 usage_meta = data.get("usageMetadata", {})
                 return {
                     "content": text,
+                    "response": text,  # Ollama-compatible alias for legacy proxies
                     "usage": {
                         "prompt_tokens": usage_meta.get("promptTokenCount", 0),
                         "completion_tokens": usage_meta.get("candidatesTokenCount", 0),
@@ -525,14 +737,14 @@ async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
                     "finish_reason": data["candidates"][0].get("finishReason", "STOP"),
                 }
         except Exception as e:
-            errors.append(f"Gemini: {e}")
-            logger.warning(f"Gemini failed: {e}")
+            errors.append(_safe_err("Gemini", e))
+            logger.warning("Gemini failed", extra={"error": type(e).__name__})
 
     # 3. Try Groq (free tier - very reliable, fast)
     groq_key = os.getenv("GROK_API_KEY") or os.getenv("GROQ_API_KEY")
     if groq_key and groq_key != "placeholder":
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=20.0) as client:
                 response = await client.post(
                     "https://api.groq.com/openai/v1/chat/completions",
                     headers={
@@ -542,7 +754,7 @@ async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
                     json={
                         "model": "llama-3.1-8b-instant",
                         "messages": messages,
-                        "max_tokens": 1024,
+                        "max_tokens": req_max_tokens,
                     },
                 )
                 response.raise_for_status()
@@ -550,20 +762,21 @@ async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
                 content = data["choices"][0]["message"]["content"]
                 return {
                     "content": content,
+                    "response": content,  # Ollama-compatible alias for legacy proxies
                     "usage": data.get("usage", {}),
                     "model": data.get("model", "llama-3.1-8b-instant"),
                     "provider": "groq",
                     "finish_reason": data["choices"][0].get("finish_reason", "stop"),
                 }
         except Exception as e:
-            errors.append(f"Groq: {e}")
-            logger.warning(f"Groq failed: {e}")
+            errors.append(_safe_err("Groq", e))
+            logger.warning("Groq failed", extra={"error": type(e).__name__})
 
     # 4. Try DeepSeek (very cheap and reliable)
     deepseek_key = os.getenv("DEEPSEEK_API_KEY")
     if deepseek_key and deepseek_key != "placeholder":
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=20.0) as client:
                 response = await client.post(
                     "https://api.deepseek.com/chat/completions",
                     headers={
@@ -573,7 +786,7 @@ async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
                     json={
                         "model": "deepseek-chat",
                         "messages": messages,
-                        "max_tokens": 1024,
+                        "max_tokens": req_max_tokens,
                     },
                 )
                 response.raise_for_status()
@@ -581,20 +794,21 @@ async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
                 content = data["choices"][0]["message"]["content"]
                 return {
                     "content": content,
+                    "response": content,  # Ollama-compatible alias for legacy proxies
                     "usage": data.get("usage", {}),
                     "model": data.get("model", "deepseek-chat"),
                     "provider": "deepseek",
                     "finish_reason": data["choices"][0].get("finish_reason", "stop"),
                 }
         except Exception as e:
-            errors.append(f"DeepSeek: {e}")
-            logger.warning(f"DeepSeek failed: {e}")
+            errors.append(_safe_err("DeepSeek", e))
+            logger.warning("DeepSeek failed", extra={"error": type(e).__name__})
 
     # 5. Fallback to OpenAI
     openai_key = os.getenv("OPENAI_API_KEY")
     if openai_key and openai_key != "placeholder":
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=20.0) as client:
                 response = await client.post(
                     "https://api.openai.com/v1/chat/completions",
                     headers={
@@ -604,7 +818,7 @@ async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
                     json={
                         "model": "gpt-4o-mini",
                         "messages": messages,
-                        "max_tokens": 1024,
+                        "max_tokens": req_max_tokens,
                     },
                 )
                 response.raise_for_status()
@@ -612,20 +826,21 @@ async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
                 content = data["choices"][0]["message"]["content"]
                 return {
                     "content": content,
+                    "response": content,  # Ollama-compatible alias for legacy proxies
                     "usage": data.get("usage", {}),
                     "model": data.get("model", "gpt-4o-mini"),
                     "provider": "openai",
                     "finish_reason": data["choices"][0].get("finish_reason", "stop"),
                 }
         except Exception as e:
-            errors.append(f"OpenAI: {e}")
-            logger.warning(f"OpenAI failed: {e}")
+            errors.append(_safe_err("OpenAI", e))
+            logger.warning("OpenAI failed", extra={"error": type(e).__name__})
 
     # 6. Final fallback to Anthropic
     anthropic_key = os.getenv("ANTHROPIC_API_KEY")
     if anthropic_key and anthropic_key != "placeholder":
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=20.0) as client:
                 response = await client.post(
                     "https://api.anthropic.com/v1/messages",
                     headers={
@@ -635,7 +850,7 @@ async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
                     },
                     json={
                         "model": "claude-3-haiku-20240307",
-                        "max_tokens": 1024,
+                        "max_tokens": req_max_tokens,
                         "messages": messages,
                     },
                 )
@@ -644,18 +859,20 @@ async def ollama_generate(prompt: str = Body(...), model: str = Body("llama2")):
                 content = data["content"][0]["text"]
                 return {
                     "content": content,
+                    "response": content,  # Ollama-compatible alias for legacy proxies
                     "usage": data.get("usage", {}),
                     "model": data.get("model", "claude-3-haiku-20240307"),
                     "provider": "anthropic",
                     "finish_reason": data.get("stop_reason", "stop"),
                 }
         except Exception as e:
-            errors.append(f"Anthropic: {e}")
-            logger.error(f"All providers failed: {errors}")
+            errors.append(_safe_err("Anthropic", e))
+            logger.warning("Anthropic failed", extra={"error": type(e).__name__})
 
+    logger.error(f"All providers failed (sanitized): {errors}")
     raise HTTPException(
         status_code=503,
-        detail=f"All inference providers unavailable. Errors: {'; '.join(errors)}",
+        detail="All inference providers unavailable.",
     )
 
 

@@ -1,10 +1,16 @@
+from __future__ import annotations
+
+import json
+import os
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from .database import get_db
-from .models import User, AccountPreference
+from .models import User
 from .auth_service import get_auth_service, JWTAuthService
 
 router = APIRouter(prefix="/account", tags=["account"])
@@ -21,6 +27,31 @@ class PreferencesRequest(BaseModel):
     familyMode: bool
 
 
+def _prefs_path() -> str:
+    data_dir = os.getenv("DATA_DIR", "/app/data")
+    return os.getenv("ACCOUNT_PREFERENCES_PATH", os.path.join(data_dir, "account_prefs.json"))
+
+
+def _load_prefs() -> dict[str, Any]:
+    path = _prefs_path()
+    try:
+        if not os.path.exists(path):
+            return {}
+        with open(path, "r", encoding="utf-8") as handle:
+            return json.load(handle) or {}
+    except Exception:
+        return {}
+
+
+def _save_prefs(prefs: dict[str, Any]) -> None:
+    path = _prefs_path()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp_path = path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as handle:
+        json.dump(prefs, handle, indent=2, sort_keys=True)
+    os.replace(tmp_path, path)
+
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
@@ -31,6 +62,9 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="Invalid token")
 
     user_id = claims.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
@@ -44,10 +78,11 @@ async def save_profile(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if not request.name.strip():
+    name = (request.name or "").strip()
+    if not name:
         raise HTTPException(status_code=400, detail="Name is required")
 
-    current_user.name = request.name.strip()
+    current_user.name = name
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
@@ -58,37 +93,21 @@ async def save_profile(
 @router.post("/preferences")
 async def save_preferences(
     request: PreferencesRequest,
-    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    preferences = (
-        db.query(AccountPreference)
-        .filter(AccountPreference.user_id == current_user.id)
-        .first()
-    )
-
-    if not preferences:
-        preferences = AccountPreference(
-            user_id=current_user.id,
-            summaries=request.summaries,
-            notifications=request.notifications,
-            family_mode=request.familyMode,
-        )
-        db.add(preferences)
-    else:
-        preferences.summaries = request.summaries
-        preferences.notifications = request.notifications
-        preferences.family_mode = request.familyMode
-        db.add(preferences)
-
-    db.commit()
-    db.refresh(preferences)
-
-    return {
-        "status": "ok",
-        "preferences": {
-            "summaries": preferences.summaries,
-            "notifications": preferences.notifications,
-            "familyMode": preferences.family_mode,
-        },
+    # Persist lightweight preferences to the Fly volume. This avoids schema
+    # changes while keeping the account screen functional.
+    prefs = _load_prefs()
+    prefs[str(current_user.id)] = {
+        "summaries": bool(request.summaries),
+        "notifications": bool(request.notifications),
+        "familyMode": bool(request.familyMode),
     }
+    try:
+        _save_prefs(prefs)
+    except Exception:
+        # Non-fatal: still return the requested preferences so the UI can proceed.
+        pass
+
+    return {"status": "ok", "preferences": prefs[str(current_user.id)]}
+

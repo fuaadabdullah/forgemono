@@ -29,7 +29,8 @@ class ExecuteResponse(BaseModel):
     message: Optional[str] = None
 
 
-@router.post("/", response_model=ExecuteResponse)
+@router.post("", response_model=ExecuteResponse)
+@router.post("/", response_model=ExecuteResponse, include_in_schema=False)
 async def execute_task(
     request: ExecuteRequest,
     background_tasks: BackgroundTasks,

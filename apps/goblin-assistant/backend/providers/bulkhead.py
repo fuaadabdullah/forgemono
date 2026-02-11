@@ -11,6 +11,7 @@ from typing import Optional, Callable
 from contextlib import asynccontextmanager
 import asyncio
 import os
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,10 @@ class Bulkhead:
         self.max_concurrent = max_concurrent
         self.counter_key = f"bulkhead:{name}:counter"
         self.redis_client = redis_client or self._create_redis_client()
+        # Local in-memory fallback for single-process deployments or when Redis is unavailable.
+        # This provides non-blocking "try acquire" semantics (fail fast) similar to the Redis path.
+        self._local_lock = threading.Lock()
+        self._local_count = 0
 
     def _create_redis_client(self) -> Optional[redis.Redis]:
         """Create Redis client from environment."""
@@ -76,7 +81,11 @@ class Bulkhead:
             True if acquired, False if at limit
         """
         if not self.redis_client:
-            return True  # Allow if no Redis
+            with self._local_lock:
+                if self._local_count >= self.max_concurrent:
+                    return False
+                self._local_count += 1
+                return True
 
         # Use Lua script for atomic increment and check
         lua_script = """
@@ -110,6 +119,9 @@ class Bulkhead:
     def release(self):
         """Release a slot in the bulkhead."""
         if not self.redis_client:
+            with self._local_lock:
+                if self._local_count > 0:
+                    self._local_count -= 1
             return
 
         try:
@@ -122,7 +134,8 @@ class Bulkhead:
         status = {
             "name": self.name,
             "max_concurrent": self.max_concurrent,
-            "available_slots": self.max_concurrent,  # Default when no Redis
+            "available_slots": self.max_concurrent,
+            "current_concurrent": 0,
         }
 
         if self.redis_client:
@@ -133,6 +146,11 @@ class Bulkhead:
                 status["available_slots"] = max(0, self.max_concurrent - current_count)
             except Exception as e:
                 logger.warning(f"Failed to get bulkhead status: {e}")
+        else:
+            with self._local_lock:
+                current_count = int(self._local_count)
+            status["current_concurrent"] = current_count
+            status["available_slots"] = max(0, self.max_concurrent - current_count)
 
         return status
 

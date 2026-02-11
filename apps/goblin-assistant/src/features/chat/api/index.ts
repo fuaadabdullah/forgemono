@@ -1,5 +1,6 @@
 import { apiClient } from '../../../api/apiClient';
 import { UiError } from '../../../lib/ui-error';
+import type { ChatMessage } from '../types';
 
 export interface ChatResponse {
   content?: string;
@@ -20,7 +21,8 @@ export interface CreateConversationResult {
 
 export interface SendMessageParams {
   conversationId: string;
-  prompt: string;
+  prompt?: string;
+  messages?: ChatMessage[];
   model?: string;
 }
 
@@ -29,11 +31,19 @@ export interface SendMessageParams {
  * Ollama / LlamaCPP server-side. This avoids all CORS issues
  * because the request stays on the same origin.
  */
-async function callLocalGenerateApi(prompt: string, model?: string): Promise<ChatResponse> {
+async function callLocalGenerateApi(params: {
+  prompt?: string;
+  messages?: ChatMessage[];
+  model?: string;
+}): Promise<ChatResponse> {
   const res = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, model: model || 'gemma:2b' }),
+    body: JSON.stringify({
+      prompt: params.prompt,
+      messages: params.messages,
+      model: params.model || 'gemma:2b',
+    }),
   });
 
   if (!res.ok) {
@@ -60,11 +70,25 @@ export const chatClient = {
       );
     }
   },
-  async sendMessage({ conversationId, prompt, model }: SendMessageParams): Promise<ChatResponse> {
+  async sendMessage({
+    conversationId,
+    prompt,
+    messages,
+    model,
+  }: SendMessageParams): Promise<ChatResponse> {
     try {
       void conversationId;
-      // Use the local Next.js API route → GCP servers (no CORS)
-      return await callLocalGenerateApi(prompt, model);
+      // Prefer same-origin Next.js proxy (no CORS issues). It will route to Fly backend first.
+      try {
+        return await callLocalGenerateApi({ prompt, messages, model });
+      } catch {
+        // Last resort: call the Fly backend directly (may be blocked by CORS depending on backend config).
+        if (messages && messages.length > 0 && !prompt) {
+          const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || '';
+          return await apiClient.generate(lastUser, model);
+        }
+        return await apiClient.generate(prompt || '', model);
+      }
     } catch (error) {
       throw new UiError(
         {

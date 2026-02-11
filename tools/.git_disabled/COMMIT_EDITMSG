@@ -1,0 +1,13 @@
+feat: initial commit of GoblinOS Tools
+
+- Cross-repository automation and utility scripts
+- Guild-based tool ownership matrix (AGENT_TOOLS.md)
+- Environment management (forge_lite_env.sh, portfolio_env.sh)
+- Security and secrets management (secrets_manage.sh, security_check.sh)
+- System maintenance (system_clean.sh, storage_cleanup.sh, space_saver.sh)
+- Deployment scripts (setup-aws-ecs.sh, test-ecs-deployment.sh)
+- Email automation (goblin-email-purge/)
+- Observability tools (observability/)
+- TUI interfaces (tui/, tui-node/)
+- Validation scripts (validate_forge_vault.sh, validate_guild_ownership.sh)
+- Development helpers (vscode_cleanup.sh, worldclass_debugger.sh)

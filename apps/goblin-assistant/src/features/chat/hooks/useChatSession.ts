@@ -106,14 +106,13 @@ export const useChatSession = (): ChatSessionState => {
 
         writeChatMessages(conversationId, updatedMessages);
 
-        const conversationContext = updatedMessages
-          .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
-          .join('\n');
-        const prompt = `${conversationContext}\nAssistant:`;
+        // Send structured messages (not a flattened "User:/Assistant:" transcript).
+        // Flattened transcripts frequently cause models to roleplay both sides and can balloon latency.
+        const messagesForModel = updatedMessages.slice(-20);
 
         const result = await chatClient.sendMessage({
           conversationId,
-          prompt,
+          messages: messagesForModel,
         });
         const answer = result?.content || 'No response';
         setMessages(prev => {

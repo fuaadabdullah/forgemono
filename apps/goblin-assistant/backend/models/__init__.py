@@ -1,6 +1,10 @@
 import sys
 
-from ..database import Base
+try:
+    # Package import (preferred when running as `backend.*`)
+    from ..database import Base
+except ImportError:  # pragma: no cover - support flat imports in tests/scripts
+    from database import Base  # type: ignore
 from .provider import (
     Provider,
     ProviderMetric,
@@ -9,15 +13,26 @@ from .provider import (
     ModelConfig,
     RoutingRequest,
 )
-from ..models_base import (
-    User,
-    Stream,
-    StreamChunk,
-    Task,
-    SearchCollection,
-    SearchDocument,
-    SupportMessage,
-)
+try:
+    from ..models_base import (
+        User,
+        Stream,
+        StreamChunk,
+        Task,
+        SearchCollection,
+        SearchDocument,
+        SupportMessage,
+    )
+except ImportError:  # pragma: no cover
+    from models_base import (  # type: ignore
+        User,
+        Stream,
+        StreamChunk,
+        Task,
+        SearchCollection,
+        SearchDocument,
+        SupportMessage,
+    )
 from .model import Model
 
 # Ensure a single module instance across import paths.

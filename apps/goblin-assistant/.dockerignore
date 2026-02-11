@@ -54,6 +54,7 @@ scripts/*.sh
 !requirements.txt
 !requirements-cloud.txt
 !requirements-chat.txt
+!backend/requirements.txt
 
 # Database and model files (large files)
 *.db

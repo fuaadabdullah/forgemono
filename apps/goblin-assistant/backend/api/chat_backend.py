@@ -34,12 +34,33 @@ logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
 
 # Configuration
-MODEL_ID = os.getenv("MODEL_ID", "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+MODEL_ID = os.getenv("MODEL_ID", "Llama-3.2-1B-Instruct")
 QUANTIZATION = os.getenv("QUANTIZATION", "int4")
 MAX_CONTEXT = int(os.getenv("MAX_CONTEXT", "2048"))
 MODEL_DIR = Path(os.getenv("MODEL_DIR", "/app/models"))
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 GOBLIN_API_KEY = os.getenv("GOBLIN_API_KEY", "")
+DEFAULT_SYSTEM_PROMPT = os.getenv(
+    "DEFAULT_SYSTEM_PROMPT",
+    "You are Goblin Assistant. Reply naturally and directly to the user. "
+    "Do not explain what the user said. Do not provide meta-instructions. "
+    "Be concise unless the user asks for more detail.",
+)
+DEFAULT_TEMPERATURE = float(os.getenv("DEFAULT_TEMPERATURE", "0.2"))
+
+# Optional: automatically download a small GGUF model into the mounted volume.
+# Default points to a public Llama 3.2 1B instruct quantization that fits in 2GB RAM.
+MODEL_DOWNLOAD_URL = os.getenv(
+    "MODEL_DOWNLOAD_URL",
+    "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf",
+)
+MODEL_FILENAME = os.getenv("MODEL_FILENAME", Path(MODEL_DOWNLOAD_URL).name)
+
+_download_task: Optional[asyncio.Task] = None
+_download_status: str = "idle"  # idle|downloading|complete|failed
+_download_error: str = ""
+_download_bytes: int = 0
+_download_total_bytes: int = 0
 
 
 @dataclass
@@ -75,7 +96,9 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[ChatMessage] = Field(..., description="Chat messages")
     max_tokens: int = Field(256, ge=1, le=2048)
-    temperature: float = Field(0.7, ge=0.0, le=2.0)
+    # If omitted, we use DEFAULT_TEMPERATURE (env-configurable). Using Optional
+    # avoids silently defaulting to 0.7 which is too random for small models.
+    temperature: Optional[float] = Field(None, ge=0.0, le=2.0)
     stream: bool = Field(False)
     model: Optional[str] = Field(None, description="Model override")
 
@@ -98,10 +121,17 @@ class HealthResponse(BaseModel):
 
 # Global model instance
 _llm: Optional["Llama"] = None
+_llm_model_path: Optional[Path] = None
+_llm_lock = asyncio.Lock()  # llama.cpp context is not thread-safe
 
 
 def get_model_path() -> Optional[Path]:
     """Get path to the quantized model file."""
+    if MODEL_FILENAME:
+        preferred = MODEL_DIR / MODEL_FILENAME
+        if preferred.exists():
+            return preferred
+
     # Check for GGUF model
     gguf_patterns = [
         f"*{QUANTIZATION}*.gguf",
@@ -111,21 +141,21 @@ def get_model_path() -> Optional[Path]:
     ]
 
     for pattern in gguf_patterns:
-        matches = list(MODEL_DIR.glob(pattern))
+        matches = sorted(MODEL_DIR.glob(pattern))
         if matches:
             return matches[0]
 
     return None
 
 
-def load_model() -> Optional["Llama"]:
+def load_model(model_path: Optional[Path] = None) -> Optional["Llama"]:
     """Load the local LLM model."""
     global _llm
 
     if not LLAMA_CPP_AVAILABLE:
         return None
 
-    model_path = get_model_path()
+    model_path = model_path or get_model_path()
     if not model_path or not model_path.exists():
         logger.warning(f"No model found in {MODEL_DIR}")
         return None
@@ -139,6 +169,8 @@ def load_model() -> Optional["Llama"]:
             n_gpu_layers=0,  # CPU only on Fly.io
             verbose=False,
         )
+        global _llm_model_path
+        _llm_model_path = model_path
         logger.info("Model loaded successfully")
         return _llm
     except Exception as e:
@@ -146,12 +178,104 @@ def load_model() -> Optional["Llama"]:
         return None
 
 
+async def _download_model(url: str, dest_path: Path) -> bool:
+    """Download a GGUF model file to disk (streamed). Returns True on success."""
+    global _download_status, _download_error, _download_bytes, _download_total_bytes
+
+    try:
+        MODEL_DIR.mkdir(parents=True, exist_ok=True)
+
+        if dest_path.exists() and dest_path.stat().st_size > 0:
+            _download_status = "complete"
+            _download_error = ""
+            return True
+
+        tmp_path = dest_path.with_suffix(dest_path.suffix + ".partial")
+        try:
+            tmp_path.unlink()
+        except FileNotFoundError:
+            pass
+
+        _download_status = "downloading"
+        _download_error = ""
+        _download_bytes = 0
+        _download_total_bytes = 0
+
+        logger.info(f"Downloading model from {url} -> {dest_path}")
+
+        timeout = httpx.Timeout(connect=10.0, read=None, write=30.0, pool=30.0)
+        async with httpx.AsyncClient(follow_redirects=True, timeout=timeout) as client:
+            async with client.stream("GET", url) as resp:
+                resp.raise_for_status()
+                try:
+                    _download_total_bytes = int(resp.headers.get("content-length") or 0)
+                except Exception:
+                    _download_total_bytes = 0
+
+                with open(tmp_path, "wb") as f:
+                    async for chunk in resp.aiter_bytes(chunk_size=1024 * 1024):
+                        if not chunk:
+                            continue
+                        f.write(chunk)
+                        _download_bytes += len(chunk)
+
+        tmp_path.replace(dest_path)
+        _download_status = "complete"
+        _download_error = ""
+        logger.info("Model download complete")
+        return True
+    except Exception as e:
+        _download_status = "failed"
+        _download_error = f"{type(e).__name__}: {e}"
+        logger.warning(f"Model download failed: {_download_error}")
+        return False
+
+
+async def _ensure_model_loaded() -> None:
+    """Background task: download (if needed) and load the model."""
+    if not LLAMA_CPP_AVAILABLE:
+        return
+
+    if not MODEL_DOWNLOAD_URL:
+        logger.warning("MODEL_DOWNLOAD_URL not set; cannot auto-download model.")
+        return
+
+    dest_path = MODEL_DIR / (MODEL_FILENAME or "model.gguf")
+
+    # If the preferred model is already loaded, nothing to do.
+    if _llm is not None and _llm_model_path == dest_path:
+        return
+
+    # Retry a few times to survive transient network issues.
+    delay_s = 2.0
+    for attempt in range(1, 6):
+        if await _download_model(MODEL_DOWNLOAD_URL, dest_path):
+            if load_model(dest_path):
+                return
+        logger.warning(f"Retrying model download in {delay_s:.0f}s (attempt {attempt}/5)")
+        await asyncio.sleep(delay_s)
+        delay_s = min(delay_s * 2.0, 60.0)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
     logger.info("Starting Goblin Chat Backend...")
-    load_model()
+    # Don't block startup waiting for a large download. Load if present and
+    # otherwise download+load in the background.
+    global _download_task
+    preferred = MODEL_DIR / MODEL_FILENAME if MODEL_FILENAME else None
+    if preferred and preferred.exists():
+        load_model(preferred)
+    else:
+        # Load any available model for best-effort service, while we download the preferred one.
+        load_model()
+    if _download_task is None and _llm is None and LLAMA_CPP_AVAILABLE:
+        _download_task = asyncio.create_task(_ensure_model_loaded())
+    elif _download_task is None and LLAMA_CPP_AVAILABLE:
+        # A model is loaded, but we may still want to swap to the preferred model.
+        _download_task = asyncio.create_task(_ensure_model_loaded())
     yield
     # Shutdown
     logger.info("Shutting down...")
@@ -203,6 +327,11 @@ async def health_check():
             "errors": stats.errors,
             "local_requests": stats.local_requests,
             "fallback_requests": stats.fallback_requests,
+            "model_path": str(get_model_path() or ""),
+            "download_status": _download_status,
+            "downloaded_bytes": _download_bytes,
+            "total_bytes": _download_total_bytes,
+            "download_error": _download_error,
         },
     )
 
@@ -224,29 +353,36 @@ async def root():
 async def generate_local(
     messages: List[ChatMessage],
     max_tokens: int,
-    temperature: float,
+    temperature: Optional[float],
 ) -> Optional[str]:
     """Generate response using local llama.cpp model."""
     if not _llm:
         return None
 
     try:
-        # Format messages for TinyLlama chat template
-        prompt = format_chat_prompt(messages)
+        # Ensure deterministic, thread-safe access to the llama.cpp context.
+        async with _llm_lock:
+            _llm.reset()
 
-        # Run in thread pool to avoid blocking
-        loop = asyncio.get_event_loop()
-        response = await loop.run_in_executor(
-            None,
-            lambda: _llm(
-                prompt,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                stop=["</s>", "<|user|>", "<|assistant|>"],
-            ),
-        )
+            req_temp = float(temperature) if temperature is not None else DEFAULT_TEMPERATURE
+            req_temp = max(0.0, min(req_temp, 1.5))
+            req_max_tokens = int(max_tokens) if max_tokens is not None else 256
+            req_max_tokens = max(1, min(req_max_tokens, 1024))
 
-        return response["choices"][0]["text"].strip()
+            chat_messages = [{"role": m.role, "content": m.content} for m in messages]
+
+            response = await asyncio.to_thread(
+                _llm.create_chat_completion,
+                messages=chat_messages,
+                max_tokens=req_max_tokens,
+                temperature=req_temp,
+                # Let the model decide where to stop; most GGUFs have an EOS token.
+                stop=["</s>"],
+            )
+
+        choice = (response.get("choices") or [{}])[0]
+        content = (choice.get("message") or {}).get("content") or ""
+        return content.strip()
     except Exception as e:
         logger.error(f"Local inference error: {e}")
         return None
@@ -273,13 +409,18 @@ def format_chat_prompt(messages: List[ChatMessage]) -> str:
 async def generate_openai_fallback(
     messages: List[ChatMessage],
     max_tokens: int,
-    temperature: float,
+    temperature: Optional[float],
 ) -> Optional[str]:
     """Fallback to OpenAI API."""
     if not OPENAI_API_KEY:
         return None
 
     try:
+        req_temp = float(temperature) if temperature is not None else DEFAULT_TEMPERATURE
+        req_temp = max(0.0, min(req_temp, 1.5))
+        req_max_tokens = int(max_tokens) if max_tokens is not None else 256
+        req_max_tokens = max(1, min(req_max_tokens, 1024))
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 "https://api.openai.com/v1/chat/completions",
@@ -292,8 +433,8 @@ async def generate_openai_fallback(
                     "messages": [
                         {"role": m.role, "content": m.content} for m in messages
                     ],
-                    "max_tokens": max_tokens,
-                    "temperature": temperature,
+                    "max_tokens": req_max_tokens,
+                    "temperature": req_temp,
                 },
                 timeout=30.0,
             )
@@ -314,9 +455,14 @@ async def chat_completion(
     start_time = time.time()
     stats.total_requests += 1
 
+    # Ensure we always have a system prompt to anchor the model.
+    messages = list(request.messages or [])
+    if not any(m.role == "system" for m in messages):
+        messages.insert(0, ChatMessage(role="system", content=DEFAULT_SYSTEM_PROMPT))
+
     # Try local inference first
     content = await generate_local(
-        request.messages,
+        messages,
         request.max_tokens,
         request.temperature,
     )
@@ -326,7 +472,7 @@ async def chat_completion(
     else:
         # Fallback to OpenAI
         content = await generate_openai_fallback(
-            request.messages,
+            messages,
             request.max_tokens,
             request.temperature,
         )
@@ -345,7 +491,7 @@ async def chat_completion(
 
     # Estimate token count
     tokens = len(content.split()) + sum(
-        len(m.content.split()) for m in request.messages
+        len(m.content.split()) for m in messages
     )
     stats.total_tokens += tokens
 
@@ -364,7 +510,7 @@ async def chat_completion(
             }
         ],
         usage={
-            "prompt_tokens": sum(len(m.content.split()) for m in request.messages),
+            "prompt_tokens": sum(len(m.content.split()) for m in messages),
             "completion_tokens": len(content.split()),
             "total_tokens": tokens,
         },

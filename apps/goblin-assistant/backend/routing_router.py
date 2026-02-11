@@ -7,8 +7,10 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from .database import get_db
+from .models import Provider as ProviderRow, Model as ModelRow
 from .services.routing import RoutingService
 from .services.enhanced_routing import EnhancedRoutingService
 from .auth.policies import AuthScope
@@ -64,9 +66,6 @@ def get_enhanced_routing_service(
     if enhanced_routing_service is None:
         enhanced_routing_service = EnhancedRoutingService(db, ROUTING_ENCRYPTION_KEY)
     return enhanced_routing_service
-
-
-router = APIRouter(prefix="/routing", tags=["routing"])
 
 # Security schemes
 security = HTTPBearer()
@@ -130,7 +129,23 @@ class ProviderInfo(BaseModel):
     score: Optional[float] = None
 
 
-@router.get("/providers", response_model=List[ProviderInfo])
+def _normalize_models(models_value: Any) -> List[str]:
+    """Coerce Provider.models JSON field into a list[str] for the UI."""
+    if not models_value:
+        return []
+    if isinstance(models_value, list):
+        if models_value and isinstance(models_value[0], dict):
+            out: List[str] = []
+            for item in models_value:
+                mid = item.get("id") or item.get("name") or item.get("model")
+                if isinstance(mid, str) and mid:
+                    out.append(mid)
+            return out
+        return [str(m) for m in models_value if m is not None]
+    return []
+
+
+@router.get("/providers/details", response_model=List[ProviderInfo])
 async def get_available_providers(
     service: RoutingService = Depends(get_routing_service),
     scopes: List[str] = Depends(require_scope(AuthScope.READ_MODELS)),
@@ -145,7 +160,7 @@ async def get_available_providers(
         )
 
 
-@router.get("/providers/{capability}", response_model=List[ProviderInfo])
+@router.get("/providers/capability/{capability}", response_model=List[ProviderInfo])
 async def get_providers_for_capability(
     capability: str,
     service: RoutingService = Depends(get_routing_service),
@@ -166,6 +181,83 @@ async def get_providers_for_capability(
         raise HTTPException(
             status_code=500, detail=f"Failed to get providers for capability: {str(e)}"
         )
+
+
+@router.get("/providers", response_model=List[str])
+async def list_provider_keys(db: Session = Depends(get_db)):
+    """List enabled provider keys (frontend compatibility endpoint)."""
+    providers = (
+        db.query(ProviderRow)
+        .filter(ProviderRow.enabled.is_(True))
+        .order_by(ProviderRow.priority.desc().nullslast(), ProviderRow.name.asc())
+        .all()
+    )
+    return [p.name for p in providers if getattr(p, "name", None)]
+
+
+@router.get("/providers/{provider}", response_model=List[str])
+async def list_provider_models(provider: str, db: Session = Depends(get_db)):
+    """List models for a provider (frontend compatibility endpoint)."""
+    provider_row = db.query(ProviderRow).filter(ProviderRow.name == provider).first()
+    if not provider_row:
+        return []
+
+    # Prefer explicit model configs when present.
+    try:
+        models_db = (
+            db.query(ModelRow)
+            .filter(ModelRow.provider == provider, ModelRow.enabled.is_(True))
+            .order_by(ModelRow.name.asc())
+            .all()
+        )
+        model_ids = [m.model_id for m in models_db if getattr(m, "model_id", None)]
+        if model_ids:
+            return model_ids
+    except Exception:
+        pass
+
+    return _normalize_models(getattr(provider_row, "models", None))
+
+
+@router.get("/models", response_model=List[str])
+async def list_available_models(db: Session = Depends(get_db)):
+    """List all enabled model IDs across providers (frontend compatibility endpoint)."""
+    model_ids: set[str] = set()
+
+    try:
+        models_db = db.query(ModelRow).filter(ModelRow.enabled.is_(True)).all()
+        for m in models_db:
+            mid = getattr(m, "model_id", None)
+            if isinstance(mid, str) and mid:
+                model_ids.add(mid)
+    except Exception:
+        models_db = []
+
+    if not model_ids:
+        providers = db.query(ProviderRow).filter(ProviderRow.enabled.is_(True)).all()
+        for p in providers:
+            for mid in _normalize_models(getattr(p, "models", None)):
+                model_ids.add(mid)
+
+    return sorted(model_ids)
+
+
+@router.get("/info")
+async def routing_info(db: Session = Depends(get_db)):
+    """Lightweight routing info for startup preflight (frontend compatibility endpoint)."""
+    provider_count = db.query(ProviderRow).count()
+    enabled_provider_count = (
+        db.query(ProviderRow).filter(ProviderRow.enabled.is_(True)).count()
+    )
+    model_count = db.query(ModelRow).count()
+    enabled_model_count = db.query(ModelRow).filter(ModelRow.enabled.is_(True)).count()
+
+    return {
+        "status": "ok",
+        "providers": {"total": provider_count, "enabled": enabled_provider_count},
+        "models": {"total": model_count, "enabled": enabled_model_count},
+        "timestamp": datetime.utcnow().isoformat(),
+    }
 
 
 @router.post("/route")

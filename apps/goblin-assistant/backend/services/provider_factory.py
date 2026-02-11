@@ -130,6 +130,22 @@ def create_local_adapter(
 def create_cloud_adapter(provider_info: Dict[str, Any]):
     """Create adapter for cloud providers (OpenAI, Anthropic, etc.)."""
     provider_name = provider_info["name"].lower()
+    # Import adapters dynamically to avoid circular imports
+    try:
+        from .providers import (
+            OpenAIAdapter,
+            AnthropicAdapter,
+            GrokAdapter,
+            DeepSeekAdapter,
+        )
+    except ImportError:
+        from providers import (
+            OpenAIAdapter,
+            AnthropicAdapter,
+            GrokAdapter,
+            DeepSeekAdapter,
+        )
+
     provider_adapters = {
         "openai": (OpenAIAdapter, "OPENAI_API_KEY", None),
         "anthropic": (AnthropicAdapter, "ANTHROPIC_API_KEY", None),
@@ -140,7 +156,7 @@ def create_cloud_adapter(provider_info: Dict[str, Any]):
     if provider_name not in provider_adapters:
         raise_internal_error(f"Provider {provider_info['name']} not yet implemented")
 
-    adapter_class, api_key_env, base_url = provider_adapters[provider_name]
+    adapter_class, api_key_env, default_base_url = provider_adapters[provider_name]
     api_key = os.getenv(api_key_env)
 
     if not api_key:
@@ -148,17 +164,7 @@ def create_cloud_adapter(provider_info: Dict[str, Any]):
             f"API key not configured for provider {provider_info['name']}"
         )
 
-    # Import adapter dynamically to avoid circular imports
-    try:
-        from .providers import (
-            OpenAIAdapter,
-            AnthropicAdapter,
-            GrokAdapter,
-            DeepSeekAdapter,
-        )
-    except ImportError:
-        from providers import OpenAIAdapter, AnthropicAdapter, GrokAdapter, DeepSeekAdapter
-
+    base_url = provider_info.get("base_url") or default_base_url
     adapter = adapter_class(api_key, base_url)
     return provider_name, adapter
 

@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException
 import os
 from pydantic import BaseModel
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+
+from .services.sandbox_runner import SandboxRunnerError, execute_sandbox_code
 
 # Prefer Redis+Celery-backed task inspection; in production Redis is required
 try:
@@ -41,6 +43,15 @@ class SandboxJobResponse(BaseModel):
     goblin: str
     task: str
     created_at: float
+
+
+class SandboxRunRequest(BaseModel):
+    code: str
+    language: str = "python"
+
+
+class SandboxRunResponse(BaseModel):
+    output: str
 
 
 @router.get("/jobs")
@@ -157,3 +168,29 @@ async def get_job_artifacts(job_id: str):
         artifacts = job.get("artifacts", [])
 
     return {"job_id": job_id, "artifacts": artifacts}
+
+
+@router.post("/run", response_model=SandboxRunResponse)
+async def run_code(request: SandboxRunRequest):
+    """
+    Execute code via the configured sandbox runner.
+
+    This endpoint is used by the frontend sandbox UI. In production, it should
+    be backed by an isolated runner (Cloud Run / Vertex Code Execution). When
+    not configured, we return a clear 503 so the UI can surface a helpful error.
+    """
+    if not request.code or not isinstance(request.code, str):
+        raise HTTPException(status_code=400, detail="Missing code")
+
+    try:
+        result = await execute_sandbox_code(request.code, request.language)
+        output = result.stdout or ""
+        if result.stderr:
+            output = output + ("\n" if output else "") + result.stderr
+        if result.timed_out:
+            output = output + ("\n" if output else "") + "[timed out]"
+        return SandboxRunResponse(output=output)
+    except SandboxRunnerError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Sandbox execution failed: {e}")

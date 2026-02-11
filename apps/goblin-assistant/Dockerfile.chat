@@ -54,8 +54,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     PORT=8080
 
-# Switch to non-root user
-USER goblin
+# NOTE: Run as root so the mounted Fly volume at /app/models is writable.
+# (Volumes are typically root-owned; running as a non-root user breaks auto-download.)
 
 # Expose port
 EXPOSE 8080

@@ -174,5 +174,21 @@
     "status": "active",
     "models": ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-pro"],
     "capabilities": ["chat", "vision"]
+  },
+  "tinylama": {
+    "name": "tinylama",
+    "host": "localhost",
+    "api_key_env": "",
+    "base_url": "",
+    "timeout_seconds": 120,
+    "max_retries": 1,
+    "cost_per_token_input": 0.0,
+    "cost_per_token_output": 0.0,
+    "latency_threshold_ms": 30000,
+    "rate_limit_requests": 10,
+    "rate_limit_window_seconds": 60,
+    "status": "active",
+    "models": ["tinylama-1.1b-chat"],
+    "capabilities": ["chat"]
   }
 }

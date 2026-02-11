@@ -18,6 +18,7 @@ from providers import (
     DeepSeekAdapter,
     OllamaAdapter,
     LlamaCppAdapter,
+    TinyLlamaAdapter,
     SilliconflowAdapter,
     MoonshotAdapter,
     ElevenLabsAdapter,
@@ -80,6 +81,7 @@ class RoutingService:
             "ollama_gcp": OllamaAdapter,  # GCP-hosted Ollama uses same adapter
             "goblin-llamacpp-server": LlamaCppAdapter,
             "llamacpp_gcp": LlamaCppAdapter,  # GCP-hosted llama.cpp uses same adapter
+            "tinylama": TinyLlamaAdapter,
             "silliconflow": SilliconflowAdapter,
             "moonshot": MoonshotAdapter,
             "elevenlabs": ElevenLabsAdapter,

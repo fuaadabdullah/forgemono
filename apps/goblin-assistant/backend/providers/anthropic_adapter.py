@@ -27,7 +27,13 @@ class AnthropicAdapter(AdapterBase):
         registry = get_provider_registry()
         config = registry.get_provider_config_dict("anthropic")
 
-        if not config:
+        if config:
+            # Allow explicit overrides (e.g., DB-stored credentials/base_url).
+            if api_key is not None:
+                config["api_key"] = api_key
+            if base_url is not None:
+                config["base_url"] = base_url
+        else:
             # Fallback to manual config if registry fails
             config = {
                 "api_key": api_key,
@@ -232,7 +238,8 @@ class AnthropicAdapter(AdapterBase):
         Returns:
             Dict containing response data
         """
-        model = kwargs.get("model", "claude-3-sonnet-20240229")
+        # Avoid passing duplicate keyword args (e.g. model both explicit and in **kwargs)
+        model = kwargs.pop("model", "claude-3-sonnet-20240229")
         # Convert messages to Anthropic format
         anthropic_messages = []
         system_message = None
@@ -246,12 +253,14 @@ class AnthropicAdapter(AdapterBase):
                 )
 
         def _sync_call():
-            return self.client.messages.create(
-                model=model,
-                system=system_message,
-                messages=anthropic_messages,
+            payload = {
+                "model": model,
+                "messages": anthropic_messages,
                 **kwargs,
-            )
+            }
+            if system_message:
+                payload["system"] = system_message
+            return self.client.messages.create(**payload)
 
         response = await self._call_with_circuit_breaker(_sync_call)
 

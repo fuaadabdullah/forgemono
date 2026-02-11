@@ -9,10 +9,13 @@ import sys
 import subprocess
 import asyncio
 import json
+import logging
 from pathlib import Path
 from typing import Dict, Any, Optional
 from datetime import datetime
 import tempfile
+
+logger = logging.getLogger(__name__)
 
 
 class GoblinExecutor:
@@ -248,5 +251,82 @@ def get_goblin_executor() -> GoblinExecutor:
     """Get or create singleton GoblinExecutor instance"""
     global _executor
     if _executor is None:
-        _executor = GoblinExecutor()
+        try:
+            _executor = GoblinExecutor()
+        except FileNotFoundError as exc:
+            # Fly images intentionally ship only the backend/ and config/ folders.
+            # When GoblinOS isn't present, fall back to a stub so the frontend
+            # can still exercise the execution flows without hard 500s.
+            logger.warning("GoblinOS not available; using stub executor: %s", exc)
+            _executor = _StubGoblinExecutor(str(exc))  # type: ignore[assignment]
     return _executor
+
+
+class _StubGoblinExecutor:
+    """Best-effort executor used when GoblinOS isn't available in the image."""
+
+    def __init__(self, reason: str):
+        self._reason = reason
+
+    async def list_available_goblins(self) -> Dict[str, Any]:
+        goblins = [
+            {"id": "docs-writer", "description": "Documentation Writer"},
+            {"id": "code-writer", "description": "Code Writer"},
+            {"id": "search-goblin", "description": "Search Specialist"},
+            {"id": "analyze-goblin", "description": "Data Analyst"},
+            {"id": "general-goblin", "description": "General Assistant"},
+        ]
+        return {"success": True, "goblins": goblins, "stub": True, "reason": self._reason}
+
+    async def validate_goblin(self, goblin_id: str) -> Dict[str, Any]:
+        goblins_result = await self.list_available_goblins()
+        goblin_ids = [g["id"] for g in goblins_result.get("goblins", [])]
+        if goblin_id in goblin_ids:
+            return {"valid": True, "goblin_id": goblin_id, "stub": True}
+        return {
+            "valid": False,
+            "error": f"Goblin '{goblin_id}' not found",
+            "available_goblins": goblin_ids,
+            "stub": True,
+        }
+
+    async def execute_goblin(
+        self,
+        goblin_id: str,
+        task_description: str,
+        code: Optional[str] = None,
+        dry_run: bool = False,
+    ) -> Dict[str, Any]:
+        # Never execute user-provided code in this stub.
+        now = datetime.utcnow()
+        stdout_lines = [
+            f"[stub] GoblinOS is not available in this deployment.",
+            f"[stub] Reason: {self._reason}",
+            f"[stub] goblin_id={goblin_id}",
+            f"[stub] dry_run={dry_run}",
+            f"[stub] task={task_description}",
+        ]
+        if code:
+            stdout_lines.append("[stub] NOTE: code execution is disabled in stub mode.")
+
+        return {
+            "success": True,
+            "goblin_id": goblin_id,
+            "task_description": task_description,
+            "stdout": "\n".join(stdout_lines) + "\n",
+            "stderr": "",
+            "returncode": 0,
+            "execution_time_seconds": 0.0,
+            "dry_run": dry_run,
+            "timestamp": now.isoformat(),
+            "stub": True,
+        }
+
+    async def execute_custom_script(
+        self, script_content: str, working_dir: Optional[str] = None
+    ) -> Dict[str, Any]:
+        return {
+            "success": False,
+            "error": "Custom script execution is disabled (GoblinOS not available).",
+            "stub": True,
+        }

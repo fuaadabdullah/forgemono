@@ -40,7 +40,6 @@ class LlamaCppProvider(ProviderBase):
         """
         self.api_key = api_key
         self.base_url = base_url
-        self.client = httpx.AsyncClient(timeout=30.0)
 
         # Default models if not specified
         self._models = models or ["local-model"]
@@ -80,10 +79,9 @@ class LlamaCppProvider(ProviderBase):
     def health_check(self) -> HealthStatus:
         """Check Llama.cpp server health."""
         try:
-            # Try to get health endpoint
-            import asyncio
-
-            response = asyncio.run(self.client.get(f"{self.base_url}/health"))
+            headers = {"x-api-key": self.api_key} if self.api_key else None
+            with httpx.Client(timeout=5.0) as client:
+                response = client.get(f"{self.base_url}/health", headers=headers)
             if response.status_code == 200:
                 return HealthStatus.HEALTHY
             else:
@@ -91,77 +89,55 @@ class LlamaCppProvider(ProviderBase):
         except Exception as e:
             logger.warning(f"Llama.cpp health check failed: {e}")
             return HealthStatus.UNHEALTHY
-        finally:
-            # Clean up client
-            try:
-                asyncio.run(self.client.aclose())
-            except Exception:
-                pass
 
     def infer(self, request: InferenceRequest) -> InferenceResult:
         """Execute inference with Llama.cpp."""
-        import asyncio
-
         start_time = time.time()
 
-        async def _infer():
-            try:
-                # Prepare request payload
-                payload = {
-                    "model": request.model,
-                    "messages": request.messages,
-                    "stream": request.stream,
-                }
+        try:
+            # Prepare request payload
+            payload = {
+                "model": request.model,
+                "messages": request.messages,
+                "stream": request.stream,
+            }
 
-                if request.temperature is not None:
-                    payload["temperature"] = request.temperature
-                if request.max_tokens is not None:
-                    payload["max_tokens"] = request.max_tokens
+            if request.temperature is not None:
+                payload["temperature"] = request.temperature
+            if request.max_tokens is not None:
+                payload["max_tokens"] = request.max_tokens
 
-                headers = {"x-api-key": self.api_key}
+            headers = {"x-api-key": self.api_key} if self.api_key else None
 
-                # Make API call
-                response = await self.client.post(
+            with httpx.Client(timeout=60.0) as client:
+                response = client.post(
                     f"{self.base_url}/chat/completions", json=payload, headers=headers
                 )
                 response.raise_for_status()
-
                 result_data = response.json()
 
-                # Handle streaming vs non-streaming
-                if request.stream:
-                    # For streaming, we'd need to handle the stream
-                    # For now, return a placeholder
-                    content = "Streaming not yet implemented"
-                    usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
-                    finish_reason = "stop"
-                else:
-                    content = result_data["choices"][0]["message"]["content"]
-                    usage = result_data.get("usage", {})
-                    if not usage:
-                        # Rough estimation if not provided
-                        input_chars = sum(
-                            len(msg.get("content", "")) for msg in request.messages
-                        )
-                        output_chars = len(content)
-                        usage = {
-                            "input_tokens": input_chars // 4,
-                            "output_tokens": output_chars // 4,
-                            "total_tokens": (input_chars + output_chars) // 4,
-                        }
-                    finish_reason = result_data["choices"][0].get(
-                        "finish_reason", "stop"
+            # Handle streaming vs non-streaming
+            if request.stream:
+                # For streaming, we'd need to handle the stream
+                # For now, return a placeholder
+                content = "Streaming not yet implemented"
+                usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+                finish_reason = "stop"
+            else:
+                content = result_data["choices"][0]["message"]["content"]
+                usage = result_data.get("usage", {})
+                if not usage:
+                    # Rough estimation if not provided
+                    input_chars = sum(
+                        len(msg.get("content", "")) for msg in request.messages
                     )
-
-                return content, usage, finish_reason
-
-            except Exception as e:
-                raise e
-            finally:
-                await self.client.aclose()
-
-        try:
-            content, usage, finish_reason = asyncio.run(_infer())
+                    output_chars = len(content)
+                    usage = {
+                        "input_tokens": input_chars // 4,
+                        "output_tokens": output_chars // 4,
+                        "total_tokens": (input_chars + output_chars) // 4,
+                    }
+                finish_reason = result_data["choices"][0].get("finish_reason", "stop")
 
             latency_ms = int((time.time() - start_time) * 1000)
 

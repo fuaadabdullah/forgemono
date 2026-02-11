@@ -96,3 +96,8 @@ python-json-logger>=2.0.0
 
 # Prometheus client for metrics
 prometheus-client>=0.19.0
+
+# TinyLlama support
+transformers>=4.36.0
+torch>=2.1.0
+accelerate>=0.25.0

@@ -15,7 +15,12 @@ from datetime import datetime
 import uuid
 
 # Import Base from database.py to use the same declarative base
-from .database import Base
+try:
+    # Package import (preferred when running as `backend.*`)
+    from .database import Base
+except ImportError:  # pragma: no cover - support flat imports in tests/scripts
+    # Flat import (used when `/app/backend` is on sys.path)
+    from database import Base  # type: ignore
 
 
 class User(Base):
@@ -221,7 +226,6 @@ class SupportMessage(Base):
     user_agent = Column(Text, nullable=True)
     ip_address = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     user = relationship("User")

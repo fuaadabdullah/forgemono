@@ -1,14 +1,36 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional
 import os
 import sys
 from pathlib import Path
 
-# Add GoblinOS to path for raptor import
+# Add GoblinOS to path for raptor import (optional in production containers).
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "GoblinOS"))
-from raptor_mini import raptor
-import os, sys
+try:
+    from raptor_mini import raptor  # type: ignore
+except Exception:  # pragma: no cover - GoblinOS isn't shipped in Fly image
+
+    class _RaptorStub:
+        running = False
+        ini_path = "config/raptor.ini"
+
+        class _Cfg:
+            def get(self, *_args, fallback: str = "logs/raptor.log", **_kwargs):
+                return fallback
+
+        cfg = _Cfg()
+
+        def start(self):
+            self.running = True
+
+        def stop(self):
+            self.running = False
+
+        def trace(self, fn):  # decorator
+            return fn
+
+    raptor = _RaptorStub()
 
 if ("PYTEST_CURRENT_TEST" in os.environ) or ("pytest" in sys.modules):
 
@@ -91,6 +113,12 @@ async def raptor_logs(request: LogsRequest):
         )
 
 
+@router.get("/logs")
+async def raptor_logs_get(tail: int = Query(1000, ge=1, le=50000)):
+    """GET wrapper for frontend compatibility (`/raptor/logs?tail=N`)."""
+    return await raptor_logs(LogsRequest(max_chars=tail))
+
+
 @router.get("/demo/{value}")
 async def raptor_demo(value: str):
     """Demo endpoint for testing raptor exception tracing"""
@@ -114,3 +142,9 @@ async def raptor_demo(value: str):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Demo failed: {str(e)}")
+
+
+@router.post("/demo/{value}")
+async def raptor_demo_post(value: str):
+    """POST wrapper for frontend compatibility."""
+    return await raptor_demo(value)

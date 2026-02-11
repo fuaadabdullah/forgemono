@@ -2,6 +2,11 @@
 set -euo pipefail
 
 echo "[$(date --iso-8601=seconds)] Starting Goblin backend entrypoint"
+
+# Install TinyLlama dependencies at runtime (avoids build timeout)
+echo "[$(date --iso-8601=seconds)] Installing TinyLlama dependencies..."
+pip install --no-cache-dir transformers>=4.36.0 accelerate>=0.25.0 || echo "Warning: TinyLlama dependencies installation failed, but continuing..."
+
 # Print a quick directory listing and python path for debugging
 echo "Working dir: $(pwd)"
 ls -la /app || true

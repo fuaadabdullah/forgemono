@@ -7,7 +7,9 @@ Runs every 5 minutes with Redis locking to prevent multiple instances.
 
 import logging
 import asyncio
+import os
 from typing import Dict, Any
+import httpx
 
 from database import SessionLocal
 from models.provider import Provider as RoutingProvider, ProviderMetric
@@ -45,6 +47,8 @@ def probe_all_providers_job():
 
 async def _probe_all_providers_async():
     """Async implementation of provider probing."""
+    await _probe_self_hosted_keepalive()
+
     db = SessionLocal()
     try:
         # Get all active providers
@@ -86,6 +90,40 @@ async def _probe_all_providers_async():
         raise
     finally:
         db.close()
+
+
+async def _probe_self_hosted_keepalive() -> None:
+    """Best-effort keepalive pings for self-hosted GCP endpoints."""
+    ollama_url = (os.getenv("OLLAMA_GCP_URL") or os.getenv("OLLAMA_BASE_URL") or "").strip()
+    llamacpp_url = (os.getenv("LLAMACPP_GCP_URL") or "").strip()
+    if not ollama_url and not llamacpp_url:
+        return
+
+    timeout = httpx.Timeout(8.0, connect=2.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        probes = []
+        if ollama_url:
+            probes.append(("ollama-gcp", f"{ollama_url.rstrip('/')}/api/tags"))
+        if llamacpp_url:
+            probes.append(("llamacpp-gcp", f"{llamacpp_url.rstrip('/')}/v1/models"))
+
+        async def ping(name: str, url: str) -> None:
+            try:
+                resp = await client.get(url)
+                if resp.status_code >= 400:
+                    logger.warning(
+                        "Self-hosted keepalive returned non-2xx",
+                        extra={"provider": name, "status_code": resp.status_code},
+                    )
+                    return
+                logger.debug("Self-hosted keepalive OK", extra={"provider": name})
+            except Exception as e:
+                logger.warning(
+                    "Self-hosted keepalive failed",
+                    extra={"provider": name, "error": type(e).__name__},
+                )
+
+        await asyncio.gather(*(ping(name, url) for name, url in probes))
 
 
 async def _probe_provider(provider: RoutingProvider) -> Dict[str, Any]:

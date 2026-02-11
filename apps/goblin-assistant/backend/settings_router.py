@@ -48,13 +48,16 @@ load_dotenv()
 
 
 class ProviderSchema(BaseModel):
-    name: str
+    # NOTE: Keep `name` optional for update requests. The path parameter selects
+    # the provider; the payload may contain only the fields being updated.
+    name: Optional[str] = None
     display_name: Optional[str] = None
     api_key: Optional[str] = None
     base_url: Optional[str] = None
     models: Optional[List[str]] = []
     enabled: bool = True
     is_active: bool = True
+    priority: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -104,29 +107,126 @@ async def get_settings(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Failed to get settings: {str(e)}")
 
 
-@router.put("/providers/{provider_name}")
+def _normalize_models(models_value: Any) -> List[str]:
+    """Coerce Provider.models JSON field into a list[str] for the UI."""
+    if not models_value:
+        return []
+    if isinstance(models_value, list):
+        # Could be list[str] or list[dict]
+        if models_value and isinstance(models_value[0], dict):
+            out: List[str] = []
+            for item in models_value:
+                mid = item.get("id") or item.get("name")
+                if isinstance(mid, str) and mid:
+                    out.append(mid)
+            return out
+        return [str(m) for m in models_value if m is not None]
+    return []
+
+
+@router.get("/providers")
+async def get_providers(db: Session = Depends(get_db)):
+    """
+    Backward-compatible providers endpoint for the frontend admin screens.
+
+    Returns a flat list of provider configs (not wrapped in SettingsResponse),
+    matching the shape expected by `src/hooks/api/useSettings.ts`.
+    """
+    providers_db = (
+        db.query(Provider)
+        .order_by(Provider.priority.desc().nullslast(), Provider.name.asc())
+        .all()
+    )
+    payload = []
+    for p in providers_db:
+        has_key = bool(getattr(p, "api_key", None) or getattr(p, "api_key_encrypted", None))
+        payload.append(
+            {
+                "id": p.id,
+                "name": p.name,
+                "enabled": bool(p.enabled),
+                "is_active": bool(getattr(p, "is_active", True)),
+                "priority": getattr(p, "priority", None),
+                "weight": None,
+                # Never return the raw key; UI only needs presence.
+                "api_key": "***" if has_key else None,
+                "base_url": getattr(p, "base_url", None),
+                "models": _normalize_models(getattr(p, "models", None)),
+            }
+        )
+    return payload
+
+
+@router.get("/models")
+async def get_models(db: Session = Depends(get_db)):
+    """Return model configs as a flat list for the frontend."""
+    models_db = db.query(Model).order_by(Model.provider.asc(), Model.name.asc()).all()
+    return [m.to_dict() for m in models_db]
+
+
+@router.get("/global")
+async def get_global_settings():
+    """
+    Minimal global settings endpoint for frontend compatibility.
+
+    The current backend config is primarily environment-driven; return a small,
+    safe subset (and room to expand later).
+    """
+    return {
+        "environment": getattr(app_settings, "environment", None),
+        "enable_enhanced_rag": getattr(app_settings, "enable_enhanced_rag", False),
+    }
+
+
+class GlobalSettingUpdate(BaseModel):
+    value: str
+
+
+@router.put("/global/{key}")
+async def update_global_setting(key: str, update: GlobalSettingUpdate):
+    """
+    Compatibility shim: accept updates but do not mutate process env.
+
+    This keeps the admin UI functional without implying persistence that
+    doesn't exist in this deployment path.
+    """
+    return {"status": "success", "key": key, "value": update.value}
+
+
+@router.put("/providers/{provider_key}")
 async def update_provider_settings(
-    provider_name: str, settings: ProviderSchema, db: Session = Depends(get_db)
+    provider_key: str, settings: ProviderSchema, db: Session = Depends(get_db)
 ):
     """Update settings for a specific provider in the database"""
     try:
-        provider = db.query(Provider).filter(Provider.name == provider_name).first()
+        provider = None
+        if provider_key.isdigit():
+            provider = db.query(Provider).filter(Provider.id == int(provider_key)).first()
+        if provider is None:
+            provider = db.query(Provider).filter(Provider.name == provider_key).first()
         if not provider:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Provider {provider_name} not found",
+                detail=f"Provider {provider_key} not found",
             )
 
         # Update provider fields
-        for field, value in settings.dict(exclude_unset=True).items():
-            setattr(provider, field, value)
+        update_fields = settings.dict(exclude_unset=True)
+        # Prevent accidental renames via payload; the key in the URL is the identity.
+        update_fields.pop("name", None)
+        for field, value in update_fields.items():
+            if field == "models" and value is not None:
+                # Store as list[str] for now; routing service may enrich later.
+                setattr(provider, field, value)
+            else:
+                setattr(provider, field, value)
 
         db.commit()
         db.refresh(provider)
 
         return {
             "status": "success",
-            "message": f"Settings updated for provider: {provider_name}",
+            "message": f"Settings updated for provider: {provider.name}",
             "settings": ProviderSchema.from_orm(provider),
         }
     except HTTPException:

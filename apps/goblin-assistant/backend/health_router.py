@@ -38,6 +38,7 @@ try:
     from .providers.anthropic_adapter import AnthropicAdapter
     from .providers.grok_adapter import GrokAdapter
     from .providers.deepseek_adapter import DeepSeekAdapter
+    from .providers.gemini_adapter import GeminiAdapter
 except ImportError:
     # Adapters may not be available in all environments
     OllamaAdapter = None
@@ -45,71 +46,25 @@ except ImportError:
     AnthropicAdapter = None
     GrokAdapter = None
     DeepSeekAdapter = None
+    GeminiAdapter = None
 
 
 async def check_database_health(db_url: str) -> Dict[str, Any]:
     """Perform comprehensive database health check."""
+    parsed = urllib.parse.urlparse(db_url)
+    scheme = (parsed.scheme or "").lower()
+
+    if not scheme.startswith("postgres"):
+        return {"status": "unhealthy", "error": "Unsupported database type"}
+
+    host = parsed.hostname
+    port = parsed.port or 5432
+    if not host:
+        return {"status": "unhealthy", "error": "Database URL is missing host"}
+
+    # TCP connectivity check (supports IPv4/IPv6)
     try:
-        # Parse database URL
-        if db_url.startswith("postgres") or db_url.startswith("postgresql"):
-            # PostgreSQL connection
-            import re
-
-            m = re.search(r"@([\w\-\.]+)(?::(\d+))?", db_url)
-            if m:
-                host = m.group(1)
-                port = int(m.group(2)) if m.group(2) else 5432
-
-                # Test TCP connectivity
-                s = socket.socket()
-                s.settimeout(5)
-                s.connect((host, port))
-                s.close()
-
-                # Test actual database connection and query
-                db = next(get_db())
-                try:
-                    # Simple query to test database connectivity
-                    result = db.execute(text("SELECT 1 as health_check")).fetchone()
-                    db.close()
-
-                    if result and result[0] == 1:
-                        return {
-                            "status": "healthy",
-                            "type": "postgresql",
-                            "host": host,
-                            "port": port,
-                            "connection_test": "passed",
-                            "query_test": "passed",
-                        }
-                    else:
-                        return {
-                            "status": "degraded",
-                            "type": "postgresql",
-                            "host": host,
-                            "port": port,
-                            "connection_test": "passed",
-                            "query_test": "failed",
-                        }
-                except Exception as e:
-                    db.close()
-                    return {
-                        "status": "degraded",
-                        "type": "postgresql",
-                        "host": host,
-                        "port": port,
-                        "connection_test": "passed",
-                        "query_test": "failed",
-                        "error": str(e),
-                    }
-            else:
-                return {
-                    "status": "unhealthy",
-                    "error": "Could not parse PostgreSQL URL",
-                }
-        else:
-            return {"status": "unhealthy", "error": "Unsupported database type"}
-
+        socket.create_connection((host, port), timeout=5).close()
     except socket.timeout:
         return {"status": "unhealthy", "error": "Database connection timeout"}
     except socket.gaierror:
@@ -117,8 +72,45 @@ async def check_database_health(db_url: str) -> Dict[str, Any]:
     except Exception as e:
         return {
             "status": "unhealthy",
-            "error": f"Database health check failed: {str(e)}",
+            "type": "postgresql",
+            "host": host,
+            "port": port,
+            "error": f"Database TCP connectivity failed: {str(e)}",
         }
+
+    # Test actual database connection and query via SQLAlchemy Session.
+    db = next(get_db())
+    try:
+        result = db.execute(text("SELECT 1 as health_check")).fetchone()
+        if result and result[0] == 1:
+            return {
+                "status": "healthy",
+                "type": "postgresql",
+                "host": host,
+                "port": port,
+                "connection_test": "passed",
+                "query_test": "passed",
+            }
+        return {
+            "status": "degraded",
+            "type": "postgresql",
+            "host": host,
+            "port": port,
+            "connection_test": "passed",
+            "query_test": "failed",
+        }
+    except Exception as e:
+        return {
+            "status": "degraded",
+            "type": "postgresql",
+            "host": host,
+            "port": port,
+            "connection_test": "passed",
+            "query_test": "failed",
+            "error": str(e),
+        }
+    finally:
+        db.close()
 
 
 async def check_llm_provider_health(
@@ -181,18 +173,39 @@ async def check_llm_provider_health(
             models = await adapter.list_models()
 
             if models and len(models) > 0:
-                # Test inference with a simple model
+                # Test inference with an available chat model
+                model_ids = {m.get("id") for m in models if isinstance(m, dict)}
+                preferred = [
+                    "gpt-4o-mini",
+                    "gpt-4o",
+                    "gpt-3.5-turbo",
+                    "gpt-4-turbo",
+                    "gpt-4",
+                ]
+                test_model = next(
+                    (m for m in preferred if m in model_ids),
+                    models[0].get("id") if isinstance(models[0], dict) else None,
+                )
                 try:
                     test_response = await adapter.chat(
-                        model="gpt-3.5-turbo",
+                        model=test_model or "gpt-3.5-turbo",
                         messages=[{"role": "user", "content": "Hello"}],
                         max_tokens=5,
                         temperature=0.0,
                     )
+                    if test_response and test_response.strip():
+                        return {
+                            "status": "healthy",
+                            "models_available": len(models),
+                            "inference_test": "passed",
+                            "test_model": test_model,
+                        }
                     return {
-                        "status": "healthy",
+                        "status": "degraded",
                         "models_available": len(models),
-                        "inference_test": "passed",
+                        "inference_test": "failed",
+                        "test_model": test_model,
+                        "error": "Empty response from inference test",
                     }
                 except Exception as e:
                     return {
@@ -215,7 +228,62 @@ async def check_llm_provider_health(
                     max_tokens=5,
                     temperature=0.0,
                 )
-                return {"status": "healthy", "inference_test": "passed"}
+                if test_response and test_response.strip():
+                    return {"status": "healthy", "inference_test": "passed"}
+                return {
+                    "status": "degraded",
+                    "inference_test": "failed",
+                    "error": "Empty response from inference test",
+                }
+            except Exception as e:
+                return {"status": "unhealthy", "error": str(e)}
+
+        elif provider_name.lower() == "deepseek" and DeepSeekAdapter:
+            adapter = DeepSeekAdapter(api_key, base_url)
+            models = await adapter.list_models()
+            test_model = "deepseek-chat"
+            if models and isinstance(models[0], dict):
+                test_model = models[0].get("id") or test_model
+            try:
+                test_response = await adapter.chat(
+                    model=test_model,
+                    messages=[{"role": "user", "content": "Hello"}],
+                    max_tokens=5,
+                    temperature=0.0,
+                )
+                if test_response and test_response.strip():
+                    return {
+                        "status": "healthy",
+                        "models_available": len(models) if models else 0,
+                        "inference_test": "passed",
+                        "test_model": test_model,
+                    }
+                return {
+                    "status": "degraded",
+                    "models_available": len(models) if models else 0,
+                    "inference_test": "failed",
+                    "test_model": test_model,
+                    "error": "Empty response from inference test",
+                }
+            except Exception as e:
+                return {
+                    "status": "unhealthy",
+                    "models_available": len(models) if models else 0,
+                    "inference_test": "failed",
+                    "error": str(e),
+                }
+
+        elif provider_name.lower() == "gemini" and GeminiAdapter:
+            adapter = GeminiAdapter(api_key, base_url)
+            try:
+                test = await adapter.test_completion(model="gemini-pro", max_tokens=10)
+                if test.get("success"):
+                    return {"status": "healthy", "inference_test": "passed"}
+                return {
+                    "status": "degraded",
+                    "inference_test": "failed",
+                    "error": test.get("error", "Inference test failed"),
+                }
             except Exception as e:
                 return {"status": "unhealthy", "error": str(e)}
 
@@ -474,54 +542,102 @@ async def health_all():
             "reason": "DATABASE_URL or SUPABASE_URL not set",
         }
 
-    # Vector DB check (Chroma sqlite file or connection)
+    # Vector DB check (Supabase pgvector, local Chroma sqlite, or hosted vector DB)
     try:
-        chroma_path = os.getenv("CHROMA_DB_PATH")
-        if not chroma_path:
-            # default path in repo
-            chroma_path = os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "..",
-                "data",
-                "vector",
-                "chroma",
-                "chroma.sqlite3",
-            )
-        chroma_file = pathlib.Path(chroma_path).resolve()
-        if chroma_file.exists():
-            checks["vector_db"] = {"status": "healthy", "path": str(chroma_file)}
-        else:
-            # If not file-backed, check hosted vector DBs (Qdrant/Chroma cloud)
-            qdrant_url = os.getenv("QDRANT_URL") or os.getenv("CHROMA_API_URL")
-            if qdrant_url:
+        # Prefer Supabase/pgvector when SUPABASE_URL is configured.
+        supabase_url = os.getenv("SUPABASE_URL")
+        if supabase_url:
+            try:
+                db = next(get_db())
                 try:
-                    parsed = urllib.parse.urlparse(qdrant_url)
-                    host = parsed.hostname
-                    port = parsed.port or (443 if parsed.scheme == "https" else 80)
-                    # attempt a TCP connection
-                    s = socket.socket()
-                    s.settimeout(3)
-                    s.connect((host, port))
-                    s.close()
-                    checks["vector_db"] = {
-                        "status": "healthy",
-                        "host": host,
-                        "port": port,
-                        "url": qdrant_url,
-                    }
-                except Exception as e:
-                    checks["vector_db"] = {
-                        "status": "unhealthy",
-                        "url": qdrant_url,
-                        "error": str(e),
-                    }
-            else:
+                    exists = bool(
+                        db.execute(
+                            text(
+                                "SELECT to_regclass('public.embeddings') IS NOT NULL"
+                            )
+                        ).scalar()
+                    )
+                    if not exists:
+                        checks["vector_db"] = {
+                            "status": "degraded",
+                            "backend": "supabase_pgvector",
+                            "error": "embeddings table not found - run pgvector migration",
+                        }
+                    else:
+                        # Lightweight accessibility check (avoid COUNT(*) table scans)
+                        db.execute(text("SELECT 1 FROM embeddings LIMIT 1")).fetchone()
+                        checks["vector_db"] = {
+                            "status": "healthy",
+                            "backend": "supabase_pgvector",
+                        }
+                finally:
+                    db.close()
+            except Exception as e:
                 checks["vector_db"] = {
                     "status": "unhealthy",
-                    "path": str(chroma_file),
-                    "error": "file not found; set CHROMA_DB_PATH or QDRANT_URL",
+                    "backend": "supabase_pgvector",
+                    "error": str(e),
                 }
+        else:
+            # Fallback: Chroma sqlite file (local) or hosted vector DB (Qdrant/Chroma cloud)
+            chroma_path = os.getenv("CHROMA_DB_PATH")
+            if not chroma_path:
+                # Prefer the Fly volume mount when present.
+                chroma_path = "/app/data/vector/chroma/chroma.sqlite3"
+                if not pathlib.Path("/app/data").exists():
+                    # default path in repo (local dev)
+                    chroma_path = os.path.join(
+                        os.path.dirname(__file__),
+                        "..",
+                        "..",
+                        "data",
+                        "vector",
+                        "chroma",
+                        "chroma.sqlite3",
+                    )
+
+            chroma_candidate = pathlib.Path(chroma_path).resolve()
+            chroma_file = (
+                (chroma_candidate / "chroma.sqlite3").resolve()
+                if chroma_candidate.is_dir()
+                else chroma_candidate
+            )
+
+            if chroma_file.exists():
+                checks["vector_db"] = {
+                    "status": "healthy",
+                    "backend": "chroma",
+                    "path": str(chroma_file),
+                }
+            else:
+                qdrant_url = os.getenv("QDRANT_URL") or os.getenv("CHROMA_API_URL")
+                if qdrant_url:
+                    try:
+                        parsed = urllib.parse.urlparse(qdrant_url)
+                        host = parsed.hostname
+                        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+                        socket.create_connection((host, port), timeout=3).close()
+                        checks["vector_db"] = {
+                            "status": "healthy",
+                            "backend": "hosted",
+                            "host": host,
+                            "port": port,
+                            "url": qdrant_url,
+                        }
+                    except Exception as e:
+                        checks["vector_db"] = {
+                            "status": "unhealthy",
+                            "backend": "hosted",
+                            "url": qdrant_url,
+                            "error": str(e),
+                        }
+                else:
+                    checks["vector_db"] = {
+                        "status": "unhealthy",
+                        "backend": "chroma",
+                        "path": str(chroma_file),
+                        "error": "file not found; set SUPABASE_URL, CHROMA_DB_PATH or QDRANT_URL",
+                    }
     except Exception as e:
         checks["vector_db"] = {"status": "unhealthy", "error": str(e)}
 
@@ -564,7 +680,7 @@ async def health_all():
             {
                 "name": "DeepSeek",
                 "env_key": "DEEPSEEK_API_KEY",
-                "base_url": os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.ai"),
+                "base_url": os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
                 "is_primary": False,
             },
             {
@@ -645,6 +761,43 @@ async def health_all():
                         overall = "degraded"
 
     return HealthCheckResponse(status=overall, checks=checks)
+
+
+# ---------------------------------------------------------------------------
+# Frontend Compatibility Endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/streaming")
+async def streaming_health():
+    """Compatibility endpoint expected by the frontend."""
+    return {
+        "status": "healthy",
+        "service": "streaming",
+        "endpoint": "/stream",
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+
+@router.get("/routing")
+async def routing_health(db: Session = Depends(get_db)):
+    """Compatibility endpoint expected by the frontend."""
+    try:
+        total = db.query(RoutingProvider).count()
+        enabled = db.query(RoutingProvider).filter(RoutingProvider.enabled.is_(True)).count()
+        return {
+            "status": "healthy" if enabled > 0 else "degraded",
+            "service": "routing",
+            "providers": {"total": total, "enabled": enabled},
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as exc:
+        return {
+            "status": "unhealthy",
+            "service": "routing",
+            "error": str(exc),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
 
 
 # ============================================================================

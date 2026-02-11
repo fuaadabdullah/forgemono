@@ -53,6 +53,7 @@ except ImportError:
     VastAIAdapter = None
 
 from .llamacpp_adapter import LlamaCppAdapter
+from .tinylama_adapter import TinyLlamaAdapter
 from .silliconflow_adapter import SilliconflowAdapter
 from .moonshot_adapter import MoonshotAdapter
 from .elevenlabs_adapter import ElevenLabsAdapter
@@ -67,6 +68,7 @@ __all__ = [
     "DeepSeekAdapter",
     "OllamaAdapter",
     "LlamaCppAdapter",
+    "TinyLlamaAdapter",
     "SilliconflowAdapter",
     "MoonshotAdapter",
     "ElevenLabsAdapter",

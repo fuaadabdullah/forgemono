@@ -215,6 +215,39 @@ class RateLimiter:
                 "rate_limit_keys": len(getattr(self, "_fallback_requests", {})),
             }
 
+    def cleanup_old_entries(self) -> int:
+        """Best-effort cleanup for in-memory fallback storage.
+
+        Redis-backed paths already expire keys, but the fallback in-memory
+        limiter can grow without bound in long-running processes.
+        """
+        if not hasattr(self, "_fallback_requests"):
+            return 0
+
+        # Use configured window if present; keep a small safety buffer.
+        try:
+            window = int(os.getenv("RATE_LIMIT_WINDOW", "60"))
+        except Exception:
+            window = 60
+        cutoff = time.time() - (window * 2)
+
+        removed = 0
+        requests_by_ip = getattr(self, "_fallback_requests", {})
+        for client_ip, endpoints in list(requests_by_ip.items()):
+            for endpoint, timestamps in list(endpoints.items()):
+                kept = [ts for ts in timestamps if ts > cutoff]
+                if kept:
+                    endpoints[endpoint] = kept
+                else:
+                    endpoints.pop(endpoint, None)
+                    removed += 1
+
+            if not endpoints:
+                requests_by_ip.pop(client_ip, None)
+                removed += 1
+
+        return removed
+
 
 # Redis-backed rate limiter (fixed window approach)
 class RedisRateLimiter:
@@ -240,6 +273,10 @@ class RedisRateLimiter:
         reset_timestamp = (bucket + 1) * window
         retry_after = 0 if allowed else int(reset_timestamp - now) + 1
         return allowed, retry_after, remaining, reset_timestamp
+
+    def cleanup_old_entries(self) -> None:
+        """No-op: keys are stored with TTLs so Redis handles cleanup."""
+        return None
 
 
 # Instantiate limiter based on REDIS_URL or fallback to in-memory

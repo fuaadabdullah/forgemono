@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any
 
 from ..database import get_db
-from models import Task
+from ..models import Task
 
 router = APIRouter()
 
@@ -27,23 +27,31 @@ async def get_cost_summary(
             "cost_by_model": {},
         }
 
-    total_cost = sum(task.cost for task in tasks)
+    # Some deployments use a Task model/table that doesn't track cost/tokens yet.
+    # Use best-effort access so the dashboard doesn't 500.
+    def task_cost(task: Task) -> float:
+        try:
+            value = getattr(task, "cost", 0.0)
+        except Exception:
+            value = 0.0
+        try:
+            return float(value or 0.0)
+        except Exception:
+            return 0.0
+
+    total_cost = sum(task_cost(task) for task in tasks)
 
     # Group costs by provider and model from task data
     cost_by_provider = {}
     cost_by_model = {}
 
     for task in tasks:
-        # Use provider and model from task data
-        # Assuming Task model has 'provider' and 'model' attributes now,
-        # which it currently doesn't, so this needs to be addressed during
-        # Task model update or by joining with other tables if applicable.
-        # For now, using mock 'unknown'
-        provider = "unknown" # task.provider if hasattr(task, 'provider') else "unknown"
-        model = "unknown" # task.model if hasattr(task, 'model') else "unknown"
+        provider = getattr(task, "provider", None) or "unknown"
+        model = getattr(task, "model", None) or "unknown"
+        cost = task_cost(task)
 
-        cost_by_provider[provider] = cost_by_provider.get(provider, 0.0) + task.cost
-        cost_by_model[model] = cost_by_model.get(model, 0.0) + task.cost
+        cost_by_provider[provider] = cost_by_provider.get(provider, 0.0) + cost
+        cost_by_model[model] = cost_by_model.get(model, 0.0) + cost
 
     return {
         "total_cost": round(total_cost, 4),

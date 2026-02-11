@@ -9,7 +9,7 @@ import google.generativeai as genai
 import logging
 
 from .base_adapter import AdapterBase
-from .provider_registry import ProviderRegistry
+from .provider_registry import get_provider_registry
 
 logger = logging.getLogger(__name__)
 
@@ -24,17 +24,27 @@ class GeminiAdapter(AdapterBase):
             api_key: Google AI API key (optional, will use registry config)
             base_url: Optional custom base URL (not used for Gemini)
         """
-        # Get provider config from registry
-        provider_config = ProviderRegistry.get_provider_config("gemini")
-        api_key = api_key or provider_config.api_key
+        registry = get_provider_registry()
+        config = registry.get_provider_config_dict("gemini")
 
-        if not api_key:
-            raise ValueError("API key is required for Gemini adapter")
+        if config:
+            if api_key is not None:
+                config["api_key"] = api_key
+            if base_url is not None:
+                config["base_url"] = base_url
+        else:
+            config = {
+                "api_key": api_key,
+                "base_url": base_url or "",
+                "timeout": 30,
+                "retries": 2,
+                "cost_per_token_input": 0.00025,
+                "cost_per_token_output": 0.0005,
+                "latency_threshold_ms": 4000,
+            }
 
-        super().__init__(provider_name="gemini")
-        self.api_key = api_key
-        self.base_url = base_url
-        genai.configure(api_key=api_key)
+        super().__init__(name="gemini", config=config)
+        genai.configure(api_key=self.api_key)
         self.client = genai
 
     async def health_check(self) -> Dict[str, Any]:

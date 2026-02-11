@@ -9,9 +9,9 @@
     "docs/*"
   ],
   "scripts": {
-    "dev": "pnpm --filter goblin-assistant-frontend dev",
-    "build": "pnpm --filter goblin-assistant-frontend build",
-    "test": "pnpm --filter goblin-assistant-frontend test",
+    "dev": "pnpm --filter goblin-assistant dev",
+    "build": "pnpm --filter goblin-assistant build",
+    "test": "pnpm --filter goblin-assistant test",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "format": "prettier --write .",

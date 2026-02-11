@@ -220,7 +220,8 @@ class RoutingManager:
         available_providers = self.registry.get_available_providers()
         provider_statuses = {}
 
-        for provider_id in available_providers:
+        for provider in available_providers:
+            provider_id = provider.provider_id
             health_info = self.health_monitor.get_provider_health(provider_id)
             metrics = self.cache.get_provider_metrics(provider_id)
 

@@ -11,7 +11,8 @@ from typing import Any, Dict, Optional, List
 from abc import ABC, abstractmethod
 
 from .circuit_breaker import get_circuit_breaker, CircuitBreakerOpen
-from .bulkhead import get_bulkhead
+from .bulkhead import get_bulkhead, BulkheadExceeded
+import asyncio
 
 logger = logging.getLogger("providers")
 
@@ -92,59 +93,50 @@ class AdapterBase(ABC):
                 },
             )
 
-    def _call_with_circuit_breaker(self, func, *args, **kwargs) -> Any:
-        """Execute function with circuit breaker protection.
+    async def _call_with_circuit_breaker(self, func, *args, **kwargs) -> Any:
+        """Execute a provider call with circuit breaker + bulkhead protection.
 
-        Args:
-            func: Function to call
-            *args: Positional arguments
-            **kwargs: Keyword arguments
-
-        Returns:
-            Function result
-
-        Raises:
-            ProviderError: If circuit is open or provider fails
+        Notes:
+            Most provider SDKs used here are synchronous. To avoid blocking the
+            FastAPI event loop, synchronous callables are executed in a thread.
         """
         try:
-            return self.bulkhead.guard(self.circuit_breaker.call(func, *args, **kwargs))
+            # Fail fast if the circuit is open.
+            self.circuit_breaker.before_call()
         except CircuitBreakerOpen as e:
             raise ProviderError(
                 self.name, f"Circuit breaker is open: {e}", {"circuit_state": "open"}
             ) from e
+
+        try:
+            async with self.bulkhead.guard():
+                try:
+                    if asyncio.iscoroutinefunction(func):
+                        result = await func(*args, **kwargs)
+                    else:
+                        result = await asyncio.to_thread(func, *args, **kwargs)
+
+                    self.circuit_breaker.record_success()
+                    return result
+                except Exception:
+                    self.circuit_breaker.record_failure()
+                    raise
+        except BulkheadExceeded as e:
+            raise ProviderError(
+                self.name,
+                f"Bulkhead limit exceeded: {e}",
+                {"bulkhead": "exceeded"},
+            ) from e
+        except ProviderError:
+            raise
         except Exception as e:
-            # Wrap any other exceptions as ProviderError
             raise ProviderError(
                 self.name, str(e), {"original_exception": type(e).__name__}
             ) from e
 
     async def _acall_with_circuit_breaker(self, func, *args, **kwargs) -> Any:
-        """Execute async function with circuit breaker protection.
-
-        Args:
-            func: Async function to call
-            *args: Positional arguments
-            **kwargs: Keyword arguments
-
-        Returns:
-            Function result
-
-        Raises:
-            ProviderError: If circuit is open or provider fails
-        """
-        try:
-            return await self.bulkhead.aguard(
-                self.circuit_breaker.acall(func, *args, **kwargs)
-            )
-        except CircuitBreakerOpen as e:
-            raise ProviderError(
-                self.name, f"Circuit breaker is open: {e}", {"circuit_state": "open"}
-            ) from e
-        except Exception as e:
-            # Wrap any other exceptions as ProviderError
-            raise ProviderError(
-                self.name, str(e), {"original_exception": type(e).__name__}
-            ) from e
+        """Backward-compatible alias for async provider calls."""
+        return await self._call_with_circuit_breaker(func, *args, **kwargs)
 
     def get_status(self) -> Dict[str, Any]:
         """Get adapter status including circuit breaker and bulkhead state.
@@ -171,7 +163,7 @@ class AdapterBase(ABC):
         }
 
     @abstractmethod
-    def generate(self, messages: List[Dict[str, str]], **kwargs) -> Dict[str, Any]:
+    async def generate(self, messages: List[Dict[str, str]], **kwargs) -> Dict[str, Any]:
         """Generate text response from the provider.
 
         Args:
@@ -201,3 +193,19 @@ class AdapterBase(ABC):
             Dict containing response data (same format as generate)
         """
         pass
+
+    async def chat(
+        self,
+        model: str,
+        messages: List[Dict[str, str]],
+        **kwargs: Any,
+    ) -> str:
+        """Default chat implementation backed by `a_generate`.
+
+        Providers that implement a more efficient native chat method may
+        override this.
+        """
+        result = await self.a_generate(messages, model=model, **kwargs)
+        if isinstance(result, dict):
+            return (result.get("content") or "").strip()
+        return str(result).strip()

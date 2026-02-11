@@ -9,7 +9,7 @@ from openai import OpenAI
 import logging
 
 from .base_adapter import AdapterBase
-from .provider_registry import ProviderRegistry
+from .provider_registry import get_provider_registry
 
 logger = logging.getLogger(__name__)
 
@@ -24,18 +24,33 @@ class DeepSeekAdapter(AdapterBase):
             api_key: DeepSeek API key (optional, will use registry config)
             base_url: Optional custom base URL
         """
-        # Get provider config from registry
-        provider_config = ProviderRegistry.get_provider_config("deepseek")
-        api_key = api_key or provider_config.api_key
-        base_url = base_url or provider_config.base_url or "https://api.deepseek.com/v1"
+        registry = get_provider_registry()
+        config = registry.get_provider_config_dict("deepseek")
 
-        if not api_key:
-            raise ValueError("API key is required for DeepSeek adapter")
+        if config:
+            if api_key is not None:
+                config["api_key"] = api_key
+            if base_url is not None:
+                config["base_url"] = base_url
+        else:
+            config = {
+                "api_key": api_key,
+                "base_url": base_url or "https://api.deepseek.com/v1",
+                "timeout": 30,
+                "retries": 2,
+                "cost_per_token_input": 0.0001,
+                "cost_per_token_output": 0.0002,
+                "latency_threshold_ms": 3000,
+            }
 
-        super().__init__(provider_name="deepseek")
-        self.api_key = api_key
-        self.base_url = base_url
-        self.client = OpenAI(api_key=api_key, base_url=self.base_url)
+        # DeepSeek is OpenAI-compatible; ensure the SDK base_url includes /v1.
+        normalized = (config.get("base_url") or "").rstrip("/")
+        if normalized and not normalized.endswith("/v1"):
+            normalized = normalized + "/v1"
+        config["base_url"] = normalized
+
+        super().__init__(name="deepseek", config=config)
+        self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check on DeepSeek API.

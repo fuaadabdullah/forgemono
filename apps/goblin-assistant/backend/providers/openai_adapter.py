@@ -27,7 +27,13 @@ class OpenAIAdapter(AdapterBase):
         registry = get_provider_registry()
         config = registry.get_provider_config_dict("openai")
 
-        if not config:
+        if config:
+            # Allow explicit overrides (e.g., DB-stored credentials/base_url).
+            if api_key is not None:
+                config["api_key"] = api_key
+            if base_url is not None:
+                config["base_url"] = base_url
+        else:
             # Fallback to manual config if registry fails
             config = {
                 "api_key": api_key,
@@ -246,7 +252,8 @@ class OpenAIAdapter(AdapterBase):
         Returns:
             Dict containing response data
         """
-        model = kwargs.get("model", "gpt-3.5-turbo")
+        # Avoid passing duplicate keyword args (e.g. model both explicit and in **kwargs)
+        model = kwargs.pop("model", "gpt-3.5-turbo")
 
         def _sync_call():
             return self.client.chat.completions.create(

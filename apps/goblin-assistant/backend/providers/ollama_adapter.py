@@ -141,7 +141,7 @@ class OllamaAdapter(AdapterBase):
         try:
             payload = {"prompt": prompt, "model": model, "stream": False}
             response = requests.post(
-                f"{self.base_url}/api/generate", json=payload, timeout=30
+                f"{self.base_url}/api/generate", json=payload, timeout=self.timeout
             )
             response.raise_for_status()
             text = response.text.strip()
@@ -209,7 +209,7 @@ class OllamaAdapter(AdapterBase):
                     f"{self.base_url}/v1/chat/completions",
                     json=payload,
                     headers=headers,
-                    timeout=60,
+                    timeout=self.timeout,
                 ),
             )
             response.raise_for_status()

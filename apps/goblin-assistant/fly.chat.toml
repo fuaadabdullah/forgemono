@@ -14,7 +14,9 @@ primary_region = "iad"
 
 [env]
   PORT = "8080"
-  MODEL_ID = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+  MODEL_ID = "Llama-3.2-1B-Instruct"
+  MODEL_DOWNLOAD_URL = "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf"
+  MODEL_FILENAME = "Llama-3.2-1B-Instruct-Q4_K_M.gguf"
   QUANTIZATION = "int4"
   MAX_CONTEXT = "2048"
   LOG_LEVEL = "INFO"

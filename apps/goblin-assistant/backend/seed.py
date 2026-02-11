@@ -130,6 +130,17 @@ def _provider_seed_data() -> list[dict]:
             }
         )
 
+    # Add TinyLlama as a local provider
+    providers.append(
+        {
+            "name": "tinylama",
+            "api_key": "",
+            "base_url": "",
+            "models": ["tinylama-1.1b-chat"],
+            "enabled": True,
+        }
+    )
+
     return providers
 
 

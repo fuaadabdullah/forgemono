@@ -1,17 +1,157 @@
+from __future__ import annotations
+
+# Essay endpoint request/response models
+from pydantic import BaseModel
+from typing import Optional, List, Dict, Any, Tuple, TYPE_CHECKING
+from fastapi import APIRouter, Request, HTTPException, Depends, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import httpx
+import os
+import asyncio
+import logging
+import sys
+
+
+class EssayRequest(BaseModel):
+    prompt: str
+    length: Optional[int] = 500
+    style: Optional[str] = "academic"
+
+
+class EssayResponse(BaseModel):
+    essay: str
+    status: str
+
+
+async def _research_topic(prompt: str) -> str:
+    """Research the essay topic using Tavily API."""
+    tavily_api_key = os.getenv("TAVILY_API_KEY")
+    if not tavily_api_key:
+        return "No research available - Tavily API key not configured."
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://api.tavily.com/search",
+                json={
+                    "api_key": tavily_api_key,
+                    "query": prompt,
+                    "search_depth": "advanced",
+                    "include_answer": True,
+                    "include_raw_content": False,
+                    "max_results": 5,
+                },
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            # Extract relevant information from search results
+            research_info = []
+            if "answer" in data and data["answer"]:
+                research_info.append(f"Summary: {data['answer']}")
+
+            if "results" in data:
+                for result in data["results"][:3]:  # Limit to top 3 results
+                    title = result.get("title", "")
+                    content = result.get("content", "")
+                    if content:
+                        research_info.append(f"{title}: {content[:300]}...")
+
+            return (
+                "\n\n".join(research_info)
+                if research_info
+                else "No relevant research found."
+            )
+
+    except Exception as e:
+        return f"Research failed: {str(e)}"
+
+
+async def _generate_essay_with_llm(
+    prompt: str, length: int, style: str, research_data: str
+) -> str:
+    """Generate essay using OpenAI directly."""
+    try:
+        from openai import OpenAI
+
+        # Get API key from environment
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+        if not openai_api_key:
+            return f"Essay generation failed: OpenAI API key not configured. Research data: {research_data[:500]}..."
+
+        client = OpenAI(api_key=openai_api_key)
+
+        # Construct the essay generation prompt
+        system_prompt = f"""You are an expert essay writer. Write a {style} essay on the following topic.
+        Use the provided research information to support your arguments.
+        Aim for approximately {length} words.
+        Structure the essay with an introduction, body paragraphs, and conclusion.
+        Use proper {style} language and formatting."""
+
+        user_prompt = f"""Topic: {prompt}
+
+Research Information:
+{research_data}
+
+Please write a complete {style} essay on this topic using the research provided."""
+
+        # Make the LLM call
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # Using cost-efficient model
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            max_tokens=length * 4,  # Rough estimate: 4 tokens per word
+            temperature=0.7,
+        )
+
+        essay_content = response.choices[0].message.content.strip()
+
+        # Add word count and style info
+        word_count = len(essay_content.split())
+        return f"**{style.title()} Essay** ({word_count} words)\n\n{essay_content}"
+
+    except Exception as e:
+        return f"Essay generation failed: {str(e)}. Research data: {research_data[:500]}..."
+
+
+essay_router = APIRouter()
+
+
+@essay_router.post("/essay", response_model=EssayResponse)
+async def generate_essay(request: Request, essay_req: EssayRequest):
+    """
+    Generate an essay based on the provided prompt, length, and style.
+    Uses Tavily for research and LLM for generation.
+    Returns essay text and status.
+    """
+    try:
+        prompt = essay_req.prompt
+        length = essay_req.length or 500
+        style = essay_req.style or "academic"
+
+        # Step 1: Research the topic using Tavily
+        research_data = await _research_topic(prompt)
+
+        # Step 2: Generate essay using LLM
+        essay = await _generate_essay_with_llm(prompt, length, style, research_data)
+
+        return EssayResponse(essay=essay, status="success")
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Essay generation failed: {str(e)}"
+        )
+
+
+def register_essay_endpoint(app):
+    app.include_router(essay_router)
+
+
 """
 Chat API endpoint with intelligent routing to local and cloud LLMs.
 Uses the routing service to select the best model based on request characteristics.
 """
-
-from __future__ import annotations
-
-import logging
-import os
-import sys
-from typing import List, Dict, Any, Tuple, TYPE_CHECKING
-
-from fastapi import APIRouter, Depends, Request, HTTPException, Security
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 # Type-only imports for static analysis
 if TYPE_CHECKING:
@@ -324,6 +464,16 @@ async def create_chat_completion(
                     logger.warning(
                         f"Rate limited request {routing_result.get('request_id')} using cheap fallback"
                     )
+
+            # Custom error for creative/essay requests
+            if request.messages and any(
+                "essay" in m.content.lower() or "creative" in m.content.lower()
+                for m in request.messages
+            ):
+                raise HTTPException(
+                    status_code=503,
+                    detail="Essay generation failed. Please try again or rephrase your request.",
+                )
 
             raise_service_unavailable(f"No suitable provider available: {error_msg}")
 

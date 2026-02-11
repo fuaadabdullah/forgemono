@@ -1,0 +1,8 @@
+feat: initial commit of Marcus's Website - customer project
+
+- Next.js application with TypeScript
+- Tailwind CSS for styling
+- Vercel deployment configuration
+- E2E tests with Playwright
+- Lighthouse performance monitoring
+- AI research documentation

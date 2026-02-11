@@ -77,20 +77,96 @@ class RoutingServiceCompat:
         # Get system status from the new routing manager
         status = self.routing_manager.get_system_status()
 
-        providers = []
-        for provider_id, provider_info in status["providers"].items():
-            # Convert new format to old format
+        registry = getattr(self.routing_manager, "registry", None)
+
+        def _normalize_provider_key(raw_key: Any) -> tuple[str, Optional[Any]]:
+            """Return a stable provider_id string and (optionally) the provider object.
+
+            In some environments we've seen provider keys accidentally be provider
+            objects instead of strings; /chat/models should never 500 on that.
+            """
+            if isinstance(raw_key, str):
+                provider_id = raw_key
+                provider_obj = None
+                if registry is not None:
+                    try:
+                        provider_obj = registry.get_provider(provider_id)
+                    except Exception:
+                        provider_obj = None
+
+                    # Some registries key providers by config id rather than provider_id.
+                    if provider_obj is None:
+                        try:
+                            for p in getattr(registry, "providers", {}).values():
+                                pid = getattr(p, "provider_id", None)
+                                if callable(pid):
+                                    pid = pid()
+                                if pid == provider_id:
+                                    provider_obj = p
+                                    break
+                        except Exception:
+                            provider_obj = None
+
+                return provider_id, provider_obj
+
+            # raw_key looks like an object; attempt to extract provider_id.
+            provider_obj = raw_key
+            provider_id = getattr(provider_obj, "provider_id", None)
+            if callable(provider_id):
+                provider_id = provider_id()
+            if not isinstance(provider_id, str) or not provider_id:
+                provider_id = provider_obj.__class__.__name__
+            return provider_id, provider_obj
+
+        providers: List[Dict[str, Any]] = []
+        for raw_provider_id, provider_info in status.get("providers", {}).items():
+            provider_id, provider_obj = _normalize_provider_key(raw_provider_id)
+
+            # Provider-level capabilities (old shape expects a list).
+            provider_caps = ["chat"]
+            models: List[Dict[str, Any]] = []
+
+            if provider_obj is not None:
+                try:
+                    caps = provider_obj.capabilities
+                except Exception:
+                    caps = {}
+
+                supports_vision = bool(caps.get("supports_vision"))
+                if supports_vision:
+                    provider_caps = ["chat", "vision"]
+
+                max_tokens = caps.get("max_tokens") or {}
+                cost_in = float(caps.get("cost_per_token_input") or 0.0)
+                cost_out = float(caps.get("cost_per_token_output") or 0.0)
+
+                for model_id in caps.get("models") or []:
+                    model_caps = ["chat"]
+                    if supports_vision:
+                        model_caps.append("vision")
+                    models.append(
+                        {
+                            "id": model_id,
+                            "capabilities": model_caps,
+                            "context_window": int(max_tokens.get(model_id, 0) or 0),
+                            "pricing": {
+                                "cost_per_token_input": cost_in,
+                                "cost_per_token_output": cost_out,
+                            },
+                        }
+                    )
+
             providers.append(
                 {
-                    "id": provider_id,  # Use provider_id as id for compatibility
+                    "id": provider_id,
                     "name": provider_id,
-                    "display_name": provider_id.replace("_", " ").title(),
-                    "capabilities": ["chat"],  # Default capability
-                    "models": [],  # Would need to be populated from provider
-                    "priority": 1,  # Default priority
-                    "is_active": provider_info["health"] == "healthy",
-                    "health_status": provider_info["health"],
-                    "metrics": provider_info["metrics"],
+                    "display_name": str(provider_id).replace("_", " ").title(),
+                    "capabilities": provider_caps,
+                    "models": models,
+                    "priority": 1,
+                    "is_active": provider_info.get("health") == "healthy",
+                    "health_status": provider_info.get("health", "unknown"),
+                    "metrics": provider_info.get("metrics", {}),
                 }
             )
 

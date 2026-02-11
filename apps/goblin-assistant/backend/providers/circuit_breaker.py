@@ -68,10 +68,17 @@ class CircuitBreaker:
         else:
             self.redis = redis_client
 
+        # In-memory fallback state (used when Redis is unavailable).
+        # This is per-process and not shared across instances.
+        self._mem_state: str = "closed"
+        self._mem_failures: int = 0
+        self._mem_successes: int = 0
+        self._mem_last_fail: Optional[float] = None
+
     def _get_state(self) -> str:
         """Get current circuit state."""
         if self.redis is None:
-            return "closed"
+            return self._mem_state
 
         try:
             state = self.redis.get(self.state_key)
@@ -83,6 +90,7 @@ class CircuitBreaker:
     def _set_state(self, state: str):
         """Set circuit state."""
         if self.redis is None:
+            self._mem_state = state
             return
 
         try:
@@ -93,7 +101,9 @@ class CircuitBreaker:
     def _should_attempt_reset(self) -> bool:
         """Check if we should attempt to reset the circuit."""
         if self.redis is None:
-            return False
+            if self._mem_last_fail is None:
+                return False
+            return time.time() - float(self._mem_last_fail) > self.recovery_timeout
 
         try:
             last_fail = self.redis.get(self.last_fail_key)
@@ -108,6 +118,18 @@ class CircuitBreaker:
     def _record_attempt(self, success: bool):
         """Record a call attempt."""
         if self.redis is None:
+            if success:
+                # Reset failure/success counts on success
+                self._mem_failures = 0
+                self._mem_successes = 0
+                self._mem_state = "closed"
+                return
+
+            # Failure path
+            self._mem_failures += 1
+            self._mem_last_fail = time.time()
+            if self._mem_failures >= self.failure_threshold:
+                self._mem_state = "open"
             return
 
         try:
@@ -155,6 +177,12 @@ class CircuitBreaker:
                         self.redis.delete(self.success_key)
                 except Exception as e:
                     logger.warning(f"Redis error recording success: {e}")
+            else:
+                self._mem_successes += 1
+                if self._mem_successes >= self.success_threshold:
+                    self._mem_state = "closed"
+                    self._mem_failures = 0
+                    self._mem_successes = 0
         else:
             self._record_attempt(True)
 
@@ -213,6 +241,16 @@ class CircuitBreaker:
                 )
             except Exception as e:
                 logger.warning(f"Redis error getting status: {e}")
+        else:
+            status.update(
+                {
+                    "current_failures": int(self._mem_failures),
+                    "current_successes": int(self._mem_successes),
+                    "last_failure_time": float(self._mem_last_fail)
+                    if self._mem_last_fail
+                    else None,
+                }
+            )
 
         return status
 
