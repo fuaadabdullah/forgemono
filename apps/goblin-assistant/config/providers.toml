@@ -65,7 +65,12 @@ cot_suppression_prompt = "Provide direct answers without explanation."
 name = "Google Vertex AI"
 endpoint = "https://us-central1-aiplatform.googleapis.com"
 capabilities = ["chat", "reasoning", "code", "image", "vision"]
-models = ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-pro", "gemini-pro-vision"]
+models = [
+  "gemini-1.5-pro",
+  "gemini-1.5-flash",
+  "gemini-pro",
+  "gemini-pro-vision",
+]
 api_key_env = "GOOGLE_CLOUD_API_KEY"
 project_id_env = "GOOGLE_CLOUD_PROJECT"
 location = "us-central1"
@@ -202,7 +207,7 @@ invoke_path = "/chat/completions"
 
 [providers.ollama_gcp]
 name = "Ollama (GCP)"
-endpoint = "http://34.132.96.22:8002"
+endpoint = "http://34.58.196.248:11434"
 capabilities = ["chat", "reasoning", "code", "embedding"]
 models = [
   "phi3:3.8b",
