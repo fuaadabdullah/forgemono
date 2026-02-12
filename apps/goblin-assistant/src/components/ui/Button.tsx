@@ -13,11 +13,11 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-primary text-text-inverse hover:brightness-110 shadow-glow-primary',
+  primary: 'bg-primary text-text-inverse hover:bg-primary-hover shadow-glow-primary',
   secondary: 'bg-surface-hover text-text border border-border hover:bg-surface-active',
-  danger: 'bg-danger text-text-inverse hover:brightness-110 shadow-glow-cta',
+  danger: 'bg-danger text-text-inverse hover:brightness-110 shadow-[0_12px_24px_rgba(226,85,79,0.25)]',
   success: 'bg-success text-text-inverse hover:brightness-110',
-  ghost: 'bg-surface text-text border border-border hover:bg-surface-hover',
+  ghost: 'bg-transparent text-text border border-border hover:bg-surface-hover',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -41,7 +41,8 @@ export default function Button({
   children,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'rounded-lg font-medium transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles =
+    'rounded-xl font-semibold transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-[1px]';
   const widthStyles = fullWidth ? 'w-full' : '';
   const flexStyles = icon ? 'flex items-center justify-center gap-2' : '';
 

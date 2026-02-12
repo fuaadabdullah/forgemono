@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+npx lint-staged
+npm run validate-env
+npm run check:appledouble
+npm run check:routes
+npm run check:features

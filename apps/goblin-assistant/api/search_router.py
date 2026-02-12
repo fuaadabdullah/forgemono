@@ -1,19 +1,13 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
-from sqlalchemy.orm import Session
 import re
-import sys
-from pathlib import Path
-
-# Add backend directory to path for imports
-backend_dir = Path(__file__).parent.parent / "backend"
-sys.path.insert(0, str(backend_dir))
-
-from database import get_db
-from models_base import SearchCollection, SearchDocument
 
 router = APIRouter(prefix="/search", tags=["search"])
+
+# Simple in-memory document storage for now
+# In production, this would be replaced with ChromaDB or another vector database
+COLLECTIONS = {}
 
 
 class SearchQuery(BaseModel):
@@ -35,14 +29,14 @@ class SearchResponse(BaseModel):
 
 
 def simple_text_search(
-    query: str, documents: List[SearchDocument], n_results: int = 10
+    query: str, documents: List[Dict], n_results: int = 10
 ) -> List[Dict]:
     """Simple text-based search implementation"""
     query_lower = query.lower()
     scored_docs = []
 
     for doc in documents:
-        text = doc.document.lower()
+        text = doc.get("document", "").lower()
         score = 0
 
         # Simple scoring based on word matches
@@ -58,9 +52,9 @@ def simple_text_search(
         if score > 0:
             scored_docs.append(
                 {
-                    "id": doc.document_id,
-                    "document": doc.document,
-                    "metadata": doc.document_metadata or {},
+                    "id": doc.get("id", f"doc_{len(scored_docs)}"),
+                    "document": doc.get("document", ""),
+                    "metadata": doc.get("metadata", {}),
                     "score": score,
                 }
             )
@@ -71,27 +65,16 @@ def simple_text_search(
 
 
 @router.post("/query", response_model=SearchResponse)
-async def search_documents(search_query: SearchQuery, db: Session = Depends(get_db)):
+async def search_documents(search_query: SearchQuery):
     """Search documents using simple text search"""
     try:
         collection_name = search_query.collection_name
 
-        # Get or create collection
-        collection = (
-            db.query(SearchCollection)
-            .filter(SearchCollection.name == collection_name)
-            .first()
-        )
+        # Get documents from collection
+        if collection_name not in COLLECTIONS:
+            COLLECTIONS[collection_name] = []
 
-        if not collection:
-            return SearchResponse(results=[], total_results=0)
-
-        # Get all documents in collection
-        documents = (
-            db.query(SearchDocument)
-            .filter(SearchDocument.collection_id == collection.id)
-            .all()
-        )
+        documents = COLLECTIONS[collection_name]
 
         if not documents:
             return SearchResponse(results=[], total_results=0)
@@ -120,11 +103,10 @@ async def search_documents(search_query: SearchQuery, db: Session = Depends(get_
 
 
 @router.get("/collections")
-async def list_collections(db: Session = Depends(get_db)):
+async def list_collections():
     """List all available collections"""
     try:
-        collections = db.query(SearchCollection).all()
-        return {"collections": [col.name for col in collections]}
+        return {"collections": list(COLLECTIONS.keys())}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to list collections: {str(e)}"
@@ -137,78 +119,32 @@ async def add_document(
     document: str,
     metadata: Optional[Dict[str, Any]] = None,
     id: Optional[str] = None,
-    db: Session = Depends(get_db),
 ):
     """Add a document to a collection"""
     try:
-        # Get or create collection
-        collection = (
-            db.query(SearchCollection)
-            .filter(SearchCollection.name == collection_name)
-            .first()
-        )
+        if collection_name not in COLLECTIONS:
+            COLLECTIONS[collection_name] = []
 
-        if not collection:
-            collection = SearchCollection(name=collection_name)
-            db.add(collection)
-            db.commit()
-            db.refresh(collection)
+        doc_id = id or f"doc_{len(COLLECTIONS[collection_name])}"
 
-        # Generate document ID if not provided
-        doc_count = (
-            db.query(SearchDocument)
-            .filter(SearchDocument.collection_id == collection.id)
-            .count()
+        COLLECTIONS[collection_name].append(
+            {"id": doc_id, "document": document, "metadata": metadata or {}}
         )
-        doc_id = id or f"doc_{doc_count}"
-
-        # Create document
-        db_document = SearchDocument(
-            collection_id=collection.id,
-            document_id=doc_id,
-            document=document,
-            document_metadata=metadata or {},
-        )
-        db.add(db_document)
-        db.commit()
 
         return {"status": "success", "document_id": doc_id}
 
     except Exception as e:
-        db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to add document: {str(e)}")
 
 
 @router.get("/collections/{collection_name}/documents")
-async def get_collection_documents(collection_name: str, db: Session = Depends(get_db)):
+async def get_collection_documents(collection_name: str):
     """Get all documents in a collection"""
     try:
-        collection = (
-            db.query(SearchCollection)
-            .filter(SearchCollection.name == collection_name)
-            .first()
-        )
-
-        if not collection:
+        if collection_name not in COLLECTIONS:
             return {"documents": []}
 
-        documents = (
-            db.query(SearchDocument)
-            .filter(SearchDocument.collection_id == collection.id)
-            .all()
-        )
-
-        formatted_docs = []
-        for doc in documents:
-            formatted_docs.append(
-                {
-                    "id": doc.document_id,
-                    "document": doc.document,
-                    "metadata": doc.document_metadata,
-                }
-            )
-
-        return {"documents": formatted_docs}
+        return {"documents": COLLECTIONS[collection_name]}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to get documents: {str(e)}"

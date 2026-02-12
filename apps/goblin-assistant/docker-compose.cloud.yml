@@ -1,0 +1,186 @@
+# Cloud Provider Services Overlay
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.cloud.yml up
+
+version: '3.8'
+
+services:
+  # ChromaDB for vector storage (RAG)
+  chroma:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+      - CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER=chromadb.auth.token.TokenConfigServerAuthCredentialsProvider
+      - CHROMA_SERVER_AUTH_CREDENTIALS=${CHROMA_AUTH_TOKEN:-goblin-chroma-token}
+      - CHROMA_SERVER_AUTH_TOKEN_TRANSPORT_HEADER=Authorization
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  # Celery worker for cloud provider training tasks
+  celery-worker-training:
+    build: .
+    command: celery -A celery_app worker --loglevel=info --concurrency=2 --pool=prefork -Q training,model_export
+    environment:
+      - ENV=production
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      # Cloud provider credentials
+      - RUNPOD_API_KEY=${RUNPOD_API_KEY}
+      - VASTAI_API_KEY=${VASTAI_API_KEY}
+      # GCS settings
+      - GCS_PROJECT_ID=${GCS_PROJECT_ID:-goblin-assistant-llm}
+      - GCS_MODEL_BUCKET=${GCS_MODEL_BUCKET:-goblin-llm-models}
+      - GCS_CHECKPOINT_BUCKET=${GCS_CHECKPOINT_BUCKET:-goblin-llm-checkpoints}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp-service-account.json
+    volumes:
+      - ./backend:/app
+      - ${GCP_CREDENTIALS_PATH:-~/.config/gcloud}:/app/credentials:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Celery worker for inference orchestration
+  celery-worker-inference:
+    build: .
+    command: celery -A celery_app worker --loglevel=info --concurrency=4 --pool=prefork -Q inference
+    environment:
+      - ENV=production
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      # Cloud provider credentials
+      - RUNPOD_API_KEY=${RUNPOD_API_KEY}
+      - VASTAI_API_KEY=${VASTAI_API_KEY}
+      # Ollama/llama.cpp local
+      - OLLAMA_URL=http://ollama:11434
+      - LLAMA_CPP_URL=http://llama-cpp:8080
+      # External providers
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Inference orchestrator API
+  inference-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.orchestrator
+    ports:
+      - "8003:8003"
+    environment:
+      - ENV=production
+      - PORT=8003
+      # Redis for caching
+      - REDIS_URL=redis://redis:6379/1
+      # Chroma for RAG
+      - CHROMA_URL=http://chroma:8000
+      - CHROMA_AUTH_TOKEN=${CHROMA_AUTH_TOKEN:-goblin-chroma-token}
+      # Cloud provider credentials
+      - RUNPOD_API_KEY=${RUNPOD_API_KEY}
+      - VASTAI_API_KEY=${VASTAI_API_KEY}
+      - GCS_PROJECT_ID=${GCS_PROJECT_ID:-goblin-assistant-llm}
+      # Ollama/llama.cpp local
+      - OLLAMA_URL=http://ollama:11434
+      - LLAMA_CPP_URL=http://llama-cpp:8080
+      # External providers
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      # Orchestration settings
+      - DEFAULT_ROUTING_STRATEGY=${DEFAULT_ROUTING_STRATEGY:-LOWEST_LATENCY}
+      - ENABLE_RESPONSE_CACHE=${ENABLE_RESPONSE_CACHE:-true}
+      - CACHE_TTL_SECONDS=${CACHE_TTL_SECONDS:-300}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+      chroma:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Model download/sync worker
+  model-sync-worker:
+    build: .
+    command: python -m services.model_storage --sync
+    environment:
+      - ENV=production
+      - GCS_PROJECT_ID=${GCS_PROJECT_ID:-goblin-assistant-llm}
+      - GCS_MODEL_BUCKET=${GCS_MODEL_BUCKET:-goblin-llm-models}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp-service-account.json
+      - LOCAL_MODEL_PATH=/models
+      - SYNC_INTERVAL_MINUTES=${MODEL_SYNC_INTERVAL:-60}
+    volumes:
+      - ./backend:/app
+      - ${GCP_CREDENTIALS_PATH:-~/.config/gcloud}:/app/credentials:ro
+      - model_cache:/models
+    restart: unless-stopped
+
+  # Provider health monitor
+  provider-health-monitor:
+    build: .
+    command: python -m services.inference_orchestrator --monitor
+    ports:
+      - "8004:8004"
+    environment:
+      - ENV=production
+      - PORT=8004
+      # Cloud providers
+      - RUNPOD_API_KEY=${RUNPOD_API_KEY}
+      - VASTAI_API_KEY=${VASTAI_API_KEY}
+      # Local providers
+      - OLLAMA_URL=http://ollama:11434
+      - LLAMA_CPP_URL=http://llama-cpp:8080
+      # External providers
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      # Monitor settings
+      - HEALTH_CHECK_INTERVAL_SECONDS=${HEALTH_CHECK_INTERVAL:-30}
+      - PROMETHEUS_PORT=9090
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  chroma_data:
+  model_cache:
+
+networks:
+  default:
+    name: goblin-cloud-network

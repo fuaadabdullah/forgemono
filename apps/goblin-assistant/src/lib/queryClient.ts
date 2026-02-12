@@ -3,22 +3,23 @@ import { QueryClient } from '@tanstack/react-query';
 /**
  * Global React Query configuration
  */
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 3, // Retry failed requests 3 times
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
-      staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
-      gcTime: 10 * 60 * 1000, // Cache for 10 minutes (formerly cacheTime)
-      refetchOnWindowFocus: false, // Don't refetch on window focus
-      refetchOnReconnect: true, // Refetch on reconnect
+export const createQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 3, // Retry failed requests 3 times
+        retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+        staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
+        gcTime: 10 * 60 * 1000, // Cache for 10 minutes (formerly cacheTime)
+        refetchOnWindowFocus: false, // Don't refetch on window focus
+        refetchOnReconnect: true, // Refetch on reconnect
+      },
+      mutations: {
+        retry: 1, // Retry mutations once
+        retryDelay: 1000,
+      },
     },
-    mutations: {
-      retry: 1, // Retry mutations once
-      retryDelay: 1000,
-    },
-  },
-});
+  });
 
 /**
  * Query keys for consistent cache management
@@ -32,6 +33,7 @@ export const queryKeys = {
   // Chat
   models: ['chat', 'models'] as const,
   routingInfo: ['chat', 'routing-info'] as const,
+  chatThreads: ['chat', 'threads'] as const,
 
   // Search
   collections: ['search', 'collections'] as const,
@@ -45,12 +47,13 @@ export const queryKeys = {
 
   // Routing
   routingProviders: (capability?: string) =>
-    capability ? ['routing', 'providers', capability] : ['routing', 'providers'] as const,
+    capability ? ['routing', 'providers', capability] : (['routing', 'providers'] as const),
   routingHealth: ['routing', 'health'] as const,
 
   // Goblins
   goblins: ['goblins'] as const,
-  goblinHistory: (goblinId: string, limit: number) => ['goblins', goblinId, 'history', limit] as const,
+  goblinHistory: (goblinId: string, limit: number) =>
+    ['goblins', goblinId, 'history', limit] as const,
   goblinStats: (goblinId: string) => ['goblins', goblinId, 'stats'] as const,
 
   // RAPTOR

@@ -1,11 +1,10 @@
 #!/bin/bash
 
-# Goblin Assistant Frontend Production Deployment Script
-# Deploys React frontend to Netlify
+# NOTE: Netlify deployment support removed.
+# Use `deploy-vercel.sh` or Vercel dashboard for frontend deployments.
 
-set -e
-
-echo "🚀 Deploying Goblin Assistant Frontend to Production"
+echo "⚠️  Netlify support removed. This script has been replaced by deploy-vercel.sh"
+exit 0
 
 # Colors for output
 RED='\033[0;31m'
@@ -30,17 +29,7 @@ print_step() {
     echo -e "${BLUE}[STEP]${NC} $1"
 }
 
-# Check if Netlify CLI is installed
-check_netlify_cli() {
-    print_step "Checking Netlify CLI..."
-
-    if ! command -v netlify &> /dev/null; then
-        print_status "Installing Netlify CLI..."
-        npm install -g netlify-cli
-    fi
-
-    print_status "Netlify CLI ready ✓"
-}
+exit 0
 
 # Check if logged in to Netlify
 check_netlify_auth() {

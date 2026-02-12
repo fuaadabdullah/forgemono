@@ -1,0 +1,10 @@
+[Unit]
+Description=Goblin DocQA socket
+
+[Socket]
+ListenStream=/run/goblinmini-docqa.sock
+SocketMode=0660
+RemoveOnStop=true
+
+[Install]
+WantedBy=sockets.target

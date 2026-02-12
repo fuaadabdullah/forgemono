@@ -1,19 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
-from sqlalchemy.orm import Session
 import uuid
 import asyncio
 import time
-import sys
-from pathlib import Path
-
-# Add backend directory to path for imports
-backend_dir = Path(__file__).parent.parent / "backend"
-sys.path.insert(0, str(backend_dir))
-
-from database import get_db
-from models_base import Stream, StreamChunk
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -38,6 +28,10 @@ class StreamTaskRequest(BaseModel):
 class StreamResponse(BaseModel):
     stream_id: str
     status: str = "started"
+
+
+# In-memory storage for streams (in production, use Redis or database)
+ACTIVE_STREAMS = {}
 
 
 @router.post("/route_task")
@@ -72,25 +66,22 @@ async def health_stream():
 
 
 @router.post("/route_task_stream_start")
-async def start_stream_task(request: StreamTaskRequest, db: Session = Depends(get_db)):
+async def start_stream_task(request: StreamTaskRequest):
     """Start a streaming task"""
     try:
         stream_id = str(uuid.uuid4())
 
-        # Create stream in database
-        db_stream = Stream(
-            id=stream_id,
-            goblin=request.goblin,
-            task=request.task,
-            code=request.code,
-            provider=request.provider,
-            model=request.model,
-            status="running",
-            user_id=None,  # TODO: Add user authentication
-        )
-        db.add(db_stream)
-        db.commit()
-        db.refresh(db_stream)
+        # Store stream information
+        ACTIVE_STREAMS[stream_id] = {
+            "goblin": request.goblin,
+            "task": request.task,
+            "code": request.code,
+            "provider": request.provider,
+            "model": request.model,
+            "status": "running",
+            "chunks": [],
+            "created_at": time.time(),
+        }
 
         # Simulate task execution (in production, this would queue the task)
         asyncio.create_task(simulate_stream_task(stream_id))
@@ -98,65 +89,38 @@ async def start_stream_task(request: StreamTaskRequest, db: Session = Depends(ge
         return StreamResponse(stream_id=stream_id, status="started")
 
     except Exception as e:
-        db.rollback()
         raise HTTPException(
             status_code=500, detail=f"Failed to start stream task: {str(e)}"
         )
 
 
 @router.get("/route_task_stream_poll/{stream_id}")
-async def poll_stream_task(stream_id: str, db: Session = Depends(get_db)):
+async def poll_stream_task(stream_id: str):
     """Poll for streaming task updates"""
-    db_stream = db.query(Stream).filter(Stream.id == stream_id).first()
-
-    if not db_stream:
+    if stream_id not in ACTIVE_STREAMS:
         raise HTTPException(status_code=404, detail="Stream not found")
 
-    # Get unprocessed chunks (those created since last poll)
-    chunks = (
-        db.query(StreamChunk)
-        .filter(StreamChunk.stream_id == stream_id)
-        .order_by(StreamChunk.id)
-        .all()
-    )
+    stream = ACTIVE_STREAMS[stream_id]
 
-    # Format chunks for response
-    formatted_chunks = []
-    for chunk in chunks:
-        formatted_chunks.append(
-            {
-                "content": chunk.content,
-                "token_count": chunk.token_count,
-                "cost_delta": chunk.cost_delta,
-                "done": chunk.done,
-            }
-        )
-
-    # Delete processed chunks (except the final one)
-    if chunks and not db_stream.status == "running":
-        db.query(StreamChunk).filter(
-            StreamChunk.stream_id == stream_id, StreamChunk.done == False
-        ).delete()
-        db.commit()
+    # Return available chunks
+    chunks = stream.get("chunks", [])
+    stream["chunks"] = []  # Clear processed chunks
 
     return {
         "stream_id": stream_id,
-        "status": db_stream.status,
-        "chunks": formatted_chunks,
-        "done": db_stream.status == "completed",
+        "status": stream["status"],
+        "chunks": chunks,
+        "done": stream["status"] == "completed",
     }
 
 
 @router.post("/route_task_stream_cancel/{stream_id}")
-async def cancel_stream_task(stream_id: str, db: Session = Depends(get_db)):
+async def cancel_stream_task(stream_id: str):
     """Cancel a streaming task"""
-    db_stream = db.query(Stream).filter(Stream.id == stream_id).first()
-
-    if not db_stream:
+    if stream_id not in ACTIVE_STREAMS:
         raise HTTPException(status_code=404, detail="Stream not found")
 
-    db_stream.status = "cancelled"
-    db.commit()
+    ACTIVE_STREAMS[stream_id]["status"] = "cancelled"
 
     return {"stream_id": stream_id, "status": "cancelled"}
 
@@ -165,55 +129,42 @@ async def simulate_stream_task(stream_id: str):
     """Simulate streaming task execution"""
     await asyncio.sleep(1)  # Initial delay
 
-    # Get new database session for async task
-    from database import SessionLocal
+    if stream_id not in ACTIVE_STREAMS:
+        return
 
-    db = SessionLocal()
-    try:
-        db_stream = db.query(Stream).filter(Stream.id == stream_id).first()
-        if not db_stream:
-            return
+    stream = ACTIVE_STREAMS[stream_id]
+    response_text = (
+        f"Executed task '{stream['task']}' using goblin '{stream['goblin']}'"
+    )
 
-        response_text = (
-            f"Executed task '{db_stream.task}' using goblin '{db_stream.goblin}'"
+    # Simulate streaming chunks
+    words = response_text.split()
+    for i, word in enumerate(words):
+        await asyncio.sleep(0.1)  # Simulate processing delay
+
+        if stream["status"] == "cancelled":
+            break
+
+        chunk = {
+            "content": word + (" " if i < len(words) - 1 else ""),
+            "token_count": len(word) // 4 + 1,
+            "cost_delta": 0.001,
+            "done": False,
+        }
+
+        stream["chunks"].append(chunk)
+
+    # Mark as completed
+    if stream["status"] != "cancelled":
+        stream["status"] = "completed"
+        stream["chunks"].append(
+            {
+                "result": response_text,
+                "cost": len(words) * 0.001,
+                "tokens": sum(len(word) for word in words) // 4,
+                "done": True,
+            }
         )
-
-        # Simulate streaming chunks
-        words = response_text.split()
-        for i, word in enumerate(words):
-            await asyncio.sleep(0.1)  # Simulate processing delay
-
-            # Refresh stream status
-            db.refresh(db_stream)
-            if db_stream.status == "cancelled":
-                break
-
-            # Create chunk
-            chunk = StreamChunk(
-                stream_id=stream_id,
-                content=word + (" " if i < len(words) - 1 else ""),
-                token_count=len(word) // 4 + 1,
-                cost_delta=0.001,
-                done=False,
-            )
-            db.add(chunk)
-            db.commit()
-
-        # Mark as completed
-        if db_stream.status != "cancelled":
-            db_stream.status = "completed"
-            # Add final chunk with summary
-            final_chunk = StreamChunk(
-                stream_id=stream_id,
-                content=response_text,
-                token_count=sum(len(word) for word in words) // 4,
-                cost_delta=len(words) * 0.001,
-                done=True,
-            )
-            db.add(final_chunk)
-            db.commit()
-    finally:
-        db.close()
 
 
 @router.get("/goblins")

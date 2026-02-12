@@ -1,0 +1,29 @@
+"""Unit test template for Python functions"""
+
+import pytest
+from {{ module_name }} import {{ function_name }}
+
+class Test{{ function_name|title }}:
+    """Test cases for {{ function_name }} function"""
+
+    def test_{{ function_name }}_basic(self):
+        """Test basic functionality"""
+        # Arrange
+        input_data = {{ test_input|default("None") }}
+
+        # Act
+        result = {{ function_name }}(input_data)
+
+        # Assert
+        assert result is not None
+
+    def test_{{ function_name }}_edge_cases(self):
+        """Test edge cases"""
+        # Test with empty input
+        result = {{ function_name }}("")
+        assert result is not None
+
+    def test_{{ function_name }}_error_handling(self):
+        """Test error handling"""
+        with pytest.raises(ValueError):
+            {{ function_name }}(None)

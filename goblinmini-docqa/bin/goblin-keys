@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+ACTION=${1:-status}
+KEYFILE="$HOME/.goblin_keys"
+case "$ACTION" in
+  status)
+    if [ -f "$KEYFILE" ]; then
+      echo "Keys file: $KEYFILE"
+      sed -n '1,50p' "$KEYFILE"
+    else
+      echo "No keys set. Run: goblin-keys set"
+    fi
+    ;;
+  set)
+    read -sp "DOCQA_TOKEN: " token; echo
+    read -p "COPILOT_API_KEY (optional): " copilot
+    mkdir -p "$(dirname "$KEYFILE")"
+    cat > "$KEYFILE" <<EOF
+DOCQA_TOKEN=$token
+COPILOT_API_KEY=$copilot
+EOF
+    echo "Keys saved to $KEYFILE"
+    ;;
+  clear)
+    rm -f "$KEYFILE" && echo "Cleared."
+    ;;
+  test)
+    if [ -f "$KEYFILE" ]; then
+      source "$KEYFILE"
+      curl -s -H "Authorization: Bearer $DOCQA_TOKEN" http://localhost:9000/health || echo "Health check failed"
+    else
+      echo "No keys file"
+    fi
+    ;;
+  *)
+    echo "Usage: goblin-keys [status|set|clear|test]"
+    ;;
+esac

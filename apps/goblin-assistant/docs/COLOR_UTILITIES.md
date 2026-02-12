@@ -33,6 +33,7 @@ export const GOBLINOS_BASE_COLORS = {
 ### 1. Generate Variants Programmatically
 
 ```javascript
+
 import { generateVariants } from './utils/colorUtils.js';
 
 const goblinGreen = '#06D06A';
@@ -66,6 +67,7 @@ console.log(GOBLINOS_PALETTE.primary);
 ### 3. Generate CSS Variables
 
 ```bash
+
 # Preview CSS output
 node scripts/generate-theme-css.js
 
@@ -74,6 +76,7 @@ node scripts/generate-theme-css.js --output src/generated-theme.css
 ```
 
 **Output**:
+
 ```css
 :root {
   --primary: #06D06A;
@@ -100,6 +103,7 @@ node scripts/generate-theme-css.js --output src/generated-theme.css
 ### 4. Generate RGBA for Glow Effects
 
 ```javascript
+
 import { hexToRgba } from './utils/colorUtils.js';
 
 const glowPrimary = hexToRgba('#06D06A', 0.14);
@@ -116,9 +120,11 @@ const glowAccent = hexToRgba('#FF2AA8', 0.22);
 Generates consistent color variants from a base hex color.
 
 **Parameters**:
+
 - `hex` (string) - Base hex color (with or without #)
 
 **Returns**: Object with properties:
+
 - `base` - Original hex color
 - `light` - Lighter variant (+20% lightness)
 - `dark` - Darker variant (-18% lightness)
@@ -126,6 +132,7 @@ Generates consistent color variants from a base hex color.
 - `hover` - Hover state variant (-5% lightness)
 
 **Example**:
+
 ```javascript
 const variants = generateVariants('#06D06A');
 ```
@@ -142,6 +149,7 @@ Converts hex color to RGBA string for glow effects.
 
 **Example**:
 ```javascript
+
 const glow = hexToRgba('#06D06A', 0.14);
 // 'rgba(6, 208, 106, 0.14)'
 ```
@@ -151,11 +159,13 @@ const glow = hexToRgba('#06D06A', 0.14);
 Generates complete theme palette with variants for all base colors.
 
 **Parameters**:
+
 - `baseColors` (object) - Object with `primary`, `accent`, `cta` hex values
 
 **Returns**: Object with generated variants for each color
 
 **Example**:
+
 ```javascript
 const palette = generateThemePalette({
   primary: '#06D06A',
@@ -175,6 +185,7 @@ Generates CSS custom properties string from palette object.
 
 **Example**:
 ```javascript
+
 const css = generateCssVariables(GOBLINOS_PALETTE);
 ```
 
@@ -229,6 +240,7 @@ applyTheme(GOBLINOS_PALETTE);
 Add to `package.json` scripts:
 
 ```json
+
 {
   "scripts": {
     "theme:generate": "node scripts/generate-theme-css.js --output src/generated-theme.css",
@@ -269,6 +281,7 @@ To change the color scheme:
 
 1. **Update base colors** in `src/utils/colorUtils.js`:
    ```javascript
+
    export const GOBLINOS_BASE_COLORS = {
      primary: '#NEW_HEX',  // Update this
      accent: '#NEW_HEX',   // Update this
@@ -277,12 +290,14 @@ To change the color scheme:
    ```
 
 2. **Regenerate variants**:
+
    ```bash
    node scripts/generate-theme-css.js
    ```
 
 3. **Verify contrast ratios**:
    ```bash
+
    node scripts/check-contrast.js
    ```
 

@@ -3,12 +3,13 @@ Routing service for provider discovery, health monitoring, and intelligent task 
 """
 
 import uuid
+import asyncio
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 import logging
 from sqlalchemy.orm import Session
 
-from models.routing import RoutingProvider, ProviderMetric, RoutingRequest
+from models.provider import Provider, ProviderMetric, RoutingRequest
 
 from providers import (
     OpenAIAdapter,
@@ -17,10 +18,14 @@ from providers import (
     DeepSeekAdapter,
     OllamaAdapter,
     LlamaCppAdapter,
+    TinyLlamaAdapter,
     SilliconflowAdapter,
     MoonshotAdapter,
     ElevenLabsAdapter,
+    VertexAdapter,
 )
+from providers.registry import get_provider_registry
+from providers.base import InferenceRequest
 from services.encryption import EncryptionService
 from services.local_llm_routing import (
     select_model,
@@ -31,6 +36,9 @@ from services.local_llm_routing import (
     Intent,
     LatencyTarget,
 )
+from services.autoscaling_service import AutoscalingService, FallbackLevel
+from services.latency_monitoring_service import LatencyMonitoringService
+from . import routing_helpers
 
 logger = logging.getLogger(__name__)
 
@@ -47,17 +55,43 @@ class RoutingService:
         """
         self.db = db
         self.encryption_service = EncryptionService(encryption_key)
+        self.latency_monitor = LatencyMonitoringService()
+        self.autoscaling_service = AutoscalingService()
+
+        # SLA and cost configuration
+        self.default_sla_targets = {
+            "ultra_low": 500,  # ms
+            "low": 1000,  # ms
+            "medium": 2000,  # ms
+            "high": 5000,  # ms
+        }
+
+        self.cost_budget_weights = {
+            "latency_priority": 0.3,  # Weight for latency in scoring
+            "cost_priority": 0.4,  # Weight for cost in scoring
+            "sla_compliance": 0.3,  # Weight for SLA compliance
+        }
+
         self.adapters = {
             "openai": OpenAIAdapter,
             "anthropic": AnthropicAdapter,
             "grok": GrokAdapter,
             "deepseek": DeepSeekAdapter,
-            "ollama": OllamaAdapter,
-            "llamacpp": LlamaCppAdapter,
+            "goblin-ollama-server": OllamaAdapter,
+            "ollama_gcp": OllamaAdapter,  # GCP-hosted Ollama uses same adapter
+            "goblin-llamacpp-server": LlamaCppAdapter,
+            "llamacpp_gcp": LlamaCppAdapter,  # GCP-hosted llama.cpp uses same adapter
+            "tinylama": TinyLlamaAdapter,
             "silliconflow": SilliconflowAdapter,
             "moonshot": MoonshotAdapter,
             "elevenlabs": ElevenLabsAdapter,
+            "vertex": VertexAdapter,
         }
+
+    async def initialize(self):
+        """Initialize async components"""
+        await self.autoscaling_service.initialize()
+        logger.info("Routing service initialized with autoscaling")
 
     async def discover_providers(self) -> List[Dict[str, Any]]:
         """Discover all active providers and their capabilities.
@@ -65,19 +99,34 @@ class RoutingService:
         Returns:
             List of provider information dictionaries
         """
-        providers = (
-            self.db.query(RoutingProvider).filter(RoutingProvider.is_active).all()
-        )
+        import asyncio
+
+        # Run database query in thread pool
+        def _sync_query():
+            return self.db.query(Provider).filter(Provider.is_active).all()
+
+        providers = await asyncio.to_thread(_sync_query)
 
         result = []
         for provider in providers:
-            # Decrypt API key
-            try:
-                api_key = self.encryption_service.decrypt(provider.api_key_encrypted)
-            except Exception as e:
-                logger.error(
-                    f"Failed to decrypt API key for provider {provider.name}: {e}"
-                )
+            # Get API key - try encrypted first, fall back to plain text
+            api_key = None
+            if provider.api_key_encrypted:
+                try:
+                    api_key = self.encryption_service.decrypt(
+                        provider.api_key_encrypted
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to decrypt API key for provider {provider.name}: {e}"
+                    )
+
+            # Fall back to plain API key if encrypted not available
+            if not api_key and provider.api_key:
+                api_key = provider.api_key
+
+            if not api_key:
+                logger.warning(f"No API key available for provider {provider.name}")
                 continue
 
             # Get adapter
@@ -97,6 +146,7 @@ class RoutingService:
                     "id": provider.id,
                     "name": provider.name,
                     "display_name": provider.display_name,
+                    "base_url": provider.base_url,
                     "capabilities": provider.capabilities,
                     "models": models,
                     "priority": provider.priority,
@@ -107,13 +157,27 @@ class RoutingService:
         return result
 
     async def route_request(
-        self, capability: str, requirements: Optional[Dict[str, Any]] = None
+        self,
+        capability: str,
+        requirements: Optional[Dict[str, Any]] = None,
+        sla_target_ms: Optional[float] = None,
+        cost_budget: Optional[float] = None,
+        latency_priority: Optional[str] = None,
+        client_ip: Optional[str] = None,
+        user_id: Optional[str] = None,
+        request_path: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Route a request to the best available provider.
+        """Route a request to the best available provider with autoscaling support.
 
         Args:
             capability: Required capability (e.g., "chat", "vision")
             requirements: Additional requirements for the request
+            sla_target_ms: SLA target response time in milliseconds
+            cost_budget: Maximum cost per request in USD
+            latency_priority: Latency priority ('ultra_low', 'low', 'medium', 'high')
+            client_ip: Client IP for rate limiting
+            user_id: User ID for rate limiting
+            request_path: Request path for emergency endpoint detection
 
         Returns:
             Dict with routing decision and provider info
@@ -121,179 +185,71 @@ class RoutingService:
         request_id = str(uuid.uuid4())
 
         try:
+            # Handle autoscaling checks and emergency routing
+            autoscaling_result = (
+                await routing_helpers.handle_autoscaling_and_emergency_routing(
+                    self.autoscaling_service,
+                    capability,
+                    requirements,
+                    request_id,
+                    client_ip,
+                    user_id,
+                    request_path,
+                )
+            )
+
+            # If rate limit exceeded, return immediately
+            if not autoscaling_result.get("success", True):
+                return autoscaling_result
+
+            # If emergency routing needed, handle it
+            if autoscaling_result.get("emergency_routing"):
+                return await self._route_emergency_request(
+                    autoscaling_result["capability"],
+                    autoscaling_result["requirements"],
+                    autoscaling_result["request_id"],
+                )
+
+            # Continue with normal routing
+            requirements = autoscaling_result.get("requirements", requirements)
+
             # Check if this is a chat request that can be handled by local LLMs
             if capability == "chat" and requirements:
-                local_routing = await self._try_local_llm_routing(requirements)
+                local_routing = await routing_helpers.handle_local_llm_routing(
+                    self.autoscaling_service,
+                    self.db,
+                    capability,
+                    requirements,
+                    request_id,
+                )
                 if local_routing:
-                    # Log the routing decision
-                    self._log_routing_request(
-                        request_id=request_id,
-                        capability=capability,
-                        requirements=requirements,
-                        selected_provider_id=local_routing.get("provider_id"),
-                        success=True,
+                    return await routing_helpers.process_local_llm_routing_result(
+                        local_routing,
+                        request_id,
+                        capability,
+                        requirements,
+                        self._log_routing_request,
                     )
 
-                    return {
-                        "success": True,
-                        "request_id": request_id,
-                        "provider": local_routing["provider"],
-                        "capability": capability,
-                        "requirements": requirements,
-                        "routing_explanation": local_routing.get("explanation"),
-                        "recommended_params": local_routing.get("params"),
-                        "system_prompt": local_routing.get("system_prompt"),
-                    }
-
-            # Find suitable providers
-            candidates = await self._find_suitable_providers(capability, requirements)
-
-            if not candidates:
-                return {
-                    "success": False,
-                    "error": f"No providers available for capability: {capability}",
-                    "request_id": request_id,
-                }
-
-            # Score and rank providers
-            scored_providers = await self._score_providers(
-                candidates, capability, requirements
+            # Handle provider selection and fallback logic
+            provider_result = (
+                await routing_helpers.handle_provider_selection_and_fallback(
+                    self,
+                    capability,
+                    requirements,
+                    request_id,
+                    sla_target_ms,
+                    cost_budget,
+                    latency_priority,
+                )
             )
 
-            if not scored_providers:
-                return {
-                    "success": False,
-                    "error": "No healthy providers available",
-                    "request_id": request_id,
-                }
-
-            # Select best provider
-            selected_provider = scored_providers[0]
-
-            # Log the routing decision
-            self._log_routing_request(
-                request_id=request_id,
-                capability=capability,
-                requirements=requirements,
-                selected_provider_id=selected_provider["id"],
-                success=True,
-            )
-
-            return {
-                "success": True,
-                "request_id": request_id,
-                "provider": selected_provider,
-                "capability": capability,
-                "requirements": requirements or {},
-            }
+            return provider_result
 
         except Exception as e:
-            logger.error(f"Routing failed for capability {capability}: {e}")
-
-            # Log failed routing
-            self._log_routing_request(
-                request_id=request_id,
-                capability=capability,
-                requirements=requirements,
-                success=False,
-                error_message=str(e),
+            return await routing_helpers.handle_routing_error(
+                e, request_id, capability, requirements, self._log_routing_request
             )
-
-            return {"success": False, "error": str(e), "request_id": request_id}
-
-    async def _try_local_llm_routing(
-        self, requirements: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
-        """Try to route request to local LLM based on intelligent routing rules.
-
-        Args:
-            requirements: Request requirements including messages, latency_target, etc.
-
-        Returns:
-            Dict with local provider info and routing details, or None if not suitable
-        """
-        try:
-            # Extract routing parameters
-            messages = requirements.get("messages", [])
-            if not messages:
-                return None
-
-            # Get optional routing hints
-            intent = requirements.get("intent")
-            if intent and isinstance(intent, str):
-                try:
-                    intent = Intent(intent)
-                except ValueError:
-                    intent = None
-
-            latency_target = requirements.get("latency_target", "medium")
-            if isinstance(latency_target, str):
-                try:
-                    latency_target = LatencyTarget(latency_target)
-                except ValueError:
-                    latency_target = LatencyTarget.MEDIUM
-
-            context_provided = requirements.get("context")
-            cost_priority = requirements.get("cost_priority", False)
-
-            # Select model using routing logic
-            model_id, params = select_model(
-                messages=messages,
-                intent=intent,
-                latency_target=latency_target,
-                context_provided=context_provided,
-                cost_priority=cost_priority,
-            )
-
-            # Find Ollama provider
-            ollama_provider = (
-                self.db.query(RoutingProvider)
-                .filter(RoutingProvider.name == "ollama", RoutingProvider.is_active)
-                .first()
-            )
-
-            if not ollama_provider:
-                logger.warning("Ollama provider not found or not active")
-                return None
-
-            # Get system prompt
-            detected_intent = intent or detect_intent(messages)
-            system_prompt = get_system_prompt(detected_intent)
-
-            # Get routing explanation
-            context_length = get_context_length(messages)
-            if context_provided:
-                from services.local_llm_routing import estimate_token_count
-
-                context_length += estimate_token_count(context_provided)
-
-            explanation = get_routing_explanation(
-                model_id, detected_intent, context_length, latency_target
-            )
-
-            # Build provider info
-            provider_info = {
-                "id": ollama_provider.id,
-                "name": ollama_provider.name,
-                "display_name": ollama_provider.display_name,
-                "model": model_id,
-                "capabilities": ollama_provider.capabilities,
-                "priority": ollama_provider.priority,
-            }
-
-            return {
-                "provider": provider_info,
-                "provider_id": ollama_provider.id,
-                "params": params,
-                "system_prompt": system_prompt,
-                "explanation": explanation,
-                "intent": detected_intent.value,
-                "context_length": context_length,
-            }
-
-        except Exception as e:
-            logger.error(f"Local LLM routing failed: {e}")
-            return None
 
     async def _find_suitable_providers(
         self, capability: str, requirements: Optional[Dict[str, Any]] = None
@@ -336,39 +292,26 @@ class RoutingService:
         Returns:
             True if requirements are met
         """
-        # Check model requirements
-        if "model" in requirements:
-            required_model = requirements["model"]
-            if not any(model["id"] == required_model for model in provider["models"]):
-                return False
-
-        # Check context window requirements
-        if "min_context_window" in requirements:
-            min_window = requirements["min_context_window"]
-            if not any(
-                model["context_window"] >= min_window for model in provider["models"]
-            ):
-                return False
-
-        # Check vision capability
-        if requirements.get("vision_required", False):
-            if "vision" not in provider["capabilities"]:
-                return False
-
-        return True
+        return routing_helpers.check_provider_requirements(provider, requirements)
 
     async def _score_providers(
         self,
         providers: List[Dict[str, Any]],
         capability: str,
         requirements: Optional[Dict[str, Any]] = None,
+        sla_target_ms: Optional[float] = None,
+        cost_budget: Optional[float] = None,
+        latency_priority: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        """Score and rank providers based on health, performance, and cost.
+        """Score and rank providers based on health, performance, cost, and SLA compliance.
 
         Args:
             providers: List of provider candidates
             capability: Required capability
             requirements: Additional requirements
+            sla_target_ms: SLA target response time in milliseconds
+            cost_budget: Maximum cost per request in USD
+            latency_priority: Latency priority level
 
         Returns:
             List of providers with scores, sorted by score descending
@@ -377,7 +320,12 @@ class RoutingService:
 
         for provider in providers:
             score = await self._calculate_provider_score(
-                provider, capability, requirements
+                provider,
+                capability,
+                requirements,
+                sla_target_ms,
+                cost_budget,
+                latency_priority,
             )
             if score > 0:  # Only include providers with positive scores (healthy)
                 provider_with_score = provider.copy()
@@ -393,13 +341,19 @@ class RoutingService:
         provider: Dict[str, Any],
         capability: str,
         requirements: Optional[Dict[str, Any]] = None,
+        sla_target_ms: Optional[float] = None,
+        cost_budget: Optional[float] = None,
+        latency_priority: Optional[str] = None,
     ) -> float:
-        """Calculate a score for a provider based on multiple factors.
+        """Calculate a score for a provider based on multiple factors including SLA and cost.
 
         Args:
             provider: Provider information
             capability: Required capability
             requirements: Additional requirements
+            sla_target_ms: SLA target response time in milliseconds
+            cost_budget: Maximum cost per request in USD
+            latency_priority: Latency priority level
 
         Returns:
             Score between 0-100 (0 = unusable, 100 = perfect)
@@ -408,19 +362,31 @@ class RoutingService:
 
         # Get recent health metrics
         health_score = await self._get_health_score(provider["id"])
-        base_score += health_score * 0.4  # 40% weight on health
+        base_score += (
+            health_score * self.cost_budget_weights["latency_priority"]
+        )  # Weighted health score
 
         # Priority bonus
         priority_bonus = provider["priority"] * 2.0
         base_score += priority_bonus
 
-        # Cost factor (prefer cheaper providers)
-        cost_penalty = await self._calculate_cost_penalty(provider, capability)
-        base_score -= cost_penalty
+        # SLA compliance bonus/penalty
+        if sla_target_ms:
+            sla_score = await self._calculate_sla_score(provider, sla_target_ms)
+            base_score += sla_score * self.cost_budget_weights["sla_compliance"]
 
-        # Performance bonus (faster = better)
+        # Cost factor with budget consideration
+        cost_penalty = self._calculate_cost_penalty_with_budget(
+            provider, capability, cost_budget
+        )
+        base_score -= cost_penalty * self.cost_budget_weights["cost_priority"]
+
+        # Performance bonus (faster = better, adjusted for latency priority)
         performance_bonus = await self._get_performance_bonus(provider["id"])
-        base_score += performance_bonus
+        latency_weight = 1.0
+        if latency_priority:
+            latency_weight = self._get_latency_weight(latency_priority)
+        base_score += performance_bonus * latency_weight
 
         # Capability match bonus
         capability_bonus = self._calculate_capability_bonus(
@@ -438,44 +404,13 @@ class RoutingService:
             provider_id: Provider ID
 
         Returns:
-            Health score (-50 to 50)
+            Health score (-50 to 75)
         """
-        # Get metrics from last hour
-        one_hour_ago = datetime.utcnow() - timedelta(hours=1)
-        metrics = (
-            self.db.query(ProviderMetric)
-            .filter(
-                ProviderMetric.provider_id == provider_id,
-                ProviderMetric.timestamp >= one_hour_ago,
-            )
-            .all()
+        return await routing_helpers.calculate_provider_health_score(
+            self.db, provider_id
         )
 
-        if not metrics:
-            return 0.0  # No data = neutral
-
-        # Calculate average health metrics
-        total_metrics = len(metrics)
-        healthy_count = sum(1 for m in metrics if m.is_healthy)
-        health_rate = healthy_count / total_metrics if total_metrics > 0 else 0
-
-        # Average response time (prefer faster)
-        avg_response_time = (
-            sum(m.response_time_ms for m in metrics if m.response_time_ms)
-            / len([m for m in metrics if m.response_time_ms])
-            if metrics
-            else 1000
-        )
-
-        # Response time score (faster = better, max 2000ms = 0 points)
-        response_time_score = max(0, 25 - (avg_response_time / 80))
-
-        # Health score: -50 (all unhealthy) to 50 (all healthy)
-        health_score = (health_rate - 0.5) * 100
-
-        return health_score + response_time_score
-
-    async def _calculate_cost_penalty(
+    def _calculate_cost_penalty(
         self, provider: Dict[str, Any], capability: str
     ) -> float:
         """Calculate cost penalty for provider.
@@ -487,19 +422,9 @@ class RoutingService:
         Returns:
             Cost penalty (0-20, higher = more expensive)
         """
-        # Find cheapest model for capability
-        min_cost = float("inf")
-        for model in provider["models"]:
-            if capability in model["capabilities"]:
-                # Use input token cost as proxy
-                cost = model["pricing"].get("input", 0.002)
-                min_cost = min(min_cost, cost)
+        from .routing_helpers import calculate_cost_penalty
 
-        if min_cost == float("inf"):
-            return 10.0  # Default penalty
-
-        # Penalty based on cost relative to baseline (0.001 = 0 penalty, 0.01 = 20 penalty)
-        return min(20.0, (min_cost - 0.001) * 2000)
+        return calculate_cost_penalty(provider, capability)
 
     async def _get_performance_bonus(self, provider_id: int) -> float:
         """Get performance bonus based on recent metrics.
@@ -510,36 +435,9 @@ class RoutingService:
         Returns:
             Performance bonus (0-15)
         """
-        # Get recent metrics
-        one_hour_ago = datetime.utcnow() - timedelta(hours=1)
-        metrics = (
-            self.db.query(ProviderMetric)
-            .filter(
-                ProviderMetric.provider_id == provider_id,
-                ProviderMetric.timestamp >= one_hour_ago,
-            )
-            .order_by(ProviderMetric.timestamp.desc())
-            .limit(10)
-            .all()
+        return await routing_helpers.calculate_provider_performance_bonus(
+            self.db, provider_id
         )
-
-        if not metrics:
-            return 0.0
-
-        # Average response time
-        response_times = [m.response_time_ms for m in metrics if m.response_time_ms]
-        if not response_times:
-            return 0.0
-
-        avg_response_time = sum(response_times) / len(response_times)
-
-        # Bonus for faster response times (under 500ms = 15 points, over 2000ms = 0)
-        if avg_response_time <= 500:
-            return 15.0
-        elif avg_response_time >= 2000:
-            return 0.0
-        else:
-            return 15.0 * (2000 - avg_response_time) / 1500
 
     def _calculate_capability_bonus(
         self,
@@ -557,21 +455,169 @@ class RoutingService:
         Returns:
             Capability bonus (0-10)
         """
-        bonus = 0.0
+        from .routing_helpers import calculate_capability_bonus
 
-        # Base capability match
-        if capability in provider["capabilities"]:
-            bonus += 5.0
+        return calculate_capability_bonus(provider, capability, requirements)
 
-        # Specific model requirement
-        if requirements and "model" in requirements:
-            required_model = requirements["model"]
-            if any(model["id"] == required_model for model in provider["models"]):
-                bonus += 5.0
+    async def _calculate_sla_score(
+        self, provider: Dict[str, Any], sla_target_ms: float
+    ) -> float:
+        """Calculate SLA compliance score for a provider.
 
-        return bonus
+        Args:
+            provider: Provider information
+            sla_target_ms: SLA target response time in milliseconds
 
-    def _log_routing_request(
+        Returns:
+            SLA score (-20 to 20, higher = better SLA compliance)
+        """
+        return await routing_helpers.calculate_provider_sla_score(
+            self.latency_monitor, self.db, provider, sla_target_ms
+        )
+
+    def _calculate_cost_penalty_with_budget(
+        self,
+        provider: Dict[str, Any],
+        capability: str,
+        cost_budget: Optional[float] = None,
+    ) -> float:
+        """Calculate cost penalty considering budget constraints.
+
+        Args:
+            provider: Provider info
+            capability: Required capability
+            cost_budget: Maximum cost per request in USD
+
+        Returns:
+            Cost penalty (0-30, higher = more expensive or over budget)
+        """
+        from .routing_helpers import calculate_cost_penalty_with_budget
+
+        return calculate_cost_penalty_with_budget(provider, capability, cost_budget)
+
+    def _get_latency_weight(self, latency_priority: str) -> float:
+        """Get latency weight multiplier based on priority.
+
+        Args:
+            latency_priority: Latency priority ('ultra_low', 'low', 'medium', 'high')
+
+        Returns:
+            Weight multiplier for latency scoring
+        """
+        weights = {
+            "ultra_low": 2.0,  # Double weight for ultra-low latency
+            "low": 1.5,  # 50% bonus for low latency
+            "medium": 1.0,  # Normal weight
+            "high": 0.7,  # Reduced weight for high latency tolerance
+        }
+        return weights.get(latency_priority, 1.0)
+
+    async def _should_use_fallback(
+        self,
+        providers: List[Dict[str, Any]],
+        sla_target_ms: Optional[float] = None,
+        latency_priority: Optional[str] = None,
+    ) -> bool:
+        """Check if we should use fallback to local models due to latency issues.
+
+        Args:
+            providers: Available providers
+            sla_target_ms: SLA target response time
+            latency_priority: Latency priority level
+
+        Returns:
+            True if fallback should be used
+        """
+        return await routing_helpers.should_use_latency_fallback(
+            self.latency_monitor,
+            providers,
+            sla_target_ms,
+            latency_priority,
+            self.default_sla_targets,
+        )
+
+    async def _get_fallback_provider(self) -> Optional[Dict[str, Any]]:
+        """Get fallback provider (local Mistral or Ollama 1b).
+
+        Returns:
+            Fallback provider info or None
+        """
+        return await routing_helpers.get_fallback_provider_info(
+            self.db, self.encryption_service, self.adapters
+        )
+
+    async def _check_autoscaling(
+        self,
+        client_ip: Optional[str],
+        user_id: Optional[str],
+        request_path: Optional[str],
+        capability: str,
+    ) -> Dict[str, Any]:
+        """Check autoscaling conditions and rate limits."""
+        from .routing_helpers import check_autoscaling_conditions
+
+        return await check_autoscaling_conditions(
+            self.autoscaling_service, client_ip, user_id, request_path, capability
+        )
+
+    async def _route_emergency_request(
+        self, capability: str, requirements: Optional[Dict[str, Any]], request_id: str
+    ) -> Dict[str, Any]:
+        """Route emergency requests with minimal functionality."""
+        try:
+            # For emergency mode, only allow basic health/auth endpoints
+            if capability == "health":
+                return {
+                    "success": True,
+                    "request_id": request_id,
+                    "provider": {
+                        "id": "emergency",
+                        "name": "emergency",
+                        "display_name": "Emergency Fallback",
+                        "model": "basic",
+                        "capabilities": ["health"],
+                    },
+                    "capability": capability,
+                    "emergency_mode": True,
+                }
+
+            # For auth, try to find any available provider
+            providers = await self.discover_providers()
+            for provider in providers:
+                if "auth" in provider.get("capabilities", []):
+                    return {
+                        "success": True,
+                        "request_id": request_id,
+                        "provider": provider,
+                        "capability": capability,
+                        "emergency_mode": True,
+                    }
+
+            # Fallback to cheap model for basic chat
+            return {
+                "success": True,
+                "request_id": request_id,
+                "provider": {
+                    "id": "fallback",
+                    "name": "goblin-ollama-server",
+                    "display_name": "Cheap Fallback Model",
+                    "model": self.autoscaling_service.cheap_fallback_model,
+                    "capabilities": ["chat"],
+                },
+                "capability": capability,
+                "emergency_mode": True,
+                "fallback_model": True,
+            }
+
+        except Exception as e:
+            logger.error(f"Emergency routing failed: {e}")
+            return {
+                "success": False,
+                "error": "Emergency routing failed",
+                "request_id": request_id,
+            }
+
+    async def _log_routing_request(
         self,
         request_id: str,
         capability: str,
@@ -580,7 +626,7 @@ class RoutingService:
         success: bool = True,
         error_message: Optional[str] = None,
     ) -> None:
-        """Log a routing request.
+        """Log a routing request asynchronously.
 
         Args:
             request_id: Unique request ID
@@ -590,17 +636,24 @@ class RoutingService:
             success: Whether routing was successful
             error_message: Error message if failed
         """
-        try:
-            routing_request = RoutingRequest(
-                request_id=request_id,
-                capability=capability,
-                requirements=requirements,
-                selected_provider_id=selected_provider_id,
-                success=success,
-                error_message=error_message,
-            )
-            self.db.add(routing_request)
-            self.db.commit()
-        except Exception as e:
-            logger.error(f"Failed to log routing request: {e}")
-            self.db.rollback()
+        import asyncio
+
+        # Run database logging in a thread pool to avoid blocking the event loop
+        def _sync_log():
+            try:
+                routing_request = RoutingRequest(
+                    request_id=request_id,
+                    capability=capability,
+                    requirements=requirements,
+                    selected_provider_id=selected_provider_id,
+                    success=success,
+                    error_message=error_message,
+                )
+                self.db.add(routing_request)
+                self.db.commit()
+            except Exception as e:
+                logger.error(f"Failed to log routing request: {e}")
+                self.db.rollback()
+
+        # Run in thread pool to avoid blocking async operations
+        await asyncio.to_thread(_sync_log)

@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  vault:
+    image: hashicorp/vault:latest
+    container_name: goblin-vault
+    restart: unless-stopped
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=goblin-vault-root-token
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+      - VAULT_ADDR=http://0.0.0.0:8200
+    volumes:
+      - vault_data:/vault/file
+      - ./logs/vault:/vault/logs
+    command: server -dev
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:15
+    container_name: goblin-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=goblin_assistant
+      - POSTGRES_USER=vault_admin
+      - POSTGRES_PASSWORD=vault_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vault_admin -d goblin_assistant"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  vault_data:
+  postgres_data:

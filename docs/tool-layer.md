@@ -48,6 +48,7 @@ The Tool Invocation Layer is a secure, auditable service that allows AI agents (
 ### Response
 
 ```json
+
 {
   "request_id": "uuid",
   "status": "ok",
@@ -121,6 +122,7 @@ The Tool Invocation Layer is a secure, auditable service that allows AI agents (
 Update `goblins.yaml` entries to call Tool Layer instead of direct commands:
 
 ```yaml
+
 # Before
 forge-lite-build:
   command: cd apps/forge-lite && pnpm build

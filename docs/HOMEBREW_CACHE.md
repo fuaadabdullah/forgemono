@@ -10,6 +10,7 @@ On some machines (small system volumes, external volumes mounted as `/Volumes/Fu
 
 What I changed for you (automated)
 ---
+
 - Backed up your `~/.zshrc` to `~/.zshrc.bak.<timestamp>` before editing.
 - Replaced any existing `HOMEBREW_CACHE` export with:
 
@@ -23,6 +24,7 @@ What I changed for you (automated)
 
 Why this is safe
 ---
+
 - The change is non-destructive: your old cache remains where it was unless you delete it explicitly. Homebrew will now download bottles to a path within your home directory where you typically have much more free space.
 - If you prefer a different location (another drive), set those env vars to that path instead.
 
@@ -41,6 +43,7 @@ How to temporarily override for a single command
 If you want one run to use a different cache or temp (without changing `~/.zshrc`), do:
 
 ```bash
+
 HOMEBREW_CACHE=/path/with/space HOMEBREW_TEMP=/path/with/space brew upgrade gh
 ```
 

@@ -1,45 +1,36 @@
-# fly.toml app configuration file generated for goblin-assistant on 2025-12-03T15:11:10-05:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = 'goblin-assistant'
-primary_region = 'iad'
+app = "goblin-backend"
+primary_region = "iad"
 
 [build]
-dockerfile = 'Dockerfile'
+dockerfile = "Dockerfile.prod"
 
 [env]
-LOG_LEVEL = 'info'
-PORT = '8001'
+PORT = "8001"
+ENVIRONMENT = "production"
+LOG_LEVEL = "INFO"
+ALLOW_MEMORY_FALLBACK = "true"
 
-[processes]
-app = 'uvicorn main:app --host 0.0.0.0 --port 8001'
-
-[[mounts]]
-source = 'chroma_db'
-destination = '/app/chroma_db'
-
-[[services]]
-protocol = 'tcp'
+[http_service]
 internal_port = 8001
-processes = ['app']
+force_https = true
+auto_stop_machines = "stop"
+auto_start_machines = true
+min_machines_running = 1
+processes = ["app"]
 
-[[services.ports]]
-port = 80
-handlers = ['http']
-
-[[services.ports]]
-port = 443
-handlers = ['tls', 'http']
-
-[[services.http_checks]]
-interval = '15s'
-timeout = '5s'
-grace_period = '5s'
-path = '/health'
+[[http_service.checks]]
+grace_period = "30s"
+interval = "30s"
+method = "GET"
+path = "/health"
+protocol = "http"
+timeout = "10s"
 
 [[vm]]
-memory = '1gb'
-cpu_kind = 'shared'
-cpus = 1
+memory = "4gb"
+cpu_kind = "shared"
+cpus = 2
+
+[[mounts]]
+source = "data"
+destination = "/app/data"

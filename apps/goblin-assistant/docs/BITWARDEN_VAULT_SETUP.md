@@ -17,6 +17,7 @@ This guide establishes a secure "Infra Vault" in Bitwarden for managing all Gobl
 2. **Run the setup script**:
 
    ```bash
+
    cd apps/goblin-assistant
    ./scripts/setup_bitwarden.sh
    ```
@@ -30,6 +31,7 @@ This guide establishes a secure "Infra Vault" in Bitwarden for managing all Gobl
 4. **Load secrets for development**:
 
    ```bash
+
    source scripts/load_env.sh
    ```
 
@@ -53,7 +55,6 @@ Infra Vault/
 ├── goblin-dev-cloudinary-key
 ├── goblin-dev-groq-key
 ├── goblin-dev-anthropic-key
-├── goblin-dev-datadog-api
 ├── goblin-prod-fastapi-secret
 ├── goblin-prod-db-url
 ├── goblin-prod-jwt-secret
@@ -62,7 +63,6 @@ Infra Vault/
 ├── goblin-prod-cloudinary-key
 ├── goblin-prod-groq-key
 ├── goblin-prod-anthropic-key
-├── goblin-prod-datadog-api
 └── goblin-ssh-private-key
 ```
 
@@ -89,6 +89,7 @@ Infra Vault/
 ### One-Time Login
 
 ```bash
+
 # Login to Bitwarden CLI
 bw login YOUR_EMAIL
 
@@ -110,6 +111,7 @@ export BW_SESSION="YOUR_SESSION_TOKEN_HERE"
 ### Single Secret Retrieval
 
 ```bash
+
 # Get a password field
 bw get password goblin-prod-fastapi-secret
 
@@ -132,6 +134,7 @@ export OPENAI_KEY=$(bw get password goblin-dev-openai-key)
 Use the provided `scripts/load_env.sh`:
 
 ```bash
+
 # Load all development secrets
 source scripts/load_env.sh
 ```
@@ -162,6 +165,7 @@ render-cli deploy
 #### Vercel
 
 ```bash
+
 # Set secrets via CLI
 vercel env add FASTAPI_SECRET production
 vercel env add DB_URL production
@@ -173,13 +177,7 @@ vercel env add DB_URL production
 # Use fly secrets set
 fly secrets set FASTAPI_SECRET=$FASTAPI_SECRET
 fly secrets set DB_URL=$DB_URL
-```
-
-#### Render
-
-```bash
-# Environment variables set in dashboard or via API
-render env set FASTAPI_SECRET $FASTAPI_SECRET
+fly secrets set FASTAPI_SECRET=$FASTAPI_SECRET
 ```
 
 ## 5. Local Development Workflow
@@ -187,6 +185,7 @@ render env set FASTAPI_SECRET $FASTAPI_SECRET
 ### Quick Environment Loading
 
 ```bash
+
 # Navigate to project root
 cd apps/goblin-assistant
 
@@ -195,6 +194,7 @@ source scripts/load_env.sh
 
 # Start development server
 npm run dev
+
 # or
 python -m uvicorn backend.main:app --reload
 ```
@@ -220,6 +220,7 @@ CLOUDFLARE_API_TOKEN=goblin-dev-cloudflare-api
 For dynamic secret loading at runtime:
 
 ```python
+
 import subprocess
 import os
 from functools import lru_cache
@@ -291,19 +292,16 @@ bw edit item goblin-prod-fastapi-secret  # Update item
 3. Add loading script to development workflow
 4. Remove plaintext secrets from repository
 
-### From SOPS (Current Setup)
+### Migration Complete
 
-This Bitwarden setup can complement or replace the existing SOPS system:
-
-- **Development**: Use Bitwarden for quick access
-- **Production**: Keep SOPS for GitOps deployments
-- **Migration**: Gradually move secrets to Bitwarden
+Bitwarden is now the primary secrets management solution for all environments.
 
 ## 9. Troubleshooting
 
 ### "Vault is locked"
 
 ```bash
+
 # Re-unlock vault
 export BW_SESSION=$(bw unlock --raw)
 ```
@@ -321,6 +319,7 @@ bw get item "exact-item-name"
 ### "Session expired"
 
 ```bash
+
 # Refresh session
 export BW_SESSION=$(bw unlock --raw)
 ```
@@ -343,24 +342,30 @@ RUN source /app/load_env.sh && echo "Secrets loaded"
 ### With Kubernetes
 
 ```yaml
+
 # Use Bitwarden CLI in init container
 apiVersion: v1
 kind: Pod
 spec:
   initContainers:
+
   - name: load-secrets
     image: bitwarden/cli:latest
     command: ["sh", "-c"]
     args:
+
     - |
       export BW_SESSION=$(bw unlock --raw)
       bw get password goblin-prod-db-url > /secrets/db-url
     volumeMounts:
+
     - name: secrets
       mountPath: /secrets
   containers:
+
   - name: app
     env:
+
     - name: DB_URL
       valueFrom:
         secretKeyRef:

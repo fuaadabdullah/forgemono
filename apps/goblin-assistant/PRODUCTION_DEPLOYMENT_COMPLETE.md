@@ -10,12 +10,14 @@
 ## 1. ✅ API Keys & Environment Configuration
 
 ### Completed
+
 - **Created** `.env.production` with all required API keys
 - **Configured** encryption keys for sensitive data storage
 - **Documented** key rotation schedule (90 days for JWT, never for encryption)
 - **Set up** comprehensive environment variable structure
 
 ### API Keys Configured
+
 - ✅ OpenAI (`OPENAI_API_KEY`)
 - ✅ Anthropic Claude (`ANTHROPIC_API_KEY`)
 - ✅ DeepSeek (`DEEPSEEK_API_KEY`)
@@ -27,6 +29,7 @@
 - ✅ Local LLM proxy configuration
 
 ### Security Keys
+
 - ✅ JWT secrets (current + standby for rotation)
 - ✅ Encryption keys (routing, settings, general)
 - ✅ Google OAuth credentials
@@ -39,6 +42,7 @@
 ## 2. ✅ Real Task Execution
 
 ### Completed
+
 - **Removed** simulation code from `execute_router.py`
 - **Implemented** real GoblinOS integration via `goblin_executor.py`
 - **Added** background task execution with FastAPI
@@ -46,6 +50,7 @@
 - **Added** dry-run support for safe testing
 
 ### Features
+
 - ✅ Validates goblin exists before execution
 - ✅ Supports both goblin commands and custom scripts
 - ✅ 5-minute timeout for task execution
@@ -54,6 +59,7 @@
 - ✅ Execution metrics (duration, returncode, stdout/stderr)
 
 ### Integration
+
 ```python
 # Executes real GoblinOS commands:
 bash GoblinOS/goblin-cli.sh run <goblin-id>
@@ -86,15 +92,17 @@ execute_custom_script(script_content)
 
 ### Production Configuration
 ```bash
+
 # Redis setup required (recommended: Upstash)
 USE_REDIS_CHALLENGES=true
 REDIS_HOST=your-redis-host
 REDIS_PASSWORD=your-redis-password
 REDIS_SSL=true
-FRONTEND_URL=https://your-production-domain.com
+FRONTEND_URL=<https://your-production-domain.com>
 ```
 
 **Documentation**:
+
 - `/apps/goblin-assistant/backend/auth/PRODUCTION_READINESS.md`
 - `/apps/goblin-assistant/backend/auth/PASSKEY_IMPLEMENTATION.md`
 
@@ -103,12 +111,14 @@ FRONTEND_URL=https://your-production-domain.com
 ## 4. ✅ Raptor System Integration
 
 ### Completed
+
 - **Verified** real RaptorMini import and integration
 - **Tested** GoblinOS path resolution
 - **Confirmed** all raptor endpoints functional
 - **Integrated** with main application
 
 ### Verified Features
+
 - ✅ `raptor.start()` - Start monitoring
 - ✅ `raptor.stop()` - Stop monitoring
 - ✅ `raptor.running` - Status check
@@ -116,6 +126,7 @@ FRONTEND_URL=https://your-production-domain.com
 - ✅ Exception tracing with `@raptor.trace`
 
 ### Endpoints
+
 - `POST /raptor/start` - Start monitoring
 - `POST /raptor/stop` - Stop monitoring
 - `GET /raptor/status` - Get status
@@ -129,6 +140,7 @@ FRONTEND_URL=https://your-production-domain.com
 ## 5. ✅ PostgreSQL Migration
 
 ### Completed
+
 - **Installed** Alembic + psycopg2-binary
 - **Initialized** Alembic configuration
 - **Generated** initial migration with all models
@@ -137,6 +149,7 @@ FRONTEND_URL=https://your-production-domain.com
 - **Created** comprehensive migration guide
 
 ### Database Configuration
+
 ```python
 # Production-ready connection pool
 pool_size=20              # Base connections
@@ -155,6 +168,7 @@ pool_pre_ping=True        # Detect stale connections
 
 ### Execute Migration
 ```bash
+
 cd apps/goblin-assistant/backend
 source venv/bin/activate
 
@@ -169,6 +183,7 @@ alembic upgrade head
 ## 📊 Database Schema
 
 ### Tables (14 total)
+
 1. **users** - User authentication
 2. **tasks** - Task execution records
 3. **streams** - WebSocket streams
@@ -191,6 +206,7 @@ alembic upgrade head
 ### Before Deployment
 
 - [ ] **Database**: Set up PostgreSQL (Supabase recommended)
+
   ```bash
   # Update .env.production with DATABASE_URL
   DATABASE_URL=postgresql://...
@@ -198,12 +214,14 @@ alembic upgrade head
 
 - [ ] **Redis**: Set up for passkey challenges (Upstash recommended)
   ```bash
+
   USE_REDIS_CHALLENGES=true
   REDIS_HOST=...
   REDIS_PASSWORD=...
   ```
 
 - [ ] **Environment**: Copy .env.production to production server
+
   ```bash
   # Never commit this file!
   # Use Render/Fly.io secrets or env variables
@@ -211,35 +229,39 @@ alembic upgrade head
 
 - [ ] **Migrations**: Run database migrations
   ```bash
+
   alembic upgrade head
   ```
 
 - [ ] **CORS**: Update allowed origins
+
   ```python
   ALLOWED_ORIGINS=https://your-domain.com
   ```
 
 - [ ] **Frontend URL**: Set for WebAuthn
   ```bash
-  FRONTEND_URL=https://your-domain.com
+
+  FRONTEND_URL=<https://your-domain.com>
   ```
 
 ### Deployment Steps
 
-1. **Backend to Render/Fly.io**
+1. **Backend to Fly.io**
+
    ```bash
    cd apps/goblin-assistant
-   ./deploy-backend.sh render
-   # OR
    ./deploy-backend.sh fly
    ```
 
-2. **Frontend to Netlify**
+2. **Frontend to Vercel**
    ```bash
+
    ./deploy-frontend.sh
    ```
 
 3. **Database Migration**
+
    ```bash
    # After backend deployed, run migrations
    alembic upgrade head
@@ -257,7 +279,7 @@ alembic upgrade head
 - [ ] **Check database** connection pool
 - [ ] **Verify Redis** challenge storage
 - [ ] **Test all API** endpoints
-- [ ] **Enable monitoring** (Datadog, Sentry)
+- [ ] **Enable monitoring** (Sentry, Vercel Analytics, Fly.io Metrics)
 - [ ] **Set up backups** (automatic with Supabase)
 - [ ] **Document** production URLs
 
@@ -273,9 +295,8 @@ alembic upgrade head
 
 ### Logs
 ```bash
+
 # Backend logs
-render logs
-# OR
 fly logs
 
 # Raptor logs
@@ -283,6 +304,7 @@ POST /raptor/logs
 ```
 
 ### Metrics to Track
+
 - API response times
 - Database connection pool usage
 - Task execution success rate
@@ -294,6 +316,7 @@ POST /raptor/logs
 ## 🔐 Security Considerations
 
 ### Implemented
+
 - ✅ Encrypted API key storage
 - ✅ JWT authentication with rotation
 - ✅ Challenge-response authentication
@@ -303,6 +326,7 @@ POST /raptor/logs
 - ✅ Query timeout limits (30s)
 
 ### Recommended
+
 - [ ] Rate limiting on auth endpoints
 - [ ] DDoS protection (Cloudflare)
 - [ ] Regular security audits
@@ -315,6 +339,7 @@ POST /raptor/logs
 ## 🎯 Performance Optimizations
 
 ### Database
+
 - ✅ Connection pooling (20 + 40 overflow)
 - ✅ Pre-ping for stale connections
 - ✅ Connection recycling (1 hour)
@@ -322,6 +347,7 @@ POST /raptor/logs
 - ✅ Indexes on all primary keys
 
 ### Application
+
 - ✅ Background task execution
 - ✅ Async/await for I/O operations
 - ✅ Redis for fast challenge storage
@@ -352,9 +378,9 @@ All five production tasks are **COMPLETE** and **READY FOR DEPLOYMENT**:
 
 1. Set up PostgreSQL database (Supabase)
 2. Set up Redis (Upstash)
-3. Deploy backend (Render/Fly.io)
+3. Deploy backend (Fly.io)
 4. Run migrations
-5. Deploy frontend (Netlify)
+5. Deploy frontend (Vercel)
 6. Test production deployment
 
 ---

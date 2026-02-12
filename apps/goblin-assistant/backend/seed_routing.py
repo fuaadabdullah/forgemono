@@ -12,7 +12,7 @@ backend_dir = Path(__file__).parent / "backend"
 sys.path.insert(0, str(backend_dir))
 
 from database import SessionLocal, create_tables
-from models.routing import RoutingProvider
+from models.provider import Provider as RoutingProvider
 from services.encryption import EncryptionService
 
 # Default provider configurations
@@ -260,6 +260,86 @@ DEFAULT_PROVIDERS = [
         "rate_limits": {"requests_per_minute": 30, "tokens_per_minute": 15000},
         "cost_per_token": 0.0,  # Free local inference
         "priority": 14,  # High priority for local models
+        "is_active": True,
+    },
+    {
+        "name": "ollama_gcp",
+        "display_name": "Ollama (GCP)",
+        "base_url": "http://YOUR_GCP_OLLAMA_IP:8002",  # Update with actual GCP endpoint
+        "capabilities": ["chat", "reasoning", "code", "embedding"],
+        "models": [
+            {
+                "id": "phi3:3.8b",
+                "name": "Phi-3 3.8B",
+                "capabilities": ["chat"],
+                "context_window": 4096,
+                "pricing": {"input": 0.0, "output": 0.0},  # Free self-hosted model
+            },
+            {
+                "id": "gemma:2b",
+                "name": "Gemma 2B",
+                "capabilities": ["chat"],
+                "context_window": 8192,
+                "pricing": {"input": 0.0, "output": 0.0},
+            },
+            {
+                "id": "qwen2.5:3b",
+                "name": "Qwen 2.5 3B",
+                "capabilities": ["chat"],
+                "context_window": 32768,
+                "pricing": {"input": 0.0, "output": 0.0},
+            },
+            {
+                "id": "deepseek-coder:1.3b",
+                "name": "DeepSeek Coder 1.3B",
+                "capabilities": ["chat", "code"],
+                "context_window": 16384,
+                "pricing": {"input": 0.0, "output": 0.0},
+            },
+            {
+                "id": "mistral:7b",
+                "name": "Mistral 7B",
+                "capabilities": ["chat"],
+                "context_window": 4096,
+                "pricing": {"input": 0.0, "output": 0.0},
+            },
+        ],
+        "rate_limits": {"requests_per_minute": 60, "tokens_per_minute": 30000},
+        "cost_per_token": 0.0,  # Free self-hosted inference
+        "priority": 16,  # High priority for self-hosted models
+        "is_active": True,
+    },
+    {
+        "name": "llamacpp_gcp",
+        "display_name": "Llama.cpp (GCP)",
+        "base_url": "http://YOUR_GCP_LLAMACPP_IP:8002",  # Update with actual GCP endpoint
+        "capabilities": ["chat", "reasoning", "code"],
+        "models": [
+            {
+                "id": "phi-3-mini-4k-instruct-q4",
+                "name": "Phi-3 Mini 4K Instruct Q4",
+                "capabilities": ["chat"],
+                "context_window": 4096,
+                "pricing": {"input": 0.0, "output": 0.0},  # Free self-hosted model
+            },
+            {
+                "id": "llama-2-7b-chat-q4_k_m",
+                "name": "Llama 2 7B Chat Q4_K_M",
+                "capabilities": ["chat"],
+                "context_window": 4096,
+                "pricing": {"input": 0.0, "output": 0.0},
+            },
+            {
+                "id": "mistral-7b-instruct-v0.2-q4_k_m",
+                "name": "Mistral 7B Instruct v0.2 Q4_K_M",
+                "capabilities": ["chat"],
+                "context_window": 4096,
+                "pricing": {"input": 0.0, "output": 0.0},
+            },
+        ],
+        "rate_limits": {"requests_per_minute": 30, "tokens_per_minute": 15000},
+        "cost_per_token": 0.0,  # Free self-hosted inference
+        "priority": 15,  # High priority for self-hosted models
         "is_active": True,
     },
     {

@@ -27,7 +27,8 @@ ollama run llama3.2:3b "Hello, how are you?"
 The model will auto-load on first use, but you can pre-warm it:
 
 ```bash
-curl http://45.61.60.3:8002/api/generate -d '{
+
+curl <http://45.61.60.3:8002/api/generate> -d '{
   "model": "llama3.2:3b",
   "prompt": "Test",
   "stream": false
@@ -76,11 +77,13 @@ If you can't access the remote server, you can:
 
 1. Use an alternative smaller model already on the server:
    ```python
+
    # In output_verification.py, change default to:
    verifier_model: str = "qwen2.5:3b"  # Already deployed
    ```
 
 2. Or disable verification for now:
+
    ```json
    {
      "messages": [...],

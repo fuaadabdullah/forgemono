@@ -1,0 +1,68 @@
+# Fly.io Chat Backend - Lightweight Docker Image
+# Optimized for shared-cpu-2x instances (2GB RAM)
+
+FROM python:3.11-slim as builder
+
+WORKDIR /build
+
+# Install build dependencies for llama-cpp-python
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Python dependencies
+COPY backend/requirements-chat.txt requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Build llama-cpp-python with CPU optimizations
+RUN CMAKE_ARGS="-DLLAMA_AVX2=ON -DLLAMA_F16C=ON" \
+    pip install --no-cache-dir llama-cpp-python==0.2.55
+
+# Production image
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Create non-root user
+RUN groupadd -r goblin && useradd -r -g goblin goblin
+
+# Create model directory
+RUN mkdir -p /app/models && chown -R goblin:goblin /app
+
+# Copy application code
+COPY --chown=goblin:goblin backend/api/chat_backend.py /app/api/
+RUN touch /app/api/__init__.py
+
+# Set environment
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    PORT=8080
+
+# NOTE: Run as root so the mounted Fly volume at /app/models is writable.
+# (Volumes are typically root-owned; running as a non-root user breaks auto-download.)
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Run the chat backend
+CMD ["python", "-m", "uvicorn", "api.chat_backend:app", "--host", "0.0.0.0", "--port", "8080"]

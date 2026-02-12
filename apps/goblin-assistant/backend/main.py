@@ -1,38 +1,45 @@
 import os
 import sys
 import asyncio
+import time
 from pathlib import Path
-from fastapi import FastAPI, Request
+from typing import Any, Dict, List, Optional
+from fastapi import FastAPI, Body, APIRouter, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.responses import Response
+from pydantic import BaseModel, Field
+
+# Add current directory to path for relative imports
+sys.path.insert(0, str(Path(__file__).parent))
+
+# Initialize monitoring first (before other imports)
+from .monitoring import init_sentry
+from .opentelemetry_config import init_opentelemetry, instrument_fastapi_app
+
+init_sentry()
+init_opentelemetry()
 
 # Ensure dynamic module paths are available before importing project routers
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "GoblinOS"))
-sys.path.insert(0, str(Path(__file__).parent.parent / "api"))
+# Ensure we do NOT insert the legacy `api/` folder into sys.path as it may
+# shadow the actual backend package (see REORG_PLAN.md). If additional
+# import paths are required for development, add them explicitly and prefer
+# `apps/goblin-assistant/backend/`.
 
 # Import middleware
-from middleware.rate_limiter import RateLimitMiddleware, limiter
-from middleware.logging_middleware import StructuredLoggingMiddleware, setup_logging
-from middleware.metrics import PrometheusMiddleware, get_metrics, CONTENT_TYPE_LATEST
+from .middleware.rate_limiter import RateLimitMiddleware, limiter
+from .middleware.logging_middleware import StructuredLoggingMiddleware, setup_logging
+from .middleware.request_id_middleware import RequestIDMiddleware
+from .middleware.security_headers import SecurityHeadersMiddleware
 
-from debugger.router import router as debugger_router
-
-"""FastAPI backend main module with deferred initialization.
-
-Adjust import of cleanup_expired_challenges to be resilient when an alternate
-auth package (e.g. apps/goblin-assistant/api/auth) shadows the intended
-backend/auth module and does not expose the function. We fall back to a stub
-to avoid hard startup failure while still cleaning up gracefully when the
-real implementation is available.
-
-Version: 1.0.1 - Datadog logging enabled
-"""
+# Import routers
+from .debugger.router import router as debugger_router
+from .providers.ollama_adapter import OllamaAdapter
 
 try:  # Prefer full implementation
-    from auth.router import router as auth_router, cleanup_expired_challenges  # type: ignore
+    from .auth.router import router as auth_router, cleanup_expired_challenges  # type: ignore
 except Exception:  # noqa: BLE001
     try:
-        from auth.router import router as auth_router  # type: ignore
+        from .auth.router import router as auth_router  # type: ignore
     except Exception:  # noqa: BLE001
         # As a last resort define a minimal router stub to keep app booting.
         from fastapi import APIRouter
@@ -46,32 +53,47 @@ except Exception:  # noqa: BLE001
         return 0
 
 
-from search_router import router as search_router
-from settings_router import router as settings_router
-from execute_router import router as execute_router
-from api_keys_router import router as api_keys_router
-from parse_router import router as parse_router
-from routing_router import router as routing_router
-from chat_router import router as chat_router
-from api_router import router as api_router
-from stream_router import router as stream_router
-from health_router import router as health_router
-from dashboard_router import router as dashboard_router
-from tasks.provider_probe_worker import ProviderProbeWorker
-from raptor_router import router as raptor_router
+from .search_router import router as search_router
+from .settings_router import router as settings_router
+from .execute_router import router as execute_router
+from .auth.api_keys_router import router as api_keys_router
+from .auth.auth_router import router as jwt_auth_router
+from .parse_router import router as parse_router
+from .routing_router import router as routing_router
+from .chat_router import router as chat_router, essay_router
+from .api_router import router as api_router
+from .stream_router import router as stream_router
+from .sandbox_router import router as sandbox_router
+from .health_router import router as health_router
+from .health.llm_health import router as llm_health_router
+from .dashboard_router import router as dashboard_router
+from .rag_router import router as rag_router
+from .routers.goblins_router import router as goblins_router
+from .routers.cost_router import router as cost_router
+from .routers.user_auth_router import router as user_auth_router
+from .support_router import router as support_router
+from .providers_management_router import router as providers_management_router
+from .account_router import router as account_router
+
+# Multi-cloud orchestrator
+try:
+    from .orchestrator import orchestrator_router
+except ImportError:
+    from fastapi import APIRouter
+
+    orchestrator_router = APIRouter()
+
+try:
+    from .raptor_router import router as raptor_router
+except ImportError:
+    # Create a stub router if raptor_mini is not available
+    from fastapi import APIRouter
+
+    raptor_router = APIRouter()
 
 # Database imports
-from database import create_tables
-
-"""Main FastAPI application setup with deferred heavy initialization for faster cold starts."""
-
-# Import models only if needed later; keep minimal imports here to reduce startup overhead.
-# (If these are required for ORM table creation side-effects, uncomment selectively.)
-# from models import User, Task, Stream, StreamChunk, SearchCollection, SearchDocument
-# from models.settings import Provider, ProviderCredential, ModelConfig, GlobalSetting
-# from models.routing import RoutingProvider, ProviderMetric, RoutingRequest
-
-# (imports consolidated at top for style compliance)
+from .database import create_tables, SessionLocal
+from .seed import seed_database
 
 # Add GoblinOS to path for raptor
 try:
@@ -87,11 +109,104 @@ except ImportError:
 
     raptor = _RaptorStub()
 
+
+async def validate_startup_configuration():
+    """Validate critical configuration and dependencies before server starts"""
+    print("🔍 Validating startup configuration...")
+
+    issues = []
+
+    # Check configuration
+    try:
+        from .config import settings
+
+        print(
+            f"✅ Configuration loaded: environment={settings.environment}, instances={settings.instance_count}"
+        )
+
+        # Validate production requirements
+        if settings.is_production and not settings.database_url:
+            issues.append("DATABASE_URL required in production environment")
+
+        if (
+            settings.is_production
+            and settings.allow_memory_fallback
+            and settings.is_multi_instance
+        ):
+            issues.append("Memory fallback not allowed in multi-instance production")
+
+        if settings.is_production and not os.getenv("ROUTING_ENCRYPTION_KEY"):
+            issues.append(
+                "ROUTING_ENCRYPTION_KEY required in production for chat routing"
+            )
+
+    except ImportError:
+        issues.append("Configuration system not available")
+    except Exception as e:
+        issues.append(f"Configuration validation failed: {e}")
+
+    # Check critical dependencies
+    try:
+        from .scripts.check_dependencies import check_pydantic_email, check_redis
+
+        if not check_pydantic_email():
+            issues.append("Email validation dependencies not properly configured")
+        redis_available = check_redis()
+        if (
+            not redis_available
+            and settings.is_production
+            and settings.is_multi_instance
+        ):
+            issues.append(
+                "Redis required but not available in multi-instance production"
+            )
+    except ImportError:
+        print("⚠️  Dependency checker not available - skipping automated checks")
+    except Exception as e:
+        issues.append(f"Dependency validation failed: {e}")
+
+    # Report issues
+    if issues:
+        print("❌ Startup validation failed:")
+        for issue in issues:
+            print(f"  - {issue}")
+        print(
+            "\n🚨 Critical configuration issues detected. Server may not function properly."
+        )
+        print("   Check the issues above and fix before proceeding to production.")
+        # Don't exit - allow server to start with warnings for development
+        if settings.is_production:
+            print(
+                "   In production environment, these issues should be resolved immediately."
+            )
+    else:
+        print("✅ Startup validation passed - all systems ready")
+
+    return len(issues) == 0
+
+
+"""FastAPI backend main module with deferred initialization.
+
+Adjust import of cleanup_expired_challenges to be resilient when an alternate
+auth package (e.g. apps/goblin-assistant/api/auth) shadows the intended
+backend/auth module and does not expose the function. We fall back to a stub
+to avoid hard startup failure while still cleaning up gracefully when the
+real implementation is available.
+
+Version: 1.0.1 - Structured logging enabled
+"""
+
 app = FastAPI(
     title="GoblinOS Assistant Backend",
     description="Backend API for GoblinOS Assistant with debug capabilities",
     version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
 )
+
+# Instrument FastAPI app with OpenTelemetry
+instrument_fastapi_app(app)
 
 # Configure structured logging
 log_level = os.getenv("LOG_LEVEL", "INFO")
@@ -99,19 +214,33 @@ logger = setup_logging(log_level)
 
 
 # Global variables for routing components
-routing_probe_worker = None
 challenge_cleanup_task = None
 rate_limiter_cleanup_task = None
 
 
 SKIP_RAPTOR_INIT = os.getenv("SKIP_RAPTOR_INIT", "0") == "1"
-SKIP_PROBE_INIT = os.getenv("SKIP_PROBE_INIT", "0") == "1"
 
 
 # Create database tables on startup (keep minimal blocking work only)
 @app.on_event("startup")
 async def startup_event():
+    # Validate configuration first
+    await validate_startup_configuration()
+
     create_tables()
+
+    # Seed the database only if database is properly initialized
+    from .database import _db_initialized
+
+    if _db_initialized and SessionLocal is not None:
+        db = SessionLocal()
+        try:
+            seed_database(db)
+        finally:
+            db.close()
+    else:
+        print("[WARNING] Skipping database seeding - database not properly initialized")
+        print("[WARNING] Set DATABASE_URL to a valid PostgreSQL connection string")
 
     # Always start challenge cleanup early (cheap)
     global challenge_cleanup_task
@@ -140,21 +269,18 @@ async def deferred_initialization():
         except Exception as e:
             print(f"Warning: Deferred Raptor monitoring start failed: {e}")
 
+    # Initialize APScheduler for lightweight periodic tasks
+    try:
+        from .scheduler import start_scheduler
+
+        start_scheduler()
+        print("Started APScheduler for lightweight periodic tasks (deferred)")
+    except Exception as e:
+        print(f"Warning: Deferred APScheduler start failed: {e}")
+
     # Initialize routing probe worker if encryption key is available (optional)
-    global routing_probe_worker
-    if SKIP_PROBE_INIT:
-        print("Skipping routing probe worker init (SKIP_PROBE_INIT=1)")
-    else:
-        routing_encryption_key = os.getenv("ROUTING_ENCRYPTION_KEY")
-        if routing_encryption_key:
-            try:
-                routing_probe_worker = ProviderProbeWorker(routing_encryption_key)
-                await routing_probe_worker.start()
-                print("Started routing probe worker (deferred)")
-            except Exception as e:
-                print(f"Warning: Deferred routing probe worker start failed: {e}")
-        else:
-            print("ROUTING_ENCRYPTION_KEY not set; probe worker not started")
+    # REMOVED: APScheduler with Redis locks now handles all periodic probing
+    # to prevent duplicate work across replicas
 
 
 async def challenge_cleanup_worker():
@@ -188,6 +314,15 @@ async def rate_limiter_cleanup_worker():
 
 @app.on_event("shutdown")
 async def shutdown_event():
+    # Stop APScheduler
+    try:
+        from .scheduler import stop_scheduler
+
+        stop_scheduler()
+        print("Stopped APScheduler")
+    except Exception as e:
+        print(f"Warning: Failed to stop APScheduler: {e}")
+
     # Stop Raptor monitoring system
     try:
         raptor.stop()
@@ -195,11 +330,15 @@ async def shutdown_event():
     except Exception as e:
         print(f"Warning: Failed to stop Raptor monitoring: {e}")
 
-    # Stop routing probe worker
-    global routing_probe_worker
-    if routing_probe_worker:
-        await routing_probe_worker.stop()
-        print("Stopped routing probe worker")
+    # Stop routing probe worker (if it exists)
+    try:
+        global routing_probe_worker
+        if routing_probe_worker:
+            await routing_probe_worker.stop()
+            print("Stopped routing probe worker")
+    except (NameError, AttributeError):
+        # routing_probe_worker not initialized or doesn't exist
+        pass
 
     # Stop challenge cleanup task
     global challenge_cleanup_task
@@ -222,17 +361,26 @@ async def shutdown_event():
         print("Stopped rate limiter cleanup background task")
 
 
-# Add Prometheus metrics middleware (must be before other middleware)
-app.add_middleware(PrometheusMiddleware)
+# Add request ID middleware (must be before logging middleware)
+app.add_middleware(RequestIDMiddleware)
 
 # Add structured logging middleware
 app.add_middleware(StructuredLoggingMiddleware)
+
+# Add security headers middleware
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Add rate limiting middleware
 app.add_middleware(RateLimitMiddleware)
 
 # CORS middleware for frontend integration
-cors_origins = os.getenv("CORS_ORIGINS", "*").split(",")
+cors_origins_str = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:5173,https://goblin-assistant.vercel.app",
+)
+cors_origins = [
+    origin.strip() for origin in cors_origins_str.split(",") if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,  # Configure via CORS_ORIGINS env var
@@ -241,9 +389,44 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Create versioned API router
+v1_router = APIRouter(prefix="/v1")
+
+# Include all routers under v1
+v1_router.include_router(auth_router, tags=["auth"])
+v1_router.include_router(search_router, tags=["search"])
+v1_router.include_router(settings_router, tags=["settings"])
+v1_router.include_router(execute_router, tags=["execute"])
+v1_router.include_router(api_keys_router, tags=["api-keys"])
+v1_router.include_router(parse_router, tags=["parse"])
+v1_router.include_router(routing_router, tags=["routing"])
+v1_router.include_router(chat_router, tags=["chat"])
+v1_router.include_router(essay_router, tags=["essay"])
+v1_router.include_router(api_router, tags=["api"])
+v1_router.include_router(stream_router, tags=["stream"])
+v1_router.include_router(sandbox_router, tags=["sandbox"])
+v1_router.include_router(rag_router, tags=["rag"])
+v1_router.include_router(raptor_router, tags=["raptor"])  # Raptor monitoring endpoints
+v1_router.include_router(health_router, tags=["health"])  # Health monitoring endpoints
+v1_router.include_router(llm_health_router, tags=["health"])  # LLM gateway health
+v1_router.include_router(
+    dashboard_router, tags=["dashboard"]
+)  # Optimized dashboard endpoints
+v1_router.include_router(goblins_router, tags=["goblins"])
+v1_router.include_router(cost_router, tags=["cost"])
+v1_router.include_router(user_auth_router, tags=["auth"])
+v1_router.include_router(support_router, tags=["support"])
+v1_router.include_router(account_router, tags=["account"])
+v1_router.include_router(
+    orchestrator_router, tags=["orchestrator"]
+)  # Multi-cloud AI orchestration
+v1_router.include_router(providers_management_router, tags=["providers"])
+
+# Include routers (keeping legacy routes for backward compatibility)
 app.include_router(debugger_router)
-app.include_router(auth_router)
+app.include_router(v1_router)  # Versioned API routes
+app.include_router(auth_router)  # Legacy auth routes
+app.include_router(jwt_auth_router)  # JWT authentication routes
 app.include_router(search_router)
 app.include_router(settings_router)
 app.include_router(execute_router)
@@ -253,9 +436,17 @@ app.include_router(routing_router)
 app.include_router(chat_router)
 app.include_router(api_router)
 app.include_router(stream_router)
+app.include_router(sandbox_router)
+app.include_router(rag_router)
 app.include_router(raptor_router)  # Raptor monitoring endpoints
 app.include_router(health_router)  # Health monitoring endpoints
+app.include_router(llm_health_router)  # LLM gateway health
 app.include_router(dashboard_router)  # Optimized dashboard endpoints
+app.include_router(goblins_router)
+app.include_router(cost_router)
+app.include_router(providers_management_router)
+app.include_router(account_router)
+app.include_router(support_router)
 
 
 @app.get("/")
@@ -265,10 +456,424 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    # Base health
+    result = {"status": "healthy"}
+
+    return result
 
 
-@app.get("/metrics")
-async def metrics():
-    """Prometheus metrics endpoint for monitoring."""
-    return Response(content=get_metrics(), media_type=CONTENT_TYPE_LATEST)
+ollama_router = APIRouter()
+
+
+class GenerateMessage(BaseModel):
+    role: str = Field(..., description="Message role: system, user, or assistant")
+    content: str = Field(..., description="Message content")
+
+
+class GenerateRequest(BaseModel):
+    # Backwards compatible with earlier clients: either `prompt` or `messages` may be provided.
+    prompt: Optional[str] = Field(None, description="Prompt text (legacy clients)")
+    messages: Optional[List[GenerateMessage]] = Field(
+        None, description="Structured chat messages"
+    )
+    model: str = Field("llama2", description="Model hint for upstream providers")
+    max_tokens: Optional[int] = Field(None, ge=1, le=2048)
+    temperature: Optional[float] = Field(None, ge=0.0, le=2.0)
+
+
+# Opportunistically "wake" self-hosted GCP providers in the background so they don't
+# cold-start when they are needed. This must never block a user request.
+_GCP_WARM_MIN_INTERVAL_S = float(os.getenv("GCP_WARM_MIN_INTERVAL_S", "60"))
+_gcp_warm_last_at: float = 0.0
+_gcp_warm_lock = asyncio.Lock()
+
+
+async def _warm_gcp_providers_once() -> None:
+    import httpx
+
+    ollama_url = (os.getenv("OLLAMA_GCP_URL") or os.getenv("OLLAMA_BASE_URL") or "").strip()
+    llamacpp_url = (os.getenv("LLAMACPP_GCP_URL") or "").strip()
+    if not ollama_url and not llamacpp_url:
+        return
+
+    timeout = httpx.Timeout(20.0, connect=2.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        coros = []
+        if ollama_url:
+            coros.append(client.get(f"{ollama_url.rstrip('/')}/api/tags"))
+        if llamacpp_url:
+            coros.append(client.get(f"{llamacpp_url.rstrip('/')}/v1/models"))
+        await asyncio.gather(*coros, return_exceptions=True)
+
+
+async def _maybe_warm_gcp_providers() -> None:
+    global _gcp_warm_last_at
+
+    now = time.time()
+    if (now - _gcp_warm_last_at) < _GCP_WARM_MIN_INTERVAL_S:
+        return
+
+    async with _gcp_warm_lock:
+        now = time.time()
+        if (now - _gcp_warm_last_at) < _GCP_WARM_MIN_INTERVAL_S:
+            return
+        _gcp_warm_last_at = now
+
+    try:
+        await _warm_gcp_providers_once()
+    except Exception as e:
+        logger.debug("GCP warm-up failed", extra={"error": type(e).__name__})
+
+
+@ollama_router.post("/api/generate")
+async def ollama_generate(request: GenerateRequest):
+    """Generate completion with automatic fallback.
+
+    Notes:
+    - This endpoint is intentionally unauthenticated for simple chat use-cases.
+    - Do not leak provider errors (they may include secrets like API keys in URLs).
+    """
+    import httpx
+
+    # Trigger a best-effort background warm-up so self-hosted providers don't go cold.
+    asyncio.create_task(_maybe_warm_gcp_providers())
+
+    system_prompt = (
+        os.getenv("GOBLIN_SYSTEM_PROMPT")
+        or "You are Goblin Assistant. Respond as the assistant only. Do not include role labels like 'User:' or 'Assistant:'. "
+        "Do not claim you performed real-world actions (sending emails/messages, payments, etc.). "
+        "If asked to send a message/email, say you cannot send it directly and offer to draft it, asking for the needed details. "
+        "Be concise unless the user asks for more detail."
+    )
+
+    # Normalize messages (structured preferred; prompt-only as legacy fallback).
+    if request.messages and len(request.messages) > 0:
+        messages: List[Dict[str, str]] = [
+            {"role": m.role, "content": m.content} for m in request.messages
+        ]
+    else:
+        prompt_text = (request.prompt or "").strip()
+        if not prompt_text:
+            raise HTTPException(
+                status_code=400, detail='Missing "prompt" or "messages"'
+            )
+        messages = [{"role": "user", "content": prompt_text}]
+
+    if not any(m.get("role") == "system" for m in messages):
+        messages.insert(0, {"role": "system", "content": system_prompt})
+
+    # Derive a small default response budget for short messages to keep latency low.
+    last_user = next(
+        (m.get("content", "") for m in reversed(messages) if m.get("role") == "user"),
+        "",
+    )
+
+    def _default_max_tokens(text: str) -> int:
+        n = len((text or "").strip())
+        if n <= 32:
+            return 64
+        if n <= 200:
+            return 128
+        return 256
+
+    req_max_tokens = int(request.max_tokens) if request.max_tokens else _default_max_tokens(last_user)
+    req_max_tokens = max(1, min(req_max_tokens, 1024))
+
+    req_temperature = float(request.temperature) if request.temperature is not None else 0.2
+    req_temperature = max(0.0, min(req_temperature, 2.0))
+
+    # Best-effort prompt for non-chat providers.
+    prompt = last_user or (request.prompt or "")
+    model = request.model or "llama2"
+
+    errors = []
+
+    def _safe_err(provider: str, exc: Exception) -> str:
+        """Return a user-safe error string without secrets/URLs."""
+        try:
+            if isinstance(exc, httpx.HTTPStatusError):
+                return f"{provider}: HTTP {exc.response.status_code}"
+            if isinstance(exc, (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.WriteTimeout)):
+                return f"{provider}: timeout"
+            if isinstance(exc, httpx.ConnectError):
+                return f"{provider}: connect_error"
+            return f"{provider}: {type(exc).__name__}"
+        except Exception:
+            return f"{provider}: {type(exc).__name__}"
+
+    # 0. Try lightweight Fly chat backend first (always-on local fallback)
+    # Prefer internal 6PN if reachable; fall back to the public hostname.
+    goblin_chat_url_env = (os.getenv("GOBLIN_CHAT_URL") or "").strip()
+    goblin_chat_urls = (
+        [goblin_chat_url_env]
+        if goblin_chat_url_env
+        else ["http://goblin-chat.internal:8080", "https://goblin-chat.fly.dev"]
+    )
+    goblin_chat_key = os.getenv("GOBLIN_CHAT_API_KEY") or os.getenv("GOBLIN_API_KEY") or ""
+    for goblin_chat_url in goblin_chat_urls:
+        goblin_chat_url = (goblin_chat_url or "").rstrip("/")
+        if not goblin_chat_url:
+            continue
+
+        try:
+            timeout = httpx.Timeout(20.0, connect=2.0)
+            headers = {"Content-Type": "application/json"}
+            if goblin_chat_key:
+                headers["Authorization"] = f"Bearer {goblin_chat_key}"
+
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await client.post(
+                    f"{goblin_chat_url}/v1/chat/completions",
+                    headers=headers,
+                    json={
+                        "messages": messages,
+                        "max_tokens": req_max_tokens,
+                        "temperature": req_temperature,
+                        "stream": False,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                choice = (data.get("choices") or [{}])[0]
+                content = (choice.get("message") or {}).get("content") or ""
+                if content:
+                    return {
+                        "content": content,
+                        "response": content,  # Ollama-compatible alias for legacy proxies
+                        "usage": data.get("usage", {}),
+                        "model": data.get("model", "goblin-chat"),
+                        "provider": "goblin-chat",
+                        "finish_reason": choice.get("finish_reason", "stop"),
+                    }
+        except Exception as e:
+            errors.append(_safe_err("goblin-chat", e))
+            logger.warning(
+                "goblin-chat failed",
+                extra={"error": type(e).__name__, "url": goblin_chat_url},
+            )
+
+    # 1. Try GCP Ollama self-hosted first (short timeout)
+    ollama_url = os.getenv("OLLAMA_GCP_URL") or os.getenv("OLLAMA_BASE_URL")
+    api_key = os.getenv("LOCAL_LLM_API_KEY")
+
+    if ollama_url:
+        try:
+            adapter = OllamaAdapter(api_key=api_key, base_url=ollama_url)
+            # Fail fast for unreachable self-hosted endpoints to avoid hanging requests.
+            adapter.timeout = 10
+            result = await adapter.generate(
+                messages,
+                model=model,
+                max_tokens=req_max_tokens,
+                temperature=req_temperature,
+            )
+            if isinstance(result, dict) and "content" in result and "response" not in result:
+                # Keep compatibility with callers expecting Ollama's `response` field.
+                result["response"] = result.get("content") or ""
+            if isinstance(result, dict):
+                result.setdefault("provider", "ollama-gcp")
+            return result
+        except Exception as e:
+            errors.append(_safe_err("Ollama/GCP", e))
+            logger.warning("Ollama/GCP failed", extra={"error": type(e).__name__})
+
+    # 1b. Try GCP llama.cpp server as secondary self-hosted option
+    llamacpp_url = os.getenv("LLAMACPP_GCP_URL")
+    if llamacpp_url:
+        try:
+            timeout = httpx.Timeout(20.0, connect=2.0)
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await client.post(
+                    f"{llamacpp_url.rstrip('/')}/v1/chat/completions",
+                    headers={"Content-Type": "application/json"},
+                    json={
+                        "messages": messages,
+                        "max_tokens": req_max_tokens,
+                        "temperature": req_temperature,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                content = data["choices"][0]["message"]["content"]
+                return {
+                    "content": content,
+                    "response": content,  # Ollama-compatible alias for legacy proxies
+                    "usage": data.get("usage", {}),
+                    "model": data.get("model", "llamacpp"),
+                    "provider": "llamacpp-gcp",
+                    "finish_reason": data["choices"][0].get("finish_reason", "stop"),
+                }
+        except Exception as e:
+            errors.append(_safe_err("LlamaCpp/GCP", e))
+            logger.warning("LlamaCpp/GCP failed", extra={"error": type(e).__name__})
+
+    # 2. Try Google Gemini (reliable, generous free tier)
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if gemini_key:
+        try:
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                response = await client.post(
+                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}",
+                    headers={"Content-Type": "application/json"},
+                    json={
+                        "contents": [{"parts": [{"text": prompt}]}],
+                        "generationConfig": {"maxOutputTokens": req_max_tokens},
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                text = data["candidates"][0]["content"]["parts"][0]["text"]
+                usage_meta = data.get("usageMetadata", {})
+                return {
+                    "content": text,
+                    "response": text,  # Ollama-compatible alias for legacy proxies
+                    "usage": {
+                        "prompt_tokens": usage_meta.get("promptTokenCount", 0),
+                        "completion_tokens": usage_meta.get("candidatesTokenCount", 0),
+                        "total_tokens": usage_meta.get("totalTokenCount", 0),
+                    },
+                    "model": "gemini-2.0-flash",
+                    "provider": "gemini",
+                    "finish_reason": data["candidates"][0].get("finishReason", "STOP"),
+                }
+        except Exception as e:
+            errors.append(_safe_err("Gemini", e))
+            logger.warning("Gemini failed", extra={"error": type(e).__name__})
+
+    # 3. Try Groq (free tier - very reliable, fast)
+    groq_key = os.getenv("GROK_API_KEY") or os.getenv("GROQ_API_KEY")
+    if groq_key and groq_key != "placeholder":
+        try:
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                response = await client.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {groq_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": "llama-3.1-8b-instant",
+                        "messages": messages,
+                        "max_tokens": req_max_tokens,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                content = data["choices"][0]["message"]["content"]
+                return {
+                    "content": content,
+                    "response": content,  # Ollama-compatible alias for legacy proxies
+                    "usage": data.get("usage", {}),
+                    "model": data.get("model", "llama-3.1-8b-instant"),
+                    "provider": "groq",
+                    "finish_reason": data["choices"][0].get("finish_reason", "stop"),
+                }
+        except Exception as e:
+            errors.append(_safe_err("Groq", e))
+            logger.warning("Groq failed", extra={"error": type(e).__name__})
+
+    # 4. Try DeepSeek (very cheap and reliable)
+    deepseek_key = os.getenv("DEEPSEEK_API_KEY")
+    if deepseek_key and deepseek_key != "placeholder":
+        try:
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                response = await client.post(
+                    "https://api.deepseek.com/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {deepseek_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": "deepseek-chat",
+                        "messages": messages,
+                        "max_tokens": req_max_tokens,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                content = data["choices"][0]["message"]["content"]
+                return {
+                    "content": content,
+                    "response": content,  # Ollama-compatible alias for legacy proxies
+                    "usage": data.get("usage", {}),
+                    "model": data.get("model", "deepseek-chat"),
+                    "provider": "deepseek",
+                    "finish_reason": data["choices"][0].get("finish_reason", "stop"),
+                }
+        except Exception as e:
+            errors.append(_safe_err("DeepSeek", e))
+            logger.warning("DeepSeek failed", extra={"error": type(e).__name__})
+
+    # 5. Fallback to OpenAI
+    openai_key = os.getenv("OPENAI_API_KEY")
+    if openai_key and openai_key != "placeholder":
+        try:
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                response = await client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {openai_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": "gpt-4o-mini",
+                        "messages": messages,
+                        "max_tokens": req_max_tokens,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                content = data["choices"][0]["message"]["content"]
+                return {
+                    "content": content,
+                    "response": content,  # Ollama-compatible alias for legacy proxies
+                    "usage": data.get("usage", {}),
+                    "model": data.get("model", "gpt-4o-mini"),
+                    "provider": "openai",
+                    "finish_reason": data["choices"][0].get("finish_reason", "stop"),
+                }
+        except Exception as e:
+            errors.append(_safe_err("OpenAI", e))
+            logger.warning("OpenAI failed", extra={"error": type(e).__name__})
+
+    # 6. Final fallback to Anthropic
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    if anthropic_key and anthropic_key != "placeholder":
+        try:
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                response = await client.post(
+                    "https://api.anthropic.com/v1/messages",
+                    headers={
+                        "x-api-key": anthropic_key,
+                        "anthropic-version": "2023-06-01",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": "claude-3-haiku-20240307",
+                        "max_tokens": req_max_tokens,
+                        "messages": messages,
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                content = data["content"][0]["text"]
+                return {
+                    "content": content,
+                    "response": content,  # Ollama-compatible alias for legacy proxies
+                    "usage": data.get("usage", {}),
+                    "model": data.get("model", "claude-3-haiku-20240307"),
+                    "provider": "anthropic",
+                    "finish_reason": data.get("stop_reason", "stop"),
+                }
+        except Exception as e:
+            errors.append(_safe_err("Anthropic", e))
+            logger.warning("Anthropic failed", extra={"error": type(e).__name__})
+
+    logger.error(f"All providers failed (sanitized): {errors}")
+    raise HTTPException(
+        status_code=503,
+        detail="All inference providers unavailable.",
+    )
+
+
+app.include_router(ollama_router)

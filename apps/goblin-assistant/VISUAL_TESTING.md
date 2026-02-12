@@ -12,6 +12,7 @@ Visit: http://localhost:6006
 ## Run Visual Tests
 
 ```bash
+
 cd apps/goblin-assistant
 export CHROMATIC_PROJECT_TOKEN=your_token
 npm run chromatic
@@ -43,6 +44,7 @@ export const Default: Story = {
 ## Test Commands
 
 ```bash
+
 # Unit tests
 npm test
 

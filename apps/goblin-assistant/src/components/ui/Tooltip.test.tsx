@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@jest/globals';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import Tooltip from './Tooltip';
 
@@ -167,8 +167,11 @@ describe('Tooltip', () => {
     expect(queryByRole('tooltip')).not.toBeInTheDocument();
 
     // Wait for delay + animation
-    await waitFor(() => {
-      expect(queryByRole('tooltip')).toBeInTheDocument();
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(queryByRole('tooltip')).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
   });
 });

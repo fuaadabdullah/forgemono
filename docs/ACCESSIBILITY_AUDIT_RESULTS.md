@@ -25,7 +25,7 @@
 ### ✅ Dashboard Page
 
 **Score**: 100/100 (Excellent)  
-**URL**: `http://localhost:3000/`  
+**URL**: `<http://localhost:3000/`>  
 **Passed Audits**: 73  
 **Timestamp**: 2025-12-02T08:59:45.805Z  
 
@@ -37,7 +37,7 @@
 ### ✅ Chat Page
 
 **Score**: 100/100 (Excellent)  
-**URL**: `http://localhost:3000/chat`  
+**URL**: `<http://localhost:3000/chat`>  
 **Passed Audits**: 73  
 **Timestamp**: 2025-12-02T08:59:55.590Z  
 
@@ -49,7 +49,7 @@
 ### ✅ Search Page
 
 **Score**: 100/100 (Excellent)  
-**URL**: `http://localhost:3000/search`  
+**URL**: `<http://localhost:3000/search`>  
 **Passed Audits**: 73  
 **Timestamp**: 2025-12-02T09:00:03.536Z  
 
@@ -61,7 +61,7 @@
 ### ✅ Settings Page
 
 **Score**: 100/100 (Excellent)  
-**URL**: `http://localhost:3000/settings`  
+**URL**: `<http://localhost:3000/settings`>  
 **Passed Audits**: 73  
 **Timestamp**: 2025-12-02T09:00:11.748Z  
 
@@ -73,7 +73,7 @@
 ### ✅ Providers Page
 
 **Score**: 100/100 (Excellent)  
-**URL**: `http://localhost:3000/providers`  
+**URL**: `<http://localhost:3000/providers`>  
 **Passed Audits**: 73  
 **Timestamp**: 2025-12-02T09:00:19.760Z  
 
@@ -85,7 +85,7 @@
 ### ✅ Logs Page
 
 **Score**: 100/100 (Excellent)  
-**URL**: `http://localhost:3000/logs`  
+**URL**: `<http://localhost:3000/logs`>  
 **Passed Audits**: 73  
 **Timestamp**: 2025-12-02T09:00:29.319Z  
 
@@ -97,7 +97,7 @@
 ### ✅ Sandbox Page
 
 **Score**: 100/100 (Excellent)  
-**URL**: `http://localhost:3000/sandbox`  
+**URL**: `<http://localhost:3000/sandbox`>  
 **Passed Audits**: 73  
 **Timestamp**: 2025-12-02T09:00:37.376Z  
 

@@ -24,7 +24,7 @@ How to use
 ----------
 
 1. Review and adapt image tags, storage classes, and resource sizes to your cluster.
-2. Use `kustomize build infra/observability | kubectl apply -f -` to deploy.
-3. Use `.github/workflows/observability-lint.yml` to lint manifests in CI.
+1. Use `kustomize build infra/observability | kubectl apply -f -` to deploy.
+1. Use `.github/workflows/observability-lint.yml` to lint manifests in CI.
 
 This folder is intentionally conservative. It provides a reproducible, linted baseline.

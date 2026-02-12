@@ -88,14 +88,16 @@ The repo includes a `SecretStore` configured for Kubernetes auth at `infra/obser
 Usage (example):
 
 ```bash
+
 # requires vault CLI + kubectl
-export VAULT_ADDR=https://vault.example.com
+export VAULT_ADDR=<https://vault.example.com>
 export VAULT_TOKEN=<root-or-admin-token>
 cd infra/observability/external-secrets
 ./bootstrap_vault.sh
 ```
 
 Notes:
+
 - The script seeds example values — change them in production and rotate tokens.
 - This approach uses token auth (creates a Vault token and stores it as a K8s secret). If you prefer Kubernetes auth (recommended for production), I can provide a variant that configures `auth/kubernetes` and an appropriate ServiceAccount binding instead.
 
@@ -122,6 +124,7 @@ kustomize build infra/observability | kubectl apply -f -
 4. Run the verification script after resources are created:
 
 ```bash
+
 tools/observability/verify_deploy.sh
 ```
 

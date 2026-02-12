@@ -55,11 +55,14 @@ kubectl get crd | grep keda
 ### Verify KEDA is Running
 
 ```bash
+
 # Check operator pods
 kubectl get pods -n keda
 
-# Should see:
+# Should see
+
 # keda-operator-<hash>
+
 # keda-metrics-apiserver-<hash>
 ```
 
@@ -107,6 +110,7 @@ spec:
 Scale based on memory consolidation queue depth:
 
 ```yaml
+
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
@@ -123,14 +127,16 @@ spec:
 
   triggers:
   # Temporal queue depth (via Prometheus)
+
   - type: prometheus
     metadata:
-      serverAddress: http://prometheus:9090
+      serverAddress: <http://prometheus:9090>
       metricName: temporal_queue_depth
       query: sum(temporal_task_queue_depth{task_queue="overmind-memory"})
       threshold: "5"  # Scale if > 5 tasks pending
 
   # Memory utilization
+
   - type: memory
     metricType: Utilization
     metadata:
@@ -175,6 +181,7 @@ spec:
 ### Bridge Autoscaling (Dev with Scale-to-Zero)
 
 ```yaml
+
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
@@ -192,9 +199,10 @@ spec:
 
   triggers:
   # Prometheus: HTTP requests
+
   - type: prometheus
     metadata:
-      serverAddress: http://prometheus:9090
+      serverAddress: <http://prometheus:9090>
       metricName: http_requests_per_minute
       query: sum(rate(http_requests_total{service="bridge"}[1m])) * 60
       threshold: "1"  # Scale up if > 1 req/min
@@ -252,6 +260,7 @@ spec:
 Handle metric unavailability:
 
 ```yaml
+
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
@@ -268,9 +277,10 @@ spec:
     replicas: 5          # Scale to this if metrics unavailable
 
   triggers:
+
   - type: prometheus
     metadata:
-      serverAddress: http://prometheus:9090
+      serverAddress: <http://prometheus:9090>
       query: sum(rate(llm_request_total[1m]))
       threshold: "10"
 ```
@@ -314,16 +324,21 @@ spec:
 KEDA exposes Prometheus metrics:
 
 ```bash
+
 # Port forward metrics endpoint
 kubectl port-forward -n keda svc/keda-operator-metrics-apiserver 8080:8080
 
 # Query metrics
-curl http://localhost:8080/metrics | grep keda
+curl <http://localhost:8080/metrics> | grep keda
 
-# Key metrics:
+# Key metrics
+
 # keda_scaler_errors_total
+
 # keda_scaled_object_paused
+
 # keda_scaler_metrics_value
+
 # keda_scaled_object_errors
 ```
 
@@ -341,6 +356,7 @@ Import KEDA dashboard (ID: 18172):
 ### ScaledObject not scaling
 
 ```bash
+
 # Check ScaledObject status
 kubectl describe scaledobject <name> -n <namespace>
 
@@ -366,6 +382,7 @@ kubectl run -it --rm curl --image=curlimages/curl --restart=Never -- \
 ### Scale-to-zero not working
 
 ```bash
+
 # Check cooldown period elapsed
 kubectl describe scaledobject <name> -n <namespace> | grep -A5 Conditions
 
@@ -376,12 +393,12 @@ kubectl get --raw /apis/external.metrics.k8s.io/v1beta1
 ## Best Practices
 
 1. **Start conservative** - Begin with higher thresholds, adjust based on load
-2. **Use fallback policies** - Handle metric unavailability gracefully
-3. **Set appropriate cooldown** - Prevent flapping (300-600s recommended)
-4. **Combine triggers** - Use both custom metrics and CPU/memory
-5. **Monitor KEDA metrics** - Watch for scaler errors
-6. **Test scale-to-zero** - Verify activation from zero replicas
-7. **Use stabilization windows** - Smooth out rapid changes
+1. **Use fallback policies** - Handle metric unavailability gracefully
+1. **Set appropriate cooldown** - Prevent flapping (300-600s recommended)
+1. **Combine triggers** - Use both custom metrics and CPU/memory
+1. **Monitor KEDA metrics** - Watch for scaler errors
+1. **Test scale-to-zero** - Verify activation from zero replicas
+1. **Use stabilization windows** - Smooth out rapid changes
 
 ## Migration from HPA
 
@@ -396,6 +413,7 @@ kubectl get hpa --all-namespaces
 For each HPA, create equivalent ScaledObject:
 
 ```yaml
+
 # Old HPA
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -405,6 +423,7 @@ spec:
   minReplicas: 2
   maxReplicas: 20
   metrics:
+
   - type: Resource
     resource:
       name: cpu
@@ -423,6 +442,7 @@ spec:
   minReplicaCount: 2
   maxReplicaCount: 20
   triggers:
+
   - type: cpu
     metricType: Utilization
     metadata:

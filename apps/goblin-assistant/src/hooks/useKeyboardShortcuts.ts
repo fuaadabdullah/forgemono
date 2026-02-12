@@ -55,26 +55,26 @@ export const SHORTCUTS = {
     key: 'h',
     ctrlKey: true,
     shiftKey: true,
-    description: 'Toggle high-contrast mode'
+    description: 'Toggle high-contrast mode',
   },
   THEME_NOCTURNE: {
     key: '1',
     ctrlKey: true,
     shiftKey: true,
-    description: 'Apply Nocturne theme'
+    description: 'Apply Nocturne theme',
   },
   THEME_EMBER: {
     key: '2',
     ctrlKey: true,
     shiftKey: true,
-    description: 'Apply Ember theme'
+    description: 'Apply Ember theme',
   },
   THEME_DEFAULT: {
     key: '0',
     ctrlKey: true,
     shiftKey: true,
-    description: 'Apply Default theme'
-  }
+    description: 'Apply Default theme',
+  },
 } as const;
 
 /**

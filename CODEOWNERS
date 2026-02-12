@@ -1,15 +1,14 @@
-# Default owners
-*       @fuaadabdullah
+# CODEOWNERS for forgemono
+# Paths -> owners (user or team)
 
-# GoblinOS platform
-GoblinOS/   @fuaadabdullah
+# Specific paths
+/goblin-infra/ @fuaadabdullah
+/goblin-assistant/ @fuaadabdullah
+/apps/forge-lite/ @fuaadabdullah
+/apps/raptor-mini/ @fuaadabdullah
+/goblin-assistant-contracts/ @fuaadabdullah
+/chroma_db/ @fuaadabdullah
+/vector_db/ @fuaadabdullah
 
-# Infra & tools
-infra/      @fuaadabdullah
-tools/      @fuaadabdullah
-
-# Portfolio (add co-owners as needed)
-portfolio/   @fuaadabdullah
-
-# TODO: Add Tariq's GitHub handle when confirmed, e.g.:
-# GoblinOS/   @fuaadabdullah @tariq-handle-here
+# Default fallback (GitHub doesn't auto-assign for unmatched files)
+* @fuaadabdullah

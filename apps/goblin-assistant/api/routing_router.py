@@ -3,46 +3,19 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import sys
 import os
-import tomllib
-import tomllib
 
 # Add the src directory to the path so we can import the routing module
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
 try:
-    print("DEBUG: Attempting to import routing.router")
-    from routing.router import top_providers_for, route_task_sync
-
-    print("DEBUG: Successfully imported routing functions")
-except ImportError as e:
-    print(f"DEBUG: ImportError: {e}")
-
-    # Fallback: load providers directly from TOML file
-    def load_providers_from_toml():
-        """Load providers from the TOML config file"""
-        config_path = os.path.join(
-            os.path.dirname(__file__), "..", "config", "providers.toml"
-        )
-        print(f"DEBUG: Looking for config at: {config_path}")
-        try:
-            with open(config_path, "rb") as f:
-                config = tomllib.load(f)
-            providers = list(config.get("providers", {}).keys())
-            print(f"DEBUG: Loaded providers: {providers}")
-            return providers
-        except Exception as e:
-            print(f"DEBUG: Error loading TOML: {e}")
-            return ["openai", "anthropic", "gemini", "ollama"]
-
+    from routing.router import top_providers_for, route_task, route_task_sync
+except ImportError:
+    # Fallback if routing module is not available
     def top_providers_for(capability: str, **kwargs) -> List[str]:
-        """Return all configured providers that support the given capability"""
-        all_providers = load_providers_from_toml()
-        # For now, return all providers - in a real implementation we'd filter by capability
-        return all_providers
+        return ["openai", "anthropic", "gemini", "ollama"]
 
-    def route_task_sync(*args, **kwargs):
-        """Placeholder routing function"""
-        raise Exception("Routing system not available")
+    def route_task_sync(*args, **kwargs) -> Dict[str, Any]:
+        return {"ok": False, "error": "Routing system not available"}
 
 
 router = APIRouter(prefix="/routing", tags=["routing"])
@@ -69,18 +42,16 @@ class ProviderInfo(BaseModel):
 @router.get("/providers", response_model=List[str])
 async def get_available_providers():
     """Get list of all configured providers"""
-    print("DEBUG: get_available_providers called")
     try:
         # Return providers that have valid API keys configured
         providers = []
         for capability in ["chat", "reasoning", "code"]:
-            print(f"DEBUG: Getting providers for capability: {capability}")
             candidates = top_providers_for(capability)
-            print(f"DEBUG: Candidates for {capability}: {candidates}")
+            print(f"DEBUG: Capability {capability}, candidates: {candidates}")
             providers.extend(candidates)
-        final_providers = list(set(providers))  # Remove duplicates
-        print(f"DEBUG: Final providers list: {final_providers}")
-        return final_providers
+        result = list(set(providers))  # Remove duplicates
+        print(f"DEBUG: Final providers: {result}")
+        return result
     except Exception as e:
         print(f"DEBUG: Exception in get_available_providers: {e}")
         # Fallback to basic providers if routing system fails
@@ -92,7 +63,7 @@ async def get_providers_for_capability(capability: str):
     """Get providers that support a specific capability"""
     try:
         return top_providers_for(capability)
-    except Exception:
+    except Exception as e:
         return ["openai", "anthropic"]  # Fallback
 
 
@@ -100,7 +71,8 @@ async def get_providers_for_capability(capability: str):
 async def route_request(request: RouteRequest):
     """Route a task to the best available provider"""
     try:
-        result = route_task_sync(
+        # Call the async route_task function directly
+        result = await route_task(
             task_type=request.task_type,
             payload=request.payload,
             prefer_local=request.prefer_local,

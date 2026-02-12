@@ -7,6 +7,7 @@ description: "README"
 Lightweight terminal UI to run quick repo maintainer commands (queue status, doctor checks, kill zombies). Built with Textual + Rich.
 
 Files
+
 - `goblin_tui.py` — the TUI application
 - `config.json.example` — example command mappings (copy to `config.json` to customize)
 - `requirements.txt` — Python packages needed
@@ -21,14 +22,16 @@ source .venv-tui/bin/activate
 pip install -r tools/tui/requirements.txt
 ```
 
-2. Copy the example config and edit commands if needed:
+1. Copy the example config and edit commands if needed:
 
 ```bash
+
 cp tools/tui/config.json.example tools/tui/config.json
+
 # Edit tools/tui/config.json to adjust the shell commands for your environment
 ```
 
-3. Run the TUI:
+1. Run the TUI:
 
 ```bash
 python tools/tui/goblin_tui.py --config tools/tui/config.json

@@ -1,0 +1,90 @@
+version: "3.8"
+
+services:
+  docqa:
+    build: ..
+    ports:
+      - "9000:9000"
+    environment:
+      - DOCQA_TOKEN=${DOCQA_TOKEN:-changeme}
+      - REDIS_URL=redis://redis:6379/0
+      - DOCQA_ROOT=/mnt/allowed
+      - COPILOT_API_URL=${COPILOT_API_URL}
+      - COPILOT_API_KEY=${COPILOT_API_KEY}
+    volumes:
+      - ./allowed:/mnt/allowed:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 4G
+        reservations:
+          cpus: "0.5"
+          memory: 1G
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes: []
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+
+  worker:
+    build: ..
+    command: python worker.py
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DOCQA_ROOT=/mnt/allowed
+      - COPILOT_API_URL=${COPILOT_API_URL}
+      - COPILOT_API_KEY=${COPILOT_API_KEY}
+    volumes:
+      - ./allowed:/mnt/allowed:ro
+    depends_on:
+      - redis
+    tmpfs:
+      - /tmp
+    read_only: true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2G
+        reservations:
+          cpus: "0.2"
+          memory: 512M
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+volumes: {}

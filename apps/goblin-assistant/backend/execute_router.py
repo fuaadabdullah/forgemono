@@ -4,9 +4,9 @@ from typing import Optional
 import uuid
 import asyncio
 from sqlalchemy.orm import Session
-from database import get_db
-from models import Task
-from services.goblin_executor import get_goblin_executor
+from .database import get_db
+from .models import Task
+from .services.goblin_executor import get_goblin_executor
 import logging
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,8 @@ class ExecuteResponse(BaseModel):
     message: Optional[str] = None
 
 
-@router.post("/", response_model=ExecuteResponse)
+@router.post("", response_model=ExecuteResponse)
+@router.post("/", response_model=ExecuteResponse, include_in_schema=False)
 async def execute_task(
     request: ExecuteRequest,
     background_tasks: BackgroundTasks,
@@ -95,7 +96,7 @@ async def execute_goblin_task(
     dry_run: bool = False,
 ):
     """Execute a goblin task with real GoblinOS integration"""
-    from database import SessionLocal
+    from .database import SessionLocal
 
     db = SessionLocal()
 

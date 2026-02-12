@@ -15,8 +15,6 @@ jobs:
           fetch-depth: 0
 
       - name: Run gitleaks
-        uses: zricethezav/gitleaks-action@v2.0.0
-        with:
-          args: --path=. --verbose
+        uses: gitleaks/gitleaks-action@v1.6.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

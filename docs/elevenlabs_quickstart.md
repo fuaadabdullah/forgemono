@@ -14,7 +14,7 @@ The ElevenLabs API provides a simple interface to state-of-the-art audio models 
 
 ### Step 1: Create an API Key
 
-- Create API key at: https://elevenlabs.io/app/settings/api-keys
+- Create API key at: <https://elevenlabs.io/app/settings/api-keys>
 - Store as environment variable in `.env`:
 
 ```bash
@@ -25,11 +25,13 @@ ELEVENLABS_API_KEY=<your_api_key_here>
 
 **Python:**
 ```bash
+
 pip install elevenlabs
 pip install python-dotenv
 ```
 
 **TypeScript/Node.js:**
+
 ```bash
 npm install @elevenlabs/elevenlabs-js
 npm install dotenv
@@ -41,6 +43,7 @@ npm install dotenv
 
 **Python Example:**
 ```python
+
 from dotenv import load_dotenv
 from elevenlabs.client import ElevenLabs
 from elevenlabs.play import play
@@ -63,6 +66,7 @@ play(audio)
 ```
 
 **TypeScript Example:**
+
 ```typescript
 import { ElevenLabsClient, play } from '@elevenlabs/elevenlabs-js';
 import { Readable } from 'stream';
@@ -93,6 +97,7 @@ await play(stream);
 ### Step 4: Run the Code
 
 ```bash
+
 # Python
 python example.py
 
@@ -121,6 +126,7 @@ npx tsx example.mts
 ### Current Implementation Status
 
 ✅ **Implemented in Goblin Assistant:**
+
 - Text-to-speech adapter (`/backend/providers/elevenlabs_adapter.py`)
 - API key stored in `.env` file
 - Routing service integration complete
@@ -132,12 +138,14 @@ npx tsx example.mts
 ### Implementation Details
 
 **Our Adapter vs Official SDK:**
+
 - We use `aiohttp` for async HTTP requests (FastAPI compatible)
 - Official SDK uses synchronous `play()` function
 - Our adapter returns raw audio bytes for flexibility
 - Supports both `.generate()` and `.stream_generate()` methods
 
 **Key Differences:**
+
 ```python
 # Official SDK
 audio = elevenlabs.text_to_speech.convert(
@@ -207,11 +215,13 @@ audio_bytes = result["audio"]
 
 **Header Format:**
 ```http
+
 xi-api-key: <your_api_key>
 Content-Type: application/json
 ```
 
 **Current Implementation:**
+
 ```python
 self.headers = {
     "xi-api-key": self.api_key,

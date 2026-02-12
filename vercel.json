@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "installCommand": "corepack enable pnpm && pnpm install --frozen-lockfile",
+  "buildCommand": "cd apps/goblin-assistant && pnpm build",
+  "outputDirectory": "apps/goblin-assistant/.next"
+}

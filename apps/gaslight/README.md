@@ -3,6 +3,7 @@
 This folder contains a small workspace for the Gaslight project — a Unity 2D (URP) game with a Python FastAPI backend.
 
 This workspace contains the following folders:
+
 - `docs/` — project blueprint and reference material
 - `unity/` — Unity-related files and notes
 - `backend/` — minimal FastAPI backend scaffold

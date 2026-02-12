@@ -8,22 +8,49 @@ from typing import Dict, List, Optional, Any
 from openai import OpenAI
 import logging
 
+from .base_adapter import AdapterBase
+from .provider_registry import get_provider_registry
+
 logger = logging.getLogger(__name__)
 
 
-class DeepSeekAdapter:
+class DeepSeekAdapter(AdapterBase):
     """Adapter for DeepSeek API provider operations."""
 
-    def __init__(self, api_key: str, base_url: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
         """Initialize DeepSeek adapter.
 
         Args:
-            api_key: DeepSeek API key
+            api_key: DeepSeek API key (optional, will use registry config)
             base_url: Optional custom base URL
         """
-        self.api_key = api_key
-        self.base_url = base_url or "https://api.deepseek.com/v1"
-        self.client = OpenAI(api_key=api_key, base_url=self.base_url)
+        registry = get_provider_registry()
+        config = registry.get_provider_config_dict("deepseek")
+
+        if config:
+            if api_key is not None:
+                config["api_key"] = api_key
+            if base_url is not None:
+                config["base_url"] = base_url
+        else:
+            config = {
+                "api_key": api_key,
+                "base_url": base_url or "https://api.deepseek.com/v1",
+                "timeout": 30,
+                "retries": 2,
+                "cost_per_token_input": 0.0001,
+                "cost_per_token_output": 0.0002,
+                "latency_threshold_ms": 3000,
+            }
+
+        # DeepSeek is OpenAI-compatible; ensure the SDK base_url includes /v1.
+        normalized = (config.get("base_url") or "").rstrip("/")
+        if normalized and not normalized.endswith("/v1"):
+            normalized = normalized + "/v1"
+        config["base_url"] = normalized
+
+        super().__init__(name="deepseek", config=config)
+        self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check on DeepSeek API.
@@ -227,3 +254,76 @@ class DeepSeekAdapter:
                 "error": str(e),
                 "model": model,
             }
+
+    async def generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Generate completion using DeepSeek API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters (model, temperature, max_tokens, etc.)
+
+        Returns:
+            Dict containing response data
+        """
+        model = kwargs.get("model", "deepseek-chat")
+        temperature = kwargs.get("temperature", 0.7)
+        max_tokens = kwargs.get("max_tokens", 1024)
+        top_p = kwargs.get("top_p", 1.0)
+        stream = kwargs.get("stream", False)
+
+        def _sync_call():
+            return self.client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                stream=stream,
+            )
+
+        response = await self._call_with_circuit_breaker(_sync_call)
+
+        content = ""
+        if response.choices and len(response.choices) > 0:
+            content = response.choices[0].message.content or ""
+
+        # Extract token usage from response
+        usage = response.usage
+        input_tokens = usage.prompt_tokens if usage else 0
+        output_tokens = usage.completion_tokens if usage else 0
+        total_tokens = usage.total_tokens if usage else (input_tokens + output_tokens)
+
+        # Log cost using provider config
+        self._log_cost(input_tokens, output_tokens)
+
+        finish_reason = "stop"
+        if response.choices and len(response.choices) > 0:
+            finish_reason = response.choices[0].finish_reason or "stop"
+
+        return {
+            "content": content,
+            "usage": {
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "total_tokens": total_tokens,
+            },
+            "model": model,
+            "finish_reason": finish_reason,
+        }
+
+    async def a_generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Async generate completion using DeepSeek API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters
+
+        Returns:
+            Dict containing response data
+        """
+        # For DeepSeek, async and sync are the same
+        return await self.generate(messages, **kwargs)

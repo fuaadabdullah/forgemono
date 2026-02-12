@@ -46,6 +46,7 @@ Internet
 └─────────┘      └──────────┘   └──────────┘
 
 Hostnames:
+
 - dashboard.overmind.example.com → Dashboard
 - api.overmind.example.com → API
 - api.overmind.example.com/bridge → Bridge
@@ -73,6 +74,7 @@ kubectl wait --timeout=5m -n envoy-gateway-system \
 ### Deploy Gateway Resources
 
 ```bash
+
 # Apply Gateway and HTTPRoutes
 kubectl apply -f gateway/gateway.yaml
 kubectl apply -f gateway/httproutes/
@@ -97,14 +99,15 @@ kubectl get gateway overmind-gateway -n overmind-prod \
 ### Test Routing
 
 ```bash
+
 # Test dashboard route
-curl -H "Host: dashboard.overmind.example.com" http://<gateway-address>/
+curl -H "Host: dashboard.overmind.example.com" <http://<gateway-address>/>
 
 # Test API route
-curl -H "Host: api.overmind.example.com" http://<gateway-address>/health
+curl -H "Host: api.overmind.example.com" <http://<gateway-address>/health>
 
 # Test bridge route
-curl -H "Host: api.overmind.example.com" http://<gateway-address>/bridge/health
+curl -H "Host: api.overmind.example.com" <http://<gateway-address>/bridge/health>
 ```
 
 ## Gateway Configuration
@@ -145,6 +148,7 @@ spec:
 **File:** `gateway/httproutes/dashboard.yaml`
 
 ```yaml
+
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -152,18 +156,22 @@ metadata:
   namespace: overmind-prod
 spec:
   parentRefs:
+
   - name: overmind-gateway
     sectionName: https
 
   hostnames:
+
   - dashboard.overmind.example.com
 
   rules:
+
   - matches:
     - path:
         type: PathPrefix
         value: /
     backendRefs:
+
     - name: overmind-dashboard
       port: 80
 ```
@@ -229,6 +237,7 @@ spec:
 **File:** `gateway/rate-limits/anonymous.yaml`
 
 ```yaml
+
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: RateLimitPolicy
 metadata:
@@ -236,6 +245,7 @@ metadata:
   namespace: overmind-prod
 spec:
   rateLimits:
+
   - clientSelectors:
     - headers:
       - name: X-Forwarded-For
@@ -271,6 +281,7 @@ spec:
 **File:** `gateway/rate-limits/global.yaml`
 
 ```yaml
+
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: RateLimitPolicy
 metadata:
@@ -283,6 +294,7 @@ spec:
     name: overmind-gateway
 
   rateLimits:
+
   - limits:
       requests: 1000
       unit: Second
@@ -320,6 +332,7 @@ spec:
 **File:** `gateway/security/cors.yaml`
 
 ```yaml
+
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -333,19 +346,23 @@ spec:
 
   cors:
     allowOrigins:
-    - https://dashboard.overmind.example.com
-    - https://*.overmind.example.com
+
+    - <https://dashboard.overmind.example.com>
+    - <https://*.overmind.example.com>
     allowMethods:
+
     - GET
     - POST
     - PUT
     - DELETE
     - OPTIONS
     allowHeaders:
+
     - Content-Type
     - Authorization
     - X-Request-ID
     exposeHeaders:
+
     - X-Request-ID
     - X-RateLimit-Limit
     - X-RateLimit-Remaining
@@ -394,6 +411,7 @@ spec:
 **File:** `gateway/backend-traffic/circuit-breaker.yaml`
 
 ```yaml
+
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:
@@ -455,6 +473,7 @@ spec:
 **File:** `gateway/envoy-proxy/telemetry.yaml`
 
 ```yaml
+
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
@@ -464,6 +483,7 @@ spec:
   telemetry:
     accessLog:
       settings:
+
       - format:
           type: JSON
           json:
@@ -500,7 +520,7 @@ kubectl port-forward -n envoy-gateway-system \
 # Query metrics
 curl http://localhost:19000/stats/prometheus
 
-# Key metrics:
+# Key metrics
 # envoy_http_downstream_rq_total
 # envoy_http_downstream_rq_xx (2xx, 4xx, 5xx)
 # envoy_cluster_upstream_rq_time
@@ -510,6 +530,7 @@ curl http://localhost:19000/stats/prometheus
 ### Access Logs
 
 ```bash
+
 # View Envoy proxy logs
 kubectl logs -n envoy-gateway-system \
   -l gateway.envoyproxy.io/owning-gateway-name=overmind-gateway \
@@ -534,6 +555,7 @@ kubectl get events -n overmind-prod --sort-by='.lastTimestamp'
 ### 404 errors
 
 ```bash
+
 # Verify HTTPRoute
 kubectl describe httproute api -n overmind-prod
 
@@ -541,7 +563,7 @@ kubectl describe httproute api -n overmind-prod
 kubectl get httproute -n overmind-prod -o yaml
 
 # Test with verbose curl
-curl -vH "Host: api.overmind.example.com" http://<gateway-address>/api/health
+curl -vH "Host: api.overmind.example.com" <http://<gateway-address>/api/health>
 ```
 
 ### Rate limiting not working
@@ -561,6 +583,7 @@ done
 ### TLS certificate issues
 
 ```bash
+
 # Verify secret exists
 kubectl get secret overmind-tls -n overmind-prod
 
@@ -572,13 +595,13 @@ kubectl get secret overmind-tls -n overmind-prod -o jsonpath='{.data.tls\.crt}' 
 ## Best Practices
 
 1. **Use Gateway API** - Standard, portable across implementations
-2. **Enable TLS** - Always terminate TLS at gateway
-3. **Rate limit by route** - Different limits for different endpoints
-4. **Add security headers** - Protect against common attacks
-5. **Enable circuit breaking** - Prevent cascading failures
-6. **Configure timeouts** - Don't wait forever for backends
-7. **Use retries wisely** - Only for idempotent operations
-8. **Monitor metrics** - Track request rates, errors, latencies
+1. **Enable TLS** - Always terminate TLS at gateway
+1. **Rate limit by route** - Different limits for different endpoints
+1. **Add security headers** - Protect against common attacks
+1. **Enable circuit breaking** - Prevent cascading failures
+1. **Configure timeouts** - Don't wait forever for backends
+1. **Use retries wisely** - Only for idempotent operations
+1. **Monitor metrics** - Track request rates, errors, latencies
 
 ## Migration from nginx Ingress
 
@@ -592,7 +615,9 @@ kubectl get secret overmind-tls -n overmind-prod -o jsonpath='{.data.tls\.crt}' 
 ### Step 2: Test Envoy Gateway
 
 ```bash
+
 # Verify all routes work
+
 # Test rate limiting, CORS, etc.
 ```
 
@@ -606,6 +631,7 @@ kubectl get secret overmind-tls -n overmind-prod -o jsonpath='{.data.tls\.crt}' 
 ### Step 4: Decommission nginx
 
 ```bash
+
 # After successful migration
 kubectl delete ingress --all -n overmind-prod
 ```

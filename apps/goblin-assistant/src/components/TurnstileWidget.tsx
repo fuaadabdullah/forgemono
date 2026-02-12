@@ -35,7 +35,9 @@ export default function TurnstileWidget({
 
   useEffect(() => {
     // Check if script already exists
-    const existingScript = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
+    const existingScript = document.querySelector(
+      'script[src*="challenges.cloudflare.com/turnstile"]'
+    );
 
     if (existingScript) {
       setIsLoaded(true);

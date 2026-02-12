@@ -1,0 +1,12 @@
+task_name,location,type,action,notes
+probe_all_providers_job,apps/goblin-assistant/backend/jobs/provider_health.py,APScheduler,KEEP,Core health monitoring - runs every 5 minutes with Redis lock
+system_health_check_job,apps/goblin-assistant/backend/jobs/system_health.py,APScheduler,KEEP,System resource monitoring - runs every minute with Redis lock
+cleanup_expired_data_job,apps/goblin-assistant/backend/jobs/cleanup.py,APScheduler,KEEP,Database cleanup - runs every hour with Redis lock
+probe_single_provider_job,apps/goblin-assistant/backend/probe_single_provider.py,APScheduler,KEEP,Individual provider probing - runs every 10 minutes with Redis lock
+model-performance-report,apps/goblin-assistant/backend/celery_app.py,Celery Beat,REPLACE,Heavy ML reporting task - should be moved to APScheduler
+system-health-check,apps/goblin-assistant/backend/celery_app.py,Celery Beat,REMOVE,Duplicate of APScheduler system_health_check_job
+goblin-assistant-provider-probe,apps/goblin-assistant/k8s/provider-probe-cronjob.yaml,Kubernetes CronJob,REMOVE,Duplicate of APScheduler probe_all_providers_job - causes conflicts
+goblin-assistant-single-provider-probe,apps/goblin-assistant/k8s/single-provider-probe-cronjob.yaml,Kubernetes CronJob,REMOVE,Duplicate of APScheduler probe_single_provider_job - causes conflicts
+ProviderProbeWorker,apps/goblin-assistant/backend/main.py,FastAPI Background,REMOVE,Disabled by SKIP_PROBE_INIT - replaced by APScheduler
+BackgroundTasks,apps/goblin-assistant/backend/probe_single_provider.py,FastAPI Background,REPLACE,Simple async tasks - can be replaced with APScheduler if needed</content>
+<parameter name="filePath">/Users/fuaadabdullah/ForgeMonorepo/background_tasks_inventory.csv

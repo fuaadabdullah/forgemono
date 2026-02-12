@@ -1,0 +1,43 @@
+# LLM Gateway (Cloudflare Worker / Edge)
+LLM_GATEWAY_URL=https://llm-gateway.example.com/v1
+LLM_GATEWAY_JWT=__SET_VIA_SECRET__
+LLM_GATEWAY_AUTH_TOKEN=__SET_VIA_SECRET__
+LLM_GATEWAY_HEALTH_URL=https://llm-gateway.example.com/health
+LLM_GATEWAY_HEALTH_TIMEOUT=3
+
+# Internal Gateway (Cloud Run / GKE) - optional
+MODEL_GATEWAY_URL=https://model-gateway-xyz.a.run.app/v1
+MODEL_GATEWAY_JWT=__SET_VIA_SECRET__
+
+# Local LLM Proxy (direct)
+LOCAL_LLM_PROXY_URL=http://localhost:8002/v1
+LOCAL_LLM_API_KEY=__SET_VIA_SECRET__
+
+# GCP-hosted local LLMs (direct or via gateway)
+OLLAMA_GCP_BASE_URL=https://ollama-gcp.example.com
+OLLAMA_GCP_URL=https://ollama-gcp.example.com
+OLLAMA_GCP_API_KEY=__SET_VIA_SECRET__
+LLAMACPP_GCP_BASE_URL=https://llamacpp-gcp.example.com
+LLAMACPP_GCP_URL=https://llamacpp-gcp.example.com
+LLAMACPP_GCP_API_KEY=__SET_VIA_SECRET__
+
+# GCP LLM endpoints (optional)
+OLLAMA_GCP_BASE_URL=http://YOUR_GCP_OLLAMA_IP:8002
+OLLAMA_GCP_URL=http://YOUR_GCP_OLLAMA_IP:8002
+OLLAMA_GCP_API_KEY=__SET_VIA_SECRET__
+LLAMACPP_GCP_BASE_URL=http://YOUR_GCP_LLAMACPP_IP:8002
+LLAMACPP_GCP_URL=http://YOUR_GCP_LLAMACPP_IP:8002
+LLAMACPP_GCP_API_KEY=__SET_VIA_SECRET__
+
+# Ollama (direct)
+OLLAMA_BASE_URL=http://ollama-gpu:11434
+OLLAMA_API_KEY=ollama
+OLLAMA_DEFAULT_MODEL=llama3.2
+
+# llama.cpp (direct)
+LLAMACPP_BASE_URL=http://llamacpp:8080
+LLAMACPP_DEFAULT_MODEL=llama-3.1-8b-instruct
+
+# Router defaults
+OPENAI_DEFAULT_MODEL=gpt-4-turbo
+DEEPSEEK_DEFAULT_MODEL=deepseek-r1

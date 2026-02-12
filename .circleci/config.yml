@@ -20,6 +20,11 @@ executors:
       - image: cimg/python:3.11
     working_directory: ~/repo
 
+  node-executor:
+    docker:
+      - image: cimg/node:18.19
+    working_directory: ~/repo
+
   docker-executor:
     machine:
       image: ubuntu-2204:current
@@ -103,6 +108,39 @@ jobs:
           root: .
           paths:
             - apps/goblin-assistant
+
+  # --------------------------------------------------------------------------
+  # Frontend: Security Validation
+  # --------------------------------------------------------------------------
+  frontend-security-validation:
+    executor: node-executor
+    steps:
+      - checkout
+      - run:
+          name: Setup Node.js
+          command: |
+            node --version
+            npm --version
+      - run:
+          name: Install dependencies
+          command: |
+            cd apps/goblin-assistant
+            npm ci
+      - run:
+          name: Validate environment security
+          command: |
+            cd apps/goblin-assistant
+            npx tsx scripts/validate-env.ts
+      - run:
+          name: Lint frontend code
+          command: |
+            cd apps/goblin-assistant
+            npm run lint
+      - run:
+          name: Type check and build
+          command: |
+            cd apps/goblin-assistant
+            npm run build:check
 
   # --------------------------------------------------------------------------
   # Docker: Build & Push to GHCR
@@ -326,6 +364,32 @@ jobs:
             terraform apply -auto-approve -input=false
 
   # --------------------------------------------------------------------------
+  # Chromatic: Visual Regression Testing
+  # --------------------------------------------------------------------------
+  chromatic-visual-tests:
+    executor: python-executor
+    steps:
+      - checkout
+      - run:
+          name: Setup Node.js
+          command: |
+            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+      - run:
+          name: Install dependencies
+          command: |
+            cd apps/goblin-assistant
+            npm ci
+      - run:
+          name: Run Chromatic visual tests
+          command: |
+            cd apps/goblin-assistant
+            npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded
+      - store_artifacts:
+          path: apps/goblin-assistant/build-storybook.log
+          destination: chromatic/build-storybook.log
+
+  # --------------------------------------------------------------------------
   # Smoke Tests
   # --------------------------------------------------------------------------
   smoke-test-staging:
@@ -361,6 +425,18 @@ workflows:
     jobs:
       # Backend tests (always)
       - backend-lint-test
+
+      # Frontend security validation (always)
+      - frontend-security-validation
+
+      # Chromatic visual tests (frontend changes)
+      - chromatic-visual-tests:
+          filters:
+            branches:
+              only:
+                - main
+                - /^feature\/.*/
+                - /^frontend\/.*/
 
       # Security scan for infra changes
       - terraform-security-scan:
@@ -398,10 +474,23 @@ workflows:
             branches:
               only: main
 
+      # Frontend security validation (main branch)
+      - frontend-security-validation:
+          filters:
+            branches:
+              only: main
+
+      # Chromatic visual tests (main branch)
+      - chromatic-visual-tests:
+          filters:
+            branches:
+              only: main
+
       # Build & push Docker image
       - docker-build-push:
           requires:
             - backend-lint-test
+            - frontend-security-validation
           filters:
             branches:
               only: main

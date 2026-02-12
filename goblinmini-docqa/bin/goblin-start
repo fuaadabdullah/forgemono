@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+VENVDIR="$PROJECT_DIR/.venv"
+LOCKDIR="/tmp/goblinmini-docqa"
+PORT=${PORT:-9000}
+LOGFILE=${LOGFILE:-"$PROJECT_DIR/goblin.log"}
+mkdir -p "$LOCKDIR"
+LOCK="$LOCKDIR/port-$PORT.lock"
+
+# ensure venv
+if [ -d "$VENVDIR" ]; then
+  source "$VENVDIR/bin/activate"
+fi
+
+# don't start if locked
+exec 9>"$LOCK"
+if ! flock -n 9; then
+  echo "Another instance seems to be running (lock held at $LOCK). Use goblin-status or goblin-stop."
+  exit 1
+fi
+
+# start uvicorn in background
+nohup uvicorn app.server:app --host 0.0.0.0 --port "$PORT" --workers 1 --log-level info >> "$LOGFILE" 2>&1 &
+echo $! > "$LOCKDIR/goblin.pid"
+echo "Started Goblin Mini (pid $(cat $LOCKDIR/goblin.pid)), logs: $LOGFILE"

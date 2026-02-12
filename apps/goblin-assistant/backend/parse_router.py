@@ -22,7 +22,8 @@ class OrchestrationPlan(BaseModel):
     complexity: str = "medium"
 
 
-@router.post("/", response_model=OrchestrationPlan)
+@router.post("", response_model=OrchestrationPlan)
+@router.post("/", response_model=OrchestrationPlan, include_in_schema=False)
 async def parse_orchestration(request: ParseRequest):
     """Parse natural language text into an orchestration plan"""
     try:

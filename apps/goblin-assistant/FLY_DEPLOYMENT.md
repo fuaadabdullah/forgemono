@@ -5,6 +5,7 @@
 ### Option 1: Fly.io Dashboard / CLI (recommended)
 
 1. Push your code to GitHub (if not already done):
+
    ```bash
    cd /Users/fuaadabdullah/ForgeMonorepo
    git add .
@@ -14,11 +15,13 @@
 
 2. Ensure `flyctl` is installed and you're logged in:
    ```bash
-   curl -L https://fly.io/install.sh | sh
+
+   curl -L <https://fly.io/install.sh> | sh
    fly auth login
    ```
 
 3. Create or link an app (one-time):
+
    ```bash
    cd apps/goblin-assistant
    fly launch --name goblin-assistant --region iad --no-deploy
@@ -27,19 +30,22 @@
 
 4. Set Environment Variables/Secrets
    ```bash
+
    fly secrets set ANTHROPIC_API_KEY=sk-... OPENAI_API_KEY=sk-... \
      DATABASE_URL=postgres://user:pass@host:5432/dbname JWT_SECRET_KEY=secret
    ```
 
 5. Deploy the app:
+
    ```bash
    fly deploy --remote-only --yes
    ```
 
 6. Verify the deployment
    ```bash
+
    # Health check
-   curl https://goblin-assistant.fly.dev/health
+   curl <https://goblin-assistant.fly.dev/health>
    ```
 
 ---
@@ -53,18 +59,20 @@ The `fly.toml` configuration defines how Fly builds and runs the app:
 - Ports: 80/443 with TLS
 - Health check: `/health`
 
-Fly apps are automatically served under `https://<app>.fly.dev` (unless you attach a custom domain).
+Fly apps are automatically served under `<https://<app>.fly.dev`> (unless you attach a custom domain).
 
 ---
 
 ## Environment Variables
 
 ### Required
+
 - `ANTHROPIC_API_KEY`, `DEEPSEEK_API_KEY`, `GEMINI_API_KEY`, `GROK_API_KEY` (provider-specific)
 - `DATABASE_URL` (Postgres, Superbase, or managed DB)
 - `JWT_SECRET_KEY` (auth token secret)
 
 ### Optional
+
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (OAuth)
 - `SENTRY_DSN` (Sentry for error tracking)
 - `POSTHOG_API_KEY` (analytics)
@@ -95,14 +103,16 @@ The repo already includes `.circleci/config.yml` with Fly deployment steps.
 
 ## After Deployment
 
-1. Get your backend URL: `https://goblin-assistant.fly.dev`
+1. Get your backend URL: `<https://goblin-assistant.fly.dev`>
 2. Test health endpoint
+
    ```bash
    curl https://goblin-assistant.fly.dev/health
    ```
 3. Update frontend environment variable
    ```bash
-   VITE_FASTAPI_URL=https://goblin-assistant.fly.dev
+
+   VITE_FASTAPI_URL=<https://goblin-assistant.fly.dev>
    ```
 
 ---
@@ -110,22 +120,26 @@ The repo already includes `.circleci/config.yml` with Fly deployment steps.
 ## Troubleshooting
 
 ### Build Failed
+
 - Check `fly.toml` and `requirements.txt`.
 - Inspect `flyctl deploy` logs and `fly status`.
 
 ### Runtime Errors
+
 - Verify secrets were set correctly: `fly secrets list`.
 - Check `DATABASE_URL` and DB connectivity.
 
 ---
 
 ## Costs & Scaling
-- Fly has both free and paid tiers depending on resources and regions. See https://fly.io for details.
+
+- Fly has both free and paid tiers depending on resources and regions. See <https://fly.io> for details.
 - For production, set resource limits in `fly.toml` and scale horizontally/vertically using the Fly dashboard or `flyctl scale`.
 
 ---
 
 ## Updating Fly app config
+
 - To change any runtime settings, edit `fly.toml` then run `fly deploy`.
 
 ---

@@ -21,9 +21,10 @@ This directory contains the VS Code Dev Container specification for the ForgeMon
 	- `pip install -r ForgeTM/apps/backend/requirements.txt` for Python dependencies
 
 To use:
+
 1. Open workspace in VS Code
-2. "Reopen in Container" when prompted
-3. Use VS Code tasks for service startup/testing
+1. "Reopen in Container" when prompted
+1. Use VS Code tasks for service startup/testing
 
 See `../docs/WORKSPACE_OVERVIEW.md` and `../docs/API_KEYS_MANAGEMENT.md` for architecture and secrets setup.
 
@@ -47,36 +48,41 @@ For decentralized processing with orchestration:
    - Namespace: `goblinos-ai`
    - Replicas: 3 for distributed processing
 
-2. **Telemetry Monitoring**:
-   - Prometheus: `deployments/prometheus.yaml` - Metrics collection
-   - Grafana: `deployments/grafana.yaml` - Visualization dashboards
-   - AI Router: `deployments/ai-router.yaml` - Routing policies with embedded telemetry
+1. **Simplified Monitoring**:
+   - Sentry: Error tracking and crash reporting
+   - Vercel Analytics: Frontend performance metrics
+   - Fly.io Metrics: Backend performance metrics (built-in)
 
 ### Setup Instructions
 
 1. Ensure Kubernetes cluster is running (e.g., via Minikube, AKS, GKE).
-2. Apply the manifests:
+1. Apply the manifests:
+
    ```bash
    kubectl apply -f deployments/
    ```
-3. Configure endpoints:
+1. Configure endpoints:
    - Replace `<azure-endpoint-url>` and `<gcp-endpoint-url>` in `ollama-k8s.yaml` with actual URLs.
-4. Access services:
-   - Prometheus: `kubectl port-forward svc/prometheus-service 9090:9090`
-   - Grafana: `kubectl port-forward svc/grafana-service 3000:3000` (default login: admin/admin)
-   - AI Router: Via Ingress at `ai.goblinos.local`
+1. Access services:
+   - Sentry: Configure in app settings
+   - Vercel Analytics: Available in Vercel dashboard
+   - Fly.io Metrics: Available in Fly.io dashboard
 
-### Routing Policies
+### Simplified Monitoring
 
-The AI Router handles request distribution:
-- Routes to Ollama for local inference
-- Fallback to Azure/GCP for cloud-based models
-- Telemetry embedded via Prometheus annotations and Pushgateway integration
+Error tracking and performance monitoring is now handled by integrated platform services:
+
+- **Frontend**: Vercel Analytics for performance metrics
+- **Backend**: Fly.io built-in metrics and logs
+- **Errors**: Sentry for crash reporting and error tracking
+
+No complex Kubernetes monitoring stack required for current scale.
 
 ## Usage
 
 Start the development stack:
 
 ```bash
+
 docker-compose up -d
 ```

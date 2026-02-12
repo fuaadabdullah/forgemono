@@ -5,6 +5,7 @@
 Created a comprehensive validation suite for the local LLM routing system with **4 advanced test categories**:
 
 ### 1. Model Comparison Test (`test_model_comparison.py`)
+
 - **390 lines** of comprehensive comparison logic
 - Tests all 4 models (gemma:2b, phi3:3.8b, qwen2.5:3b, mistral:7b) with **identical prompts**
 - **6 test categories**: factual, code, creative, ambiguous, technical, fictional
@@ -12,6 +13,7 @@ Created a comprehensive validation suite for the local LLM routing system with *
 - Outputs: latency, tokens/second, hallucination risk (LOW/MEDIUM/HIGH)
 
 ### 2. RAG Pipeline Test (`test_rag_pipeline.py`)
+
 - **360 lines** testing multi-model RAG workflow
 - Pipeline: **Document chunking → qwen retrieval → mistral synthesis**
 - Tests on **Azure Cosmos DB documentation** (~3500 words)
@@ -20,6 +22,7 @@ Created a comprehensive validation suite for the local LLM routing system with *
 - **5 complex test queries** spanning different information types
 
 ### 3. Latency Stress Test (`test_latency_stress.py`)
+
 - **370 lines** of production load simulation
 - Tests **gemma:2b** (2 QPS) and **phi3:3.8b** (1 QPS) for **60 seconds each**
 - Metrics: **p50/p95/p99 latency**, actual QPS, error rate, tokens/second
@@ -27,6 +30,7 @@ Created a comprehensive validation suite for the local LLM routing system with *
 - **10 diverse prompts** covering typical production requests
 
 ### 4. Safety Triage Test (`test_safety_triage.py`)
+
 - **470 lines** of comprehensive safety evaluation
 - **25 risky/ambiguous prompts** across 10 categories
 - Tests: recent events, fictional tech, medical advice, financial advice, legal advice, ambiguous queries, political questions, false premises, impossible requests, edge cases
@@ -34,6 +38,7 @@ Created a comprehensive validation suite for the local LLM routing system with *
 - Detects: refusal, overconfidence, hedging, clarification requests, fabrication
 
 ### 5. Master Test Runner (`run_all_tests.py`)
+
 - **240 lines** orchestrating all test suites
 - Runs all 4 tests in sequence with proper timing
 - Loads and analyzes all result files
@@ -155,6 +160,7 @@ python test_safety_triage.py
 ### Complete Suite
 
 ```bash
+
 cd apps/goblin-assistant/backend
 
 # Run everything (~15-20 minutes)
@@ -225,6 +231,7 @@ The master report (`master_test_results.json` + console output) includes:
 ### Async Architecture
 
 All tests use `asyncio` for:
+
 - Concurrent request handling in stress tests
 - Non-blocking model communication
 - Efficient pipeline execution
@@ -232,6 +239,7 @@ All tests use `asyncio` for:
 ### Heuristic Analysis
 
 Intelligent pattern detection for:
+
 - Hallucination risk (keyword-based)
 - Safety violations (refusal phrases)
 - Overconfidence indicators
@@ -240,6 +248,7 @@ Intelligent pattern detection for:
 ### Production-Realistic
 
 Tests simulate real-world scenarios:
+
 - Mixed prompt types
 - Production QPS targets
 - Ambiguous user queries
@@ -248,6 +257,7 @@ Tests simulate real-world scenarios:
 ### Comprehensive Metrics
 
 Every test tracks:
+
 - Latency (ms)
 - Success/failure rates
 - Token counts
@@ -257,6 +267,7 @@ Every test tracks:
 ### Actionable Recommendations
 
 Master report provides:
+
 - Specific warnings with thresholds
 - Model-specific guidance
 - Performance tuning suggestions
@@ -286,6 +297,7 @@ Master report provides:
 ## Next Steps
 
 1. **Run the master test suite**:
+
    ```bash
    cd apps/goblin-assistant/backend
    python run_all_tests.py

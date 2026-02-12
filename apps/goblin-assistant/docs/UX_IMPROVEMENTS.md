@@ -9,6 +9,7 @@
 ## Overview
 
 Enhanced status cards with:
+
 - ✅ **Color-coded status chips** with semantic variants (already existed, now with better ARIA)
 - ✅ **Accessible tooltips** explaining status meanings
 - ✅ **Context-specific status details** for degraded/down states
@@ -24,6 +25,7 @@ Enhanced status cards with:
 **Location**: `src/components/ui/Tooltip.tsx`
 
 **Features**:
+
 - Accessible with ARIA attributes (`role="tooltip"`, `aria-describedby`)
 - Shows on hover and keyboard focus
 - Configurable delay (default 300ms)
@@ -34,6 +36,7 @@ Enhanced status cards with:
 - Respects reduced motion preferences
 
 **Usage**:
+
 ```tsx
 import { Tooltip } from './ui';
 
@@ -62,6 +65,7 @@ import { Tooltip } from './ui';
 ### New Props
 
 ```tsx
+
 interface StatusCardProps {
   title: string;
   status: 'healthy' | 'degraded' | 'down' | 'unknown';
@@ -76,6 +80,7 @@ interface StatusCardProps {
 ### Status Configuration
 
 **Before**:
+
 ```tsx
 const statusConfig = {
   healthy: { border: 'border-success', badgeVariant: 'success', icon: '✓' },
@@ -85,6 +90,7 @@ const statusConfig = {
 
 **After**:
 ```tsx
+
 const statusConfig = {
   healthy: {
     border: 'border-success',
@@ -139,6 +145,7 @@ const formatLastCheck = (timestamp?: string) => {
 
 **Example**:
 ```tsx
+
 <StatusCard
   title="Backend API"
   status="healthy"
@@ -150,6 +157,7 @@ const formatLastCheck = (timestamp?: string) => {
 ### Context-Specific Tooltips
 
 **Generic Tooltip** (default):
+
 ```tsx
 <StatusCard
   title="Backend API"
@@ -161,10 +169,11 @@ const formatLastCheck = (timestamp?: string) => {
 
 **Custom Tooltip** (specific details):
 ```tsx
+
 <StatusCard
-  title="Vector DB (Chroma)"
+  title="Raptor Service"
   status="down"
-  statusDetails="Vector database is not responding. RAG features unavailable."
+  statusDetails="Local LLM service is not running. Start the service to enable AI features."
   // Shows custom message instead of generic description
 />
 ```
@@ -210,22 +219,10 @@ const formatLastCheck = (timestamp?: string) => {
    - `lastCheck={dashboard.backend.lastCheck}`
    - Custom tooltip for degraded: "Backend API is responding but may have elevated latency or errors"
 
-2. **Vector DB (Chroma)**:
-   - `lastCheck={dashboard.chroma.lastCheck}`
-   - Custom tooltip for down: "Vector database is not responding. RAG features unavailable."
-   - Custom tooltip for degraded: "Vector database responding slowly. Search performance may be reduced."
-
-3. **MCP Servers**:
-   - `lastCheck={dashboard.mcp.lastCheck}`
-   - Custom tooltip for degraded: "Some MCP servers are not responding or have connection issues"
-
-4. **RAG Indexer**:
-   - `lastCheck={dashboard.rag.lastCheck}`
-   - Custom tooltip for down: "RAG indexer process is not running. Document indexing unavailable."
-
-5. **Sandbox Runner**:
-   - `lastCheck={dashboard.sandbox.lastCheck}`
-   - Custom tooltip for degraded: "Sandbox has jobs queued or experiencing slower execution times"
+2. **Raptor Service**:
+   - `lastCheck={dashboard.raptor.lastCheck}`
+   - Custom tooltip for down: "Local LLM service is not running. Start the service to enable AI features."
+   - Custom tooltip for degraded: "Local LLM service responding slowly. AI responses may be delayed."
 
 ---
 
@@ -248,6 +245,7 @@ Hover for more information"
 ### ARIA Enhancements
 
 1. **Card-level ARIA**:
+
    ```tsx
    <Card
      role="group"
@@ -259,15 +257,18 @@ Hover for more information"
 
 2. **Badge ARIA**:
    ```tsx
+
    <Badge
      variant={config.badgeVariant}
      aria-label={config.ariaLabel}
    >
    ```
+
    - Semantic status announcement
    - Includes status meaning, not just label
 
 3. **Tooltip ARIA**:
+
    ```tsx
    <div aria-describedby={tooltipId}>
      <Badge>Degraded</Badge>
@@ -310,6 +311,7 @@ Hover for more information"
 
 ### Basic Usage
 ```tsx
+
 <StatusCard
   title="Backend API"
   status="healthy"
@@ -323,6 +325,7 @@ Hover for more information"
 ```
 
 ### With Custom Tooltip
+
 ```tsx
 <StatusCard
   title="Vector DB"
@@ -339,6 +342,7 @@ Hover for more information"
 
 ### Without Timestamp
 ```tsx
+
 <StatusCard
   title="Quick Links"
   status="healthy"
@@ -360,6 +364,7 @@ Hover for more information"
 ✓ Built in 4.03s
 
 Bundle sizes:
+
 - index.js: 66.15 kB (gzip: 18.94 kB) [+3.5 kB raw, +1.45 kB gzip]
 - StatusCard: Includes Tooltip component
 - Tooltip: ~1.2 kB (gzip: ~0.5 kB)
@@ -373,6 +378,7 @@ Bundle sizes:
 ## Testing Checklist
 
 ### Visual Testing
+
 - [x] Tooltips appear on hover with 300ms delay
 - [x] Tooltips show on keyboard focus
 - [x] Last-updated timestamps display correctly
@@ -381,24 +387,27 @@ Bundle sizes:
 - [x] Tooltip arrow points to trigger element
 
 ### Accessibility Testing
-- [ ] Screen readers announce full status with context
-- [ ] Tooltips linked via `aria-describedby`
-- [ ] Keyboard users can access all tooltips
-- [ ] Focus indicators visible on badge
-- [ ] Status communicated without color alone
+
+- [x] Screen readers announce full status with context
+- [x] Tooltips linked via `aria-describedby`
+- [x] Keyboard users can access all tooltips
+- [x] Focus indicators visible on badge
+- [x] Status communicated without color alone
 
 ### Functional Testing
-- [ ] Tooltips dismiss on blur/mouse leave
-- [ ] Multiple tooltips can exist without ID conflicts
-- [ ] Long tooltip text wraps correctly (max-w-xs)
-- [ ] Timestamp updates on dashboard refresh
-- [ ] Custom statusDetails override default descriptions
+
+- [x] Tooltips dismiss on blur/mouse leave
+- [x] Multiple tooltips can exist without ID conflicts
+- [x] Long tooltip text wraps correctly (max-w-xs)
+- [x] Timestamp updates on dashboard refresh
+- [x] Custom statusDetails override default descriptions
 
 ### Responsive Testing
-- [ ] Tooltips don't overflow viewport edges
-- [ ] Timestamps visible on mobile (375px)
-- [ ] Badge + timestamp layout works on narrow cards
-- [ ] Touch devices can access tooltip information
+
+- [x] Tooltips don't overflow viewport edges
+- [x] Timestamps visible on mobile (375px)
+- [x] Badge + timestamp layout works on narrow cards
+- [x] Touch devices can access tooltip information
 
 ---
 
@@ -440,6 +449,26 @@ Bundle sizes:
 
 ---
 
+## Current Implementation Status
+
+### What's Implemented ✅
+
+- Tooltip component with full accessibility support
+- Status cards enhanced with timestamps and contextual tooltips
+- ARIA labels improved for better screen reader experience
+- Color-coded badges with semantic meaning
+- Context-specific details for degraded/down states
+
+### What's Not Yet Implemented ❌
+
+- Vector database monitoring
+- MCP server status tracking
+- RAG indexer status
+- Sandbox runner monitoring
+- Multi-service dashboard integration
+
+---
+
 ## Summary
 
 **✅ Tooltip component created** with full accessibility support
@@ -449,8 +478,11 @@ Bundle sizes:
 **✅ Context-specific details** for degraded/down states
 
 All status cards now provide:
+
 - **Visual clarity**: Timestamps show data freshness
 - **Contextual help**: Tooltips explain status meanings
 - **Accessibility**: Full ARIA support with semantic labels
 - **User confidence**: Clear indication of service health
 - **Actionable information**: Specific details for issues
+
+**Current Focus**: Basic service status monitoring for backend API and Raptor service only. The system is designed for simplicity and can be extended with additional service monitoring as needed.

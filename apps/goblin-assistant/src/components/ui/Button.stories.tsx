@@ -32,7 +32,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     children: 'Button',
-    variant: 'default',
+    variant: 'primary',
   },
 };
 
@@ -105,9 +105,12 @@ export const FullWidth: Story = {
 };
 
 export const AllVariants: Story = {
+  args: {
+    children: 'Button',
+  },
   render: () => (
     <div className="flex flex-col gap-4 w-64">
-      <Button variant="default">Default</Button>
+      <Button variant="primary">Default</Button>
       <Button variant="primary">Primary</Button>
       <Button variant="secondary">Secondary</Button>
       <Button variant="danger">Danger</Button>

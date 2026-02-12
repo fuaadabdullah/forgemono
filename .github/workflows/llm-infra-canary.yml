@@ -1,0 +1,90 @@
+name: LLM Infra Canary
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'infra/gcp/llm/**'
+      - 'infra/cloudflare/model-gateway/**'
+      - 'infra/helm/charts/local-llm-proxy/**'
+      - 'tools/deploy/ci/**'
+      - '.github/workflows/llm-infra-canary.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'infra/gcp/llm/**'
+      - 'infra/cloudflare/model-gateway/**'
+      - 'infra/helm/charts/local-llm-proxy/**'
+      - 'tools/deploy/ci/**'
+      - '.github/workflows/llm-infra-canary.yml'
+
+jobs:
+  llm-infra-plan-and-smoke:
+    name: Terraform Plan + Canary Smoke Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.5.0'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        run: pip install requests
+
+      - name: Run plan + canary tests
+        run: |
+          chmod +x tools/deploy/ci/deploy_ollama_gcp.sh
+          tools/deploy/ci/deploy_ollama_gcp.sh
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ secrets.GCP_REGION }}
+          GCP_ZONE: ${{ secrets.GCP_ZONE }}
+          TF_VAR_google_credentials_json: ${{ secrets.GCP_TF_SA_KEY }}
+          CANARY_ACTION: plan
+          RUN_SMOKE_TESTS: true
+          LLAMACPP_CANARY_URL: ${{ secrets.LLAMACPP_CANARY_URL }}
+          LLM_CANARY_JWT: ${{ secrets.LLM_CANARY_JWT }}
+
+  llm-infra-apply:
+    name: Terraform Apply + Canary Smoke Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.5.0'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        run: pip install requests
+
+      - name: Apply + canary tests
+        run: |
+          chmod +x tools/deploy/ci/deploy_ollama_gcp.sh
+          tools/deploy/ci/deploy_ollama_gcp.sh
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ secrets.GCP_REGION }}
+          GCP_ZONE: ${{ secrets.GCP_ZONE }}
+          TF_VAR_google_credentials_json: ${{ secrets.GCP_TF_SA_KEY }}
+          CANARY_ACTION: apply
+          RUN_SMOKE_TESTS: true
+          LLAMACPP_CANARY_URL: ${{ secrets.LLAMACPP_CANARY_URL }}
+          LLM_CANARY_JWT: ${{ secrets.LLM_CANARY_JWT }}
