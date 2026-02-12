@@ -125,8 +125,19 @@ class ProviderProbeWorker:
             Dict with health metrics
         """
         try:
-            # Decrypt API key
-            api_key = self.encryption_service.decrypt(provider.api_key_encrypted)
+            # Get API key - try encrypted first, fall back to plain text
+            api_key = None
+            if provider.api_key_encrypted:
+                try:
+                    api_key = self.encryption_service.decrypt(
+                        provider.api_key_encrypted
+                    )
+                except Exception:
+                    pass
+            if not api_key and provider.api_key:
+                api_key = provider.api_key
+            if not api_key:
+                raise ValueError(f"No API key available for provider {provider.name}")
 
             # Get adapter
             adapter_class = self.adapters.get(provider.name.lower())

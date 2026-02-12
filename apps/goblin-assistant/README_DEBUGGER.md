@@ -35,6 +35,7 @@ POST /debugger/suggest
 ### Request Format
 
 ```json
+
 {
   "task": "quick_fix",
   "context": {
@@ -63,12 +64,13 @@ POST /debugger/suggest
 Set these environment variables in `.env.local`:
 
 ```bash
+
 # Raptor model (for quick tasks)
-RAPTOR_URL=https://your-raptor-endpoint/api
+RAPTOR_URL=<https://your-raptor-endpoint/api>
 RAPTOR_API_KEY=your-raptor-key
 
 # Fallback model (for complex tasks)
-FALLBACK_MODEL_URL=https://your-llm-endpoint/api
+FALLBACK_MODEL_URL=<https://your-llm-endpoint/api>
 FALLBACK_MODEL_KEY=your-llm-key
 ```
 
@@ -85,6 +87,7 @@ FALLBACK_MODEL_KEY=your-llm-key
 3. Run the server:
 
    ```bash
+
    uvicorn apps.goblin_assistant.backend.main:app --reload --port 8000
    ```
 
@@ -99,6 +102,7 @@ FALLBACK_MODEL_KEY=your-llm-key
 Run the integration tests:
 
 ```bash
+
 python -m pytest apps/goblin-assistant/tests/test_model_router.py -v
 ```
 
@@ -111,6 +115,7 @@ python apps/goblin-assistant/test_debugger.py
 ## Architecture
 
 ```mermaid
+
 graph TD
     A[FastAPI App] --> B[Debugger Router]
     B --> C[ModelRouter]

@@ -9,6 +9,7 @@
 ## Overview
 
 Enhanced all components with:
+
 - **Skeleton UI** for loading states (replaces spinners)
 - **Friendly error states** with retry buttons
 - **ARIA live regions** (`aria-live="polite"`) for status updates
@@ -35,6 +36,7 @@ Enhanced all components with:
 **Location**: `src/components/LoadingSkeleton.tsx`
 
 ```tsx
+
 <StatCardSkeleton />
 ```
 
@@ -59,6 +61,7 @@ Enhanced all components with:
 **Location**: `src/components/LoadingSkeleton.tsx`
 
 ```tsx
+
 <ListSkeleton count={5} />
 ```
 
@@ -83,6 +86,7 @@ Enhanced all components with:
 **Location**: `src/components/LoadingSkeleton.tsx`
 
 ```tsx
+
 <DashboardSkeleton />
 ```
 
@@ -98,15 +102,18 @@ Enhanced all components with:
 ### EnhancedDashboard.tsx ✅
 
 **Loading State**:
+
 - Already uses `<DashboardSkeleton />` ✓
 - Shows while fetching all service health data
 
 **Error State**:
+
 - Full-screen error with retry and reload buttons
 - Uses `<Alert variant="danger">` with embedded `<Button>` components
 - Friendly error message with troubleshooting tips
 
 **ARIA Live Region**:
+
 ```tsx
 <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
   {dashboard && `Dashboard updated. Services: ${healthyCount} healthy`}
@@ -117,10 +124,12 @@ Enhanced all components with:
 
 **Before**:
 ```tsx
+
 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
 ```
 
 **After**:
+
 ```tsx
 <DashboardSkeleton />
 ```
@@ -131,12 +140,15 @@ Enhanced all components with:
 
 **Loading State**:
 ```tsx
+
 {isLoading && <ListSkeleton count={8} />}
 ```
+
 - Shows 8 list item skeletons while loading logs
 - Replaces generic spinner with structured placeholder
 
 **Error State**:
+
 ```tsx
 <Alert
   variant="danger"
@@ -159,15 +171,18 @@ Enhanced all components with:
 
 **ARIA Live Region**:
 ```tsx
+
 <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
   {!isLoading && logs.length > 0 &&
     `Logs updated. Showing ${filteredLogs.length} of ${logs.length} entries`}
 </div>
 ```
+
 - Announces updates when auto-refresh runs (every 5s)
 - Announces filter changes
 
 **Buttons Updated**:
+
 - Refresh button: `<Button variant="primary" loading={isLoading} />`
 - Clear button: `<Button variant="danger" />`
 
@@ -176,6 +191,7 @@ Enhanced all components with:
 ### EnhancedProvidersPage.tsx ✅
 
 **Loading State**:
+
 ```tsx
 {isLoading ? (
   <div className="space-y-2" role="status" aria-label="Loading providers">
@@ -189,6 +205,7 @@ Enhanced all components with:
 
 **Error State**:
 ```tsx
+
 <Alert
   variant="danger"
   title="Failed to Load Providers"
@@ -203,11 +220,13 @@ Enhanced all components with:
   dismissible
 />
 ```
+
 - Retry button with icon
 - Dismissible alert
 - Clear error messaging
 
 **ARIA Live Region**:
+
 ```tsx
 <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
   {!isLoading && providerList.length > 0 &&
@@ -227,16 +246,19 @@ Enhanced all components with:
 
 **ARIA Live Region**:
 ```tsx
+
 <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
   {plan && `Orchestration plan created with ${plan.steps.length} step${plural} in ${plan.total_batches} batch${plural}`}
   {executionId && `Orchestration started with ID ${executionId}`}
 </div>
 ```
+
 - Announces when plan is parsed
 - Announces when execution starts
 - Announces step count and batch count
 
 **Existing Features** (already good):
+
 - Parse button uses `loading` prop ✓
 - Execute button uses `loading` prop ✓
 - Error alert uses `<Alert>` component ✓
@@ -246,6 +268,7 @@ Enhanced all components with:
 ### TaskExecution.tsx ✅
 
 **ARIA Live Region**:
+
 ```tsx
 <div className="sr-only" role="status" aria-live="polite" aria-atomic="false">
   {isStreaming && streamOutput.length > 0 &&
@@ -273,18 +296,21 @@ Enhanced all components with:
 
 **Implementation**:
 ```tsx
+
 <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
   {message}
 </div>
 ```
 
 **Attributes**:
+
 - `aria-live="polite"`: Announces when user is idle (non-intrusive)
 - `aria-atomic="true"`: Read entire message on update
 - `aria-atomic="false"`: Read only changed part (for incremental updates)
 - `role="status"`: Semantic role for status messages
 
 **Used In**:
+
 - ✅ EnhancedDashboard (auto-refresh updates)
 - ✅ LogsPage (log updates, filter changes)
 - ✅ EnhancedProvidersPage (provider loads, test results)
@@ -294,11 +320,13 @@ Enhanced all components with:
 ### Loading Skeleton Roles
 
 All skeleton components use:
+
 - `role="status"`: Indicates loading state
 - `aria-label`: Describes what's loading
 - `<span className="sr-only">`: Screen reader text
 
 **Example**:
+
 ```tsx
 <div role="status" aria-label="Loading providers">
   {/* skeleton content */}
@@ -314,12 +342,14 @@ All skeleton components use:
 
 **Before**:
 ```tsx
+
 <div className="bg-surface border border-danger rounded-lg p-4">
   <p className="text-danger">{error}</p>
 </div>
 ```
 
 **After**:
+
 ```tsx
 <Alert
   variant="danger"
@@ -352,6 +382,7 @@ All skeleton components use:
 
 **Before**:
 ```tsx
+
 {isLoading ? (
   <div className="text-center">
     <div className="animate-spin h-12 w-12 border-b-2 border-primary" />
@@ -361,6 +392,7 @@ All skeleton components use:
 ```
 
 **After**:
+
 ```tsx
 {isLoading ? (
   <ListSkeleton count={8} />
@@ -377,10 +409,12 @@ All skeleton components use:
 
 **Before**:
 ```tsx
+
 {isLoading ? <Spinner /> : <Card {...data} />}
 ```
 
 **After**:
+
 ```tsx
 {isLoading ? <StatusCardSkeleton /> : <StatusCard {...data} />}
 ```

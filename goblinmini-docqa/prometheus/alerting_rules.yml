@@ -1,0 +1,134 @@
+groups:
+  - name: goblin_docqa_alerts
+    rules:
+      # Memory usage alerts (low threshold)
+      - alert: DocQAMemoryHigh
+        expr: goblin_docqa_process_memory_bytes / 1024 / 1024 > 256
+        for: 1m
+        labels:
+          severity: warning
+          service: goblin-docqa
+        annotations:
+          summary: "DocQA memory usage is high"
+          description: "Process memory usage is {{ $value }}MB which exceeds 256MB threshold"
+          runbook_url: "https://github.com/your-org/goblinmini-docqa/blob/main/docs/runbooks/high-memory.md"
+
+      # Critical memory alert
+      - alert: DocQAMemoryCritical
+        expr: goblin_docqa_process_memory_bytes / 1024 / 1024 > 512
+        for: 30s
+        labels:
+          severity: error
+          service: goblin-docqa
+        annotations:
+          summary: "DocQA memory usage is critical"
+          description: "Process memory usage is {{ $value }}MB which exceeds 512MB critical threshold"
+          runbook_url: "https://github.com/your-org/goblinmini-docqa/blob/main/docs/runbooks/high-memory.md"
+
+      # Queue overload alert (low threshold)
+      - alert: DocQAQueueOverload
+        expr: goblin_docqa_inference_queue_length > 4
+        for: 30s
+        labels:
+          severity: warning
+          service: goblin-docqa
+        annotations:
+          summary: "DocQA inference queue is overloaded"
+          description: "Inference queue length is {{ $value }} which exceeds threshold of 4"
+          runbook_url: "https://github.com/your-org/goblinmini-docqa/blob/main/docs/runbooks/queue-overload.md"
+
+      # Critical queue overload
+      - alert: DocQAQueueCritical
+        expr: goblin_docqa_inference_queue_length > 8
+        for: 15s
+        labels:
+          severity: error
+          service: goblin-docqa
+        annotations:
+          summary: "DocQA inference queue is critically overloaded"
+          description: "Inference queue length is {{ $value }} which exceeds critical threshold of 8"
+          runbook_url: "https://github.com/your-org/goblinmini-docqa/blob/main/docs/runbooks/queue-overload.md"
+
+      # High inference error rate
+      - alert: DocQAInferenceErrorsHigh
+        expr: rate(goblin_docqa_inference_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: error
+          service: goblin-docqa
+        annotations:
+          summary: "DocQA inference error rate is high"
+          description: "Inference error rate is {{ $value }} errors/second over 5 minutes"
+          runbook_url: "https://github.com/your-org/goblinmini-docqa/blob/main/docs/runbooks/inference-errors.md"
+
+      # High rate limit hits (429 responses)
+      - alert: DocQARateLimitHigh
+        expr: rate(goblin_docqa_requests_429_total[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: goblin-docqa
+        annotations:
+          summary: "DocQA rate limit hits are high"
+          description: "429 response rate is {{ $value }} responses/second over 5 minutes"
+          runbook_url: "https://github.com/your-org/goblinmini-docqa/blob/main/docs/runbooks/rate-limits.md"
+
+      # Slow inference latency
+      - alert: DocQAInferenceLatencyHigh
+        expr: histogram_quantile(0.95, rate(goblin_docqa_inference_latency_seconds_bucket[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+          service: goblin-docqa
+        annotations:
+          summary: "DocQA inference latency is high"
+          description: "95th percentile inference latency is {{ $value }}s which exceeds 30s threshold"
+          runbook_url: "https://github.com/your-org/goblinmini-docqa/blob/main/docs/runbooks/high-latency.md"
+
+      # High Copilot token usage
+      - alert: DocQACopilotUsageHigh
+        expr: rate(goblin_docqa_copilot_tokens_used_total[1h]) > 50000
+        for: 10m
+        labels:
+          severity: warning
+          service: goblin-docqa
+        annotations:
+          summary: "DocQA Copilot token usage is high"
+          description: "Copilot token usage rate is {{ $value }} tokens/hour (threshold: 50k/h)"
+          runbook_url: "https://github.com/your-org/goblinmini-docqa/blob/main/docs/runbooks/copilot-usage.md"
+
+      # High token usage rate (low threshold warning)
+      - alert: DocQATokenUsageRateWarning
+        expr: rate(goblin_docqa_copilot_tokens_used_total[5m]) > 10000
+        for: 2m
+        labels:
+          severity: warning
+          service: goblin-docqa
+        annotations:
+          summary: "DocQA token usage rate is high"
+          description: "Token usage rate is {{ $value | printf \"%.0f\" }} tokens/minute over last 5 minutes"
+          runbook_url: "https://github.com/your-org/goblinmini-docqa/blob/main/docs/runbooks/token-usage.md"
+
+      # Critical token usage rate
+      - alert: DocQATokenUsageRateCritical
+        expr: rate(goblin_docqa_copilot_tokens_used_total[5m]) > 50000
+        for: 1m
+        labels:
+          severity: error
+          service: goblin-docqa
+        annotations:
+          summary: "DocQA token usage rate is critically high"
+          description: "Token usage rate is {{ $value | printf \"%.0f\" }} tokens/minute over last 5 minutes - risk of budget overrun"
+          runbook_url: "https://github.com/your-org/goblinmini-docqa/blob/main/docs/runbooks/token-usage.md"
+
+      # systemd service restart alerts
+      - alert: DocQAServiceRestarting
+        expr: increase(goblin_docqa_uptime_seconds[5m]) < 0
+        for: 30s
+        labels:
+          severity: warning
+          service: goblin-docqa
+        annotations:
+          summary: "DocQA service is restarting frequently"
+          description: "Service uptime reset detected, indicating restart"
+          runbook_url: "https://github.com/your-org/goblinmini-docqa/blob/main/docs/runbooks/service-restarts.md"

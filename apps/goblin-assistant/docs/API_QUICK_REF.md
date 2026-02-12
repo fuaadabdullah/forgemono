@@ -1,123 +1,116 @@
-# Dashboard API Quick Reference
+# API Quick Reference
 
-## New Endpoints
+## Current Endpoints
 
-### `/api/dashboard/status` (10s cache)
+### `/api/raptor/start`
 
-**Single consolidated call replacing 6 separate health checks**
+Start the Raptor service for local LLM management.
 
 ```bash
-curl http://localhost:8001/api/dashboard/status | jq
+curl -X POST http://localhost:8001/api/raptor/start
+```
+
+### `/api/raptor/stop`
+
+Stop the Raptor service.
+
+```bash
+curl -X POST http://localhost:8001/api/raptor/stop
+```
+
+### `/api/raptor/status`
+
+Get current Raptor status.
+
+```bash
+curl http://localhost:8001/api/raptor/status
 ```
 
 Response:
 
 ```json
 {
-  "backend_api": { "status": "healthy", "latency_ms": 120, "updated": "..." },
-  "vector_db": { "status": "healthy", "details": { "collections": 5, "documents": 1234 } },
-  "mcp_servers": { "status": "healthy", "details": { "servers": ["localhost:8765"], "count": 1 } },
-  "rag_indexer": { "status": "down", "error": "Raptor module not available" },
-  "sandbox_runner": { "status": "healthy", "details": { "active_jobs": 2, "queue_size": 0 } },
-  "timestamp": "2025-01-XX..."
+  "running": true,
+  "config_file": "/path/to/config"
 }
 ```
 
-### `/api/dashboard/costs` (60s cache - AGGRESSIVE!)
+### `/api/raptor/logs`
 
-**Aggregated cost tracking from database**
+Get Raptor logs.
 
 ```bash
-curl http://localhost:8001/api/dashboard/costs | jq
+curl http://localhost:8001/api/raptor/logs
 ```
 
 Response:
 
 ```json
 {
-  "total_cost": 12.45,
-  "cost_today": 0.87,
-  "cost_this_month": 5.32,
-  "by_provider": {
-    "OpenAI": 3.21,
-    "Anthropic": 2.11,
-    "Groq": 0.05
-  },
-  "timestamp": "2025-01-XX..."
+  "log_tail": "Recent log entries..."
 }
 ```
 
-### `/api/dashboard/metrics/{service}` (30s cache)
+### `/api/raptor/demo/{mode}`
 
-**Service-specific metrics (latency history, etc.)**
+Run a Raptor demo in specified mode.
 
 ```bash
-curl http://localhost:8001/api/dashboard/metrics/backend | jq
+curl -X POST http://localhost:8001/api/raptor/demo/chat
 ```
 
 ## Frontend Usage
 
-### Before (6+ API calls)
+### Basic Raptor Management
 
 ```typescript
-const [backend, chroma, mcp, rag, sandbox, costs] = await Promise.allSettled([
-  apiClient.getHealth(),
-  apiClient.getChromaStatus(),
-  apiClient.getMCPStatus(),
-  apiClient.getRaptorStatus(),
-  apiClient.getSandboxStatus(),
-  apiClient.getCostTracking(),
-]);
+import { raptorStart, raptorStop, raptorStatus, raptorLogs } from './services/raptor';
+
+// Start Raptor
+await raptorStart();
+
+// Check status
+const status = await raptorStatus();
+console.log('Raptor running:', status.running);
+
+// Get logs
+const logs = await raptorLogs();
+console.log('Recent logs:', logs.log_tail);
+
+// Stop Raptor
+await raptorStop();
 ```
 
-### After (2 API calls)
+## Current Implementation Status
 
-```typescript
-const [status, costs] = await Promise.allSettled([
-  apiClient.getDashboardStatus(),  // Consolidated!
-  apiClient.getDashboardCosts(),   // Cached 60s
-]);
-```
+### What's Implemented ✅
 
-## Cache Behavior
+- Raptor service management (start/stop/status)
+- Basic logging functionality
+- Demo mode execution
 
-| Endpoint | TTL | First Call | Cached Call |
-|----------|-----|------------|-------------|
-| `/api/dashboard/status` | 10s | ~150ms | <1ms |
-| `/api/dashboard/costs` | 60s | ~350ms | <1ms |
-| `/api/dashboard/metrics/{service}` | 30s | ~200ms | <1ms |
+### What's Not Yet Implemented ❌
 
-## Testing Cache
-
-```bash
-# First call (slow - hits DB)
-time curl http://localhost:8001/api/dashboard/costs
-
-# Second call within 60s (instant - cached)
-time curl http://localhost:8001/api/dashboard/costs
-
-# Wait 61 seconds, call again (slow - cache expired)
-sleep 61 && time curl http://localhost:8001/api/dashboard/costs
-```
-
-## Performance Gains
-
-- **83% fewer API calls**: 6+ → 2
-- **90% reduced DB load**: Costs cached for 60s
-- **47% faster first load**: ~950ms → ~500ms
-- **84% faster subsequent loads**: ~950ms → ~150ms
+- Dashboard status endpoints
+- Cost tracking and monitoring
+- Vector database integration
+- Multi-provider orchestration
+- Advanced caching systems
+- Health checks for multiple services
+- Performance metrics and monitoring
+- Complex API endpoints with authentication
 
 ## Files Changed
 
 ### Backend
 
-- ✅ `backend/dashboard_router.py` (NEW) - Consolidated endpoints with caching
-- ✅ `backend/main.py` - Register dashboard router
+- `backend/main.py` - FastAPI app with Raptor endpoints
+- `backend/database.py` - Database configuration
 
 ### Frontend
 
-- ✅ `src/api/client-axios.ts` - Add `getDashboardStatus()` and `getDashboardCosts()`
-- ✅ `src/components/EnhancedDashboard.tsx` - Use consolidated endpoints
+- `src/services/raptor.ts` - Raptor service client
+- `src/api/http-client.ts` - HTTP client configuration
 
 ## Status Codes
 
@@ -126,12 +119,11 @@ sleep 61 && time curl http://localhost:8001/api/dashboard/costs
 
 ## Error Handling
 
-All endpoints return structured errors:
+Current endpoints return basic error responses. The system is designed for simplicity and local development use.
 
-```json
-{
-  "detail": "Failed to get dashboard status: Connection refused"
-}
-```
+## Notes
 
-Frontend automatically retries and shows user-friendly error messages.
+- This is a basic implementation focused on local LLM management
+- No authentication or authorization is currently implemented
+- Database support is minimal (SQLite/PostgreSQL for basic data persistence)
+- The system is designed for single-user or small team development use

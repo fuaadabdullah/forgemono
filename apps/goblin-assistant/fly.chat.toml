@@ -1,0 +1,58 @@
+# Fly.io Chat Backend - Lightweight LLM Service
+# 
+# Provides always-on chat capabilities when cloud providers are unavailable.
+# Uses small quantized models that fit in Fly.io's memory limits.
+#
+# Deployed at: goblin-chat.fly.dev
+# Region: iad (us-east) - same as GCS for low latency
+
+app = "goblin-chat"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile.chat"
+
+[env]
+  PORT = "8080"
+  MODEL_ID = "Llama-3.2-1B-Instruct"
+  MODEL_DOWNLOAD_URL = "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf"
+  MODEL_FILENAME = "Llama-3.2-1B-Instruct-Q4_K_M.gguf"
+  QUANTIZATION = "int4"
+  MAX_CONTEXT = "2048"
+  LOG_LEVEL = "INFO"
+  # Use llama.cpp for efficient CPU inference
+  INFERENCE_ENGINE = "llama-cpp"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false  # Keep alive for fast responses
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 50
+    soft_limit = 25
+
+[[http_service.checks]]
+  grace_period = "30s"
+  interval = "30s"
+  method = "GET"
+  path = "/health"
+  timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2gb"
+  cpus = 2
+
+[mounts]
+  source = "models"
+  destination = "/app/models"
+
+# Secrets (set via: fly secrets set KEY=value)
+# FLY_API_TOKEN - for deployment
+# GOBLIN_API_KEY - for internal auth
+# OPENAI_API_KEY - fallback provider

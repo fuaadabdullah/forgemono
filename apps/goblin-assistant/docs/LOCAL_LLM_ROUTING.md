@@ -18,11 +18,13 @@ This guide describes the intelligent routing system for local LLM models deploye
 ### Rule 1: Ultra-Low Latency → gemma:2b
 
 **Conditions:**
+
 - Latency target: `ultra_low` (< 100ms target)
 - OR Intent: `classification`, `status`, `microop`
 - OR Cost priority enabled AND context < 100 tokens
 
 **Parameters:**
+
 ```python
 {
     "temperature": 0.0,
@@ -46,6 +48,7 @@ This guide describes the intelligent routing system for local LLM models deploye
 
 **Parameters:**
 ```python
+
 {
     "temperature": 0.0,  # For RAG/retrieval
     "temperature": 0.3,  # For other tasks
@@ -55,6 +58,7 @@ This guide describes the intelligent routing system for local LLM models deploye
 ```
 
 **Use Cases:**
+
 - Long document summarization
 - RAG (Retrieval-Augmented Generation) queries
 - Multilingual conversations
@@ -64,10 +68,12 @@ This guide describes the intelligent routing system for local LLM models deploye
 ### Rule 3: Low-Latency Chat → phi3:3.8b
 
 **Conditions:**
+
 - Latency target: `low` (100-200ms target)
 - OR Intent: `chat` AND context < 2,000 tokens
 
 **Parameters:**
+
 ```python
 {
     "temperature": 0.15,
@@ -91,6 +97,7 @@ This guide describes the intelligent routing system for local LLM models deploye
 
 **Parameters:**
 ```python
+
 {
     "temperature": 0.0,  # For code generation
     "temperature": 0.2,  # For explanations/summaries
@@ -102,6 +109,7 @@ This guide describes the intelligent routing system for local LLM models deploye
 ```
 
 **Use Cases:**
+
 - Code generation with best practices
 - Detailed explanations
 - Creative writing
@@ -151,6 +159,7 @@ Be precise and consistent.
 ### Example 1: Code Generation
 
 **Request:**
+
 ```python
 {
     "messages": [
@@ -172,6 +181,7 @@ Be precise and consistent.
 
 **Request:**
 ```python
+
 {
     "messages": [
         {"role": "user", "content": "What's the deployment status?"}
@@ -181,6 +191,7 @@ Be precise and consistent.
 ```
 
 **Routing Decision:**
+
 - Model: `gemma:2b`
 - Intent: `status` (detected)
 - Temperature: 0.0
@@ -189,6 +200,7 @@ Be precise and consistent.
 ### Example 3: Long Document RAG
 
 **Request:**
+
 ```python
 {
     "messages": [
@@ -213,6 +225,7 @@ Be precise and consistent.
 
 **Request:**
 ```python
+
 {
     "messages": [
         {"role": "user", "content": "Hi! How are you?"},
@@ -224,6 +237,7 @@ Be precise and consistent.
 ```
 
 **Routing Decision:**
+
 - Model: `phi3:3.8b`
 - Intent: `chat` (detected)
 - Temperature: 0.15
@@ -260,6 +274,7 @@ result = await routing_service.route_request(
 ### Direct Model Selection
 
 ```python
+
 from services.local_llm_routing import select_model, Intent, LatencyTarget
 
 # Select model with explicit intent
@@ -270,7 +285,9 @@ model_id, params = select_model(
 )
 
 # Result:
+
 # model_id = "mistral:7b"
+
 # params = {"temperature": 0.0, "top_p": 0.95, "max_tokens": 512}
 ```
 
@@ -302,6 +319,7 @@ You can also **explicitly provide intent** to override detection:
 ### 1. KV Cache Reuse
 For multi-turn conversations, reuse key-value cache to reduce latency:
 ```python
+
 # First turn
 response1 = await ollama_adapter.chat(
     model="phi3:3.8b",
@@ -321,6 +339,7 @@ response2 = await ollama_adapter.chat(
 
 ### 2. Batch Micro-Requests
 For high-volume classification or status checks:
+
 ```python
 # Batch multiple requests to gemma:2b
 batch_requests = [
@@ -338,6 +357,7 @@ Implement async queues with priority:
 ### 4. Fallback Strategy
 For critical operations, use two-model verification:
 ```python
+
 # Primary response
 response_mistral = await get_response(model="mistral:7b")
 
@@ -362,6 +382,7 @@ Track these key metrics per model:
 
 ### Evaluation Tests
 Run A/B tests to compare models:
+
 ```bash
 # Test routing decisions
 python test_local_routing.py
@@ -401,16 +422,19 @@ For critical domains (legal, medical), use verification:
 ### Model Selection Not Working
 Check that Ollama provider is active in database:
 ```sql
+
 SELECT * FROM routing_providers WHERE name = 'ollama';
 ```
 
 ### Latency Too High
+
 1. Check CPU usage: `ssh root@45.61.60.3 "htop"`
 2. Verify model loaded: `ssh root@45.61.60.3 "ollama ps"`
-3. Test direct Ollama: `curl http://45.61.60.3:8002/health`
+3. Test direct Ollama: `curl <http://45.61.60.3:8002/health`>
 
 ### Wrong Model Selected
 Enable routing explanation logging:
+
 ```python
 result = await routing_service.route_request(...)
 print(result["routing_explanation"])

@@ -1,0 +1,53 @@
+# Dockerfile.prod - Full deployment with ML libs for Fly.io
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app
+
+# Copy requirements but exclude TinyLlama deps for faster build
+COPY backend/requirements.txt /app/requirements.txt
+
+# Create requirements without TinyLlama for faster build
+RUN grep -v "transformers\|torch\|accelerate" requirements.txt > requirements_base.txt
+
+# System deps for building
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install base dependencies first (faster build)
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir sentence-transformers && \
+    pip install --no-cache-dir -r requirements_base.txt
+
+# Install TinyLlama dependencies at runtime (slower but avoids build timeout)
+RUN echo "# TinyLlama dependencies installed at runtime" > requirements_tinylama.txt && \
+    echo "transformers>=4.36.0" >> requirements_tinylama.txt && \
+    echo "accelerate>=0.25.0" >> requirements_tinylama.txt
+
+# Copy backend code
+COPY backend/ /app/backend/
+COPY config/ /app/config/
+COPY start.sh /app/start.sh
+
+ENV PYTHONPATH=/app
+
+# Ensure backend is a package
+RUN if [ ! -f /app/backend/__init__.py ]; then touch /app/backend/__init__.py; fi
+
+# Clean up caches and test files
+RUN find /app -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find /app -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true && \
+    find /app -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true && \
+    find /app -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
+    rm -rf /root/.cache/pip
+
+# Expose port
+ENV PORT=8001
+EXPOSE 8001
+
+RUN chmod +x /app/start.sh
+CMD ["/app/start.sh"]

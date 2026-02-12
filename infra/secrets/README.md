@@ -22,33 +22,35 @@ This directory contains encrypted secrets managed with [SOPS](https://github.com
 brew install sops age
 
 # Linux
-# Download from releases:
+# Download from releases
 # - https://github.com/getsops/sops/releases
 # - https://github.com/FiloSottile/age/releases
 ```
 
-2. **Generate age key** (one-time per developer):
+1. **Generate age key** (one-time per developer):
 
 ```bash
+
 age-keygen -o ~/.config/sops/age/keys.txt
 ```
 
-3. **Share public key** with team lead:
+1. **Share public key** with team lead:
 
 ```bash
 # Print your public key
 age-keygen -y ~/.config/sops/age/keys.txt
 ```
 
-4. **Receive `.sops.yaml`** from team lead with your public key added.
+1. **Receive `.sops.yaml`** from team lead with your public key added.
 
 ### Encrypt a New Secret
 
 ```bash
+
 # Create a new secret file
 sops secrets/dev/litellm-secrets.enc.yaml
 
-# SOPS will open your $EDITOR with:
+# SOPS will open your $EDITOR with
 apiVersion: v1
 kind: Secret
 metadata:
@@ -79,6 +81,7 @@ sops -d secrets/dev/litellm-secrets.enc.yaml | kubectl apply -f -
 ### Rotate Keys
 
 ```bash
+
 # Add new recipient
 sops updatekeys secrets/dev/litellm-secrets.enc.yaml
 
@@ -127,6 +130,7 @@ creation_rules:
 1. **Install SOPS plugin**:
 
 ```yaml
+
 # argocd-cm ConfigMap
 apiVersion: v1
 kind: ConfigMap
@@ -136,7 +140,7 @@ data:
   kustomize.buildOptions: "--enable-alpha-plugins --enable-helm"
 ```
 
-2. **Create secret with age key**:
+1. **Create secret with age key**:
 
 ```bash
 kubectl create secret generic sops-age \
@@ -144,11 +148,13 @@ kubectl create secret generic sops-age \
   -n argocd
 ```
 
-3. **Use KSOPS kustomize plugin**:
+1. **Use KSOPS kustomize plugin**:
 
 ```yaml
+
 # kustomization.yaml
 generators:
+
   - ./secrets/dev/litellm-secrets.enc.yaml
 ```
 
@@ -165,24 +171,25 @@ flux bootstrap github \
   --decryption-secret=sops-age
 ```
 
-2. **Create age secret**:
+1. **Create age secret**:
 
 ```bash
-cat ~/.config/sops/age/keys.txt |
+
+cat ~/.config/sops/age/keys.txt | 
 kubectl create secret generic sops-age \
   --namespace=flux-system \
   --from-file=age.agekey=/dev/stdin
 ```
 
-3. **Flux auto-decrypts** `*.enc.yaml` files.
+1. **Flux auto-decrypts** `*.enc.yaml` files.
 
 ## Security Best Practices
 
 1. **Never commit unencrypted secrets** - `.gitignore` excludes `*.dec.yaml`
-2. **Rotate age keys quarterly** - See rotation schedule in team calendar
-3. **Use separate keys per environment** - Prod keys separate from dev
-4. **Audit access regularly** - Review who has which keys
-5. **Backup age keys** - Store securely (1Password, Vault, etc.)
+1. **Rotate age keys quarterly** - See rotation schedule in team calendar
+1. **Use separate keys per environment** - Prod keys separate from dev
+1. **Audit access regularly** - Review who has which keys
+1. **Backup age keys** - Store securely (Bitwarden, 1Password, Vault, etc.)
 
 ## Makefile Commands
 
@@ -208,6 +215,7 @@ make apply ENV=dev NAMESPACE=overmind-dev
 ### "no age private key found"
 
 ```bash
+
 # Ensure age key exists
 ls -la ~/.config/sops/age/keys.txt
 
@@ -249,7 +257,7 @@ Your public key is not in `.sops.yaml`. Contact team lead to add you.
 In case of lost keys, contact:
 
 - **Team Lead**: @fuaadabdullah
-- **Backup**: Check team 1Password vault
+- **Backup**: Check team Bitwarden (or 1Password) vault
 - **Last Resort**: Regenerate secrets and re-encrypt
 
 ## Key Rotation Schedule

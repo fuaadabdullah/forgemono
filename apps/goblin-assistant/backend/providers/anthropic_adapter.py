@@ -8,26 +8,51 @@ from typing import Dict, List, Optional, Any
 import anthropic
 import logging
 
+from .base_adapter import AdapterBase
+from .provider_registry import get_provider_registry
+
 logger = logging.getLogger(__name__)
 
 
-class AnthropicAdapter:
+class AnthropicAdapter(AdapterBase):
     """Adapter for Anthropic API provider operations."""
 
-    def __init__(self, api_key: str, base_url: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
         """Initialize Anthropic adapter.
 
         Args:
-            api_key: Anthropic API key
+            api_key: Anthropic API key (optional, will use registry)
             base_url: Optional custom base URL
         """
-        self.api_key = api_key
-        self.base_url = base_url
-        # Only pass base_url if explicitly provided (None is valid for Anthropic default)
-        if base_url:
-            self.client = anthropic.Anthropic(api_key=api_key, base_url=base_url)
+        registry = get_provider_registry()
+        config = registry.get_provider_config_dict("anthropic")
+
+        if config:
+            # Allow explicit overrides (e.g., DB-stored credentials/base_url).
+            if api_key is not None:
+                config["api_key"] = api_key
+            if base_url is not None:
+                config["base_url"] = base_url
         else:
-            self.client = anthropic.Anthropic(api_key=api_key)
+            # Fallback to manual config if registry fails
+            config = {
+                "api_key": api_key,
+                "base_url": base_url,
+                "timeout": 30,
+                "retries": 2,
+                "cost_per_token_input": 0.008,
+                "cost_per_token_output": 0.024,
+                "latency_threshold_ms": 4000,
+            }
+
+        super().__init__(name="anthropic", config=config)
+        # Only pass base_url if explicitly provided (None is valid for Anthropic default)
+        if self.base_url:
+            self.client = anthropic.Anthropic(
+                api_key=self.api_key, base_url=self.base_url
+            )
+        else:
+            self.client = anthropic.Anthropic(api_key=self.api_key)
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check on Anthropic API.
@@ -200,3 +225,75 @@ class AnthropicAdapter:
                 "error": str(e),
                 "model": model,
             }
+
+    async def generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Generate completion using Anthropic API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters (model, temperature, max_tokens, etc.)
+
+        Returns:
+            Dict containing response data
+        """
+        # Avoid passing duplicate keyword args (e.g. model both explicit and in **kwargs)
+        model = kwargs.pop("model", "claude-3-sonnet-20240229")
+        # Convert messages to Anthropic format
+        anthropic_messages = []
+        system_message = None
+
+        for msg in messages:
+            if msg["role"] == "system":
+                system_message = msg["content"]
+            else:
+                anthropic_messages.append(
+                    {"role": msg["role"], "content": msg["content"]}
+                )
+
+        def _sync_call():
+            payload = {
+                "model": model,
+                "messages": anthropic_messages,
+                **kwargs,
+            }
+            if system_message:
+                payload["system"] = system_message
+            return self.client.messages.create(**payload)
+
+        response = await self._call_with_circuit_breaker(_sync_call)
+
+        # Extract usage information for cost logging
+        usage = getattr(response, "usage", None)
+        input_tokens = getattr(usage, "input_tokens", 0) if usage else 0
+        output_tokens = getattr(usage, "output_tokens", 0) if usage else 0
+
+        # Log cost using base adapter method
+        self._log_cost(input_tokens, output_tokens)
+
+        return {
+            "content": response.content[0].text if response.content else "",
+            "usage": {
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "total_tokens": input_tokens + output_tokens,
+            },
+            "model": model,
+            "finish_reason": response.stop_reason,
+        }
+
+    async def a_generate(
+        self, messages: List[Dict[str, str]], **kwargs
+    ) -> Dict[str, Any]:
+        """Async generate completion using Anthropic API.
+
+        Args:
+            messages: List of message dictionaries
+            **kwargs: Additional parameters
+
+        Returns:
+            Dict containing response data
+        """
+        # For Anthropic, async and sync are the same since we use run_in_executor
+        return await self.generate(messages, **kwargs)

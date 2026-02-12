@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+pydantic
+requests
+python-dotenv
+jinja2
+redis
+aiohttp
+python-multipart
+prometheus-client
+slowapi
+distutils-strtobool
+opentelemetry-distro
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-httpx
+opentelemetry-instrumentation-aiohttp
+opentelemetry-exporter-otlp-proto-grpc

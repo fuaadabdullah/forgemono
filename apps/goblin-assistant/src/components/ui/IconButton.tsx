@@ -11,10 +11,10 @@ export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 const variantStyles: Record<IconButtonVariant, string> = {
-  primary: 'bg-primary text-text-inverse hover:brightness-110 shadow-glow-primary',
+  primary: 'bg-primary text-text-inverse hover:bg-primary-hover shadow-glow-primary',
   secondary: 'bg-surface-hover text-text border border-border hover:bg-surface-active',
-  danger: 'bg-danger text-text-inverse hover:brightness-110 shadow-glow-cta',
-  ghost: 'bg-transparent text-text hover:bg-surface-hover',
+  danger: 'bg-danger text-text-inverse hover:brightness-110 shadow-[0_12px_24px_rgba(226,85,79,0.25)]',
+  ghost: 'bg-transparent text-text border border-border hover:bg-surface-hover',
 };
 
 const sizeStyles: Record<IconButtonSize, string> = {
@@ -35,7 +35,8 @@ export default function IconButton({
   disabled,
   ...props
 }: IconButtonProps) {
-  const baseStyles = 'rounded-lg inline-flex items-center justify-center transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles =
+    'rounded-xl inline-flex items-center justify-center transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-[1px]';
 
   return (
     <button

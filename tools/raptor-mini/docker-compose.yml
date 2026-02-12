@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  phi3-mini:
+    image: ghcr.io/ggerganov/llama.cpp:server
+    container_name: phi3_local
+    volumes:
+      - ./models:/models:ro
+    ports:
+      - "7860:8080"
+    command: >
+      --model /models/Phi-3-mini-4k-instruct-q4.gguf --host 0.0.0.0 --port 8080 --ctx 4096 --threads 4

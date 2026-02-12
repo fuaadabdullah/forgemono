@@ -85,6 +85,7 @@ gh repo create fuaadabdullah/goblin-contracts --public
 #### 1.2 Extract Backend Code
 
 ```bash
+
 cd /Users/fuaadabdullah/ForgeMonorepo
 
 # Create backend repo structure
@@ -131,7 +132,6 @@ cp /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/index.html .
 
 # Copy deployment configs
 cp /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/vercel.json .
-cp /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/netlify.toml .
 
 # Initial commit
 git add .
@@ -144,6 +144,7 @@ git push -u origin main
 #### 1.4 Create Contracts Package
 
 ```bash
+
 mkdir -p ../goblin-contracts
 cd ../goblin-contracts
 git init
@@ -156,6 +157,7 @@ git init
 See: `contracts/README.md` in this guide for detailed setup.
 
 Key files to create:
+
 - `package.json` - npm package config
 - `src/api.ts` - TypeScript type definitions
 - `src/api.py` - Python type stubs (using Pydantic)
@@ -175,16 +177,18 @@ git init
 
 #### 3.2 Kubernetes Manifests
 
-Create K8s deployments for backend/frontend (optional, can use Render/Vercel instead).
+Create K8s deployments for backend/frontend (optional, can use Fly.io/Vercel instead).
 
 ### Phase 4: Local Development Orchestration (Day 2)
 
 ```bash
+
 mkdir -p ../goblin-assistant-dev
 cd ../goblin-assistant-dev
 git init
 
 # Create docker-compose.yml that references backend/frontend images
+
 # See dev/README.md for complete setup
 ```
 
@@ -193,21 +197,24 @@ git init
 #### 5.1 Backend CI/CD
 
 Add to `goblin-assistant-backend/.github/workflows/`:
+
 - `ci.yml` - Run tests on PR
-- `deploy.yml` - Build Docker image, push to registry, deploy to Render
+- `deploy.yml` - Build Docker image, push to registry, deploy to Fly.io
 
 #### 5.2 Frontend CI/CD
 
 Add to `goblin-assistant-frontend/.github/workflows/`:
+
 - `ci.yml` - Run tests, Storybook build
 - `deploy-vercel.yml` - Deploy to Vercel
 
 #### 5.3 Organization Secrets
 
 Set in GitHub org or per-repo:
+
 - `DOCKER_USERNAME`
 - `DOCKER_PASSWORD`
-- `RENDER_API_KEY`
+- `FLY_API_TOKEN`
 - `VERCEL_TOKEN`
 - `CHROMATIC_PROJECT_TOKEN`
 
@@ -226,6 +233,7 @@ dependencies = [
 #### 6.2 Frontend depends on contracts
 
 ```json
+
 {
   "dependencies": {
     "@goblin/contracts": "github:fuaadabdullah/goblin-contracts#v1.0.0"
@@ -261,21 +269,25 @@ Use [Keep a Changelog](https://keepachangelog.com/):
 #### PR Template Example
 
 ```markdown
+
 ## Description
 <!-- What changed and why -->
 
 ## Related PRs
 <!-- Link dependent PRs in other repos -->
+
 - Backend: fuaadabdullah/goblin-assistant-backend#42
 - Frontend: fuaadabdullah/goblin-assistant-frontend#17
 - Contracts: fuaadabdullah/goblin-contracts#5
 
 ## Testing
+
 - [ ] Unit tests pass
 - [ ] Integration tests pass
 - [ ] Manual testing completed
 
 ## Deployment Checklist
+
 - [ ] Backend deployed
 - [ ] Frontend deployed
 - [ ] Database migrations run
@@ -323,24 +335,28 @@ See: `contracts-repo-setup.md` (next section)
 
 ### Risk 1: Breaking Changes During Migration
 **Mitigation**:
+
 - Keep monorepo running in parallel
 - Use feature flags
 - Gradual traffic shift (canary deployment)
 
 ### Risk 2: Dependency Hell
 **Mitigation**:
+
 - Pin exact versions in contracts package
 - Use lockfiles (`package-lock.json`, `poetry.lock`)
 - Test compatibility in CI
 
 ### Risk 3: Secret Management
 **Mitigation**:
+
 - Use GitHub org-level secrets
 - Rotate all secrets during migration
 - Document secret requirements in each repo
 
 ### Risk 4: Database Migrations
 **Mitigation**:
+
 - Run migrations before code deployment
 - Use Alembic for versioned migrations
 - Test rollback procedures
@@ -358,6 +374,7 @@ See: `contracts-repo-setup.md` (next section)
 ## 🚦 Go/No-Go Decision Points
 
 Before migrating:
+
 1. ✅ Backend tests pass in new repo
 2. ✅ Frontend builds successfully
 3. ✅ Docker images build and run

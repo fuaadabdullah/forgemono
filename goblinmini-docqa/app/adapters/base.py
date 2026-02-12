@@ -1,0 +1,16 @@
+from __future__ import annotations
+from typing import Any, Dict, Protocol
+
+
+class Adapter(Protocol):
+    name: str
+
+    def init(self) -> None: ...
+
+    def health_check(self, timeout: float = 3.0) -> bool: ...
+
+    def generate(self, prompt: str, **kwargs) -> Dict[str, Any]: ...
+
+    def metadata(self) -> Dict[str, Any]: ...
+
+    def shutdown(self) -> None: ...

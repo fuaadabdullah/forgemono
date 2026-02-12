@@ -1,14 +1,39 @@
 import os
 from typing import Dict, Any, Optional
-from cryptography.fernet import Fernet
 from sqlalchemy.orm import Session
 from models.settings import Provider, ProviderCredential, ModelConfig, GlobalSetting
 
-# Encryption key from env (never commit this)
-ENCRYPTION_KEY = os.getenv("SETTINGS_ENCRYPTION_KEY")
-if not ENCRYPTION_KEY:
-    raise ValueError("SETTINGS_ENCRYPTION_KEY environment variable must be set")
-cipher = Fernet(ENCRYPTION_KEY.encode())
+# Import Vault client for secrets management
+try:
+    from ..vault_client import get_vault_manager
+
+    VAULT_AVAILABLE = True
+except ImportError:
+    VAULT_AVAILABLE = False
+
+# Fallback to Fernet encryption if Vault is unavailable
+if not VAULT_AVAILABLE or not os.getenv("USE_VAULT", "").lower() in (
+    "true",
+    "1",
+    "yes",
+):
+    # Defer cipher creation until needed to avoid import-time failures
+    _encryption_key = None
+    _cipher = None
+
+    def _get_cipher():
+        global _cipher
+        if _cipher is None:
+            key = os.getenv("SETTINGS_ENCRYPTION_KEY")
+            if not key:
+                raise ValueError("SETTINGS_ENCRYPTION_KEY environment variable must be set")
+            from cryptography.fernet import Fernet
+            _cipher = Fernet(key.encode())
+        return _cipher
+
+    cipher = _get_cipher  # Make it callable for backward compatibility
+else:
+    cipher = None  # Using Vault instead
 
 
 class SettingsService:
@@ -59,6 +84,23 @@ class SettingsService:
         if not provider:
             raise ValueError(f"Provider {provider_name} not found")
 
+        # Try Vault first, fallback to database encryption
+        if VAULT_AVAILABLE and os.getenv("USE_VAULT", "").lower() in (
+            "true",
+            "1",
+            "yes",
+        ):
+            vault_manager = get_vault_manager()
+            success = vault_manager.set_api_key(provider_name, api_key, key_type)
+            if success:
+                # Store a reference in DB that Vault is being used
+                self._update_or_create_credential_record(provider.id, "vault", key_type)
+                return
+
+        # Fallback to database encryption
+        if cipher is None:
+            raise ValueError("Neither Vault nor Fernet encryption is available")
+
         # Remove existing credential if any
         existing = (
             self.db.query(ProviderCredential)
@@ -84,6 +126,21 @@ class SettingsService:
         """Get decrypted credential for provider"""
         provider = self.get_provider(provider_name)
         if not provider:
+            return None
+
+        # Try Vault first
+        if VAULT_AVAILABLE and os.getenv("USE_VAULT", "").lower() in (
+            "true",
+            "1",
+            "yes",
+        ):
+            vault_manager = get_vault_manager()
+            credential = vault_manager.get_api_key(provider_name, key_type)
+            if credential:
+                return credential
+
+        # Fallback to database encryption
+        if cipher is None:
             return None
 
         cred = (
@@ -158,10 +215,16 @@ class SettingsService:
         return model
 
     def encrypt_key(self, key: str) -> str:
-        return cipher.encrypt(key.encode()).decode()
+        """Encrypt API key using Fernet (fallback method)"""
+        if cipher is None:
+            raise ValueError("Fernet encryption not available (using Vault)")
+        return cipher().encrypt(key.encode()).decode()
 
     def decrypt_key(self, encrypted_key: str) -> str:
-        return cipher.decrypt(encrypted_key.encode()).decode()
+        """Decrypt API key using Fernet (fallback method)"""
+        if cipher is None:
+            raise ValueError("Fernet encryption not available (using Vault)")
+        return cipher().decrypt(encrypted_key.encode()).decode()
 
     def test_connection(
         self, provider_name: str, api_key: Optional[str] = None

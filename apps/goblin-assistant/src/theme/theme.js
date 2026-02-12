@@ -48,8 +48,8 @@ export function getHighContrastPreference() {
     console.warn('Failed to read contrast preference:', e);
   }
 
-  // Default: check system preference
-  return window.matchMedia('(prefers-contrast: high)').matches;
+  // Default: high contrast enabled (project default)
+  return true;
 }
 
 /**
@@ -73,8 +73,8 @@ export function initializeTheme() {
 
   // Listen for reduced motion preference
   const motionMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const handleMotionChange = (e) => {
-    document.documentElement.setAttribute('data-motion-reduced', e.matches);
+  const handleMotionChange = (motionEvent) => {
+    document.documentElement.setAttribute('data-motion-reduced', motionEvent.matches);
   };
   handleMotionChange(motionMedia);
   motionMedia.addEventListener('change', handleMotionChange);

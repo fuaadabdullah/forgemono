@@ -20,7 +20,7 @@ from sqlalchemy.orm import sessionmaker
 from database import Base
 from services.routing import RoutingService
 from services.encryption import EncryptionService
-from models.routing import RoutingProvider
+from models.provider import Provider as RoutingProvider
 from providers import OllamaAdapter
 import os
 

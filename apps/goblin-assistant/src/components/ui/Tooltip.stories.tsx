@@ -74,7 +74,9 @@ export const LongContent: Story = {
   args: {
     content:
       'This tooltip contains a longer message that might span multiple lines. It provides detailed information to help users understand the feature.',
-    children: <button className="px-4 py-2 bg-blue-600 rounded text-white">Hover for details</button>,
+    children: (
+      <button className="px-4 py-2 bg-blue-600 rounded text-white">Hover for details</button>
+    ),
   },
 };
 

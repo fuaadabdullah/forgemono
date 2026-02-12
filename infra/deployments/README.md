@@ -52,6 +52,7 @@ ECR_REPOSITORY       = your-repo-name
 #### AKS Secrets
 
 ```bash
+
 AZURE_CREDENTIALS    = {"clientId": "...", "clientSecret": "...", "subscriptionId": "...", "tenantId": "..."}
 ACR_REGISTRY         = yourregistry.azurecr.io
 AKS_RESOURCE_GROUP   = your-resource-group
@@ -70,15 +71,16 @@ GKE_ZONE            = us-central1-a
 ## Getting Started
 
 1. **Choose your target cloud** (ECS, AKS, or GKE)
-2. **Set up required secrets** in GitHub repository settings
-3. **Copy the workflow template** to `.github/workflows/`
-4. **Customize cluster names, registry URLs, and service names**
-5. **Update manifests** with your application configuration
-6. **Test with a manual workflow dispatch**
+1. **Set up required secrets** in GitHub repository settings
+1. **Copy the workflow template** to `.github/workflows/`
+1. **Customize cluster names, registry URLs, and service names**
+1. **Update manifests** with your application configuration
+1. **Test with a manual workflow dispatch**
 
 ## Example Commands
 
 ```bash
+
 # Test ECS deployment
 gh workflow run deploy-ecs.yml
 

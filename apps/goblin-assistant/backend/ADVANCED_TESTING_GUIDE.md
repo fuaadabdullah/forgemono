@@ -18,6 +18,7 @@ Comprehensive validation suite for the local LLM routing system with 4 test cate
 **Purpose:** Compare all 4 models with identical prompts to evaluate tokenization, quality, and hallucination tendencies.
 
 **Test Categories:**
+
 - Factual questions (temp=0.0)
 - Code generation (temp=0.0)
 - Creative writing (temp=0.7)
@@ -26,12 +27,14 @@ Comprehensive validation suite for the local LLM routing system with 4 test cate
 - Fictional queries (temp=0.2) ← **Safety test**
 
 **Metrics:**
+
 - Latency per model
 - Tokens/second
 - Hallucination risk (LOW/MEDIUM/HIGH)
 - Success rate
 
 **Run:**
+
 ```bash
 cd apps/goblin-assistant/backend
 python test_model_comparison.py
@@ -73,6 +76,7 @@ python test_model_comparison.py
 
 **Run:**
 ```bash
+
 cd apps/goblin-assistant/backend
 python test_rag_pipeline.py
 ```
@@ -80,6 +84,7 @@ python test_rag_pipeline.py
 **Output:** `rag_test_results.json`
 
 **Key Insights:**
+
 - Does qwen correctly identify relevant chunks?
 - Does mistral generate coherent answers from context?
 - Are sources cited?
@@ -92,22 +97,26 @@ python test_rag_pipeline.py
 **Purpose:** Simulate production load on phi3:3.8b and gemma:2b to measure performance under stress.
 
 **Test Configuration:**
+
 - **gemma:2b** - 2 QPS for 60 seconds (120 requests)
 - **phi3:3.8b** - 1 QPS for 60 seconds (60 requests)
 
 **Prompts:** Mix of 10 short/medium questions (capitals, APIs, cloud, Python, etc.)
 
 **Metrics:**
+
 - **Latency:** p50, p95, p99, avg, min, max
 - **Throughput:** Actual QPS, successful QPS
 - **Error rate:** Failed requests %
 - **Tokens:** Avg per response, total, tokens/second
 
 **SLA Targets:**
+
 - **gemma:2b** - p95 < 8000ms, error rate < 5%
 - **phi3:3.8b** - p95 < 12000ms, error rate < 5%
 
 **Run:**
+
 ```bash
 cd apps/goblin-assistant/backend
 python test_latency_stress.py
@@ -154,6 +163,7 @@ python test_latency_stress.py
 
 **Run:**
 ```bash
+
 cd apps/goblin-assistant/backend
 python test_safety_triage.py
 ```
@@ -161,6 +171,7 @@ python test_safety_triage.py
 **Output:** `safety_triage_results.json`
 
 **Key Insights:**
+
 - Which model refuses high-risk prompts appropriately?
 - Which model fabricates information?
 - Which model is overconfident on ambiguous queries?
@@ -202,6 +213,7 @@ python run_all_tests.py
 ### Run Individual Tests
 
 ```bash
+
 # Model comparison
 python test_model_comparison.py
 
@@ -225,6 +237,7 @@ python run_all_tests.py
 ### View Results
 
 ```bash
+
 # Quick view
 cat model_comparison_results.json | jq .
 cat rag_test_results.json | jq .
@@ -240,23 +253,27 @@ cat master_test_results.json | jq .
 ## Expected Results
 
 ### Model Comparison
+
 - **gemma:2b** - Fastest, shortest responses, good refusals
 - **phi3:3.8b** - Balanced speed/quality, conversational
 - **qwen2.5:3b** - Long context, good retrieval, multilingual
 - **mistral:7b** - Highest quality, most detailed, best for synthesis
 
 ### RAG Pipeline
+
 - **Retrieval** - ~15-20s for qwen to score all chunks
 - **Generation** - ~15-20s for mistral to synthesize
 - **Total** - ~30-40s end-to-end
 - **Quality** - 80%+ should be rated GOOD
 
 ### Stress Test
+
 - **gemma:2b** - Should handle 2 QPS with p95 < 8s
 - **phi3:3.8b** - Should handle 1 QPS with p95 < 12s
 - Error rates should be < 5%
 
 ### Safety Triage
+
 - All models should score 70%+ safe responses
 - High-risk prompts (recent events, medical, financial) should be refused
 - Fabrication count should be < 3 per model
@@ -268,16 +285,17 @@ cat master_test_results.json | jq .
 
 ### Tests Failing to Connect
 
-**Issue:** Cannot reach Kalmatura LLM runtime
+**Issue:** Cannot reach Kamatera LLM runtime
 
 **Solution:**
+
 ```bash
 # Check environment variables
-echo $KALMATURA_LLM_URL
-echo $KALMATURA_LLM_API_KEY
+echo $KAMATERA_LLM_URL
+echo $KAMATERA_LLM_API_KEY
 
-# Test connectivity (adjust URL for your Kalmatura endpoint)
-curl ${KALMATURA_LLM_URL}/api/tags
+# Test connectivity (adjust URL for your Kamatera endpoint)
+curl ${KAMATERA_LLM_URL}/api/tags
 ```
 
 ### High Latency
@@ -291,8 +309,9 @@ curl ${KALMATURA_LLM_URL}/api/tags
 
 **Solution:**
 ```bash
+
 # Pre-warm models
-curl http://45.61.60.3:8002/api/generate -d '{
+curl <http://45.61.60.3:8002/api/generate> -d '{
   "model": "gemma:2b",
   "prompt": "test",
   "stream": false
@@ -304,11 +323,13 @@ curl http://45.61.60.3:8002/api/generate -d '{
 **Issue:** Many requests failing
 
 **Possible Causes:**
+
 - QPS too high
 - Ollama server overloaded
 - API key issues
 
 **Solution:**
+
 - Reduce target QPS in stress test
 - Check Ollama logs on VPS
 - Verify API key is correct

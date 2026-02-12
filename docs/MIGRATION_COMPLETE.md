@@ -26,26 +26,30 @@ Successfully migrated Goblin Assistant from monorepo to 5 separate repositories 
 ## 🚀 What Was Deployed
 
 ### 1. Backend Repository
-**URL**: https://github.com/fuaadabdullah/goblin-assistant-backend
+**URL**: <https://github.com/fuaadabdullah/goblin-assistant-backend>
 **Contents**:
+
 - FastAPI application code
 - Python tests (PyTest suite)
 - requirements.txt, Dockerfile
 - API endpoints and business logic
 
 **CI/CD Workflows**:
+
 - ✅ `backend-ci.yml` - Lint (Black/Ruff/MyPy), PyTest, Docker build, Trivy security scan
 - ✅ `backend-deploy.yml` - GHCR push, Render deployment (staging + production)
 
 **Commits**:
+
 - `6fb95fb` - Initial backend commit
 - `<latest>` - Add CI/CD workflows
 
 ---
 
 ### 2. Frontend Repository
-**URL**: https://github.com/fuaadabdullah/goblin-assistant-frontend
+**URL**: <https://github.com/fuaadabdullah/goblin-assistant-frontend>
 **Contents**:
+
 - 116 files including all 68 Storybook stories
 - React + TypeScript components
 - Vite configuration
@@ -53,53 +57,62 @@ Successfully migrated Goblin Assistant from monorepo to 5 separate repositories 
 - All `.storybook/` configuration
 
 **CI/CD Workflows**:
+
 - ✅ `frontend-ci.yml` - ESLint, Vitest, Storybook build, Chromatic visual regression, Lighthouse
 - ✅ `frontend-deploy-vercel.yml` - Vercel deployments (preview + staging + production)
 
 **Commits**:
+
 - `00fa39e` - Initial frontend commit (116 files, 11014 insertions)
 - `287893b` - Add CI/CD workflows
 
 ---
 
 ### 3. Contracts Repository
-**URL**: https://github.com/fuaadabdullah/goblin-assistant-contracts
+**URL**: <https://github.com/fuaadabdullah/goblin-assistant-contracts>
 **Contents**:
+
 - TypeScript type definitions (`typescript/api.ts`)
 - Python Pydantic models (`python/api.py`)
 - Dual-language API contracts
 - npm + PyPI package configuration
 
 **CI/CD Workflows**:
+
 - ✅ `contracts-ci.yml` - TypeScript + Python validation
 - ✅ `contracts-publish.yml` - npm + PyPI publishing with Slack notifications
 
 **Commits**:
+
 - `51fdef4` - Initial contracts commit
 - `ec9a9a5` - Add CI/CD workflows
 
 ---
 
 ### 4. Infrastructure Repository
-**URL**: https://github.com/fuaadabdullah/goblin-assistant-infra
+**URL**: <https://github.com/fuaadabdullah/goblin-assistant-infra>
 **Contents**:
+
 - Terraform configurations
 - Kubernetes manifests
 - Infrastructure as Code
 
 **CI/CD Workflows**:
+
 - ✅ `infra-ci.yml` - Terraform validate, K8s validate, Infracost estimates
 - ✅ `infra-deploy.yml` - Terraform apply, K8s rollout with multi-stage approval
 
 **Commits**:
+
 - `c3d520e` - Initial infra commit
 - `dae7e68` - Add CI/CD workflows
 
 ---
 
 ### 5. Development Repository
-**URL**: https://github.com/fuaadabdullah/goblin-assistant-dev
+**URL**: <https://github.com/fuaadabdullah/goblin-assistant-dev>
 **Contents**:
+
 - `docker-compose.yml` for local development
 - Local environment setup scripts
 - Development documentation
@@ -107,6 +120,7 @@ Successfully migrated Goblin Assistant from monorepo to 5 separate repositories 
 **CI/CD Workflows**: None (local development only)
 
 **Commits**:
+
 - `4ce4ed8` - Initial dev commit
 
 ---
@@ -241,6 +255,7 @@ For all repositories, navigate to: `Settings > Branches > Add rule`
 
 ### 1. Test Backend Deployment
 ```bash
+
 cd /tmp/goblin-repos/goblin-assistant-backend
 git checkout -b test-ci
 echo "# Test commit" >> README.md
@@ -252,6 +267,7 @@ git push origin test-ci
 **Expected**: CI workflow runs (lint, test, build, security scan)
 
 ### 2. Test Frontend Deployment
+
 ```bash
 cd /tmp/goblin-repos/goblin-assistant-frontend
 git checkout -b test-ci
@@ -265,6 +281,7 @@ git push origin test-ci
 
 ### 3. Test Staging Deployment
 ```bash
+
 # Merge test branch to develop (staging)
 git checkout develop || git checkout -b develop
 git merge test-ci
@@ -274,6 +291,7 @@ git push origin develop
 **Expected**: Staging deployment workflow runs automatically
 
 ### 4. Test Production Deployment
+
 ```bash
 # Merge develop to main (production)
 git checkout main
@@ -304,15 +322,17 @@ git push origin main
 
 ### Clone All Repositories
 ```bash
+
 cd ~/projects
-git clone https://github.com/fuaadabdullah/goblin-assistant-backend.git
-git clone https://github.com/fuaadabdullah/goblin-assistant-frontend.git
-git clone https://github.com/fuaadabdullah/goblin-assistant-contracts.git
-git clone https://github.com/fuaadabdullah/goblin-assistant-infra.git
-git clone https://github.com/fuaadabdullah/goblin-assistant-dev.git
+git clone <https://github.com/fuaadabdullah/goblin-assistant-backend.git>
+git clone <https://github.com/fuaadabdullah/goblin-assistant-frontend.git>
+git clone <https://github.com/fuaadabdullah/goblin-assistant-contracts.git>
+git clone <https://github.com/fuaadabdullah/goblin-assistant-infra.git>
+git clone <https://github.com/fuaadabdullah/goblin-assistant-dev.git>
 ```
 
 ### Local Development Setup
+
 ```bash
 cd goblin-assistant-dev
 docker-compose up -d
@@ -320,10 +340,12 @@ docker-compose up -d
 
 ### Install Contracts (TypeScript)
 ```bash
+
 npm install @fuaadabdullah/goblin-assistant-contracts
 ```
 
 ### Install Contracts (Python)
+
 ```bash
 pip install goblin-assistant-contracts
 ```

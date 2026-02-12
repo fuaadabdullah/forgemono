@@ -4,20 +4,26 @@ node_modules/
 dist/
 coverage/
 .turbo/
+.next/
 
 # Python
 __pycache__/
 .pytest_cache/
 .venv/
+*.pyc
 
 # OS/Editor
 .DS_Store
+._*
 .idea/
 .vscode/
 
 # Env/Secrets
 .env
 .env.*
+!.env.example
+apps/goblin-assistant/infra/kong/.env
+!apps/goblin-assistant/infra/kong/.env.example
 .secrets/
 
 # Local env / decrypted files
@@ -38,10 +44,45 @@ forgetm.db
 
 # Sensitive infra/key files (store in vault instead of repo)
 /infra/charts/age-key.txt
+token.json
+credentials.json
+.circleci/manual_bitwarden_commands.sh
+.circleci/setup_bitwarden_secrets.sh
 
 # Artifacts
 artifacts/
 *.log
 
+# Generated ONNX embedding models (export scripts output here)
+apps/goblin-assistant/backend/models/onnx/
+
 # Local Netlify folder
 .netlify
+.vercel
+
+# Additional cleanup / sensitive files
+dump.rdb
+*.rdb
+.env.backup
+*.report.*
+lighthouse-report.*
+*.bak
+*.old
+*.moved-*
+
+# Local archive for removed secrets (ignored so files can be moved here temporarily)
+.archive/
+# Mirror secret staging area under deployments as a reminder to rotate
+deployments/.archive/
+
+# macOS resource forks / metadata files (common on external drives)
+._*
+.DS_Store
+
+# gcloud SDK installation (accidentally created in repo root)
+gcloud components install*/
+google-cloud-sdk/
+
+# IDE/Editor state
+.obsidian/
+.continue/

@@ -1,0 +1,7 @@
+# Optional dependencies for running local models
+# You can install these AFTER the main requirements.txt
+# Choose your local model backend. For PyTorch-based models:
+# python3 -m pip install torch
+# For llama.cpp usage (native binding) install llama-cpp-python.
+torch>=2.0
+llama-cpp-python

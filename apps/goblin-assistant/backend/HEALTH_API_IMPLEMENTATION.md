@@ -46,6 +46,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 **Response Model**: `MCPStatusResponse`
 
 ```python
+
 {
     "status": "healthy" | "down",
     "servers": ["primary", "localhost:8765"],
@@ -55,6 +56,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 ```
 
 **Implementation Details**:
+
 - Checks `MCP_SERVER_URL` environment variable
 - Probes common MCP ports (8765, 8766) via TCP socket
 - Returns list of discovered servers
@@ -86,6 +88,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 **Response Model**: `SandboxStatusResponse`
 
 ```python
+
 {
     "status": "healthy" | "down",
     "active_jobs": 3,
@@ -95,6 +98,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 ```
 
 **Implementation Details**:
+
 - Attempts to use Redis-backed task queue via `task_queue` module
 - Falls back to in-memory `TASKS` from `execute_router`
 - Counts jobs with status "running" and "queued"
@@ -131,6 +135,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 **Response Model**: `LatencyHistoryResponse`
 
 ```python
+
 {
     "timestamps": ["2025-12-01T09:00:00", "2025-12-01T10:00:00"],
     "latencies": [125.4, 132.7]
@@ -140,6 +145,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 **Supported Services**: `backend`, `chroma`
 
 **Implementation Details**:
+
 - Queries `ProviderMetric.response_time_ms` from database
 - Filters by timestamp within specified hours
 - Limits to last 100 data points for performance
@@ -177,6 +183,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 **Response Model**: `RetestServiceResponse`
 
 ```python
+
 {
     "success": true,
     "latency": 45.2,
@@ -187,6 +194,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 **Supported Services**: `backend`, `chroma`, `mcp`, `raptor`, `sandbox`
 
 **Implementation Details**:
+
 - Measures latency from start to completion
 - For `backend`: Calls `/health` endpoint via httpx
 - For others: Calls respective status functions
@@ -209,6 +217,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 **Response Model**: `ProviderTestWithPromptResponse`
 
 ```python
+
 {
     "success": true,
     "message": "Test successful",
@@ -219,6 +228,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 ```
 
 **Implementation Details**:
+
 - Retrieves provider from database by ID
 - Decrypts API key using `EncryptionService`
 - Maps provider name to adapter class (OpenAI, Anthropic, etc.)
@@ -228,6 +238,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 - Handles errors gracefully with failure message
 
 **Supported Providers**:
+
 - OpenAI
 - Anthropic
 - Grok (X.AI)
@@ -252,6 +263,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 **Response**:
 
 ```python
+
 {
     "success": true,
     "message": "Provider order updated successfully"
@@ -259,6 +271,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 ```
 
 **Implementation Details**:
+
 - Accepts array of provider IDs in desired order
 - Updates `priority` field for each provider
 - Higher index → lower priority (UX-friendly ordering)
@@ -266,6 +279,7 @@ Implemented comprehensive health monitoring and provider management endpoints fo
 - Rolls back on error
 
 **Priority Calculation**:
+
 ```python
 priority = len(provider_ids) - index
 # First item gets highest priority, last gets lowest
@@ -278,6 +292,7 @@ priority = len(provider_ids) - index
 **Request Model**: `SetProviderPriorityRequest`
 
 ```python
+
 {
     "priority": 50,
     "role": "primary"  // Optional: "primary" or "fallback"
@@ -310,6 +325,7 @@ priority = len(provider_ids) - index
 ### Health Monitoring Models
 
 ```python
+
 class ChromaStatusResponse(BaseModel):
     status: str
     collections: int
@@ -390,6 +406,7 @@ class SetProviderPriorityRequest(BaseModel):
 ### Dependencies
 
 ```python
+
 # FastAPI & Database
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
@@ -460,23 +477,24 @@ curl -X POST http://localhost:8000/health/retest/backend
 ### Provider Management Endpoints
 
 ```bash
+
 # 9. Test provider with custom prompt
-curl -X POST http://localhost:8000/settings/providers/1/test-prompt \
+curl -X POST <http://localhost:8000/settings/providers/1/test-prompt> \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Explain quantum computing in one sentence"}'
 
 # 10. Reorder providers (drag-and-drop result)
-curl -X POST http://localhost:8000/settings/providers/reorder \
+curl -X POST <http://localhost:8000/settings/providers/reorder> \
   -H "Content-Type: application/json" \
   -d '{"provider_ids": [3, 1, 5, 2, 4]}'
 
 # 11. Set provider as primary
-curl -X POST http://localhost:8000/settings/providers/1/priority \
+curl -X POST <http://localhost:8000/settings/providers/1/priority> \
   -H "Content-Type: application/json" \
   -d '{"priority": 100, "role": "primary"}'
 
 # Set provider as fallback
-curl -X POST http://localhost:8000/settings/providers/2/priority \
+curl -X POST <http://localhost:8000/settings/providers/2/priority> \
   -H "Content-Type: application/json" \
   -d '{"priority": 1, "role": "fallback"}'
 ```
@@ -510,6 +528,7 @@ setProviderPriority(id: number, priority: number, role?: string): Promise<{ succ
 
 #### Enhanced Dashboard
 ```tsx
+
 // Fetch all health data
 const [chromaStatus, mcpStatus, raptorStatus, sandboxStatus, cost] =
   await Promise.all([
@@ -528,6 +547,7 @@ const result = await apiClient.retestService('backend');
 ```
 
 #### Enhanced Providers Page
+
 ```tsx
 // Test provider with custom prompt
 const result = await apiClient.testProviderWithPrompt(provider.id!, testPrompt);
@@ -561,6 +581,7 @@ await apiClient.setProviderPriority(provider.id!, 100, 'primary');
 ### Environment Variables Required
 
 ```bash
+
 # Required for provider management
 ROUTING_ENCRYPTION_KEY=<your-encryption-key>
 
@@ -573,12 +594,14 @@ CHROMA_DB_PATH=/path/to/chroma.sqlite3
 ### Database Migrations
 
 No new tables required. Uses existing:
+
 - `provider_metrics` (for costs and latency)
 - `routing_providers` (for provider management)
 
 ### Service Dependencies
 
 Optional dependencies that enhance functionality:
+
 - **Redis**: For persistent task queue tracking
 - **Chroma DB**: For vector database metrics
 - **GoblinOS Raptor**: For RAG indexer monitoring

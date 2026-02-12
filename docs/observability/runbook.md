@@ -3,6 +3,7 @@
 This runbook provides a short, actionable guide for on-call engineers when an alert triggers for the Goblin Assistant MCP service.
 
 ## Primary Contacts
+
 - Platform Owner (Ops) - Socketwright (`volt-furnace`)
 - Security Owner (Secrets) - Sealkeeper (`sentenial-ledgerwarden`)
 - Observability Owner - Fine Spellchecker / Mages gang (`launcey-gauge`)
@@ -24,6 +25,7 @@ This runbook provides a short, actionable guide for on-call engineers when an al
    - If fallback rate persists, run a manual test request with a stable provider and check response.
 
 ## Immediate Actions
+
 1. Gather breadcrumbs
    - Request IDs from Datadog dashboard, worker logs and `mcp_event` table for examples.
 2. Try soft remediation
@@ -34,11 +36,13 @@ This runbook provides a short, actionable guide for on-call engineers when an al
 4. Engage provider vendors if quotas or API issues are suspected.
 
 ## Post-Incident
+
 1. Update the incident report (JIRA/GitHub) with root cause analysis and timeline.
 2. Add new alerts or tune thresholds if needed.
 3. Schedule follow-up tasks (fixes, tests, capacity plan).
 
 ## Runbook References
+
 - Datadog dashboards: `admin/dashboard` and `goblin.mcp.*` metrics.
 - Database queries: Use `mcp_event` for recent traces.
 - Vault and secrets: `vault_client` usage, check `docs/vault_integration.md` for recovery steps.

@@ -44,7 +44,9 @@ git init
 
 echo "Copying backend files..."
 cp -r "$MONOREPO_PATH/apps/goblin-assistant/backend/"* .
-cp -r "$MONOREPO_PATH/apps/goblin-assistant/api" .
+# Previously this copied the legacy `api/` folder; the canonical backend is now under `backend/`
+# and all functional code should be sourced from there. If you still need legacy artifacts,
+# recover them from the archive or the git history.
 cp "$MONOREPO_PATH/apps/goblin-assistant/Dockerfile" .
 cp "$MONOREPO_PATH/apps/goblin-assistant/requirements.txt" .
 

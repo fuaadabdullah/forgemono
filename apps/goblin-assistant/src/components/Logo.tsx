@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Bot } from 'lucide-react';
 
 interface LogoProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -26,38 +27,37 @@ export default function Logo({
   size = 'md',
   variant = 'full',
   className = '',
-  animated = true
+  animated = true,
 }: LogoProps) {
-  const [svgError, setsvgError] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const pixelSize = sizeMap[size];
 
   // Fallback to emoji if SVG fails to load
   useEffect(() => {
-    setsvgError(false);
+    setLogoError(false);
   }, [variant]);
 
-  if (variant === 'emoji' || svgError) {
+  if (variant === 'emoji' || logoError) {
     return (
       <span
         className={`inline-block ${animated ? 'logo-animated' : ''} ${className}`}
         role="img"
         aria-label="Goblin Assistant"
       >
-        🤖
+        <Bot className={`w-${Math.round(pixelSize / 4)} h-${Math.round(pixelSize / 4)} text-primary`} />
       </span>
     );
-  }  const svgPath = variant === 'simple'
-    ? '/src/assets/logo-simple.svg'
-    : '/src/assets/logo.svg';
+  }
+  const logoSrc = variant === 'simple' ? '/goblin-logo.png' : '/goblin-logo.png';
 
   return (
     <img
-      src={svgPath}
+      src={logoSrc}
       alt="Goblin Assistant Logo"
       width={pixelSize}
       height={pixelSize}
       className={`inline-block ${animated ? 'logo-transition' : ''} ${className}`}
-      onError={() => setsvgError(true)}
+      onError={() => setLogoError(true)}
     />
   );
 }

@@ -13,6 +13,7 @@ export ANTHROPIC_API_KEY='your-api-key-here'
 Install the Anthropic Python SDK:
 
 ```bash
+
 pip install anthropic
 ```
 
@@ -39,10 +40,12 @@ print(message.content)
 
 ### 4. Run Your Code
 ```bash
+
 python quickstart.py
 ```
 
 ### Example Output:
+
 ```python
 [TextBlock(text='Here are some effective search strategies for finding the latest renewable energy developments:\n\n**Search Terms to Use:**\n- "renewable energy news 2024"\n- "clean energy breakthroughs"\n- "solar/wind/battery technology advances"\n- "energy storage innovations"\n- "green hydrogen developments"\n- "renewable energy policy updates"\n\n**Reliable Sources to Check:**\n- **News & Analysis:** Reuters Energy, Bloomberg New Energy Finance, Greentech Media, Energy Storage News\n- **Industry Publications:** Renewable Energy World, PV Magazine, Wind Power Engineering\n- **Research Organizations:** International Energy Agency (IEA), National Renewable Energy Laboratory (NREL)\n- **Government Sources:** Department of Energy websites, EPA clean energy updates\n\n**Specific Topics to Explore:**\n- Perovskite and next-gen solar cells\n- Offshore wind expansion\n- Grid-scale battery storage\n- Green hydrogen production\n- Carbon capture technologies\n- Smart grid innovations\n- Energy policy changes and incentives...', type='text')]
 ```
@@ -69,6 +72,7 @@ python quickstart.py
 
 ### Testing Your Key:
 ```python
+
 import anthropic
 import os
 from dotenv import load_dotenv
@@ -85,7 +89,7 @@ try:
     print('✅ Claude API key is VALID')
     print(f'Response: {message.content}')
 except anthropic.AuthenticationError:
-    print('❌ Invalid API key - check your key at https://console.anthropic.com/')
+    print('❌ Invalid API key - check your key at <https://console.anthropic.com/')>
 except anthropic.PermissionDeniedError:
     print('❌ Permission denied - check billing setup')
 except Exception as e:

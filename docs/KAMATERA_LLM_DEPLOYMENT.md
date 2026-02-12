@@ -73,6 +73,7 @@ This guide covers deploying self-hosted LLM services (Ollama and Llama.cpp) to a
 ### 3. Model Files
 
 Models must be in **GGUF format** for Llama.cpp compatibility:
+
 - Recommended: Q4_K_M quantization (good balance)
 - Sizes: 3B-7B models for VPS with 16GB RAM
 - Storage: Upload to Google Drive for rclone sync
@@ -93,14 +94,16 @@ ssh -i ~/kamatera_key root@45.61.60.3 "echo 'Connection successful'"
 ### Step 2: Run Automated Deployment
 
 ```bash
+
 # Navigate to ForgeMonorepo root
 cd /Users/fuaadabdullah/ForgeMonorepo
 
 # Run deployment script
-bash deploy_llm.sh
+bash deployments/local/deploy_llm.sh
 ```
 
 The script will:
+
 1. ✅ Verify SSH connectivity
 2. ✅ Transfer deployment files to server
 3. ✅ Install system dependencies (curl, wget, nginx, rclone, etc.)
@@ -150,6 +153,7 @@ rclone ls gdrive:models/llama_models
 ### Step 4: Download Models and Start Services
 
 ```bash
+
 # Still as deploy user on server
 cd ~/llm-deployment
 
@@ -157,9 +161,13 @@ cd ~/llm-deployment
 ./bootstrap_llm.sh gdrive:models/llama_models
 
 # This will:
+
 # - Download models from Google Drive
+
 # - Configure llama.cpp with model path
+
 # - Start all services (Ollama, llama.cpp, proxy)
+
 # - Run health checks
 ```
 
@@ -182,15 +190,16 @@ sudo journalctl -u llamacpp -f
 **Test endpoints:**
 
 ```bash
+
 # Health check (no auth required)
-curl http://localhost:8002/health
+curl <http://localhost:8002/health>
 
 # List models (requires API key)
 curl -H "x-api-key: your-secure-api-key-here" \
-  http://localhost:8002/models
+<http://localhost:8002/models>
 
 # Test completion
-curl -X POST http://localhost:8002/chat/completions \
+curl -X POST <http://localhost:8002/chat/completions> \
   -H "x-api-key: your-secure-api-key-here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -216,6 +225,7 @@ LOCAL_LLM_API_KEY=your-secure-api-key-here
 
 **Local LLM Proxy** (`/etc/systemd/system/local-llm-proxy.service`):
 ```ini
+
 [Unit]
 Description=Local LLM Proxy Service
 After=network.target ollama.service llamacpp.service
@@ -234,11 +244,13 @@ WantedBy=multi-user.target
 ```
 
 **Ollama** (`ollama.service` - installed by Ollama installer):
+
 - Manages Ollama service
 - Listens on port 11434
 - Auto-restarts on failure
 
 **Llama.cpp** (`/etc/systemd/system/llamacpp.service`):
+
 ```ini
 [Unit]
 Description=llama.cpp server
@@ -259,6 +271,7 @@ WantedBy=multi-user.target
 ### Common Commands
 
 ```bash
+
 # Start services
 sudo systemctl start local-llm-proxy
 sudo systemctl start ollama
@@ -290,6 +303,7 @@ sudo journalctl -u llamacpp -f
 ### Ollama Models
 
 Download models with:
+
 ```bash
 # SSH into server
 ssh -i ~/kamatera_key root@45.61.60.3
@@ -332,17 +346,20 @@ Header: x-api-key: your-secure-api-key-here
 
 #### Health Check
 ```http
+
 GET /health
 ```
 Response: `{"status": "healthy", "service": "local-llm-proxy"}`
 
 #### List Models
+
 ```http
 GET /models
 Headers: x-api-key: <key>
 ```
 Response:
 ```json
+
 {
   "models": {
     "ollama": ["phi3:3.8b", "gemma:2b"],
@@ -352,6 +369,7 @@ Response:
 ```
 
 #### Chat Completions
+
 ```http
 POST /chat/completions
 Headers:
@@ -379,18 +397,24 @@ Body:
 
 ### 2. Firewall Configuration
 ```bash
+
 # On Kamatera server
 sudo ufw status
 
 # Should see:
+
 # 22/tcp    ALLOW   (SSH)
+
 # 80/tcp    ALLOW   (HTTP)
+
 # 443/tcp   ALLOW   (HTTPS)
+
 # 8002/tcp  DENY    (Proxy - only via nginx)
 ```
 
 ### 3. NGINX Reverse Proxy (Optional)
 Set up NGINX with SSL for production:
+
 ```nginx
 server {
     listen 443 ssl;
@@ -412,6 +436,7 @@ server {
 
 ### System Resources
 ```bash
+
 # Memory usage
 free -h
 
@@ -428,11 +453,13 @@ ps aux | grep -E "(ollama|llama|python.*proxy)"
 ### Expected Resource Usage
 
 **Idle State:**
+
 - Ollama: ~500MB RAM
 - Llama.cpp: ~100MB RAM
 - Proxy: ~50MB RAM
 
 **Under Load (7B model inference):**
+
 - Model: 4-8GB RAM
 - CPU: 50-100% (depends on threads)
 - Response time: 1-5 seconds per query
@@ -442,6 +469,7 @@ ps aux | grep -E "(ollama|llama|python.*proxy)"
 ### Services Won't Start
 
 **Check logs:**
+
 ```bash
 sudo journalctl -u local-llm-proxy -n 50
 sudo journalctl -u ollama -n 50
@@ -458,12 +486,14 @@ sudo journalctl -u llamacpp -n 50
 
 **Test from server:**
 ```bash
-curl http://localhost:8002/health
-curl http://localhost:11434/api/tags
-curl http://localhost:8080/health
+
+curl <http://localhost:8002/health>
+curl <http://localhost:11434/api/tags>
+curl <http://localhost:8080/health>
 ```
 
 **Test from external:**
+
 ```bash
 curl http://45.61.60.3:8002/health
 ```
@@ -477,6 +507,7 @@ If external fails:
 
 **rclone issues:**
 ```bash
+
 # Test rclone config
 rclone ls gdrive:models/llama_models
 
@@ -490,11 +521,13 @@ rclone bandwidth gdrive:
 ### Performance Issues
 
 **Slow inference:**
+
 1. Check CPU threads: Increase in llamacpp.service `--threads 4`
 2. Use smaller model: Q4_K_M instead of Q8_0
 3. Reduce context window: `--ctx-size 2048`
 
 **Out of memory:**
+
 1. Use smaller model (3B instead of 7B)
 2. Use lighter quantization (Q4_0 instead of Q4_K_M)
 3. Close other services
@@ -505,11 +538,13 @@ rclone bandwidth gdrive:
 ### Kamatera VPS Costs (Estimated)
 
 **Type A (4 CPU, 16GB RAM, 50GB SSD)**:
+
 - ~$40-60/month
 - Good for 7B models
 - Multiple model hosting
 
 **Type B (2 CPU, 8GB RAM, 30GB SSD)**:
+
 - ~$20-30/month
 - Good for 3B models
 - Single model hosting
@@ -517,14 +552,17 @@ rclone bandwidth gdrive:
 ### vs Cloud API Costs
 
 **GPT-4 Turbo** ($10/1M input tokens):
+
 - 1000 queries/day = ~$30/month
 - Break-even: ~1500 queries/month
 
 **Claude 3 Sonnet** ($3/1M input tokens):
+
 - 1000 queries/day = ~$9/month
 - Break-even: ~5000 queries/month
 
 **Local LLM Advantage:**
+
 - Fixed monthly cost
 - No per-token charges
 - Privacy (data stays on your server)
@@ -534,18 +572,21 @@ rclone bandwidth gdrive:
 ## Maintenance
 
 ### Weekly Tasks
+
 - [ ] Check service status
 - [ ] Review logs for errors
 - [ ] Monitor disk usage
 - [ ] Check resource usage
 
 ### Monthly Tasks
+
 - [ ] Update system packages: `sudo apt update && sudo apt upgrade`
 - [ ] Rotate API keys
 - [ ] Review security logs
 - [ ] Test disaster recovery
 
 ### Quarterly Tasks
+
 - [ ] Evaluate model performance
 - [ ] Consider model upgrades
 - [ ] Review cost efficiency
@@ -554,15 +595,18 @@ rclone bandwidth gdrive:
 ## Related Files
 
 ### Deployment Scripts
-- `/deploy_llm.sh` - Main deployment script
-- `/local_deploy.sh` - Alternative local deployment
+
+- `deployments/local/deploy_llm.sh` - Main deployment script
+- `deployments/local/local_deploy.sh` - Alternative local deployment
 - `/apps/goblin-assistant/backend/bootstrap_llm.sh` - Server bootstrap
 
 ### Service Files
+
 - `/apps/goblin-assistant/backend/local_llm_proxy.py` - FastAPI proxy
 - `/apps/goblin-assistant/backend/local-llm-proxy.service` - Systemd unit
 
 ### Adapters
+
 - `/apps/goblin-assistant/backend/providers/ollama_adapter.py`
 - `/apps/goblin-assistant/backend/providers/llamacpp_adapter.py`
 
@@ -571,6 +615,7 @@ rclone bandwidth gdrive:
 After successful deployment:
 
 1. **Test from Goblin Assistant**:
+
    ```python
    # In routing service
    adapter = OllamaAdapter(

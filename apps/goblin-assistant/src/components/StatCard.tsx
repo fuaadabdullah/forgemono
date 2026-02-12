@@ -23,11 +23,11 @@ export default function StatCard({ label, value, hint, className = '' }: StatCar
     >
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted">{label}</span>
-        <span className="text-2xl font-bold text-text">{typeof value === 'number' ? value : value}</span>
+        <span className="text-2xl font-bold text-text">
+          {typeof value === 'number' ? value : value}
+        </span>
       </div>
-      {hint && (
-        <div className="mt-1 text-[11px] text-muted">{hint}</div>
-      )}
+      {hint && <div className="mt-1 text-[11px] text-muted">{hint}</div>}
     </Card>
   );
 }

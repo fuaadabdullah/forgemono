@@ -100,6 +100,7 @@ import Logo from './components/Logo';
 All logos reference theme tokens from `src/theme/index.css`:
 
 ```css
+
 var(--color-bg)              /* Background */
 var(--color-surface)         /* Surface */
 var(--color-surface-active)  /* Active surface */
@@ -127,6 +128,7 @@ var(--color-brand-secondary) /* Brand secondary (amber) */
 
 #### `.logo-transition`
 Basic hover effect with scale and glow:
+
 ```css
 .logo-transition {
   transition: filter 0.3s ease, transform 0.3s ease;
@@ -142,6 +144,7 @@ Basic hover effect with scale and glow:
 #### `.logo-animated`
 Enhanced animation with pulse effect:
 ```css
+
 .logo-animated:hover {
   animation: pulse-glow 2s ease-in-out infinite;
 }
@@ -155,6 +158,7 @@ Enhanced animation with pulse effect:
 ### Accessibility
 
 All animations respect user preferences:
+
 ```css
 @media (prefers-reduced-motion: reduce) {
   .logo-transition,
@@ -177,6 +181,7 @@ All animations respect user preferences:
 ### Navigation Bar (Current)
 
 ```tsx
+
 import Logo from './Logo';
 
 <Link to="/" className="flex items-center space-x-2">
@@ -197,6 +202,7 @@ import Logo from './Logo';
 ### Loading State
 
 ```tsx
+
 <div className="flex items-center gap-2">
   <Logo size="md" variant="simple" animated={false} />
   <span>Loading...</span>
@@ -401,6 +407,7 @@ Colors are controlled by theme system. To change logo colors:
 Run verification script after any logo changes:
 
 ```bash
+
 node scripts/verify-logo-optimization.js
 ```
 
@@ -411,6 +418,7 @@ Expected output: 18/18 checks passing ✅
 **Status**: ✅ **PRODUCTION READY**
 
 All logo optimization tasks complete with:
+
 - ✅ Theme-adaptive SVG logos
 - ✅ Multiple variants and sizes
 - ✅ Smooth animations

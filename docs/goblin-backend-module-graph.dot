@@ -1,0 +1,379 @@
+// Graphviz DOT file showing module relationships (providers -> services -> routers)
+digraph goblin_backend {
+  rankdir=LR;
+  // Layout options to avoid spline triangulation issues in large graphs
+  splines=false;
+  overlap=false;
+  newrank=true;
+  node [shape=box, style=filled, fillcolor="#ffffff"];
+
+  // Providers cluster
+  subgraph cluster_providers {
+    label="Providers";
+    style=filled;
+    color="#e8f2ff";
+    OpenAI [label="OpenAIAdapter"];
+    Anthropic [label="AnthropicAdapter"];
+    Grok [label="GrokAdapter"];
+    DeepSeek [label="DeepSeekAdapter"];
+    Ollama [label="OllamaAdapter"];
+    LlamaCpp [label="LlamaCppAdapter"];
+    Silliconflow [label="SilliconflowAdapter"];
+    Moonshot [label="MoonshotAdapter"];
+    ElevenLabs [label="ElevenLabsAdapter"];
+  }
+
+  // Services cluster
+  subgraph cluster_services {
+    label="Services";
+    style=filled;
+    color="#eaffea";
+    RoutingService [label="RoutingService", shape=oval, fillcolor="#f7fff7"];
+    EnhancedRoutingService [label="EnhancedRoutingService", shape=oval, fillcolor="#f7fff7"];
+    InferenceScalingService [label="InferenceScalingService", shape=oval, fillcolor="#f7fff7"];
+    RAGService [label="RAGService", shape=oval, fillcolor="#f7fff7"];
+  PRMService [label="PRMService", shape=oval, fillcolor="#f7fff7"];
+  OutputVerification [label="OutputVerification", shape=oval, fillcolor="#f7fff7"];
+  DecisionEngine [label="RoutingDecisionEngine", shape=oval, fillcolor="#f7fff7"];
+    GoblinExecutor [label="GoblinExecutor", shape=oval, fillcolor="#f7fff7"];
+    VerificationPipeline [label="VerificationPipeline", shape=oval, fillcolor="#f7fff7"];
+    LatencyMonitoringService [label="LatencyMonitoringService", shape=oval, fillcolor="#f7fff7"];
+  }
+
+  // Routers cluster
+  subgraph cluster_routers {
+    label="Routers";
+    style=filled;
+    color="#fff4e6";
+    ChatRouter [label="chat_router"];
+    RoutingRouter [label="routing_router"];
+    ExecuteRouter [label="execute_router"];
+    SettingsRouter [label="settings_router"];
+    HealthRouter [label="health_router"];
+  }
+
+  // Provider registry and config
+  ProviderRegistry [label="ProviderRegistry", shape=folder, fillcolor="#fff7f2"];
+    ProviderRegistry_get_available [label="ProviderRegistry.get_available_providers()", shape=note, fillcolor="#fffaf0"];
+    ProviderRegistry_get_provider [label="ProviderRegistry.get_provider(name)", shape=note, fillcolor="#fffaf0"];
+    ProviderRegistry_reload [label="ProviderRegistry.reload_providers()", shape=note, fillcolor="#fffaf0"];
+
+    // Provider health monitor / background tasks
+    ProviderHealthMonitor [label="ProviderHealthMonitor", shape=component, fillcolor="#f0fff0"];
+    ProviderHealthMonitor_start [label="ProviderHealthMonitor.start_monitoring()", shape=note, fillcolor="#f0fff0"];
+    ProviderHealthMonitor_check [label="ProviderHealthMonitor._check_provider_health()", shape=note, fillcolor="#f0fff0"];
+    ProviderHealthMonitor_get [label="ProviderHealthMonitor.get_provider_health()", shape=note, fillcolor="#f0fff0"];
+    ProviderHealthMonitor_record [label="ProviderHealthMonitor.record_inference_metrics()", shape=note, fillcolor="#f0fff0"];
+
+  // Provider method nodes (discovery / inference / health)
+  OpenAI_list_models [label="OpenAI.list_models()", shape=note, fillcolor="#f0f8ff"];
+  OpenAI_chat [label="OpenAI.chat()", shape=note, fillcolor="#f0f8ff"];
+  Anthropic_list_models [label="Anthropic.list_models()", shape=note, fillcolor="#f0f8ff"];
+  Anthropic_chat [label="Anthropic.chat()", shape=note, fillcolor="#f0f8ff"];
+  Grok_list_models [label="Grok.list_models()", shape=note, fillcolor="#f0f8ff"];
+  Grok_chat [label="Grok.chat()", shape=note, fillcolor="#f0f8ff"];
+  DeepSeek_list_models [label="DeepSeek.list_models()", shape=note, fillcolor="#f0f8ff"];
+  DeepSeek_chat [label="DeepSeek.chat()", shape=note, fillcolor="#f0f8ff"];
+  Ollama_list_models [label="Ollama.list_models()", shape=note, fillcolor="#f0f8ff"];
+  Ollama_chat [label="Ollama.chat()", shape=note, fillcolor="#f0f8ff"];
+  LlamaCpp_list_models [label="LlamaCpp.list_models()", shape=note, fillcolor="#f0f8ff"];
+  LlamaCpp_chat [label="LlamaCpp.chat()", shape=note, fillcolor="#f0f8ff"];
+  ElevenLabs_list_models [label="ElevenLabs.list_models()", shape=note, fillcolor="#f0f8ff"];
+  ElevenLabs_chat [label="ElevenLabs.speech()", shape=note, fillcolor="#f0f8ff"];
+
+  // RoutingService method nodes
+  RoutingService_discover [label="RoutingService.discover_providers()", shape=note, fillcolor="#e6fff2"];
+  RoutingService_route [label="RoutingService.route_request()", shape=note, fillcolor="#e6fff2"];
+  RoutingService_find [label="RoutingService._find_suitable_providers()", shape=note, fillcolor="#e6fff2"];
+  RoutingService_score [label="RoutingService._score_providers()", shape=note, fillcolor="#e6fff2"];
+  RoutingService_calc_score [label="RoutingService._calculate_provider_score()", shape=note, fillcolor="#e6fff2"];
+  RoutingService_sla [label="RoutingService._calculate_sla_score()", shape=note, fillcolor="#e6fff2"];
+
+  // RoutingManager / DecisionEngine nodes
+  RoutingManager_route [label="RoutingManager.route_request()", shape=note, fillcolor="#fff0e6"];
+  RoutingManager_execute [label="RoutingManager._execute_with_fallback()", shape=note, fillcolor="#fff0e6"];
+  DecisionEngine_select [label="DecisionEngine.select_provider()", shape=note, fillcolor="#f0fff6"];
+    DecisionEngine_select -> ProviderHealthMonitor [label="queries health", style=dashed];
+    ProviderHealthMonitor -> ProviderHealthMonitor_check;
+    ProviderHealthMonitor -> ProviderHealthMonitor_get;
+    ProviderHealthMonitor -> ProviderHealthMonitor_record;
+    ProviderHealthMonitor -> ProviderHealthMonitor_start;
+
+    // HealthRouter / startup triggers health monitor
+    HealthRouter -> ProviderHealthMonitor_start [label="triggers start (on startup/test)", style=dashed];
+
+    // Background job scheduler / workers
+    JobScheduler [label="JobScheduler/Workers", shape=component, fillcolor="#fffaf0"];
+    JobScheduler -> ProviderHealthMonitor_start [label="schedule health checks", style=dashed];
+    JobScheduler -> LatencyMonitoringService [label="schedule metrics collection", style=dashed];
+
+    ProviderRegistry -> ProviderRegistry_get_available [style=dotted];
+    ProviderRegistry -> ProviderRegistry_get_provider [style=dotted];
+    ProviderRegistry -> ProviderRegistry_reload [style=dotted];
+
+    // Registry creates provider class instances
+    ProviderRegistry -> OpenAIProvider [label="instantiate/config->", style=dotted];
+    ProviderRegistry -> AnthropicProvider [label="instantiate/config->", style=dotted];
+    ProviderRegistry -> OllamaProvider [label="instantiate/config->", style=dotted];
+
+    // get_available returns a list of provider instances
+    ProviderRegistry_get_available -> OpenAIProvider [label="includes ->" style=dotted];
+    ProviderRegistry_get_available -> AnthropicProvider [label="includes ->" style=dotted];
+    ProviderRegistry_get_available -> OllamaProvider [label="includes ->" style=dotted];
+  DecisionEngine_score [label="DecisionEngine._score_provider()", shape=note, fillcolor="#f0fff6"];
+
+  // PRM and scaling nodes
+  PRM_score_candidates [label="PRMService.score_candidates()", shape=note, fillcolor="#fff7f7"];
+  PRM_select_best [label="PRMService.select_best_chain()", shape=note, fillcolor="#fff7f7"];
+  PRM_evaluate [label="PRMService.evaluate_chain_quality()", shape=note, fillcolor="#fff7f7"];
+  InferenceScaling_scale [label="InferenceScalingService.scale_inference()", shape=note, fillcolor="#eaffff"];
+
+  // Verification nodes
+  Verification_verify_score [label="VerificationPipeline.verify_and_score()", shape=note, fillcolor="#fff0ff"];
+  OutputVerifier_verify [label="OutputVerifier.verify_output()", shape=note, fillcolor="#fff0ff"];
+  Confidence_score [label="ConfidenceScorer.score_confidence()", shape=note, fillcolor="#fff0ff"];
+
+  // Provider implementation methods (ProviderBase)
+  OpenAI_provider_infer [label="OpenAIProvider.infer()", shape=note, fillcolor="#f8f8ff"];
+  OpenAI_provider_estimate [label="OpenAIProvider.estimate_cost()", shape=note, fillcolor="#f8f8ff"];
+  OpenAI_provider_health [label="OpenAIProvider.health_check()", shape=note, fillcolor="#f8f8ff"];
+  Anthropic_provider_infer [label="AnthropicProvider.infer()", shape=note, fillcolor="#f8f8ff"];
+  Anthropic_provider_health [label="AnthropicProvider.health_check()", shape=note, fillcolor="#f8f8ff"];
+  Ollama_provider_infer [label="OllamaProvider.infer()", shape=note, fillcolor="#f8f8ff"];
+
+  // Provider class nodes
+  OpenAIProvider [label="OpenAIProvider", shape=component, fillcolor="#f7f7ff"];
+  AnthropicProvider [label="AnthropicProvider", shape=component, fillcolor="#f7f7ff"];
+  OllamaProvider [label="OllamaProvider", shape=component, fillcolor="#f7f7ff"];
+  LlamaCppProvider [label="LlamaCppProvider", shape=component, fillcolor="#f7f7ff"];
+  GroqProvider [label="GroqProvider", shape=component, fillcolor="#f7f7ff"];
+  DeepSeekProvider [label="DeepSeekProvider", shape=component, fillcolor="#f7f7ff"];
+  ElevenLabsProvider [label="ElevenLabsProvider", shape=component, fillcolor="#f7f7ff"];
+
+  // Provider class -> method relationships
+  OpenAIProvider -> OpenAI_provider_infer;
+  OpenAIProvider -> OpenAI_provider_estimate;
+  OpenAIProvider -> OpenAI_provider_health;
+  AnthropicProvider -> Anthropic_provider_infer;
+  AnthropicProvider -> Anthropic_provider_health;
+  OllamaProvider -> Ollama_provider_infer;
+  
+  // Provider classes use adapter client to make requests
+  OpenAIProvider -> OpenAI [label="uses adapter client"];
+  AnthropicProvider -> Anthropic [label="uses adapter client"];
+  OllamaProvider -> Ollama [label="uses adapter client"];
+
+  // Registry methods return provider instances
+  ProviderRegistry_get_provider -> OpenAIProvider [label="returns instance" style=dotted];
+  ProviderRegistry_get_provider -> AnthropicProvider [label="returns instance" style=dotted];
+  ProviderRegistry_get_provider -> OllamaProvider [label="returns instance" style=dotted];
+
+
+
+  // Provider -> Service edges (adapters used by services)
+  OpenAI -> RoutingService;
+  Anthropic -> RoutingService;
+  Grok -> RoutingService;
+  DeepSeek -> RoutingService;
+  Ollama -> RoutingService;
+  LlamaCpp -> RoutingService;
+  Silliconflow -> RoutingService;
+  Moonshot -> RoutingService;
+  ElevenLabs -> RoutingService;
+
+  // Providers -> method nodes
+  OpenAI -> OpenAI_list_models;
+  OpenAI -> OpenAI_chat;
+  Anthropic -> Anthropic_list_models;
+  Anthropic -> Anthropic_chat;
+  Grok -> Grok_list_models;
+  Grok -> Grok_chat;
+  DeepSeek -> DeepSeek_list_models;
+  DeepSeek -> DeepSeek_chat;
+  Ollama -> Ollama_list_models;
+  Ollama -> Ollama_chat;
+  LlamaCpp -> LlamaCpp_list_models;
+  LlamaCpp -> LlamaCpp_chat;
+  ElevenLabs -> ElevenLabs_list_models;
+  ElevenLabs -> ElevenLabs_chat;
+
+  // Adapter methods used by RoutingService.discover_providers()
+  RoutingService_discover -> OpenAI_list_models [label="calls -> list_models()"];
+  RoutingService_discover -> Anthropic_list_models [label="calls -> list_models()"];
+  RoutingService_discover -> Grok_list_models [label="calls -> list_models()"];
+  RoutingService_discover -> Ollama_list_models [label="calls -> list_models()"];
+
+  // RoutingService flow
+  ChatRouter -> RoutingService_route [label="invokes", color="#0066cc"];
+  RoutingRouter -> RoutingService_route [label="invokes", color="#0066cc"];
+  RoutingService_route -> RoutingService_find [label="calls -> find_suitable()"];
+  RoutingService_route -> RoutingService_score [label="calls -> score_providers()"];
+  RoutingService_find -> RoutingService_discover [label="calls -> discover_providers()"];
+  RoutingService_score -> RoutingService_calc_score [label="calls -> calc_score()"];
+  RoutingService_calc_score -> RoutingService_sla [label="may call -> sla_check()"];
+  RoutingService_sla -> LatencyMonitoringService [label="calls -> check_sla_compliance()"];
+
+  // RoutingManager flow
+  RoutingRouter -> RoutingManager_route [label="may forward to manager", style=dotted];
+  RoutingManager_route -> DecisionEngine_select [label="calls -> select_provider()"];
+  RoutingManager_route -> RoutingManager_execute [label="then -> _execute_with_fallback()"];
+  RoutingManager_execute -> OpenAI_provider_infer [label="calls -> infer() on provider"];
+  RoutingManager_execute -> Anthropic_provider_infer [label="calls -> infer() on provider"];
+  RoutingManager_execute -> ProviderRegistry_get_provider [label="looks up provider instance"];
+  RoutingManager_execute -> OpenAIProvider [label="calls -> infer() on provider instance"];
+  RoutingManager_execute -> AnthropicProvider [label="calls -> infer() on provider instance"];
+
+  // DecisionEngine flows
+  DecisionEngine_select -> DecisionEngine_score [label="scores providers"];
+  DecisionEngine_score -> ProviderHealthMonitor [label="reads health via"];
+  DecisionEngine_select -> RoutingService_calc_score [label="delegates scoring (alt)" style=dotted];
+  DecisionEngine -> ProviderRegistry_get_available [label="calls -> get_available_providers()" style=dotted];
+
+  // Inference scaling -> PRM
+  InferenceScaling_scale -> PRM_score_candidates [label="calls -> score_candidates()"];
+  InferenceScaling_scale -> PRM_select_best [label="calls -> select_best_chain()"];
+  PRM_select_best -> PRM_evaluate [label="may call -> evaluate_chain_quality()"];
+  InferenceScalingService -> ProviderRegistry_get_provider [label="gets provider instance" style=dotted];
+  PRMService -> ProviderRegistry_get_provider [label="gets provider instance" style=dotted];
+
+  // Verification pipeline flow
+  ChatRouter -> Verification_verify_score [label="triggers verification", color="#660066"];
+  Verification_verify_score -> OutputVerifier_verify [label="calls -> verify_output()"];
+  Verification_verify_score -> Confidence_score [label="calls -> score_confidence()"];
+  VerificationPipeline -> ProviderRegistry_get_provider [label="selects provider" style=dotted];
+  OutputVerification -> ProviderRegistry_get_provider [label="selects provider" style=dotted];
+  OutputVerifier_verify -> OpenAI_chat [label="calls -> chat() for verification model"];
+  Confidence_score -> OpenAI_chat [label="calls -> chat() for scoring model"];
+
+  // Provider implementations: infer/health/estimate
+  OpenAI_provider_infer -> OpenAI [label="implements -> adapter client"];
+  OpenAI_provider_estimate -> OpenAI_provider_infer [label="estimates cost for infer()" style=dotted];
+  OpenAI_provider_health -> OpenAI_list_models [label="uses -> list_models() for health test"];
+
+
+  // Provider -> Service (specific)
+  Ollama -> InferenceScalingService [label="used by"];
+
+  // Services call provider methods
+  RoutingService -> OpenAI_list_models [label="discover() -> list_models()"];
+  RoutingService -> Anthropic_list_models;
+  RoutingService -> Grok_list_models;
+  RoutingService -> Ollama_list_models;
+  RoutingService -> DeepSeek_list_models;
+
+  InferenceScalingService -> Ollama_chat [label="scale_inference() -> chat()"];
+  VerificationPipeline -> OpenAI_chat [label="verify() -> chat()"];
+  OutputVerification -> OpenAI_chat [label="verify() -> chat()"];
+  OutputVerification -> Anthropic_chat [label="verify() -> chat()"];
+  OutputVerification -> Ollama_chat [label="verify() -> chat()"];
+
+  // Router -> Service edges (which router triggers which service)
+  ChatRouter -> RoutingService [label="routes->" color="#0033cc"];
+  ChatRouter -> RAGService [label="routes->" color="#0033cc"];
+  ChatRouter -> InferenceScalingService [label="routes->" color="#0033cc"];
+  ChatRouter -> VerificationPipeline [label="routes->" color="#0033cc"];
+  ChatRouter -> LatencyMonitoringService [label="routes->" color="#0033cc"];
+  ChatRouter -> OpenAI_chat [label="direct-> chat()" color="#aa0077"];
+  ChatRouter -> Anthropic_chat [label="direct-> chat()" color="#aa0077"];
+  ChatRouter -> Ollama_chat [label="direct-> chat()" color="#aa0077"];
+  ChatRouter -> Grok_chat [label="direct-> chat()" color="#aa0077"];
+
+  RoutingRouter -> RoutingService [label="routes->" color="#0033cc"];
+  RoutingRouter -> EnhancedRoutingService [label="routes->" color="#0033cc"];
+
+  ExecuteRouter -> GoblinExecutor [label="routes->" color="#0033cc"];
+  SettingsRouter -> RAGService [label="routes->" color="#0033cc"];
+  HealthRouter -> ProviderRegistry [label="health checks -> registry" style=dashed];
+
+  // Services use provider registry for configuration & discovery
+  RoutingService -> ProviderRegistry [label="uses get_provider_registry()"];
+  RoutingService -> ProviderRegistry_get_provider [label="calls -> get_provider(name)", style=dotted];
+  
+  DecisionEngine -> ProviderRegistry [label="queries -> registry"];
+  DecisionEngine -> ProviderRegistry_get_provider [label="calls -> get_provider(name)", style=dotted];
+  DecisionEngine -> OpenAI_list_models [label="queries->list_models()"];
+  DecisionEngine -> Anthropic_list_models;
+  DecisionEngine -> Grok_list_models;
+  DecisionEngine -> Ollama_list_models;
+  DecisionEngine -> DeepSeek_list_models;
+  RoutingService -> DecisionEngine [label="delegates->" color="#00aa00"];
+
+  // Provider registry contains provider configs
+  ProviderRegistry -> OpenAI [label="config->" style=dotted];
+  ProviderRegistry -> Anthropic [label="config->" style=dotted];
+  ProviderRegistry -> Grok [label="config->" style=dotted];
+  ProviderRegistry -> DeepSeek [label="config->" style=dotted];
+  ProviderRegistry -> Ollama [label="config->" style=dotted];
+  ProviderRegistry -> LlamaCpp [label="config->" style=dotted];
+  ProviderRegistry -> ElevenLabs [label="config->" style=dotted];
+
+  // Providers read registry for config
+  OpenAI -> ProviderRegistry [label="reads config" style=dashed];
+  Anthropic -> ProviderRegistry [label="reads config" style=dashed];
+  Grok -> ProviderRegistry [label="reads config" style=dashed];
+  DeepSeek -> ProviderRegistry [label="reads config" style=dashed];
+  Ollama -> ProviderRegistry [label="reads config" style=dashed];
+  LlamaCpp -> ProviderRegistry [label="reads config" style=dashed];
+  ElevenLabs -> ProviderRegistry [label="reads config" style=dashed];
+
+  // Service -> Router edges
+  RoutingService -> ChatRouter;
+  RoutingService -> RoutingRouter;
+  EnhancedRoutingService -> RoutingRouter;
+  InferenceScalingService -> ChatRouter;
+  RAGService -> ChatRouter;
+  RAGService -> SettingsRouter;
+  GoblinExecutor -> ExecuteRouter;
+  VerificationPipeline -> ChatRouter;
+  LatencyMonitoringService -> ChatRouter;
+
+  // Data stores & vector DBs used by RAG and services
+  ChromaVectorStore [label="Chroma/VectorStore", shape=folder, fillcolor="#fff0ff"];
+  Supabase [label="Supabase/Postgres", shape=folder, fillcolor="#f7fff7"];
+  ConfigStore [label="Provider Config (file/db)", shape=note, fillcolor="#fffde6"];
+
+  RAGService -> ChromaVectorStore [label="queries -> vectors/retriever"];
+  RAGService -> Supabase [label="may query -> metadata/embeds" style=dotted];
+  ProviderRegistry -> ConfigStore [label="reads provider configs" style=dotted];
+
+  // Direct Provider -> Router (for health checks)
+  OpenAI -> HealthRouter [style=dashed, label="health check"];
+  Anthropic -> HealthRouter [style=dashed, label="health check"];
+  Ollama -> HealthRouter [style=dashed, label="health check"];
+  Grok -> HealthRouter [style=dashed, label="health check"];
+  DeepSeek -> HealthRouter [style=dashed, label="health check"];
+
+  // HealthRouter performs provider tests (models, simple chat)
+  HealthRouter -> OpenAI_list_models [style=dashed, label="models test -> list_models()"];
+  HealthRouter -> OpenAI_chat [style=dashed, label="inference test -> chat()"];
+  HealthRouter -> Anthropic_list_models [style=dashed];
+  HealthRouter -> Anthropic_chat [style=dashed];
+  HealthRouter -> Grok_list_models [style=dashed];
+  HealthRouter -> Grok_chat [style=dashed];
+  HealthRouter -> DeepSeek_list_models [style=dashed];
+  HealthRouter -> DeepSeek_chat [style=dashed];
+  HealthRouter -> ProviderHealthMonitor_get [label="queries health metrics", style=dashed];
+
+  // ProviderHealthMonitor checks call provider's simple list_models/chat endpoints
+  ProviderHealthMonitor_check -> OpenAI_list_models [label="calls -> list_models()", style=dashed];
+  ProviderHealthMonitor_check -> Anthropic_list_models [label="calls -> list_models()", style=dashed];
+  ProviderHealthMonitor_check -> Ollama_list_models [label="calls -> list_models()", style=dashed];
+  ProviderHealthMonitor_check -> OpenAI_chat [label="calls -> chat() for live test", style=dashed];
+  ProviderHealthMonitor_check -> Anthropic_chat [label="calls -> chat() for live test", style=dashed];
+  ProviderHealthMonitor_check -> Ollama_chat [label="calls -> chat() for live test", style=dashed];
+
+  // Common provider test connection method
+  Provider_test_connection [label="providers.test_connection()", shape=note, fillcolor="#fff0f5"];
+  Provider_test_connection -> OpenAI [style=dotted, label="tests OpenAI"];
+  Provider_test_connection -> Anthropic [style=dotted, label="tests Anthropic"];
+  Provider_test_connection -> Grok [style=dotted, label="tests Grok"];
+  Provider_test_connection -> DeepSeek [style=dotted, label="tests DeepSeek"];
+  Provider_test_connection -> Ollama [style=dotted, label="tests Ollama"];
+
+  // SettingsRouter / services settings call the provider test helper
+  SettingsRouter -> Provider_test_connection [label="test connection -> providers.generic.test_connection()", color="#aa5500"];
+
+  // Styling
+  edge [color="#444444"];
+  fontname = "Helvetica";
+}

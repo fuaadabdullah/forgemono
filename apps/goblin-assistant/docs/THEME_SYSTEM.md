@@ -12,6 +12,7 @@
 **Files**: `src/theme/index.css`, `src/theme/theme.js`
 
 **CSS Variables** (`index.css`):
+
 - **Neutrals**: `--bg`, `--surface`, `--text`, `--muted`
 - **Brand Colors**: `--primary`, `--accent`, `--cta` (with 300/600 variants)
 - **Semantic Colors**: `--success`, `--warning`, `--danger`, `--info`
@@ -19,6 +20,7 @@
 - **Layout**: `--border`, `--divider`
 
 **Runtime Utilities** (`theme.js`):
+
 ```javascript
 setThemeVars(vars)          // Set CSS custom properties
 enableHighContrast(enable)  // Toggle .goblinos-high-contrast class
@@ -40,6 +42,7 @@ getCurrentThemePreset()     // Get active preset
 
 **App.tsx Integration**:
 ```tsx
+
 import { initializeTheme } from './theme/theme';
 import './theme/index.css';
 
@@ -49,6 +52,7 @@ useEffect(() => {
 ```
 
 **Tailwind Configuration**:
+
 ```javascript
 colors: {
   primary: "var(--primary)",
@@ -85,6 +89,7 @@ colors: {
 
 **High-Contrast Mode**:
 ```tsx
+
 // Already implemented in navigation bar
 <ContrastModeToggle />
 
@@ -95,6 +100,7 @@ const { mode, toggleMode } = useContrastMode();
 ```
 
 **CSS High-Contrast Overrides** (AAA compliant):
+
 ```css
 :root.goblinos-high-contrast {
   --bg: #000000;        /* Pure black */
@@ -106,6 +112,7 @@ const { mode, toggleMode } = useContrastMode();
 
 **Reduced Motion Support**:
 ```css
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -116,6 +123,7 @@ const { mode, toggleMode } = useContrastMode();
 ```
 
 **System Preference Detection**:
+
 ```javascript
 // In theme.js initializeTheme()
 const contrastMedia = window.matchMedia('(prefers-contrast: high)');
@@ -152,6 +160,7 @@ const motionMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 ### Apply a Theme Preset
 ```javascript
+
 import { applyThemePreset } from './theme/theme';
 
 applyThemePreset('nocturne'); // Switches to cyan/purple theme
@@ -159,6 +168,7 @@ applyThemePreset('nocturne'); // Switches to cyan/purple theme
 ```
 
 ### Manual Color Override
+
 ```javascript
 import { setThemeVars } from './theme/theme';
 
@@ -170,12 +180,14 @@ setThemeVars({
 
 ### Check Current Contrast Mode
 ```javascript
+
 import { getHighContrastPreference } from './theme/theme';
 
 const isHighContrast = getHighContrastPreference(); // true/false
 ```
 
 ### Use in Components (Tailwind)
+
 ```tsx
 <div className="bg-surface text-primary border border-border">
   <button className="bg-cta hover:bg-cta-600 shadow-glow-cta">
@@ -186,6 +198,7 @@ const isHighContrast = getHighContrastPreference(); // true/false
 
 ### Use in Components (Direct CSS)
 ```css
+
 .custom-card {
   background: var(--surface);
   color: var(--text);
@@ -199,6 +212,7 @@ const isHighContrast = getHighContrastPreference(); // true/false
 ## 🎯 Accessibility Features
 
 ### ✅ WCAG 2.1 Level AA Compliant
+
 - **Text Contrast**: 16.64:1 body text (AAA), 9.29:1 primary UI (AA)
 - **Focus Indicators**: 2px solid primary outline with 2px offset
 - **Skip Links**: Keyboard-accessible content skip navigation
@@ -206,11 +220,13 @@ const isHighContrast = getHighContrastPreference(); // true/false
 - **Reduced Motion**: Respects `prefers-reduced-motion` media query
 
 ### ✅ Keyboard Navigation
+
 - All interactive elements focusable
 - Visual focus indicators on `:focus-visible`
 - Skip link for screen readers (`<a href="#main" class="skip-link">`)
 
 ### ✅ Screen Reader Support
+
 - ARIA labels on contrast toggle button
 - Semantic HTML (`<main>`, `<nav>`, `<header>`)
 - Alt text on all images
@@ -220,6 +236,7 @@ const isHighContrast = getHighContrastPreference(); // true/false
 ## 📊 Verification
 
 Run automated checks:
+
 ```bash
 cd apps/goblin-assistant
 node scripts/verify-theme-system.js

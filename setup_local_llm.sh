@@ -16,9 +16,9 @@ echo "🚀 Starting Ollama service..."
 ollama serve &
 sleep 3
 
-# Pull a small test model
-echo "📥 Pulling test model (llama2:7b)..."
-ollama pull llama2:7b
+# Pull a recommended Raptor Mini model
+echo "📥 Pulling test model (raptor-mini)..."
+ollama pull raptor-mini
 
 # Test Ollama API
 echo "🧪 Testing Ollama API..."
@@ -28,7 +28,8 @@ curl -s http://localhost:11434/api/tags | head -20
 echo "⚙️  Setting up local proxy configuration..."
 cat > local_proxy_config.env << 'ENV_EOF'
 LOCAL_LLM_PROXY_URL=http://localhost:8002
-LOCAL_LLM_API_KEY=dev-test-key-12345
+# Optional API key for local proxy; leave empty to disable auth for development
+LOCAL_LLM_API_KEY=
 OLLAMA_BASE_URL=http://localhost:11434
 ENV_EOF
 
@@ -48,8 +49,8 @@ echo "   curl http://localhost:8002/health"
 echo "   curl http://localhost:8001/health"
 echo ""
 echo "4. Test chat completion:"
-echo "   curl -X POST http://localhost:8002/v1/chat/completions \\
-         -H 'Content-Type: application/json' \\
-         -H 'Authorization: Bearer dev-test-key-12345' \\
-         -d '{\"model\":\"llama2:7b\",\"messages\":[{\"role\":\"user\",\"content\":\"Hello!\"}]}'"
+echo "   curl -X POST http://localhost:8002/v1/chat/completions \\"
+echo "         -H 'Content-Type: application/json' \\"
+echo "         -H 'Authorization: Bearer <LOCAL_LLM_API_KEY>' \\"
+echo "         -d '{\"model\":\"raptor-mini\",\"messages\":[{\"role\":\"user\",\"content\":\"Hello!\"}]}'"
 

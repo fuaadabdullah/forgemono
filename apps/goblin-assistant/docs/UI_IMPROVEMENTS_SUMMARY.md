@@ -2,7 +2,7 @@
 
 **Date**: December 2, 2025
 **Status**: ✅ Implementation Complete, Testing Phase
-**Dev Server**: http://localhost:5173
+**Dev Server**: <http://localhost:5173>
 
 ## ✅ Completed Improvements
 
@@ -21,6 +21,7 @@
 **Location**: `apps/goblin-assistant/src/index.css` (lines 133-166)
 
 **Benefits**:
+
 - No horizontal scroll at any viewport
 - Consistent 1rem gap spacing
 - Optimal card density per screen size
@@ -39,12 +40,14 @@
 **Location**: `apps/goblin-assistant/src/components/LoadingSkeleton.tsx`
 
 **Features**:
+
 - Pulse animation (`animate-pulse`)
 - Correct aspect ratios match actual components
 - Integrated into EnhancedDashboard loading state
 - Reduces perceived load time
 
 **Before/After**:
+
 ```tsx
 // Before
 {loading && <div>Loading...</div>}
@@ -86,6 +89,7 @@
 
 #### Live Regions
 ```tsx
+
 // Status updates announced to screen readers
 <div role="status" aria-live="polite" aria-atomic="true">
   Dashboard updated. Services: {healthyCount} healthy
@@ -93,6 +97,7 @@
 ```
 
 #### Button Labels
+
 ```tsx
 // Clear action descriptions
 <button aria-label="Retry loading dashboard">Retry</button>
@@ -103,6 +108,7 @@
 
 #### Error Alerts
 ```tsx
+
 // Critical errors use assertive live region
 <div role="alert" aria-live="assertive">
   <h3>Dashboard Error</h3>
@@ -111,12 +117,14 @@
 ```
 
 #### Responsive Layout
+
 - Mobile-friendly header: `flex-col sm:flex-row`
 - Wrapping button groups with proper spacing
 - Touch targets meet 44x44px minimum
 - Focus states on all interactive elements
 
 **WCAG 2.1 AA Compliance**:
+
 - ✅ Keyboard navigation
 - ✅ Screen reader support
 - ✅ Focus indicators
@@ -165,6 +173,7 @@ const [
 **Primitive-based composition:**
 
 ```tsx
+
 // Card primitive (foundation)
 <Card
   padded={boolean}
@@ -191,6 +200,7 @@ const [
 ```
 
 **Benefits**:
+
 - Shared styling via Card primitive
 - Consistent elevation (shadow-card)
 - Uniform padding, borders, radii
@@ -233,6 +243,7 @@ const [
 **Run axe-core smoke test:**
 
 ```bash
+
 cd apps/goblin-assistant
 
 # Install puppeteer if not already installed
@@ -243,11 +254,13 @@ node ../../tools/axe-smoke.js
 ```
 
 **Expected Output**:
+
 - `axe-report.json` with violations/passes
 - Console summary of critical issues
 - Color contrast violation list (prioritize these)
 
 **Common Issues to Fix**:
+
 - Color contrast ratios < 4.5:1
 - Missing aria-labels on icon buttons
 - Form inputs without associated labels
@@ -267,12 +280,14 @@ node ../../tools/axe-smoke.js
 | **Total** | ~242 kB | ~77 kB | Initial load |
 
 **Performance Targets**:
+
 - LCP (Largest Contentful Paint): < 2.5s
 - FID (First Input Delay): < 100ms
 - CLS (Cumulative Layout Shift): < 0.1
 - TTI (Time to Interactive): < 3.8s
 
 **Optimizations Applied**:
+
 - CSS custom properties (no runtime calc)
 - Tailwind JIT (minimal CSS)
 - Code splitting (Vite automatic)
@@ -285,6 +300,7 @@ node ../../tools/axe-smoke.js
 ### Theme Tokens (CSS Variables)
 
 **Typography** (`--font-*`):
+
 ```css
 --font-sans: system-ui, -apple-system, ...
 --font-mono: ui-monospace, ...
@@ -297,6 +313,7 @@ node ../../tools/axe-smoke.js
 
 **Spacing** (`--space-*`):
 ```css
+
 --space-0: 0
 --space-1: 4px
 --space-2: 8px
@@ -309,6 +326,7 @@ node ../../tools/axe-smoke.js
 ```
 
 **Radii** (`--radius-*`):
+
 ```css
 --radius-sm: 4px
 --radius-md: 8px
@@ -317,6 +335,7 @@ node ../../tools/axe-smoke.js
 
 **Elevation** (`--shadow-*`):
 ```css
+
 --shadow-card: 0 1px 2px rgba(0,0,0,0.3)
 --glow-primary: 0 6px 24px var(--primary)
 --glow-accent: 0 6px 24px var(--accent)
@@ -330,6 +349,7 @@ node ../../tools/axe-smoke.js
 ## 📝 Files Changed
 
 ### Created
+
 1. `src/components/LoadingSkeleton.tsx` - Skeleton components
 2. `src/components/Card.tsx` - Primitive container
 3. `src/components/StatusCard.tsx` - Composed status widget
@@ -338,6 +358,7 @@ node ../../tools/axe-smoke.js
 6. `docs/UI_IMPROVEMENTS_SUMMARY.md` - This file
 
 ### Modified
+
 1. `src/index.css` - Enhanced responsive grid, shadow utilities
 2. `src/theme/index.css` - Added typography, spacing, radii tokens
 3. `src/App.tsx` - Centered container, skip link, focus management
@@ -349,12 +370,14 @@ node ../../tools/axe-smoke.js
 ## 🚀 Next Steps
 
 ### Immediate (Today)
+
 1. **Manual viewport testing** (15 min)
    - Open DevTools responsive mode
    - Test 375px, 768px, 1024px, 1280px, 1440px
    - Check checklist in `docs/RESPONSIVE_TESTING.md`
 
 2. **Run axe audit** (10 min)
+
    ```bash
    node tools/axe-smoke.js
    ```
@@ -424,12 +447,15 @@ node ../../tools/axe-smoke.js
 
 **Dev Server**:
 ```bash
+
 cd apps/goblin-assistant
 npm run dev
+
 # → http://localhost:5173
 ```
 
 **Backend**:
+
 ```bash
 cd apps/goblin-assistant/backend
 python -m uvicorn app.main:app --reload --port 8001
@@ -438,7 +464,8 @@ python -m uvicorn app.main:app --reload --port 8001
 
 **API Health Check**:
 ```bash
-curl http://localhost:8001/health/all | jq
+
+curl <http://localhost:8001/health/all> | jq
 ```
 
 ---

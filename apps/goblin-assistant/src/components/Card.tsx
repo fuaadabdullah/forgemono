@@ -20,7 +20,8 @@ export default function Card({
   radius = 'md',
   ...rest
 }: CardProps) {
-  const radiusClass = radius === 'lg' ? 'rounded-xl' : radius === 'sm' ? 'rounded-md' : 'rounded-lg';
+  const radiusClass =
+    radius === 'lg' ? 'rounded-xl' : radius === 'sm' ? 'rounded-md' : 'rounded-lg';
   const padClass = padded ? 'p-4 md:p-5' : '';
   const borderClass = bordered ? 'border border-border' : '';
   const elevationClass = elevation === 'card' ? 'shadow-card' : '';

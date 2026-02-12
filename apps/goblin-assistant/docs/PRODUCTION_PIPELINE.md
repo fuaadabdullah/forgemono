@@ -50,16 +50,19 @@ Store these in your Bitwarden "Infra Vault" folder:
 For enhanced security and deployment flexibility, store your SSH private key in Bitwarden:
 
 ```bash
+
 # Run the setup script
 ./scripts/setup_ssh_key.sh
 ```
 
 This will guide you through:
+
 1. **Creating a Secure Note** in Bitwarden named `goblin-ssh-private-key`
 2. **Storing your SSH private key** securely in the vault
 3. **Adding the public key** to your GitHub account
 
 **CircleCI will automatically**:
+
 - Retrieve the private key from Bitwarden during deployment
 - Set up SSH access for secure operations
 - Use SSH for git operations when needed
@@ -110,22 +113,26 @@ This will guide you through:
 ### App Setup
 
 1. **Install Fly.io CLI**:
+
    ```bash
    curl -L https://fly.io/install.sh | sh
    ```
 
 2. **Login to Fly.io**:
    ```bash
+
    flyctl auth login
    ```
 
 3. **Create app** (one-time):
+
    ```bash
    flyctl apps create goblin-assistant
    ```
 
 4. **Deploy initially**:
    ```bash
+
    flyctl deploy
    ```
 
@@ -163,11 +170,13 @@ workflows:
 For testing or emergency deploys:
 
 ```bash
+
 # From project root
 ./deploy-fly.sh
 ```
 
 This script:
+
 - Unlocks Bitwarden vault
 - Loads production secrets
 - Deploys to Fly.io
@@ -203,9 +212,12 @@ uvicorn backend.main:app --reload
 ### Secret Rotation
 
 ```bash
+
 # Rotate production secrets quarterly
 bw generate  # Generate new values
+
 # Update items in Bitwarden
+
 # Commit to trigger deployment
 ```
 
@@ -250,6 +262,7 @@ bw generate  # Generate new values
 ### Fly.io Metrics
 
 ```bash
+
 # Check app status
 flyctl status
 
@@ -283,7 +296,9 @@ Set up alerts for:
 ### Blue-Green Deployments
 
 ```yaml
+
 # In CircleCI config
+
 - run:
     name: Blue-Green Deploy
     command: |
@@ -306,6 +321,7 @@ workflows:
 ### Rollback Strategy
 
 ```bash
+
 # Emergency rollback
 flyctl releases
 flyctl releases rollback <release-id>
@@ -316,26 +332,31 @@ flyctl releases rollback <release-id>
 ## 🎯 What This Gives You
 
 ### ✅ Zero Secrets in Code
+
 - No plaintext credentials committed
 - No `.env` files in repository
 - Secrets pulled dynamically at deploy time
 
 ### ✅ Enterprise Security
+
 - Bitwarden encryption and access controls
 - Audit trails for all secret access
 - Secure CI/CD with API key authentication
 
 ### ✅ Automated Operations
+
 - Push-to-deploy workflow
 - No manual deployment steps
 - Consistent dev/prod environments
 
 ### ✅ Cost Effective
+
 - Free tier covers most needs
 - No enterprise licensing required
 - Pay only for actual cloud resources
 
 ### ✅ Developer Experience
+
 - Same secrets for local and production
 - Fast iteration with automated deploys
 - Clear error messages and logging
@@ -367,6 +388,7 @@ flyctl status
 ### Rollback
 
 ```bash
+
 # Get release history
 flyctl releases
 

@@ -3,6 +3,7 @@ This document has moved into the canonical backend documentation folder:
 - apps/goblin-assistant/backend/docs/FIXES_APPLIED.md
 
 Please update any references or links to point to the new location.
+
 # ✅ Goblin Assistant - Fixes Applied
 
 **Date:** December 1, 2025
@@ -14,14 +15,17 @@ Please update any references or links to point to the new location.
 **New Value:** `goblin-llm-hrDD-3IO83-YpusDBHXV_V0r7Lx9sMtvEs4CWBnF2kE`
 
 **What was done:**
+
 - Generated cryptographically secure random API key
 - Updated `backend/.env` with new key
 - Key is now production-ready
 
 **Security Note:**
+
 - The key should be stored in a managed secrets store and not kept in plaintext in files. Please move this key into your secrets manager (Render, HashiCorp Vault, AWS Secrets Manager, or similar) and rotate it periodically.
 
 **⚠️ IMPORTANT:** You need to update the remote proxy on Kamatera:
+
 ```bash
 # SSH into Kamatera VPS
 ssh user@45.61.60.3
@@ -70,6 +74,7 @@ export LOCAL_LLM_API_KEY="goblin-llm-hrDD-3IO83-YpusDBHXV_V0r7Lx9sMtvEs4CWBnF2kE
 
 **How to start:**
 ```bash
+
 # From monorepo root
 cd /Users/fuaadabdullah/ForgeMonorepo
 npm run --workspace=goblin-assistant-frontend dev
@@ -91,9 +96,11 @@ npm run --workspace=goblin-assistant-frontend dev
 ## Next Steps
 
 ### Required (Before Backend Can Start):
+
 1. **Reset Supabase password** and run `update_db_password.py`
 
 ### Recommended (For Security):
+
 2. Update remote proxy API key on Kamatera VPS
 
 ---

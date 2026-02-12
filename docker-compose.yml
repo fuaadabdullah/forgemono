@@ -1,0 +1,242 @@
+version: "3.8"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - /srv/ai/models:/root/.ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_MAX_LOADED_MODELS=3
+      - OLLAMA_MAX_QUEUE=512
+      - OLLAMA_TMPDIR=/tmp
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '2.0'
+        reservations:
+          memory: 4G
+          cpus: '1.0'
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    # CPU and memory isolation
+    cpu_shares: 1024
+    mem_limit: 8G
+    mem_reservation: 4G
+    cpus: '2.0'
+    # Disable swap for Ollama to prevent thrashing
+    memswap_limit: 8G
+    # CPU affinity - prefer specific cores
+    cpuset: '0-7'
+    # IO limits
+    blkio_config:
+      weight: 100
+      weight_device:
+        - path: /dev/sda
+          weight: 100
+      device_read_bps:
+        - path: /dev/sda
+          rate: 100mb
+      device_write_bps:
+        - path: /dev/sda
+          rate: 50mb
+    # Security and isolation
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: false
+    tmpfs:
+      - /tmp:noexec,nosuid,size=1G
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  llama-cpp:
+    image: ghcr.io/ggerganov/llama.cpp:full
+    restart: unless-stopped
+    command: ["-m", "/models/mistral-7b-instruct-v0.1.Q4_0.gguf", "--host", "0.0.0.0", "--port", "8080", "--ctx-size", "4096", "--threads", "4", "--n-gpu-layers", "0", "--batch-size", "512", "--ubatch-size", "512"]
+    volumes:
+      - /srv/ai/models:/models:ro
+    ports:
+      - "8080:8080"
+    environment:
+      - LLAMA_CPP_LOG_LEVEL=info
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+          cpus: '1.5'
+        reservations:
+          memory: 2G
+          cpus: '0.5'
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    # CPU and memory isolation
+    cpu_shares: 768
+    mem_limit: 6G
+    mem_reservation: 2G
+    cpus: '1.5'
+    # Allow some swap for llama.cpp
+    memswap_limit: 8G
+    # CPU affinity - different cores from Ollama
+    cpuset: '8-11'
+    # IO limits (lower priority than Ollama)
+    blkio_config:
+      weight: 80
+      weight_device:
+        - path: /dev/sda
+          weight: 80
+      device_read_bps:
+        - path: /dev/sda
+          rate: 50mb
+      device_write_bps:
+        - path: /dev/sda
+          rate: 25mb
+    # Security and isolation
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=512M
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  fastapi-proxy:
+    build: .
+    restart: unless-stopped
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+      - LLAMA_CPP_URL=http://llama-cpp:8080
+      - LOCAL_LLM_API_KEY=your-secure-key-here
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8002:8002"
+    depends_on:
+      - ollama
+      - llama-cpp
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.2'
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 60s
+    # CPU and memory isolation
+    cpu_shares: 256
+    mem_limit: 1G
+    mem_reservation: 512M
+    cpus: '0.5'
+    # Allow minimal swap
+    memswap_limit: 1G
+    # CPU affinity - any cores
+    cpuset: '0-15'
+    # IO limits (lowest priority)
+    blkio_config:
+      weight: 50
+      weight_device:
+        - path: /dev/sda
+          weight: 50
+      device_read_bps:
+        - path: /dev/sda
+          rate: 10mb
+      device_write_bps:
+        - path: /dev/sda
+          rate: 5mb
+    # Security and isolation
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: false
+    tmpfs:
+      - /tmp:noexec,nosuid,size=256M
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # Resource monitoring container
+  resource-monitor:
+    image: alpine:latest
+    restart: unless-stopped
+    command: >
+      sh -c "
+      apk add --no-cache curl sysstat &&
+      while true; do
+        echo \"$$(date): Memory: $$(free -h | grep Mem)\" >> /var/log/resources.log &&
+        echo \"$$(date): CPU: $$(mpstat 1 1 | tail -1)\" >> /var/log/resources.log &&
+        echo \"$$(date): Disk: $$(df -h /srv/ai/models)\" >> /var/log/resources.log &&
+        sleep 30
+      done"
+    volumes:
+      - resource_logs:/var/log
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.1'
+        reservations:
+          memory: 64M
+          cpus: '0.05'
+    cpu_shares: 64
+    mem_limit: 128M
+    mem_reservation: 64M
+    cpus: '0.1'
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: false
+
+volumes:
+  models:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /srv/ai/models
+  resource_logs:
+    driver: local
+
+# Network isolation
+networks:
+  ai-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

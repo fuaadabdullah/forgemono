@@ -1,0 +1,109 @@
+# Documentation Quality Check Configuration
+# This file configures the behavior of doc_quality_check.py
+
+# API Configuration
+api:
+  url: "https://thomasena-auxochromic-joziah.ngrok-free.dev"
+  timeout: 15
+  retries: 3
+
+# Local and hosted model configurations
+models:
+  phi3:
+    url: "http://localhost:7860/v1/chat/completions"
+    timeout: 5
+    enabled: true
+    model_name: "models/Phi-3-mini-4k-instruct-q4.gguf"
+    provider: "local"
+    soft_fallback: false
+
+  raptor:
+    url: "https://thomasena-auxochromic-joziah.ngrok-free.dev"
+    timeout: 20
+    enabled: true
+    provider: "raptor_api"
+
+# Quality Thresholds
+quality:
+  # Minimum acceptable score (0-100)
+  min_score: 60
+
+  # Score considered "high quality"
+  high_quality_threshold: 80
+
+  # Score considered "medium quality"
+  medium_quality_threshold: 60
+
+  # Fail CI if any file is below this score
+  ci_fail_threshold: 70
+
+# Model orchestration modes
+modes:
+  dev: phi_only
+  polish: dual
+  ci: raptor_only
+  standalone: standalone
+
+thresholds:
+  phi3_min: 60
+  raptor_min: 75
+  auto_polish: 70
+
+# File Discovery
+files:
+  # Directories to scan for documentation
+  directories:
+    - "docs"
+    - "."
+
+  # File extensions to check
+  extensions:
+    - ".md"
+    - ".txt"
+    - ".rst"
+    - ".adoc"
+
+  # Patterns to exclude
+  exclude_patterns:
+    - "**/node_modules/**"
+    - "**/.git/**"
+    - "**/__pycache__/**"
+    - "**/.*"
+
+# Batch Processing
+batch:
+  # Number of files to process in each batch
+  size: 10
+
+  # Maximum concurrent requests
+  max_concurrent: 5
+
+# Reporting
+report:
+  # Include detailed analysis in reports
+  include_details: true
+
+  # Include improvement suggestions
+  include_suggestions: true
+
+  # Maximum number of top performers to show
+  top_performers_limit: 5
+
+# Git Integration
+git:
+  # Enable pre-commit hooks
+  enable_pre_commit: true
+
+  # Files to check in pre-commit
+  pre_commit_check_staged: true
+
+# CI/CD Integration
+ci:
+  # Enable CI mode features
+  enable_ci_mode: true
+
+  # Create artifacts for CI systems
+  create_artifacts: true
+
+  # Comment on pull requests
+  comment_prs: true

@@ -7,12 +7,14 @@ This guide covers migrating the Goblin Assistant from SQLite (development) to Po
 ## ✅ What's Been Set Up
 
 ### 1. Alembic Configuration
+
 - ✅ Alembic initialized in `backend/alembic/`
 - ✅ Initial migration generated with all models
 - ✅ `env.py` configured to use DATABASE_URL from environment
 - ✅ All models imported and registered
 
 ### 2. Database Connection Pooling
+
 - ✅ Production-ready connection pool (20 base + 40 overflow)
 - ✅ Pool timeout: 30 seconds
 - ✅ Connection recycling: 1 hour
@@ -21,6 +23,7 @@ This guide covers migrating the Goblin Assistant from SQLite (development) to Po
 - ✅ Connection timeout: 10 seconds
 
 ### 3. Environment Configuration
+
 - ✅ `DATABASE_URL` support for both SQLite and PostgreSQL
 - ✅ Configurable pool settings via environment variables
 - ✅ Automatic detection of database type
@@ -46,7 +49,9 @@ You already have a Supabase project! Just get the direct PostgreSQL connection s
 #### Option B: Local PostgreSQL
 
 ```bash
+
 # Install PostgreSQL
+
 # macOS:
 brew install postgresql@15
 brew services start postgresql@15
@@ -59,6 +64,7 @@ DATABASE_URL=postgresql://localhost:5432/goblin_assistant
 ```
 
 #### Option C: Managed PostgreSQL
+
 - AWS RDS
 - Google Cloud SQL
 - Digital Ocean Managed Databases
@@ -82,6 +88,7 @@ DB_POOL_RECYCLE=3600
 ### Step 3: Run Migrations
 
 ```bash
+
 cd /Users/fuaadabdullah/ForgeMonorepo/apps/goblin-assistant/backend
 
 # Activate virtual environment
@@ -122,6 +129,7 @@ with engine.connect() as conn:
 If you have existing data in SQLite that needs to be migrated:
 
 ```bash
+
 # 1. Export SQLite data
 python3 scripts/export_sqlite_data.py
 
@@ -183,10 +191,12 @@ alembic downgrade base
 ### Connection Refused
 
 ```bash
+
 # Check if PostgreSQL is running
 pg_isready -h [host] -p 5432
 
 # For Supabase, check if IP is allowlisted
+
 # Go to Supabase Dashboard > Database > Connection pooler
 ```
 
@@ -201,6 +211,7 @@ pg_isready -h [host] -p 5432
 ### SSL Required
 
 ```bash
+
 # Add SSL mode to connection string
 DATABASE_URL=postgresql://user:pass@host:5432/db?sslmode=require
 ```
@@ -223,6 +234,7 @@ alembic upgrade head
 ### Pool Timeout Errors
 
 ```bash
+
 # Increase pool size
 DB_POOL_SIZE=30
 DB_MAX_OVERFLOW=60
@@ -257,6 +269,7 @@ async def health_db_pool():
 ### 1. Row Level Security (Supabase)
 
 ```sql
+
 -- Enable RLS on all tables
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
@@ -281,8 +294,11 @@ DATABASE_URL=postgresql://...?sslmode=require
 ### 3. Credentials Management
 
 ```bash
+
 # Never commit database passwords
+
 # Use environment variables or secrets manager
+
 # Rotate passwords every 90 days
 ```
 

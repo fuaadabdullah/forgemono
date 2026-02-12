@@ -1,0 +1,37 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: llm-canary-alerts
+  labels:
+    app: llm-canary
+spec:
+  groups:
+    - name: llm-canary
+      rules:
+        - alert: LLMCanaryP95LatencyHigh
+          expr: |
+            histogram_quantile(0.95, sum(rate(ai_request_latency_seconds_bucket[5m])) by (le)) > 2
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "LLM canary p95 latency high"
+            description: "p95 latency > 2s for 10m"
+
+        - alert: LLMCanaryModelNotLoaded
+          expr: ai_model_loaded == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "LLM canary model not loaded"
+            description: "Model reports unloaded for 5m"
+
+        - alert: LLMCanaryMemoryPressure
+          expr: (ai_memory_used_bytes / ai_memory_total_bytes) > 0.9
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "LLM canary memory pressure"
+            description: "Memory usage > 90% for 10m"

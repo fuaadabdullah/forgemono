@@ -1,0 +1,111 @@
+name = "goblin-model-gateway"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Production routes
+# routes = [
+#   { pattern = "brain.goblin.fuaad.ai/*", zone_name = "fuaad.ai" }
+# ]
+
+# Development worker URL (uncomment for dev)
+# workers_dev = true
+
+# ============================================================================
+# Environment Variables (set via dashboard or wrangler secret)
+# ============================================================================
+# Required secrets (use `wrangler secret put <NAME>`):
+#   - JWT_SECRET: Secret for validating JWTs from backend
+#
+# Cloud API Keys (at least one recommended):
+#   - GROQ_API_KEY: Groq API key (recommended - fast & free tier)
+#   - OPENAI_API_KEY: OpenAI API key (fallback)
+#   - ANTHROPIC_API_KEY: Anthropic API key (fallback)
+#   - DEEPSEEK_API_KEY: DeepSeek API key (optional)
+#
+# GCP Self-Hosted (highest priority):
+#   - GCP_OLLAMA_URL: URL to GCP-hosted Ollama instance
+#   - GCP_OLLAMA_API_KEY: Optional API key for GCP Ollama
+#   - GCP_LLAMACPP_URL: URL to GCP-hosted llama.cpp instance
+#   - GCP_LLAMACPP_API_KEY: Optional API key for GCP llama.cpp
+#
+# GPU Cloud Providers:
+#   - RUNPOD_API_KEY: RunPod API key
+#   - RUNPOD_ENDPOINT_ID: RunPod serverless endpoint ID
+#   - VASTAI_INSTANCE_URL: Vast.ai instance URL (with vLLM/llama.cpp server)
+#   - VASTAI_API_KEY: Optional API key for Vast.ai instance
+
+[vars]
+# Default target for routing
+DEFAULT_TARGET = "gateway"
+
+# Local-first routing (try GCP/local LLMs before cloud APIs)
+LOCAL_FIRST = "true"
+LOCAL_TIMEOUT_MS = "5000"
+
+# Rate limiting (requests per minute per IP)
+RATE_LIMIT_PER_MINUTE = "100"
+
+# JWT settings (optional - defaults shown)
+# JWT_LEEWAY_SECONDS = "30"
+# JWT_ISSUER = ""
+# JWT_AUDIENCE = ""
+
+# Internal URLs for local LLM instances (dev only)
+# OLLAMA_INTERNAL_URL = "http://localhost:11434"
+# LLAMACPP_INTERNAL_URL = "http://localhost:8080"
+# GATEWAY_INTERNAL_URL = "https://goblin-backend.fly.dev"
+
+# ============================================================================
+# D1 Database (for inference logging)
+# ============================================================================
+[[d1_databases]]
+binding = "DB"
+database_name = "goblin-assistant-db"
+database_id = "your-database-id"  # Replace with actual D1 database ID
+
+# ============================================================================
+# Durable Objects (for rate limiting)
+# ============================================================================
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["RateLimiter"]
+
+# ============================================================================
+# KV Namespace (for caching - optional)
+# ============================================================================
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "your-kv-namespace-id"
+
+# ============================================================================
+# Production Environment
+# ============================================================================
+[env.production]
+name = "goblin-model-gateway"
+routes = [
+  { pattern = "brain.goblin.fuaad.ai/*", zone_name = "fuaad.ai" }
+]
+
+[env.production.vars]
+LOCAL_FIRST = "true"  # Use GCP LLMs first, then cloud APIs
+RATE_LIMIT_PER_MINUTE = "60"
+GATEWAY_INTERNAL_URL = "https://goblin-backend.fly.dev"
+# GCP URLs set via secrets for production
+
+# ============================================================================
+# Development Environment  
+# ============================================================================
+[env.development]
+name = "goblin-model-gateway-dev"
+workers_dev = true
+
+[env.development.vars]
+LOCAL_FIRST = "true"
+LOCAL_TIMEOUT_MS = "10000"
+RATE_LIMIT_PER_MINUTE = "1000"
+OLLAMA_INTERNAL_URL = "http://localhost:11434"
+LLAMACPP_INTERNAL_URL = "http://localhost:8080"

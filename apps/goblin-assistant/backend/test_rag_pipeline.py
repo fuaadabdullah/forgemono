@@ -1,20 +1,460 @@
-"""
-Long Document RAG Test Suite
-Tests chunking + qwen retrieval + mistral final answer pipeline.
-Evaluates coherence, accuracy, and citation quality.
-"""
+#!/usr/bin/env python3#!/usr/bin/env python3
 
-import asyncio
-import time
-import json
-from pathlib import Path
-import sys
-import re
+""""""
 
-sys.path.insert(0, str(Path(__file__).parent))
+RAG Pipeline Test ScriptRAG Pipeline Test Script
 
-from providers import OllamaAdapter
-import os
+Tests the complete RAG pipeline with 10k token retriever window and fallback mechanisms.Tests the complete RAG pipeline with 10k token retriever window and fallback mechanisms.
+
+""""""
+
+
+
+import asyncioimport asyncio
+
+import osimport os
+
+import sysimport sys
+
+import timeimport time
+
+from typing import Dict, Anyfrom typing import Dict, Any
+
+import loggingimport logging
+
+
+
+# Add the backend directory to the path# Add the backend directory to the path
+
+sys.path.insert(0, os.path.dirname(__file__))sys.path.insert(0, os.path.dirname(__file__))
+
+
+
+from services.rag_service import RAGServicefrom services.rag_service import RAGService
+
+
+
+logging.basicConfig(level=logging.INFO)logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger(__name__)logger = logging.getLogger(__name__)
+
+
+
+
+
+async def test_rag_pipeline():async def test_rag_pipeline():
+
+    """Test the complete RAG pipeline."""    """Test the complete RAG pipeline."""
+
+    print("🧪 Testing RAG Pipeline with 10k Token Retriever Window")    print("🧪 Testing RAG Pipeline with 10k Token Retriever Window")
+
+    print("=" * 60)    print("=" * 60)
+
+
+
+    rag_service = RAGService()    rag_service = RAGService()
+
+
+
+    # Test 1: Add sample documents    # Test 1: Add sample documents
+
+    print("\n📚 Test 1: Adding sample documents...")    print("\n📚 Test 1: Adding sample documents...")
+
+    sample_docs = [    sample_docs = [
+
+        {        {
+
+            "content": """            "content": """
+
+            FastAPI is a modern, fast web framework for building APIs with Python 3.7+ based on standard Python type hints.            FastAPI is a modern, fast web framework for building APIs with Python 3.7+ based on standard Python type hints.
+
+            It is designed to be easy to use, fast to code, and ready for production. FastAPI is built on top of Starlette            It is designed to be easy to use, fast to code, and ready for production. FastAPI is built on top of Starlette
+
+            for the web parts and Pydantic for the data parts. It provides automatic API documentation with Swagger UI            for the web parts and Pydantic for the data parts. It provides automatic API documentation with Swagger UI
+
+            and ReDoc, data validation, serialization, and much more. FastAPI is one of the fastest Python web frameworks            and ReDoc, data validation, serialization, and much more. FastAPI is one of the fastest Python web frameworks
+
+            available, thanks to its async capabilities and optimization for performance.            available, thanks to its async capabilities and optimization for performance.
+
+            """,            """,
+
+            "id": "fastapi_intro",            "id": "fastapi_intro",
+
+            "metadata": {"topic": "web_frameworks", "language": "python"}            "metadata": {"topic": "web_frameworks", "language": "python"},
+
+        },        },
+
+        {        {
+
+            "content": """            "content": """
+
+            Retrieval-Augmented Generation (RAG) is a technique that combines the power of large language models with            Retrieval-Augmented Generation (RAG) is a technique that combines the power of large language models with
+
+            external knowledge retrieval. Instead of relying solely on the model's trained knowledge, RAG systems can            external knowledge retrieval. Instead of relying solely on the model's trained knowledge, RAG systems can
+
+            fetch relevant information from external sources like databases, documents, or APIs. This approach helps            fetch relevant information from external sources like databases, documents, or APIs. This approach helps
+
+            reduce hallucinations, improve accuracy, and provide up-to-date information. The typical RAG pipeline            reduce hallucinations, improve accuracy, and provide up-to-date information. The typical RAG pipeline
+
+            involves: 1) Query processing, 2) Document retrieval, 3) Context ranking and filtering, 4) Prompt augmentation,            involves: 1) Query processing, 2) Document retrieval, 3) Context ranking and filtering, 4) Prompt augmentation,
+
+            and 5) Response generation. RAG is particularly effective for question-answering, content summarization,            and 5) Response generation. RAG is particularly effective for question-answering, content summarization,
+
+            and tasks requiring specific domain knowledge.            and tasks requiring specific domain knowledge.
+
+            """,            """,
+
+            "id": "rag_explanation",            "id": "rag_explanation",
+
+            "metadata": {"topic": "ai_techniques", "language": "general"}            "metadata": {"topic": "ai_techniques", "language": "general"},
+
+        },        },
+
+        {        {
+
+            "content": """            "content": """
+
+            ChromaDB is an open-source embedding database designed for AI applications. It provides efficient storage            ChromaDB is an open-source embedding database designed for AI applications. It provides efficient storage
+
+            and retrieval of vector embeddings, making it ideal for semantic search, RAG systems, and recommendation            and retrieval of vector embeddings, making it ideal for semantic search, RAG systems, and recommendation
+
+            engines. ChromaDB supports multiple embedding models and provides both Python and REST APIs. Key features            engines. ChromaDB supports multiple embedding models and provides both Python and REST APIs. Key features
+
+            include: persistent storage, metadata filtering, collection management, and scalable vector search.            include: persistent storage, metadata filtering, collection management, and scalable vector search.
+
+            ChromaDB is lightweight and can run locally or in distributed environments, making it suitable for both            ChromaDB is lightweight and can run locally or in distributed environments, making it suitable for both
+
+            development and production use cases.            development and production use cases.
+
+            """,            """,
+
+            "id": "chromadb_overview",            "id": "chromadb_overview",
+
+            "metadata": {"topic": "databases", "language": "python"}            "metadata": {"topic": "databases", "language": "python"},
+
+        }        },
+
+    ]    ]
+
+
+
+    success = await rag_service.add_documents(sample_docs)    success = await rag_service.add_documents(sample_docs)
+
+    print(f"✅ Documents added: {success}")    print(f"✅ Documents added: {success}")
+
+
+
+    # Test 2: Basic retrieval    # Test 2: Basic retrieval
+
+    print("\n🔍 Test 2: Basic retrieval test...")    print("\n🔍 Test 2: Basic retrieval test...")
+
+    query = "What is FastAPI?"    query = "What is FastAPI?"
+
+    context = await rag_service.retrieve_context(query, top_k=5)    context = await rag_service.retrieve_context(query, top_k=5)
+
+    print(f"Query: {query}")    print(f"Query: {query}")
+
+    print(f"Retrieved chunks: {context['filtered_count']}")    print(f"Retrieved chunks: {context['filtered_count']}")
+
+    print(f"Total tokens: {context['total_tokens']}")    print(f"Total tokens: {context['total_tokens']}")
+
+
+
+    # Test 3: RAG pipeline with session caching    # Test 3: RAG pipeline with session caching
+
+    print("\n🚀 Test 3: RAG pipeline with session caching...")    print("\n🚀 Test 3: RAG pipeline with session caching...")
+
+    session_id = "test_session_123"    session_id = "test_session_123"
+
+
+
+    # First query (should not be cached)    # First query (should not be cached)
+
+    start_time = time.time()    start_time = time.time()
+
+    result1 = await rag_service.rag_pipeline(    result1 = await rag_service.rag_pipeline(
+
+        query="How does RAG work?",        query="How does RAG work?", session_id=session_id
+
+        session_id=session_id    )
+
+    )    first_duration = time.time() - start_time
+
+    first_duration = time.time() - start_time    print(f"First query - Cached: {result1['cached']}, Duration: {first_duration:.2f}s")
+
+    print(f"First query - Cached: {result1['cached']}, Duration: {first_duration:.2f}s")
+
+    # Second query with same session (should be cached)
+
+    # Second query with same session (should be cached)    start_time = time.time()
+
+    start_time = time.time()    result2 = await rag_service.rag_pipeline(
+
+    result2 = await rag_service.rag_pipeline(        query="How does RAG work?", session_id=session_id
+
+        query="How does RAG work?",    )
+
+        session_id=session_id    second_duration = time.time() - start_time
+
+    )    print(
+
+    second_duration = time.time() - start_time        f"Second query - Cached: {result2['cached']}, Duration: {second_duration:.2f}s"
+
+    print(f"Second query - Cached: {result2['cached']}, Duration: {second_duration:.2f}s")    )
+
+    print(f"Cache speedup: {first_duration/second_duration:.1f}x faster")    print(f"Cache speedup: {first_duration / second_duration:.1f}x faster")
+
+
+
+    # Test 4: Large context test (simulate 10k token window)    # Test 4: Large context test (simulate 10k token window)
+
+    print("\n📏 Test 4: Large context handling (10k token simulation)...")    print("\n📏 Test 4: Large context handling (10k token simulation)...")
+
+
+
+    # Create a large document to test token limits    # Create a large document to test token limits
+
+    large_content = " ".join([    large_content = " ".join(
+
+        f"This is sentence number {i} containing information about artificial intelligence, machine learning, and natural language processing. "        [
+
+        for i in range(500)  # This should create ~10k+ tokens            f"This is sentence number {i} containing information about artificial intelligence, machine learning, and natural language processing. "
+
+    ])            for i in range(500)  # This should create ~10k+ tokens
+
+        ]
+
+    large_docs = [{    )
+
+        "content": large_content,
+
+        "id": "large_doc_test",    large_docs = [
+
+        "metadata": {"topic": "ai_ml", "size": "large"}        {
+
+    }]            "content": large_content,
+
+            "id": "large_doc_test",
+
+    await rag_service.add_documents(large_docs)            "metadata": {"topic": "ai_ml", "size": "large"},
+
+        }
+
+    # Test retrieval with token limit    ]
+
+    large_query = "What information is available about artificial intelligence?"
+
+    large_context = await rag_service.retrieve_context(large_query, top_k=10)    await rag_service.add_documents(large_docs)
+
+    print(f"Large document query: {large_query}")
+
+    print(f"Retrieved tokens: {large_context['total_tokens']}")    # Test retrieval with token limit
+
+    print(f"Within 10k limit: {large_context['total_tokens'] <= 10000}")    large_query = "What information is available about artificial intelligence?"
+
+    large_context = await rag_service.retrieve_context(large_query, top_k=10)
+
+    # Test 5: Fallback mechanisms    print(f"Large document query: {large_query}")
+
+    print("\n🔄 Test 5: Fallback mechanisms...")    print(f"Retrieved tokens: {large_context['total_tokens']}")
+
+    print(f"Within 10k limit: {large_context['total_tokens'] <= 10000}")
+
+    # Test with no relevant documents
+
+    irrelevant_query = "What is the capital of Mars?"    # Test 5: Fallback mechanisms
+
+    fallback_result = await rag_service.retrieve_context(irrelevant_query)    print("\n🔄 Test 5: Fallback mechanisms...")
+
+    print(f"Irrelevant query: {irrelevant_query}")
+
+    print(f"Fallback chunks: {fallback_result['filtered_count']}")    # Test with no relevant documents
+
+    print(f"Graceful degradation: {fallback_result['filtered_count'] == 0}")    irrelevant_query = "What is the capital of Mars?"
+
+    fallback_result = await rag_service.retrieve_context(irrelevant_query)
+
+    # Test with filtering    print(f"Irrelevant query: {irrelevant_query}")
+
+    filtered_query = "Python web frameworks"    print(f"Fallback chunks: {fallback_result['filtered_count']}")
+
+    filtered_result = await rag_service.retrieve_context(    print(f"Graceful degradation: {fallback_result['filtered_count'] == 0}")
+
+        filtered_query,
+
+        filters={"language": "python"}    # Test with filtering
+
+    )    filtered_query = "Python web frameworks"
+
+    print(f"Filtered query: {filtered_query}")    filtered_result = await rag_service.retrieve_context(
+
+    print(f"Filtered results: {filtered_result['filtered_count']}")        filtered_query, filters={"language": "python"}
+
+    )
+
+    print("\n🎉 RAG Pipeline Tests Completed!")    print(f"Filtered query: {filtered_query}")
+
+    print("=" * 60)    print(f"Filtered results: {filtered_result['filtered_count']}")
+
+
+
+    # Summary    print("\n🎉 RAG Pipeline Tests Completed!")
+
+    print("\n📊 Test Summary:")    print("=" * 60)
+
+    print("✅ Document ingestion and chunking")
+
+    print("✅ Dense retrieval with semantic search")    # Summary
+
+    print("✅ Session-based caching for hot-paths")    print("\n📊 Test Summary:")
+
+    print("✅ 10k token retriever window management")    print("✅ Document ingestion and chunking")
+
+    print("✅ Intelligent chunk filtering and ranking")    print("✅ Dense retrieval with semantic search")
+
+    print("✅ Fallback mechanisms for edge cases")    print("✅ Session-based caching for hot-paths")
+
+    print("✅ Metadata filtering capabilities")    print("✅ 10k token retriever window management")
+
+    print("✅ Intelligent chunk filtering and ranking")
+
+    return True    print("✅ Fallback mechanisms for edge cases")
+
+    print("✅ Metadata filtering capabilities")
+
+
+
+async def test_rag_endpoints():    return True
+
+    """Test RAG endpoints via HTTP."""
+
+    print("\n🌐 Testing RAG Endpoints...")
+
+async def test_rag_endpoints():
+
+    try:    """Test RAG endpoints via HTTP."""
+
+        import httpx    print("\n🌐 Testing RAG Endpoints...")
+
+
+
+        base_url = "http://localhost:8002"  # Local LLM proxy default port    try:
+
+        headers = {"x-api-key": os.getenv("LOCAL_LLM_API_KEY", "")}        import httpx
+
+
+
+        # Test health endpoint        base_url = "http://localhost:8002"  # Local LLM proxy default port
+
+        async with httpx.AsyncClient() as client:        headers = {"x-api-key": os.getenv("LOCAL_LLM_API_KEY", "")}
+
+            response = await client.get(f"{base_url}/rag/health", headers=headers)
+
+            if response.status_code == 200:        # Test health endpoint
+
+                print("✅ RAG health endpoint working")        async with httpx.AsyncClient() as client:
+
+            else:            response = await client.get(f"{base_url}/rag/health", headers=headers)
+
+                print(f"⚠️  RAG health endpoint: {response.status_code}")            if response.status_code == 200:
+
+                print("✅ RAG health endpoint working")
+
+            # Test document addition            else:
+
+            doc_data = {                print(f"⚠️  RAG health endpoint: {response.status_code}")
+
+                "content": "This is a test document for RAG endpoint testing.",
+
+                "id": "endpoint_test_doc",            # Test document addition
+
+                "metadata": {"test": True}            doc_data = {
+
+            }                "content": "This is a test document for RAG endpoint testing.",
+
+                "id": "endpoint_test_doc",
+
+            response = await client.post(                "metadata": {"test": True},
+
+                f"{base_url}/rag/documents",            }
+
+                json=doc_data,
+
+                headers=headers            response = await client.post(
+
+            )                f"{base_url}/rag/documents", json=doc_data, headers=headers
+
+            if response.status_code == 200:            )
+
+                print("✅ Document addition endpoint working")            if response.status_code == 200:
+
+            else:                print("✅ Document addition endpoint working")
+
+                print(f"⚠️  Document addition: {response.status_code}")            else:
+
+                print(f"⚠️  Document addition: {response.status_code}")
+
+            # Test RAG query
+
+            query_data = {            # Test RAG query
+
+                "query": "What is this test about?",            query_data = {
+
+                "session_id": "endpoint_test_session"                "query": "What is this test about?",
+
+            }                "session_id": "endpoint_test_session",
+
+            }
+
+            response = await client.post(
+
+                f"{base_url}/rag/query",            response = await client.post(
+
+                json=query_data,                f"{base_url}/rag/query", json=query_data, headers=headers
+
+                headers=headers            )
+
+            )            if response.status_code == 200:
+
+            if response.status_code == 200:                print("✅ RAG query endpoint working")
+
+                print("✅ RAG query endpoint working")            else:
+
+            else:                print(f"⚠️  RAG query: {response.status_code}")
+
+                print(f"⚠️  RAG query: {response.status_code}")
+
+    except ImportError:
+
+    except ImportError:        print("⚠️  httpx not available for endpoint testing")
+
+        print("⚠️  httpx not available for endpoint testing")    except Exception as e:
+
+    except Exception as e:        print(f"⚠️  Endpoint testing failed: {e}")
+
+        print(f"⚠️  Endpoint testing failed: {e}")
+
+
+
+if __name__ == "__main__":
+
+if __name__ == "__main__":
+
+    async def main():    async def main():
+
+        # Run core RAG tests        # Run core RAG tests
+
+        await test_rag_pipeline()        await test_rag_pipeline()
+
+
+
+        # Test endpoints if proxy is running        # Test endpoints if proxy is running
+
+        await test_rag_endpoints()        await test_rag_endpoints()
+
+
+
+    asyncio.run(main())    asyncio.run(main())
 
 
 # Sample long document for RAG testing

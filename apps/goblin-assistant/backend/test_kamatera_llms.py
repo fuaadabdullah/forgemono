@@ -8,6 +8,7 @@ import os
 import sys
 from pathlib import Path
 import time
+import tomllib
 
 # Add backend to path
 backend_dir = Path(__file__).parent
@@ -26,6 +27,16 @@ def load_env_direct():
                 if line and not line.startswith("#") and "=" in line:
                     key, value = line.split("=", 1)
                     os.environ[key.strip()] = value.strip()
+
+
+def load_provider_config():
+    """Load provider configuration from providers.toml."""
+    config_path = backend_dir.parent / "config" / "providers.toml"
+    if config_path.exists():
+        with open(config_path, "rb") as f:
+            config = tomllib.load(f)
+        return config.get("providers", {})
+    return {}
 
 
 load_env_direct()
@@ -111,12 +122,20 @@ async def test_ollama_completion():
         api_key = os.getenv("LOCAL_LLM_API_KEY", "your-secure-api-key-here")
         base_url = os.getenv("LOCAL_LLM_PROXY_URL", "http://45.61.60.3:8002")
 
-        adapter = OllamaAdapter(api_key=api_key, base_url=base_url)
+        # Load invoke_path from providers.toml
+        provider_config = load_provider_config()
+        invoke_path = provider_config.get("ollama_kamatera", {}).get(
+            "invoke_path", "/api/chat"
+        )
+
+        adapter = OllamaAdapter(
+            api_key=api_key, base_url=base_url, invoke_path=invoke_path
+        )
 
         print("\nSending test prompt...")
         result = await adapter.test_completion(model="phi3:3.8b", max_tokens=50)
 
-        print(f"\n✅ Completion Test Results:")
+        print("\n✅ Completion Test Results:")
         print(f"  Success: {result.get('success')}")
         print(f"  Response Time: {result.get('response_time_ms'):.2f}ms")
         print(f"  Model: {result.get('model')}")
@@ -205,12 +224,20 @@ async def test_full_conversation():
         api_key = os.getenv("LOCAL_LLM_API_KEY", "your-secure-api-key-here")
         base_url = os.getenv("LOCAL_LLM_PROXY_URL", "http://45.61.60.3:8002")
 
-        adapter = OllamaAdapter(api_key=api_key, base_url=base_url)
+        # Load invoke_path from providers.toml
+        provider_config = load_provider_config()
+        invoke_path = provider_config.get("ollama_kamatera", {}).get(
+            "invoke_path", "/api/chat"
+        )
+
+        adapter = OllamaAdapter(
+            api_key=api_key, base_url=base_url, invoke_path=invoke_path
+        )
 
         print("\nPrompt: What are the key features of FastAPI?")
         result = await adapter.test_completion(model="qwen2.5:3b", max_tokens=100)
 
-        print(f"\n✅ Conversation Test:")
+        print("\n✅ Conversation Test:")
         print(f"  Success: {result.get('success')}")
         print(f"  Response Time: {result.get('response_time_ms'):.2f}ms")
         print(f"  Model: {result.get('model')}")

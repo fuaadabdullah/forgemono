@@ -10,30 +10,30 @@ All guilds report to **Overmind**. Guild masters are the first line of escalatio
 
 ## Guild Tool Ownership Matrix
 
-| Tool | Purpose / When to Run | Guild | Primary Goblin |
-| --- | --- | --- | --- |
-| `pnpm forge-guild <command>` | Core forge automation (doctor/check/biome/deps/secrets) | Forge | Dregg Embercode |
-| `pnpm -C GoblinOS crafters-guild <command>` | Unified UI/backend command surface (guard, deploy, maintain) | Crafters | Vanta Lumin / Volt Furnace |
-| `pnpm -C GoblinOS huntress-guild <command>` | Smoke probes and signal-scouting orchestration | Huntress | Magnolia Nightbloom |
-| `pnpm -C GoblinOS keepers-guild <command>` | Secrets, compliance, and storage hygiene playbooks | Keepers | Sentenial Ledgerwarden |
-| `pnpm -C GoblinOS mages-guild <command>` | Quality gate + vault validation automation | Mages | Launcey Gauge / Hex Oracle |
-| `tools/scripts/kill-port.sh <port>` | Break-glass: clear hung dev servers fast | Forge | Dregg Embercode |
-| `backend/scripts/config_backend.sh` | Update/manage ForgeTM backend `.env` values | Crafters | Volt Furnace |
-| `backend/scripts/deploy_backend.sh [local|docker]` | Deploy ForgeTM backend with env checks & migrations | Crafters | Volt Furnace |
-| `backend/scripts/maintain_backend.sh <task>` | Backups, migrations, cache/log cleanup for backend | Crafters | Volt Furnace |
-| `tools/scripts/ensure-pnpm.sh` | Frontend guard: verify pnpm present before builds | Crafters | Vanta Lumin |
-| `tools/smoke.sh` | Kubecost / platform smoke probe | Huntress | Magnolia Nightbloom |
-| `tools/lint_all.sh` | Monorepo lint umbrella (Biome, mypy, security) | Mages | Launcey Gauge |
-| `tools/validate_forge_vault.sh` | Obsidian vault sanity (dashboards, templates) | Mages | Hex Oracle |
-| `tools/api_keys_check.sh` | Ensure `.env.example` + docs list required secrets | Keepers | Sentenial Ledgerwarden |
-| `tools/security_check.sh` | Verify Trivy/Cosign/SOPS tooling & scan Dockerfiles | Keepers | Sentenial Ledgerwarden |
-| `tools/secrets_manage.sh` | Smithy secret handling playbook | Keepers | Sentenial Ledgerwarden |
-| `tools/disk_consolidation.sh` | Backup + disk resize checklist | Keepers | Sentenial Ledgerwarden |
-| `tools/space_saver.sh` | Archive heavy caches / venvs to external storage | Keepers | Sentenial Ledgerwarden |
-| `tools/system_clean.sh` | System-level cache purge with archival safety | Keepers | Sentenial Ledgerwarden |
-| `tools/storage_cleanup.sh` | Lightweight weekly cache cleanup | Keepers | Sentenial Ledgerwarden |
-| `tools/mac-undervolt.sh` | Safe temporary CPU undervolting for Intel Macs (requires VoltageShift) | Keepers | Sentenial Ledgerwarden |
-| `tools/setup-voltageshift.sh` | Downloads and builds VoltageShift for mac-undervolt.sh | Keepers | Sentenial Ledgerwarden |
+ | Tool | Purpose / When to Run | Guild | Primary Goblin | 
+ | --- | --- | --- | --- | 
+ | `pnpm forge-guild <command>` | Core forge automation (doctor/check/biome/deps/secrets) | Forge | Dregg Embercode | 
+ | `pnpm -C GoblinOS crafters-guild <command>` | Unified UI/backend command surface (guard, deploy, maintain) | Crafters | Vanta Lumin / Volt Furnace | 
+ | `pnpm -C GoblinOS huntress-guild <command>` | Smoke probes and signal-scouting orchestration | Huntress | Magnolia Nightbloom | 
+ | `pnpm -C GoblinOS keepers-guild <command>` | Secrets, compliance, and storage hygiene playbooks | Keepers | Sentenial Ledgerwarden | 
+ | `pnpm -C GoblinOS mages-guild <command>` | Quality gate + vault validation automation | Mages | Launcey Gauge / Hex Oracle | 
+ | `tools/scripts/kill-port.sh <port>` | Break-glass: clear hung dev servers fast | Forge | Dregg Embercode | 
+ | `backend/scripts/config_backend.sh` | Update/manage ForgeTM backend `.env` values | Crafters | Volt Furnace | 
+ | `backend/scripts/deploy_backend.sh [local | docker]` | Deploy ForgeTM backend with env checks & migrations | Crafters | Volt Furnace | 
+ | `backend/scripts/maintain_backend.sh <task>` | Backups, migrations, cache/log cleanup for backend | Crafters | Volt Furnace | 
+ | `tools/scripts/ensure-pnpm.sh` | Frontend guard: verify pnpm present before builds | Crafters | Vanta Lumin | 
+ | `tools/smoke.sh` | Kubecost / platform smoke probe | Huntress | Magnolia Nightbloom | 
+ | `tools/lint_all.sh` | Monorepo lint umbrella (Biome, mypy, security) | Mages | Launcey Gauge | 
+ | `tools/validate_forge_vault.sh` | Obsidian vault sanity (dashboards, templates) | Mages | Hex Oracle | 
+ | `tools/api_keys_check.sh` | Ensure `.env.example` + docs list required secrets | Keepers | Sentenial Ledgerwarden | 
+ | `tools/security_check.sh` | Verify Trivy/Cosign/SOPS tooling & scan Dockerfiles | Keepers | Sentenial Ledgerwarden | 
+ | `tools/secrets_manage.sh` | Smithy secret handling playbook | Keepers | Sentenial Ledgerwarden | 
+ | `tools/disk_consolidation.sh` | Backup + disk resize checklist | Keepers | Sentenial Ledgerwarden | 
+ | `tools/space_saver.sh` | Archive heavy caches / venvs to external storage | Keepers | Sentenial Ledgerwarden | 
+ | `tools/system_clean.sh` | System-level cache purge with archival safety | Keepers | Sentenial Ledgerwarden | 
+ | `tools/storage_cleanup.sh` | Lightweight weekly cache cleanup | Keepers | Sentenial Ledgerwarden | 
+ | `tools/mac-undervolt.sh` | Safe temporary CPU undervolting for Intel Macs (requires VoltageShift) | Keepers | Sentenial Ledgerwarden | 
+ | `tools/setup-voltageshift.sh` | Downloads and builds VoltageShift for mac-undervolt.sh | Keepers | Sentenial Ledgerwarden | 
 
 ## Forge Guild – Dregg Embercode
 
@@ -41,8 +41,8 @@ Run from repo root unless noted.
 
 - `pnpm forge-guild doctor` — environment diagnostics
 - `pnpm forge-guild check` — Biome auto‑fix (write/unsafe) + clean pass + `pip check`
-- `pnpm forge-guild biome-check|fix|format|imports` — code hygiene in `GoblinOS/`
-- `pnpm forge-guild deps update|resolve|audit|sync` — Python deps for `ForgeTM/apps/backend`
+- `pnpm forge-guild biome-check | fix | format | imports` — code hygiene in `GoblinOS/`
+- `pnpm forge-guild deps update | resolve | audit | sync` — Python deps for `ForgeTM/apps/backend`
 - `pnpm forge-guild secrets …` — secret ops (delegates to Python automation)
 
 Environment
@@ -56,8 +56,8 @@ Environment
 - **Vanta Lumin (frontend)**: `tools/scripts/ensure-pnpm.sh` guards UI builds; pair with Biome commands above for styling.
 - **Volt Furnace (backend sockets/schemas)**:
   - `backend/scripts/config_backend.sh` — edit & validate ForgeTM backend configuration
-  - `backend/scripts/deploy_backend.sh [local|docker]` — provision app, migrations, Docker workflow refresh
-  - `backend/scripts/maintain_backend.sh <db_backup|db_migrate|cleanup_cache|...>` — lifecycle/backup utilities
+  - `backend/scripts/deploy_backend.sh [local | docker]` — provision app, migrations, Docker workflow refresh
+  - `backend/scripts/maintain_backend.sh <db_backup | db_migrate | cleanup_cache | ...>` — lifecycle/backup utilities
 
 ## Huntress Guild – Magnolia Nightbloom
 
@@ -86,13 +86,13 @@ pnpm -C GoblinOS/packages/goblins/overmind/dashboard dev
 # .env.local
 VITE_API_URL=http://127.0.0.1:8000
 VITE_GOBLINS_CONFIG=../../../../goblins.yaml
-```
+```yaml
 
 Routes: `/forge`, `/crafters`, `/huntress`, `/keepers`, `/mages`.
 
 ## Bridge / Service Endpoints
 
-- Forge Guild Admin via bridge (dev): `POST http://localhost:3030/forge-guild/{doctor|bootstrap|sync-config|check}`
+- Forge Guild Admin via bridge (dev): `POST http://localhost:3030/forge-guild/{doctor | bootstrap | sync-config | check}`
 - Router audit: `POST /v1/router-audit`, `GET /v1/router-audit`
 
 ## Model Routing (LiteBrain)

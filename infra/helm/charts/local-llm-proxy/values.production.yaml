@@ -1,0 +1,35 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/goblinos/local-llm-proxy
+  tag: "prod"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8002
+
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+
+env:
+  OLLAMA_BASE_URL: "http://ollama-gpu:11434"
+  LLAMACPP_BASE_URL: "http://llamacpp:8080"
+  LOCAL_LLM_API_KEY: "__SET_VIA_SECRET__"
+  METRICS_ENABLED: "true"
+
+serviceMonitor:
+  enabled: true
+  path: "/metrics"
+  interval: "30s"
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
