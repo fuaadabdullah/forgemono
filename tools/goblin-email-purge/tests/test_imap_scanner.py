@@ -51,3 +51,44 @@ def test_scan_detects_provider_and_list_unsubscribe(monkeypatch):
         if isinstance(m.get("list_unsubscribe"), list)
         else [m.get("list_unsubscribe")]
     )
+
+
+def test_scan_uses_environment_username_when_config_omits_identity(monkeypatch):
+    """Public config must not need a committed personal email address."""
+    monkeypatch.setenv("GMAIL_USERNAME", "mailbox@example.invalid")
+    header = b"Subject: Welcome to Tinder\r\nFrom: no-reply@tinder.com\r\n\r\n"
+    logged_in = []
+
+    class IdentityCheckingIMAP(FakeIMAP):
+        def login(self, username, password):
+            logged_in.append((username, password))
+            return "OK"
+
+    monkeypatch.setattr("imaplib.IMAP4_SSL", lambda host, port: IdentityCheckingIMAP(header))
+    matches = scan_inbox_for_matches({
+        "imap": {
+            "host": "imap.example",
+            "username": "",
+            "password": "pw",
+            "mailbox": "INBOX",
+        }
+    })
+    assert logged_in == [("mailbox@example.invalid", "pw")]
+    assert len(matches) == 1
+
+
+def test_environment_username_overrides_committed_config(monkeypatch):
+    monkeypatch.setenv("GMAIL_USERNAME", "current@example.invalid")
+    header = b"Subject: Welcome to Tinder\r\nFrom: no-reply@tinder.com\r\n\r\n"
+    logged_in = []
+
+    class IdentityCheckingIMAP(FakeIMAP):
+        def login(self, username, password):
+            logged_in.append(username)
+            return "OK"
+
+    monkeypatch.setattr("imaplib.IMAP4_SSL", lambda host, port: IdentityCheckingIMAP(header))
+    scan_inbox_for_matches({
+        "imap": {"host": "imap.example", "username": "old@example.invalid", "password": "pw"}
+    })
+    assert logged_in == ["current@example.invalid"]
