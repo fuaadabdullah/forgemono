@@ -7,11 +7,11 @@ import email
 # Test IMAP connection
 host = "imap.gmail.com"
 port = 993
-username = "fuaadabdullah@gmail.com"
+username = os.environ.get("GMAIL_USERNAME")
 password = os.environ.get("GMAIL_APP_PW")
 
-if not password:
-    print("GMAIL_APP_PW not set")
+if not username or not password:
+    print("Set GMAIL_USERNAME and GMAIL_APP_PW in your environment")
     sys.exit(1)
 
 try:
