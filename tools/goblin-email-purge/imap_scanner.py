@@ -40,7 +40,7 @@ def scan_inbox_for_matches(cfg: dict):
     imap_cfg = cfg.get("imap", {})
     host = imap_cfg.get("host")
     port = imap_cfg.get("port", 993)
-    username = imap_cfg.get("username")
+    username = os.environ.get("GMAIL_USERNAME") or imap_cfg.get("username")
     pw_env = imap_cfg.get("password_env_var")
     password = os.environ.get(pw_env) if pw_env else imap_cfg.get("password")
     mailbox = imap_cfg.get("mailbox", "INBOX")
