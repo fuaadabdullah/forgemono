@@ -4,7 +4,7 @@
 imap:
   host: imap.gmail.com
   port: 993
-  username: fuaadabdullah@gmail.com
+  username: "" # Prefer GMAIL_USERNAME environment variable; never commit a real address
   # Use app password or OAuth for Gmail. App passwords are easier for IMAP.
   password_env_var: GMAIL_APP_PW
   mailbox: INBOX
@@ -21,7 +21,7 @@ providers:
 
 # Dry run mode by default; set to false to allow destructive actions
 options:
-  dry_run: false
+  dry_run: true
   verbose: false
 
 output:
